@@ -18,6 +18,31 @@ async function transferIdentity() {
 }
 
 describe('target-bound transfer crypto', () => {
+  it.each(['recipient_key_only', 'passphrase_and_recipient_key'] as const)(
+    'akzeptiert andere JSON-Feldreihenfolge ohne Integritätsverlust (%s)', async (protectionMode) => {
+      const target = await transferIdentity();
+      try {
+        const envelope = encryptTargetBoundTransferPayload({
+          format: 'gremia-sbv-test-transfer', version: 1, packageId: 'reordered',
+          createdAt: '2026-09-22T08:00:00.000Z', payloadText: 'Änderung bleibt unverändert.',
+          passphrase: 'Test-Passphrase für Feldreihenfolge', recipient: target.publicIdentity, protectionMode,
+        });
+        const reordered = JSON.parse(JSON.stringify(envelope));
+        reordered.recipientBinding = Object.fromEntries(Object.entries(envelope.recipientBinding).reverse());
+        const expected = { format: envelope.format, version: envelope.version };
+        expect(decryptTargetBoundTransferPayload(
+          reordered, 'Test-Passphrase für Feldreihenfolge', target.privateIdentity, expected,
+        ).payloadText).toBe('Änderung bleibt unverändert.');
+        reordered.recipientBinding.ephemeralPublicKeyPem = target.publicIdentity.publicKeyPem;
+        expect(() => decryptTargetBoundTransferPayload(
+          reordered, 'Test-Passphrase für Feldreihenfolge', target.privateIdentity, expected,
+        )).toThrow();
+      } finally {
+        target.db.close();
+      }
+    },
+  );
+
   it('entschlüsselt nur auf der adressierten Zielinstanz mit passender Passphrase', async () => {
     const sourceTarget = await transferIdentity();
     const wrongTarget = await transferIdentity();

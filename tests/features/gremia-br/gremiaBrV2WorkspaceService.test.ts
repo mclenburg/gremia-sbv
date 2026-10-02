@@ -51,7 +51,7 @@ describe('Gremia.BR 2.0 SBV-Arbeitsbereich', () => {
       return jsonResponse({ message: 'not found' }, 404);
     };
 
-    const bodies = await new GremiaBrV2WorkspaceService(new GremiaBrAuthService(new MemorySettings(), fetch)).listSbvWorkspaceBodies();
+    const bodies = await new GremiaBrV2WorkspaceService(new GremiaBrAuthService(new MemorySettings(), fetch, () => ({ append: () => undefined }))).listSbvWorkspaceBodies();
 
     expect(bodies).toEqual([{
       bodyId: 'sbv-body',

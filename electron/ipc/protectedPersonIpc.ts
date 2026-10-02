@@ -22,7 +22,6 @@ export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityS
     persons().create(assertRecordInput<CreateProtectedPersonInput>(input, 'persons:create')),
   );
 
-
   registerIpcHandler(ipcMain, IPC_CHANNELS.personsCreateAnonymousRequest, async (_event, label?: unknown) =>
     persons().createAnonymousRequest(typeof label === 'string' ? label : undefined),
   );
@@ -30,9 +29,9 @@ export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityS
   registerIpcHandler(ipcMain, IPC_CHANNELS.personsUpdate, async (_event, id: unknown, input: unknown) => {
     const checkedId = assertString(id, 'persons:update', 'Person-ID', { minLength: 1, maxLength: 120 });
     const checkedInput = assertRecordInput<UpdateProtectedPersonInput>(input, 'persons:update');
-    const service = persons();
-    const before = service.get(checkedId);
+    const service = persons(), before = service.get(checkedId);
     const updated = service.update(checkedId, checkedInput);
+    if (before?.statusValidUntil !== updated.statusValidUntil) expiry().evaluate();
     if (before?.employmentState !== 'left_company' && updated.employmentState === 'left_company') {
       privacyReviews().markLinkedCasesForPerson(updated.id, 'employment_ended');
     }

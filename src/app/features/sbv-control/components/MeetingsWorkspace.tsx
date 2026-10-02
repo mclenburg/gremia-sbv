@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { IndustrialButton, ToolbarButton } from '../../../shared/components/IndustrialButton';
 import { CheckboxField, DateInput, DateTimeInput, SearchableSelectInput, SearchInput, SelectInput, TextareaInput, TextInput } from '../../../shared/components/IndustrialForm';
@@ -138,8 +138,10 @@ export function pageMeetings(records: SbvMeetingRecord[], page: number, pageSize
   return records.slice(start, start + pageSize);
 }
 
-export function MeetingsWorkspace({ records, onCreate, onAgenda, onAgendaFollowUp, onJournal }: {
+export function MeetingsWorkspace({ records, targetAgendaId, targetSourceEvent, onCreate, onAgenda, onAgendaFollowUp, onJournal }: {
   records: SbvMeetingRecord[];
+  targetAgendaId?: string;
+  targetSourceEvent?: string;
   onCreate: (input: CreateSbvMeetingInput) => Promise<SbvMeetingRecord>;
   onAgenda: (id: string, input: UpsertSbvMeetingAgendaInput) => Promise<SbvMeetingAgendaItemRecord>;
   onAgendaFollowUp: (agendaId: string, dueAt: string) => Promise<void>;
@@ -154,6 +156,7 @@ export function MeetingsWorkspace({ records, onCreate, onAgenda, onAgendaFollowU
   const [selectedAgendaId, setSelectedAgendaId] = useState('');
   const [meetingFilter, setMeetingFilter] = useState('');
   const [meetingPage, setMeetingPage] = useState(1);
+  const appliedTargetRef = useRef<string | undefined>(undefined);
   const meetingPageSize = 5;
   const filteredMeetings = useMemo(() => filterMeetings(records, meetingFilter), [records, meetingFilter]);
   const pageCount = meetingPageCount(filteredMeetings.length, meetingPageSize);
@@ -166,6 +169,18 @@ export function MeetingsWorkspace({ records, onCreate, onAgenda, onAgendaFollowU
   useEffect(() => {
     if (meetingPage !== normalizedPage) setMeetingPage(normalizedPage);
   }, [meetingPage, normalizedPage]);
+
+  useEffect(() => {
+    if (!targetAgendaId || appliedTargetRef.current === targetAgendaId) return;
+    const meeting = records.find((record) => record.agenda.some((item) => item.id === targetAgendaId));
+    if (!meeting) return;
+    appliedTargetRef.current = targetAgendaId;
+    const position = filterMeetings(records, '').findIndex((record) => record.id === meeting.id);
+    setMeetingFilter('');
+    setMeetingPage(Math.floor(position / meetingPageSize) + 1);
+    setSelectedMeetingId(meeting.id);
+    setSelectedAgendaId(targetAgendaId);
+  }, [records, targetAgendaId]);
 
   async function journal(activity: JournalActivity) {
     if (!current) return;
@@ -225,15 +240,16 @@ export function MeetingsWorkspace({ records, onCreate, onAgenda, onAgendaFollowU
           <CheckboxField label="SBV-relevant" checked={newAgendaRelevant} onCheckedChange={setNewAgendaRelevant} />
         </div>
         <div className="industrial-action-row sbv-control-action-row"><IndustrialButton onClick={async () => { const createdAgenda = await onAgenda(current.id, { title: newAgendaTitle, sbvRelevance: newAgendaRelevant, referenceScope: 'none', requestedBySbv: false, significantImpairment: false, nonParticipation: false }); setNewAgendaTitle(''); setSelectedAgendaId(createdAgenda.id); }} disabled={!newAgendaTitle.trim()}>TOP hinzufügen</IndustrialButton></div>
-        {agenda ? <AgendaEditor meetingId={current.id} agenda={agenda} onAgenda={onAgenda} onAgendaFollowUp={onAgendaFollowUp} onJournal={journal} /> : null}
+        {agenda ? <AgendaEditor meetingId={current.id} agenda={agenda} targetSourceEvent={agenda.id === targetAgendaId ? targetSourceEvent : undefined} onAgenda={onAgenda} onAgendaFollowUp={onAgendaFollowUp} onJournal={journal} /> : null}
       </section> : null}
     </SbvControlPanel>
   );
 }
 
-function AgendaEditor({ meetingId, agenda, onAgenda, onAgendaFollowUp, onJournal }: {
+function AgendaEditor({ meetingId, agenda, targetSourceEvent, onAgenda, onAgendaFollowUp, onJournal }: {
   meetingId: string;
   agenda: SbvMeetingAgendaItemRecord;
+  targetSourceEvent?: string;
   onAgenda: (id: string, input: UpsertSbvMeetingAgendaInput) => Promise<SbvMeetingAgendaItemRecord>;
   onAgendaFollowUp: (agendaId: string, dueAt: string) => Promise<void>;
   onJournal: (activity: JournalActivity) => Promise<void>;
@@ -250,6 +266,14 @@ function AgendaEditor({ meetingId, agenda, onAgenda, onAgendaFollowUp, onJournal
   const [impairmentAssessment, setImpairmentAssessment] = useState(agenda.impairmentAssessment ?? '');
   const [significantImpairment, setSignificantImpairment] = useState(agenda.significantImpairment);
   const [nonParticipation, setNonParticipation] = useState(agenda.nonParticipation);
+  const requestHeadingRef = useRef<HTMLHeadingElement>(null);
+  const resolutionHeadingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    if (!targetSourceEvent) return;
+    const heading = targetSourceEvent === 'Beschlussfassung' ? resolutionHeadingRef : requestHeadingRef;
+    requestAnimationFrame(() => heading.current?.focus());
+  }, [agenda.id, targetSourceEvent]);
 
   useEffect(() => {
     setPosition(String(agenda.position)); setReferenceScope(agenda.referenceScope ?? 'none'); setDocumentsStatus(agenda.documentsStatus ?? ''); setOwnPosition(agenda.ownPosition ?? '');
@@ -292,7 +316,7 @@ function AgendaEditor({ meetingId, agenda, onAgenda, onAgendaFollowUp, onJournal
 
     <section className="sbv-control-section sbv-agenda-section" aria-labelledby={`agenda-${agenda.id}-request`}>
       <div className="sbv-control-section-heading sbv-control-section-heading-with-actions">
-        <div><h3 id={`agenda-${agenda.id}-request`}>TOP-Antrag & Reaktion</h3><p>Eigener Antrag der SBV, Reaktion des Gremiums und optionale Wiedervorlage.</p></div>
+        <div><h3 id={`agenda-${agenda.id}-request`} ref={requestHeadingRef} tabIndex={-1}>TOP-Antrag & Reaktion</h3><p>Eigener Antrag der SBV, Reaktion des Gremiums und optionale Wiedervorlage.</p></div>
         <div className="industrial-action-row"><IndustrialButton variant="secondary" onClick={async () => { await onAgenda(meetingId, { ...commonInput(), requestedBySbv: true, requestAt: agenda.requestAt ?? new Date().toISOString(), requestContent: requestContent || agenda.title }); await onJournal('top_request'); }}>TOP-Antrag dokumentieren</IndustrialButton></div>
       </div>
       <div className="industrial-form-grid two-columns">
@@ -307,7 +331,7 @@ function AgendaEditor({ meetingId, agenda, onAgenda, onAgendaFollowUp, onJournal
 
     <section className="sbv-control-section sbv-agenda-section" aria-labelledby={`agenda-${agenda.id}-resolution`}>
       <div className="sbv-control-section-heading sbv-control-section-heading-with-actions">
-        <div><h3 id={`agenda-${agenda.id}-resolution`}>Beschlussbeobachtung & Aussetzung</h3><p>SBV-Eigenaufzeichnung zum Ergebnis und zu möglichen Beteiligungsproblemen.</p></div>
+        <div><h3 id={`agenda-${agenda.id}-resolution`} ref={resolutionHeadingRef} tabIndex={-1}>Beschlussbeobachtung & Aussetzung</h3><p>SBV-Eigenaufzeichnung zum Ergebnis und zu möglichen Beteiligungsproblemen.</p></div>
         <div className="industrial-action-row">
           <IndustrialButton variant="secondary" onClick={() => onAgenda(meetingId, commonInput())}>Beschlussbeobachtung speichern</IndustrialButton>
           <IndustrialButton variant="secondary" disabled={!suspensionAvailable || Boolean(agenda.suspensionRequestedAt)} onClick={async () => { await onAgenda(meetingId, { ...commonInput(), suspensionRequestedAt: new Date().toISOString() }); await onJournal('suspension'); }}>Aussetzung dokumentieren</IndustrialButton>

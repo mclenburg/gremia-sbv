@@ -104,8 +104,114 @@ describe('Fristenpanel Verhalten 0.9.2', () => {
       kind: 'case',
       target: { caseId: 'case-1', nodeType: 'participation', nodeId: 'measure-1' },
     });
-    expect(resolveDeadlineContextInfo(freeDeadline).actionLabel).toBe('Fristenregister öffnen');
-    expect(resolveDeadlineOpenTarget(freeDeadline)).toEqual({ kind: 'view', view: 'deadlines' });
+    expect(resolveDeadlineContextInfo(freeDeadline).actionLabel).toBe('Frist öffnen');
+    expect(resolveDeadlineOpenTarget(freeDeadline)).toEqual({ kind: 'deadline', deadlineId: 'deadline-free' });
+  });
+
+  it('öffnet Journal-Wiedervorlagen beim konkreten Journaleintrag', () => {
+    const journalDeadline = deadline({ caseId: 'case-1', processType: 'activity_journal', processId: 'journal-1' });
+    expect(resolveDeadlineOpenTarget(journalDeadline)).toEqual({
+      kind: 'record', view: 'activity_journal', recordId: 'journal-1', sourceEvent: undefined,
+    });
+    expect(resolveDeadlineContextInfo(journalDeadline).actionLabel).toBe('Journaleintrag öffnen');
+  });
+
+  it('öffnet Protokoll-Wiedervorlagen beim konkreten SBV-Protokoll', () => {
+    const protocolDeadline = deadline({ caseId: undefined, processType: 'sbv_control_protocol', processId: 'protocol-1' });
+    expect(resolveDeadlineOpenTarget(protocolDeadline)).toEqual({
+      kind: 'record', view: 'sbv_control', recordId: 'protocol-1', processType: 'sbv_control_protocol', sourceEvent: undefined,
+    });
+    expect(resolveDeadlineContextInfo(protocolDeadline).actionLabel).toBe('Protokoll öffnen');
+  });
+
+  it('öffnet Arbeitgeberpflicht-Wiedervorlagen beim konkreten Prüfvorgang', () => {
+    const reviewDeadline = deadline({ caseId: undefined, processType: 'employer_obligation_review', processId: 'review-1' });
+    expect(resolveDeadlineOpenTarget(reviewDeadline)).toEqual({
+      kind: 'record', view: 'sbv_control', recordId: 'review-1', processType: 'employer_obligation_review', sourceEvent: undefined,
+    });
+    expect(resolveDeadlineContextInfo(reviewDeadline).actionLabel).toBe('Prüfvorgang öffnen');
+  });
+
+  it('öffnet Inklusionsvereinbarungs-Wiedervorlagen bei der konkreten Verhandlungsakte', () => {
+    const agreementDeadline = deadline({ caseId: undefined, processType: 'inclusion_agreement', processId: 'agreement-1', sourceEvent: 'inclusion_agreement_review' });
+    expect(resolveDeadlineOpenTarget(agreementDeadline)).toEqual({
+      kind: 'record', view: 'sbv_control', recordId: 'agreement-1', processType: 'inclusion_agreement', sourceEvent: 'inclusion_agreement_review',
+    });
+    expect(resolveDeadlineContextInfo(agreementDeadline).actionLabel).toBe('Verhandlungsakte öffnen');
+  });
+
+  it('öffnet Versammlungs-Wiedervorlagen bei der konkreten Jahresversammlung', () => {
+    const assemblyDeadline = deadline({ caseId: undefined, processType: 'sbv_assembly', processId: 'assembly-2024', sourceEvent: 'sbv_assembly_follow_up' });
+    expect(resolveDeadlineOpenTarget(assemblyDeadline)).toEqual({
+      kind: 'record', view: 'sbv_control', recordId: 'assembly-2024', processType: 'sbv_assembly', sourceEvent: 'sbv_assembly_follow_up',
+    });
+    expect(resolveDeadlineContextInfo(assemblyDeadline).actionLabel).toBe('Versammlung öffnen');
+  });
+
+  it('öffnet Sitzungsfristen beim konkreten Tagesordnungspunkt', () => {
+    const agendaDeadline = deadline({ caseId: undefined, processType: 'sbv_meeting', processId: 'agenda-2', sourceEvent: 'Beschlussfassung' });
+    expect(resolveDeadlineOpenTarget(agendaDeadline)).toEqual({
+      kind: 'record', view: 'meetings', recordId: 'agenda-2', processType: 'sbv_meeting', sourceEvent: 'Beschlussfassung',
+    });
+    expect(resolveDeadlineContextInfo(agendaDeadline).actionLabel).toBe('Tagesordnungspunkt öffnen');
+  });
+
+  it('öffnet Fristen ohne auflösbare Quellakte direkt am Fristdatensatz', () => {
+    const manualCaseDeadline = deadline({ id: 'manual-case-deadline', caseId: 'case-1', processType: 'case', processId: undefined });
+    const missingMeasureDeadline = deadline({ id: 'missing-measure-deadline', caseId: 'case-1', measureId: 'missing-measure', processType: 'custom' });
+    const unlinkedWorkflowDeadline = deadline({ id: 'unlinked-workflow-deadline', caseId: undefined, processType: 'sbv_meeting', processId: undefined });
+    for (const record of [manualCaseDeadline, missingMeasureDeadline, unlinkedWorkflowDeadline]) {
+      expect(resolveDeadlineOpenTarget(record)).toEqual({ kind: 'deadline', deadlineId: record.id });
+      expect(resolveDeadlineContextInfo(record, new Map([[caseRecord().id, caseRecord()]])).actionLabel).toBe('Frist öffnen');
+    }
+  });
+
+  it('öffnet eine fallbezogene Verstoß-Wiedervorlage beim Verstoß statt in der Fallübersicht', () => {
+    const violationDeadline = deadline({
+      caseId: 'case-1', processType: 'sbv_participation_violation', processId: 'violation-1',
+      sourceEvent: 'sbv_participation_violation.follow_up',
+    });
+    expect(resolveDeadlineOpenTarget(violationDeadline)).toEqual({
+      kind: 'record', view: 'participation_violations', recordId: 'violation-1',
+      sourceEvent: 'sbv_participation_violation.follow_up',
+    });
+    expect(resolveDeadlineContextInfo(violationDeadline).actionLabel).toBe('Beteiligungsverstoß öffnen');
+  });
+
+  it('öffnet bei Statusablauffristen die konkret betroffene Person', () => {
+    const statusDeadline = deadline({
+      processType: 'custom',
+      processId: 'person-123',
+      sourceEvent: 'protected_person.status_expiry_warning',
+    });
+
+    expect(resolveDeadlineContextInfo(statusDeadline).actionLabel).toBe('Person öffnen');
+    expect(resolveDeadlineOpenTarget(statusDeadline)).toEqual({ kind: 'person', personId: 'person-123' });
+  });
+
+  it('öffnet automatisch erzeugte Maßnahmenfristen direkt in der betroffenen Maßnahme', () => {
+    const measuresById = new Map([
+      ['participation-1', measure({ id: 'participation-1', type: 'sbv_participation' })],
+      ['workplace-1', measure({ id: 'workplace-1', type: 'workplace_accommodation' })],
+    ]);
+    const participationDeadline = deadline({ caseId: 'case-1', processType: 'custom', processId: 'participation-1', sourceEvent: 'case_measure_participation_created' });
+    const workplaceDeadline = deadline({ caseId: 'case-1', processType: 'custom', processId: 'workplace-1', sourceEvent: 'case_measure_workplace_accommodation_created' });
+
+    expect(resolveDeadlineOpenTarget(participationDeadline, measuresById)).toEqual({
+      kind: 'case', target: { caseId: 'case-1', nodeType: 'participation', nodeId: 'participation-1' },
+    });
+    expect(resolveDeadlineOpenTarget(workplaceDeadline, measuresById)).toEqual({
+      kind: 'case', target: { caseId: 'case-1', nodeType: 'workplace_accommodation', nodeId: 'workplace-1' },
+    });
+  });
+
+  it('trägt den konkreten Vorgang bei Stellenbesetzung und Wahl weiter', () => {
+    expect(resolveDeadlineOpenTarget(deadline({ processType: 'recruiting_participation', processId: 'recruiting-2' }))).toEqual({
+      kind: 'record', view: 'recruiting_participations', recordId: 'recruiting-2', sourceEvent: undefined,
+    });
+    expect(resolveDeadlineOpenTarget(deadline({ processType: 'election', processId: 'election-3', sourceEvent: 'formal.proposal.submit' }))).toEqual({
+      kind: 'record', view: 'elections', recordId: 'election-3', sourceEvent: 'formal.proposal.submit',
+    });
   });
 
   it('trennt Erfassung und Export in zentrale Modal-Komponenten', () => {

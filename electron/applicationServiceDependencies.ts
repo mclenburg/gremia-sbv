@@ -23,6 +23,8 @@ export { GremiaBrExternalReferenceService } from '../services/gremiaBr/gremiaBrE
 export { GremiaBrSettingsService } from '../services/gremiaBr/gremiaBrSettingsService.js';
 export { GremiaBrWorkspaceActionService } from '../services/gremiaBr/gremiaBrWorkspaceActionService.js';
 export { KnowledgeService } from '../services/knowledgeService.js';
+export { MobileCompanionService } from '../services/mobileCompanionService.js';
+export { MobileCompanionReturnService } from '../services/mobileCompanionReturnService.js';
 export { ParticipationService } from '../services/participationService.js';
 export { PersonAnonymizationService } from '../services/personAnonymizationService.js';
 export { PersonImportService } from '../services/personImportService.js';

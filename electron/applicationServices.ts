@@ -1,4 +1,4 @@
-import { ActivityJournalPreferenceService, ActivityJournalService, PersonalDataAuditLogService, MeasureLifecycleAuditService, SearchIndexService, BackupService, BemService, CaseAnonymizationService, CaseHandoverService, CaseMeasureService, CaseService, ComplianceIncidentService, ComplianceSelfCheckService, ContactService, DeadlineService, DsarPrefillService, EqualizationService, EqualizationIntakeService, GremiaBrAuthService, GremiaBrCacheService, GremiaBrExternalReferenceService, GremiaBrSettingsService, GremiaBrWorkspaceActionService, KnowledgeService, ParticipationService, PersonAnonymizationService, PersonImportService, PersonStatusExpiryService, PreventionService, PrivacyReviewService, ProtectedPersonService, RecruitingParticipationService, ReportService, RetentionService, SbvControlProtocolService, SbvParticipationViolationDocumentService, SbvParticipationViolationService, SbvParticipationViolationTemplateService, SbvResourceService, TemplateDefaultService, TemplateService, TransferInstanceIdentityService, TransferRecipientProfileService, TerminationService, WorkplaceAccommodationService, SbvMeetingService, SbvAssemblyService, EmployerObligationService, InclusionAgreementService, ComplaintWorkflowService, SbvOfficeDocumentService, SbvOfficeWorkflowDocumentAdapter, SbvElectionService, SbvElectionDocumentService, ElectionExecutionService, ElectionArchiveService, ElectionTransferService, type DatabaseAdapter, type SecurityService } from './applicationServiceDependencies.js';
+import { ActivityJournalPreferenceService, ActivityJournalService, PersonalDataAuditLogService, MeasureLifecycleAuditService, SearchIndexService, BackupService, BemService, CaseAnonymizationService, CaseHandoverService, CaseMeasureService, CaseService, ComplianceIncidentService, ComplianceSelfCheckService, ContactService, DeadlineService, DsarPrefillService, EqualizationService, EqualizationIntakeService, GremiaBrAuthService, GremiaBrCacheService, GremiaBrExternalReferenceService, GremiaBrSettingsService, GremiaBrWorkspaceActionService, KnowledgeService, MobileCompanionReturnService, MobileCompanionService, ParticipationService, PersonAnonymizationService, PersonImportService, PersonStatusExpiryService, PreventionService, PrivacyReviewService, ProtectedPersonService, RecruitingParticipationService, ReportService, RetentionService, SbvControlProtocolService, SbvParticipationViolationDocumentService, SbvParticipationViolationService, SbvParticipationViolationTemplateService, SbvResourceService, TemplateDefaultService, TemplateService, TransferInstanceIdentityService, TransferRecipientProfileService, TerminationService, WorkplaceAccommodationService, SbvMeetingService, SbvAssemblyService, EmployerObligationService, InclusionAgreementService, ComplaintWorkflowService, SbvOfficeDocumentService, SbvOfficeWorkflowDocumentAdapter, SbvElectionService, SbvElectionDocumentService, ElectionExecutionService, ElectionArchiveService, ElectionTransferService, type DatabaseAdapter, type SecurityService } from './applicationServiceDependencies.js';
 /**
  * Central composition root for Electron main-process application services.
  *
@@ -47,7 +47,7 @@ export class ApplicationServices {
     this.reports = new ReportService(databaseProvider, () => security.getDataDirectory());
     this.gremiaBrSettings = new GremiaBrSettingsService(databaseProvider, () => security.getActiveDatabaseKey());
     this.gremiaBrAuth = new GremiaBrAuthService(this.gremiaBrSettings, undefined, auditProvider);
-    this.gremiaBrCache = new GremiaBrCacheService(databaseProvider);
+    this.gremiaBrCache = new GremiaBrCacheService();
     this.gremiaBrReferences = new GremiaBrExternalReferenceService(databaseProvider);
     this.participationViolationTemplates = new SbvParticipationViolationTemplateService();
   }
@@ -86,6 +86,10 @@ export class ApplicationServices {
     this.databaseService('dsarPrefill', (database) => new DsarPrefillService(database));
   knowledge = (): KnowledgeService =>
     this.databaseService('knowledge', (database) => new KnowledgeService(database));
+  mobileCompanion = (): MobileCompanionService =>
+    this.databaseService('mobileCompanion', (database) => new MobileCompanionService(database, this.auditLog()));
+  mobileCompanionReturn = (): MobileCompanionReturnService =>
+    this.databaseService('mobileCompanionReturn', (database) => new MobileCompanionReturnService(database));
   equalization = (): EqualizationService =>
     this.databaseService('equalization', (database) => new EqualizationService(database, this.auditLog(), this.lifecycleAudit()));
   equalizationIntake = (): EqualizationIntakeService =>

@@ -123,7 +123,13 @@ export function buildTargetBoundAad(envelope: Omit<TargetBoundTransferEnvelope, 
     packageId: envelope.packageId,
     createdAt: envelope.createdAt,
     expiresAt: envelope.expiresAt ?? null,
-    recipientBinding: envelope.recipientBinding,
+    // Protocol order must not depend on the JSON serializer of the sending runtime.
+    recipientBinding: {
+      scheme: envelope.recipientBinding.scheme,
+      targetInstanceId: envelope.recipientBinding.targetInstanceId,
+      targetKeyFingerprint: envelope.recipientBinding.targetKeyFingerprint,
+      ephemeralPublicKeyPem: envelope.recipientBinding.ephemeralPublicKeyPem,
+    },
     crypto: {
       algorithm: envelope.crypto.algorithm,
       kdf: envelope.crypto.kdf,

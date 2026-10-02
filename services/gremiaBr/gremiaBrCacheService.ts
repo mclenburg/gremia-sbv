@@ -1,4 +1,3 @@
-import type { DatabaseAdapter } from '../databaseService.js';
 import type {
   GremiaBrCachedOverview,
   GremiaBrDashboardOverview,
@@ -6,21 +5,17 @@ import type {
   GremiaBrCacheRefreshResult,
   GremiaBrCacheSourceType,
   GremiaBrRelevanceSettings,
+  GremiaBrOwnTask,
+  GremiaBrOwnAccessApproval,
+  GremiaBrRemoteCase,
 } from '../../src/domain/models/gremia-br.model.js';
 import type { GremiaBrReadAdapter } from './gremiaBrTypes.js';
 import { filterRelevantGremiaBrMeetings, getGremiaBrItemId } from './gremiaBrRelevanceService.js';
 
-interface CacheRow {
-  cache_key: string;
-  source_type: string;
-  payload_json: string;
-  fetched_at: string;
-}
-
-export const GREMIA_BR_CACHE_TTL_DAYS = 30;
-const DAY_IN_MS = 24 * 60 * 60 * 1000;
-
 const CACHE_KEYS: readonly GremiaBrCacheSourceType[] = [
+  'accessible_cases',
+  'own_tasks',
+  'own_access_approvals',
   'next_meeting',
   'current_meeting',
   'upcoming_meetings',
@@ -35,19 +30,6 @@ const CACHE_KEYS: readonly GremiaBrCacheSourceType[] = [
 
 function nowIso(): string {
   return new Date().toISOString();
-}
-
-function retentionCutoffIso(now = new Date()): string {
-  return new Date(now.getTime() - GREMIA_BR_CACHE_TTL_DAYS * DAY_IN_MS).toISOString();
-}
-
-function parsePayload(row?: CacheRow): unknown {
-  if (!row?.payload_json) return undefined;
-  try {
-    return JSON.parse(row.payload_json) as unknown;
-  } catch {
-    return undefined;
-  }
 }
 
 function asArray(value: unknown): unknown[] {
@@ -87,43 +69,20 @@ function cacheAgeLabel(fetchedAt?: string): string | undefined {
 }
 
 export class GremiaBrCacheService {
-  constructor(private readonly databaseProvider: () => DatabaseAdapter) {}
-
-  private db(): DatabaseAdapter {
-    return this.databaseProvider();
-  }
+  private entries = new Map<GremiaBrCacheSourceType, GremiaBrCacheEntry>();
 
   private readEntry(cacheKey: GremiaBrCacheSourceType): GremiaBrCacheEntry | undefined {
-    const row = this.db().prepare<CacheRow>(`
-      SELECT cache_key, source_type, payload_json, fetched_at
-      FROM gremia_br_cache_entries
-      WHERE cache_key = ?
-    `).get(cacheKey);
-    if (!row) return undefined;
-    return {
-      cacheKey: row.cache_key as GremiaBrCacheSourceType,
-      sourceType: row.source_type as GremiaBrCacheSourceType,
-      payload: parsePayload(row),
-      fetchedAt: row.fetched_at,
-    };
-  }
-
-  purgeExpiredEntries(now = new Date()): number {
-    const cutoff = retentionCutoffIso(now);
-    const result = this.db().prepare(`
-      DELETE FROM gremia_br_cache_entries
-      WHERE fetched_at < ?
-    `).run(cutoff) as { changes?: number } | undefined;
-    return Number(result?.changes ?? 0);
+    return this.entries.get(cacheKey);
   }
 
   getEntry(cacheKey: GremiaBrCacheSourceType): GremiaBrCacheEntry | undefined {
-    this.purgeExpiredEntries();
     return this.readEntry(cacheKey);
   }
 
   getOverview(): GremiaBrCachedOverview {
-    this.purgeExpiredEntries();
+    const accessibleCases = this.readEntry('accessible_cases');
+    const ownTasks = this.readEntry('own_tasks');
+    const ownAccessApprovals = this.readEntry('own_access_approvals');
     const nextMeeting = this.readEntry('next_meeting');
     const currentMeeting = this.readEntry('current_meeting');
     const upcomingMeetings = this.readEntry('upcoming_meetings');
@@ -135,10 +94,13 @@ export class GremiaBrCacheService {
     const decisionStatistics = this.readEntry('decision_statistics');
     const extendedDecisionStatistics = this.readEntry('extended_decision_statistics');
     const lastFetchedAt = latestTimestamp([
-      nextMeeting, currentMeeting, upcomingMeetings, meetingAgendas, pendingFollowUps, decisions, dueDecisions, overdueDecisions, decisionStatistics, extendedDecisionStatistics,
+      accessibleCases, ownTasks, ownAccessApprovals, nextMeeting, currentMeeting, upcomingMeetings, meetingAgendas, pendingFollowUps, decisions, dueDecisions, overdueDecisions, decisionStatistics, extendedDecisionStatistics,
     ]);
 
     return {
+      accessibleCases: asArray(accessibleCases?.payload) as GremiaBrRemoteCase[],
+      ownTasks: asArray(ownTasks?.payload) as GremiaBrOwnTask[],
+      ownAccessApprovals: asArray(ownAccessApprovals?.payload) as GremiaBrOwnAccessApproval[],
       nextMeeting: nextMeeting?.payload,
       currentMeeting: currentMeeting?.payload,
       upcomingMeetings: asArray(upcomingMeetings?.payload),
@@ -166,27 +128,15 @@ export class GremiaBrCacheService {
     };
   }
 
-  saveEntry(cacheKey: GremiaBrCacheSourceType, payload: unknown, fetchedAt = nowIso()): GremiaBrCacheEntry {
-    const payloadJson = JSON.stringify(payload ?? null);
-    this.db().prepare(`
-      INSERT INTO gremia_br_cache_entries (id, cache_key, source_type, payload_json, fetched_at, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(cache_key) DO UPDATE SET
-        source_type = excluded.source_type,
-        payload_json = excluded.payload_json,
-        fetched_at = excluded.fetched_at,
-        updated_at = excluded.updated_at
-    `).run(`gremia-br-cache:${cacheKey}`, cacheKey, cacheKey, payloadJson, fetchedAt, fetchedAt, fetchedAt);
-    return this.readEntry(cacheKey)!;
-  }
-
   clear(): void {
-    this.db().prepare('DELETE FROM gremia_br_cache_entries').run();
+    this.entries.clear();
   }
 
   async refresh(adapter: GremiaBrReadAdapter): Promise<GremiaBrCacheRefreshResult> {
-    this.purgeExpiredEntries();
     const checkedAt = nowIso();
+    const accessibleCases = await adapter.listAccessibleCases();
+    const ownTasks = await adapter.listOwnTasks();
+    const ownAccessApprovals = await adapter.listOwnAccessApprovals();
     const nextMeeting = await adapter.getNextMeeting();
     const currentMeeting = await adapter.getCurrentMeeting();
     const upcomingMeetings = await adapter.getUpcomingMeetings();
@@ -197,11 +147,7 @@ export class GremiaBrCacheService {
       .slice(0, 12);
     const meetingAgendas: Record<string, unknown[]> = {};
     for (const id of meetingIds) {
-      try {
-        meetingAgendas[id] = await adapter.getMeetingAgenda(id);
-      } catch {
-        meetingAgendas[id] = [];
-      }
+      meetingAgendas[id] = await adapter.getMeetingAgenda(id);
     }
     const decisions = await adapter.listRelevantDecisions();
     const dueDecisions = await adapter.getDueDecisions();
@@ -210,6 +156,9 @@ export class GremiaBrCacheService {
     const extendedDecisionStatistics = await adapter.getExtendedDecisionStatistics();
 
     const writes: Array<[GremiaBrCacheSourceType, unknown]> = [
+      ['accessible_cases', accessibleCases],
+      ['own_tasks', ownTasks],
+      ['own_access_approvals', ownAccessApprovals],
       ['next_meeting', nextMeeting],
       ['current_meeting', currentMeeting],
       ['upcoming_meetings', upcomingMeetings],
@@ -221,12 +170,17 @@ export class GremiaBrCacheService {
       ['decision_statistics', decisionStatistics],
       ['extended_decision_statistics', extendedDecisionStatistics],
     ];
-    for (const [key, payload] of writes) this.saveEntry(key, payload, checkedAt);
+    this.entries = new Map(writes.map(([key, payload]) => [key, {
+      cacheKey: key,
+      sourceType: key,
+      payload,
+      fetchedAt: checkedAt,
+    }]));
 
     return {
       status: 'ok',
       checkedAt,
-      message: 'Gremia.BR-Lesecache wurde aktualisiert.',
+      message: 'Gremia.BR-Arbeitsstand wurde aktualisiert.',
       refreshedKeys: [...CACHE_KEYS],
       cached: this.getOverview(),
     };

@@ -1,5 +1,22 @@
 import type { CaseRecord } from '../../../domain/models/case.model';
 import type { CaseHandoverCockpitItem } from '../../../domain/models/case-handover.model';
+import type { CaseMeasureRecord } from '../../../domain/models/case-measure.model';
+import { isRunningCaseMeasureStatus } from '../../../domain/case-measures/caseMeasureStatusPolicy';
+
+export function activeMobileWorkCases(
+  cases: readonly CaseRecord[],
+  measures: readonly CaseMeasureRecord[] = [],
+): CaseRecord[] {
+  const measuresByCase = new Map<string, CaseMeasureRecord[]>();
+  for (const measure of measures) {
+    measuresByCase.set(measure.caseId, [...(measuresByCase.get(measure.caseId) ?? []), measure]);
+  }
+  return cases.filter((record) => {
+    if (record.status === 'abgeschlossen' || record.isLocked) return false;
+    const linkedMeasures = measuresByCase.get(record.id) ?? [];
+    return linkedMeasures.length === 0 || linkedMeasures.some((measure) => isRunningCaseMeasureStatus(measure.status));
+  });
+}
 
 export function filterHandoverCases(cases: readonly CaseRecord[], query: string): CaseRecord[] {
   const normalized = query.trim().toLocaleLowerCase('de-DE');
@@ -17,6 +34,7 @@ export function toggleHandoverCase(selectedIds: readonly string[], caseId: strin
 export function handoverStatusLabel(item: CaseHandoverCockpitItem): string {
   if (item.status === 'expired') return 'Abgelaufen – Rückgabe oder Abschluss prüfen';
   if (item.status === 'returned') return 'Rückgabe eingespielt';
+  if (item.packageType === 'mobile_snapshot') return 'Mobile Arbeitsprojektion';
   if (item.packageType === 'return_delta') return 'Rückgabe-Delta';
   if (item.packageType === 'office_handover') return item.direction === 'incoming' ? 'Amtsbestand übernommen' : 'Amtsbestand übergeben';
   return item.direction === 'incoming' ? 'Vertretung übernommen' : 'An Vertretung übergeben';

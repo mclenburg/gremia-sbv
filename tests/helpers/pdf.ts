@@ -54,7 +54,7 @@ export async function inspectPdf(buffer: Buffer): Promise<InspectedPdf> {
       textByPage,
       title: info.Title,
       language,
-      hasStructureTree: hasStructureTree && markInfo?.Marked === true,
+      hasStructureTree: hasStructureTree && (markInfo instanceof Map ? markInfo.get('Marked') : markInfo?.Marked) === true,
       structureRoles,
     };
   } finally {

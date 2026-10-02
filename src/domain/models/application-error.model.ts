@@ -9,6 +9,7 @@ export type ApplicationErrorCode =
   | 'FILE_OPERATION_FAILED'
   | 'SECURITY_OPERATION_FAILED'
   | 'PERMISSION_DENIED'
+  | 'REMOTE_READ_FAILED'
   | 'UNEXPECTED_ERROR';
 
 export interface ApplicationErrorPayload {

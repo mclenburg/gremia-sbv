@@ -1,7 +1,7 @@
 import type { TransferImportConflictLevel, TransferImportPlan } from './transfer.model';
 
 export type CaseHandoverImportMode = 'create_new' | 'merge_existing';
-export type CaseHandoverPackageType = 'vacation_handover' | 'return_delta' | 'office_handover';
+export type CaseHandoverPackageType = 'vacation_handover' | 'return_delta' | 'office_handover' | 'mobile_snapshot';
 export type TransferProtectionMode = 'passphrase_and_recipient_key' | 'recipient_key_only';
 export type CaseHandoverChecklistItemState = 'ready' | 'attention' | 'blocking';
 

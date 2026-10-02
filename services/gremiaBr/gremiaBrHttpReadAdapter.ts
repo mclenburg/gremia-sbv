@@ -1,6 +1,38 @@
 import { GremiaBrAuthService } from './gremiaBrAuthService.js';
 import type { GremiaBrReadAdapter } from './gremiaBrTypes.js';
 import { gremiaBrArrayFromResponse, gremiaBrRecord } from './gremiaBrPayload.js';
+import { GREMIA_BR_OPEN_TASK_STATUSES } from '../../src/domain/models/gremia-br.model.js';
+import type { GremiaBrOwnTask, GremiaBrOwnAccessApproval, GremiaBrOwnTaskStatus, GremiaBrOwnTaskDetail, GremiaBrRemoteCase } from '../../src/domain/models/gremia-br.model.js';
+import { GremiaBrTaskService } from './gremiaBrTaskService.js';
+
+const TASK_PAGE_SIZE = 100;
+const MAX_OWN_TASKS = 1_000;
+const MAX_ACCESSIBLE_CASES = 1_000;
+const OPEN_TASK_STATUS_SET: ReadonlySet<string> = new Set(GREMIA_BR_OPEN_TASK_STATUSES);
+
+function isOpenTaskStatus(value: unknown): value is GremiaBrOwnTaskStatus {
+  return typeof value === 'string' && OPEN_TASK_STATUS_SET.has(value);
+}
+
+function ownTaskFromResponse(value: unknown): GremiaBrOwnTask | null {
+  const item = gremiaBrRecord(value);
+  if (!item || typeof item.id !== 'string' || typeof item.title !== 'string' || !isOpenTaskStatus(item.status)) return null;
+  return {
+    id: item.id,
+    title: item.title,
+    status: item.status,
+    ...(typeof item.dueAt === 'string' ? { dueAt: item.dueAt } : {}),
+    ...(typeof item.subjectType === 'string' ? { subjectType: item.subjectType } : {}),
+    ...(typeof item.subjectId === 'string' ? { subjectId: item.subjectId } : {}),
+  };
+}
+
+function remoteCaseFromResponse(value: unknown): GremiaBrRemoteCase | null {
+  const item = gremiaBrRecord(value);
+  if (!item || typeof item.id !== 'string' || typeof item.reference !== 'string' || typeof item.subject !== 'string'
+    || !Array.isArray(item.procedureIds) || !item.procedureIds.every((id) => typeof id === 'string')) return null;
+  return { id: item.id, reference: item.reference, subject: item.subject, procedureIds: [...item.procedureIds] };
+}
 
 function idFromItem(item: unknown): string | undefined {
   const source = gremiaBrRecord(item);
@@ -31,15 +63,71 @@ export class GremiaBrHttpReadAdapter implements GremiaBrReadAdapter {
 
   constructor(private readonly auth: GremiaBrAuthService) {}
 
+  async listAccessibleCases(): Promise<GremiaBrRemoteCase[]> {
+    const cases: GremiaBrRemoteCase[] = [];
+    for (let offset = 0; offset < MAX_ACCESSIBLE_CASES;) {
+      const response = gremiaBrRecord(await this.auth.get<unknown>('/api/v1/cases', {
+        query: { limit: TASK_PAGE_SIZE, offset },
+      }));
+      const items = response?.items;
+      if (!Array.isArray(items) || typeof response?.total !== 'number' || !Number.isInteger(response.total) || response.total < 0) {
+        throw new Error('Gremia.BR hat keine gültige Sachverhaltsliste zurückgegeben.');
+      }
+      const page = items.map(remoteCaseFromResponse);
+      if (page.some((item) => !item)) throw new Error('Gremia.BR hat einen unvollständigen Sachverhalt zurückgegeben. Der bisherige Arbeitsstand bleibt erhalten.');
+      cases.push(...page as GremiaBrRemoteCase[]);
+      if (cases.length > MAX_ACCESSIBLE_CASES || cases.length > response.total) {
+        throw new Error('Gremia.BR hat eine widersprüchliche oder zu große Sachverhaltsliste zurückgegeben.');
+      }
+      if (cases.length >= response.total) return cases;
+      if (items.length === 0) throw new Error('Die Gremia.BR-Sachverhaltsliste ist unvollständig. Bitte erneut aktualisieren.');
+      offset += items.length;
+    }
+    throw new Error('Gremia.BR meldet zu viele Sachverhalte für einen vollständigen Abruf.');
+  }
+
+  async listOwnTasks(): Promise<GremiaBrOwnTask[]> {
+    const tasks: GremiaBrOwnTask[] = [];
+    for (let offset = 0; offset < MAX_OWN_TASKS;) {
+      const response = gremiaBrRecord(await this.auth.get<unknown>('/api/v1/tasks', {
+        query: { mine: true, status: [...GREMIA_BR_OPEN_TASK_STATUSES], limit: TASK_PAGE_SIZE, offset },
+      }));
+      const items = response?.items;
+      if (!Array.isArray(items) || typeof response?.total !== 'number') throw new Error('Gremia.BR hat keine gültige Aufgabenliste zurückgegeben.');
+      const page = items.map(ownTaskFromResponse);
+      if (page.some((task) => !task)) throw new Error('Gremia.BR hat eine unvollständige oder nicht unterstützte Aufgabe zurückgegeben. Der bisherige Arbeitsstand bleibt erhalten. Bitte die Serverversion prüfen und erneut aktualisieren.');
+      tasks.push(...page as GremiaBrOwnTask[]);
+      if (tasks.length >= response.total) return tasks;
+      if (items.length === 0) throw new Error('Die Gremia.BR-Aufgabenliste ist unvollständig. Bitte erneut aktualisieren.');
+      offset += items.length;
+    }
+    throw new Error('Gremia.BR meldet zu viele eigene Aufgaben für einen vollständigen Abruf.');
+  }
+
+  async getOwnTaskDetail(id: string): Promise<GremiaBrOwnTaskDetail> {
+    return new GremiaBrTaskService(this.auth).getDetail(id);
+  }
+
+  async listOwnAccessApprovals(): Promise<GremiaBrOwnAccessApproval[]> {
+    const response = await this.auth.get<unknown>('/api/v1/access-approvals/mine');
+    if (!Array.isArray(response)) throw new Error('Gremia.BR hat keine gültige Liste eigener Zugriffsanträge zurückgegeben.');
+    return response.flatMap((value) => {
+      const item = gremiaBrRecord(value);
+      if (!item || !['PENDING', 'APPROVED', 'REJECTED', 'REVOKED', 'EXPIRED'].includes(String(item.status))) {
+        throw new Error('Gremia.BR hat einen nicht unterstützten Zugriffsantragsstatus zurückgegeben.');
+      }
+      if (typeof item.id !== 'string' || typeof item.resourceType !== 'string' || typeof item.requestedAt !== 'string') {
+        throw new Error('Gremia.BR hat einen unvollständigen eigenen Zugriffsantrag zurückgegeben.');
+      }
+      return [{ id: item.id, resourceType: item.resourceType, status: item.status as GremiaBrOwnAccessApproval['status'], requestedAt: item.requestedAt }];
+    });
+  }
+
   async listWorksAgreements(): Promise<unknown[]> { return []; }
   async getReferenceById(id: string): Promise<unknown | null> { return this.getDecisionById(id); }
 
   async getDecisionById(id: string): Promise<unknown | null> {
-    if (this.isV2()) return await this.auth.get<unknown | null>(`/api/v1/meetings/decisions/${encodeURIComponent(id)}`);
-    const results = gremiaBrArrayFromResponse(await this.auth.get<unknown>('/search', {
-      query: { q: id, types: ['beschluss'], limit: 1 },
-    }));
-    return results[0] ?? null;
+    return await this.auth.get<unknown | null>(`/api/v1/meetings/decisions/${encodeURIComponent(id)}`);
   }
 
   async listRelevantMeetings(): Promise<unknown[]> {
@@ -47,115 +135,71 @@ export class GremiaBrHttpReadAdapter implements GremiaBrReadAdapter {
   }
 
   async getNextMeeting(): Promise<unknown | null> {
-    if (this.isV2()) return (await this.getUpcomingMeetings())[0] ?? null;
-    return await this.auth.get<unknown | null>('/sitzungen/naechste');
+    return (await this.getUpcomingMeetings())[0] ?? null;
   }
 
   async getCurrentMeeting(): Promise<unknown | null> {
-    if (this.isV2()) {
-      return (await this.listV2BodyMeetings())
-        .filter((meeting) => gremiaBrRecord(meeting)?.status === 'IN_PROGRESS')
-        .sort((left, right) => dateFromItem(left) - dateFromItem(right))[0] ?? null;
-    }
-    return await this.auth.get<unknown | null>('/sitzungen/aktuelle');
+    return (await this.listV2BodyMeetings())
+      .filter((meeting) => gremiaBrRecord(meeting)?.status === 'IN_PROGRESS')
+      .sort((left, right) => dateFromItem(left) - dateFromItem(right))[0] ?? null;
   }
 
   async getUpcomingMeetings(): Promise<unknown[]> {
-    if (this.isV2()) {
-      const now = Date.now();
-      return (await this.listV2BodyMeetings())
-        .filter((meeting) => {
-          const item = gremiaBrRecord(meeting);
-          return item?.status !== 'CANCELLED' && dateFromItem(meeting) >= now;
-        })
-        .sort((left, right) => dateFromItem(left) - dateFromItem(right));
-    }
-    return gremiaBrArrayFromResponse(await this.auth.get<unknown>('/sitzungen/kommende'));
+    const now = Date.now();
+    return (await this.listV2BodyMeetings())
+      .filter((meeting) => {
+        const item = gremiaBrRecord(meeting);
+        return item?.status !== 'CANCELLED' && dateFromItem(meeting) >= now;
+      })
+      .sort((left, right) => dateFromItem(left) - dateFromItem(right));
   }
 
-  async getPendingFollowUps(date?: string): Promise<unknown[]> {
-    if (this.isV2()) return [];
-    return gremiaBrArrayFromResponse(await this.auth.get<unknown>('/sitzungen/wiedervorlagen', {
-      query: { datum: date },
-    }));
+  async getPendingFollowUps(_date?: string): Promise<unknown[]> {
+    return [];
   }
 
   async getMeetingById(id: string): Promise<unknown | null> {
-    if (this.isV2()) return await this.auth.get<unknown | null>(`/api/v1/meetings/${encodeURIComponent(id)}`);
-    return await this.auth.get<unknown | null>(`/sitzungen/${encodeURIComponent(id)}`);
+    return await this.auth.get<unknown | null>(`/api/v1/meetings/${encodeURIComponent(id)}`);
   }
 
   async getMeetingAgenda(id: string): Promise<unknown[]> {
-    if (this.isV2()) return gremiaBrArrayFromResponse(await this.auth.get<unknown>(`/api/v1/meetings/${encodeURIComponent(id)}/agenda`));
-    return gremiaBrArrayFromResponse(await this.auth.get<unknown>(`/sitzungen/${encodeURIComponent(id)}/agenda`));
+    return gremiaBrArrayFromResponse(await this.auth.get<unknown>(`/api/v1/meetings/${encodeURIComponent(id)}/agenda`));
   }
 
   async getMeetingProtocolStatus(id: string): Promise<unknown | null> {
-    if (this.isV2()) return await this.getProtocolByMeeting(id);
-    return await this.auth.get<unknown | null>(`/sitzungen/${encodeURIComponent(id)}/protokoll-status`);
+    return await this.getProtocolByMeeting(id);
   }
 
-  async listProtocols(): Promise<unknown[]> {
-    if (this.isV2()) return [];
-    return gremiaBrArrayFromResponse(await this.auth.get<unknown>('/protokolle'));
-  }
+  async listProtocols(): Promise<unknown[]> { return []; }
 
-  async getProtocolById(id: string): Promise<unknown | null> {
-    if (this.isV2()) return null;
-    return await this.auth.get<unknown | null>(`/protokolle/${encodeURIComponent(id)}`);
-  }
+  async getProtocolById(_id: string): Promise<unknown | null> { return null; }
 
   async getProtocolByMeeting(sitzungId: string): Promise<unknown | null> {
-    if (this.isV2()) return await this.auth.get<unknown | null>(`/api/v1/meetings/${encodeURIComponent(sitzungId)}/minutes`);
-    return await this.auth.get<unknown | null>(`/protokolle/sitzung/${encodeURIComponent(sitzungId)}`);
+    return await this.auth.get<unknown | null>(`/api/v1/meetings/${encodeURIComponent(sitzungId)}/minutes`);
   }
 
   async listProtocolDecisions(id: string): Promise<unknown[]> {
-    if (this.isV2()) return gremiaBrArrayFromResponse(await this.auth.get<unknown>(`/api/v1/meetings/${encodeURIComponent(id)}/decisions`));
-    return gremiaBrArrayFromResponse(await this.auth.get<unknown>(`/protokolle/${encodeURIComponent(id)}/beschluesse`));
+    return gremiaBrArrayFromResponse(await this.auth.get<unknown>(`/api/v1/meetings/${encodeURIComponent(id)}/decisions`));
   }
 
   async listRelevantDecisions(): Promise<unknown[]> {
-    if (this.isV2()) return this.listV2Decisions();
-    return gremiaBrArrayFromResponse(await this.auth.get<unknown>('/protokolle/beschluesse'));
+    return this.listV2Decisions();
   }
 
-  async getDueDecisions(): Promise<unknown[]> {
-    if (this.isV2()) return [];
-    return gremiaBrArrayFromResponse(await this.auth.get<unknown>('/protokolle/beschluesse/faellig'));
-  }
+  async getDueDecisions(): Promise<unknown[]> { return []; }
 
-  async getOverdueDecisions(): Promise<unknown[]> {
-    if (this.isV2()) return [];
-    return gremiaBrArrayFromResponse(await this.auth.get<unknown>('/protokolle/beschluesse/ueberfaellig'));
-  }
+  async getOverdueDecisions(): Promise<unknown[]> { return []; }
 
-  async getDecisionStatistics(): Promise<unknown | null> {
-    if (this.isV2()) return null;
-    return await this.auth.get<unknown | null>('/protokolle/beschluesse/statistik');
-  }
+  async getDecisionStatistics(): Promise<unknown | null> { return null; }
 
-  async getExtendedDecisionStatistics(): Promise<unknown | null> {
-    if (this.isV2()) return null;
-    return await this.auth.get<unknown | null>('/protokolle/beschluesse/statistik-extended');
-  }
+  async getExtendedDecisionStatistics(): Promise<unknown | null> { return null; }
 
   async searchDecisions(query: string): Promise<unknown[]> {
-    if (this.isV2()) return (await this.listV2Decisions()).filter((decision) => textMatchesQuery(decision, query));
-    return gremiaBrArrayFromResponse(await this.auth.get<unknown>('/search', {
-      query: { q: query, types: ['beschluss', 'protokoll'], limit: 20 },
-    }));
+    return (await this.listV2Decisions()).filter((decision) => textMatchesQuery(decision, query));
   }
 
   async suggestForInlineCommand(q: string): Promise<unknown[]> {
-    if (this.isV2()) return (await this.searchDecisions(q)).slice(0, 10);
-    return gremiaBrArrayFromResponse(await this.auth.get<unknown>('/search/suggest', {
-      query: { q, types: ['beschluss'], limit: 10 },
-    }));
-  }
-
-  private isV2(): boolean {
-    return this.auth.getReadContext().apiMode === 'gremia_br_v2';
+    return (await this.searchDecisions(q)).slice(0, 10);
   }
 
   private selectedV2BodyId(): string {

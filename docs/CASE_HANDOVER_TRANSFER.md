@@ -2,7 +2,7 @@
 
 ## Zweck
 
-Die Übergabefunktion unterstützt sowohl zeitlich begrenzte Vertretungen als auch den dauerhaften Amtswechsel. Beide Vorgänge folgen unterschiedlichen Regeln und werden in der Anwendung ausdrücklich getrennt.
+Die Übergabefunktion unterstützt zeitlich begrenzte Vertretungen, mobile Begleit-App-Projektionen und den dauerhaften Amtswechsel. Diese Vorgänge folgen unterschiedlichen Regeln und werden in der Anwendung ausdrücklich getrennt.
 
 Die Funktion ist kein Backup, keine Synchronisation und keine gemeinsame Datenbank. Jede Gremia.SBV-Instanz bleibt eigenständig.
 
@@ -10,12 +10,12 @@ Die Funktion ist kein Backup, keine Synchronisation und keine gemeinsame Datenba
 
 Ausgewählte Fallakten können mit den zugehörigen erforderlichen Inhalten als verschlüsseltes, auf eine konkrete Zielinstanz gebundenes Übergabepaket exportiert werden. Bei einer Urlaubsvertretung kann ein einzelnes, sicher erkanntes Gegenstück bewusst zusammengeführt werden. Eine Amtsübergabe wird dagegen immer als neuer lokaler Amtsbestand übernommen.
 
-Das Übergabepaket hat die Dateiendung `.gsbvtransfer`.
+Fall- und Amtsübergabepakete haben die Dateiendung `.gsbvtransfer`. Mobile Begleit-App-Projektionen nutzen ein eigenes, reduziertes Snapshot-Format und werden nicht als vollständige Fallübergabe behandelt.
 
 ## Ablauf für die abgebende SBV
 
 1. Den Bereich `Übergaben` als letzten Punkt der Kernarbeit öffnen.
-2. Das passende Register wählen: `Urlaubsvertretung`, `Rückgabe`, `Amtsübergabe`, `Import` oder `Protokoll`.
+2. Das passende Register wählen: `Urlaubsvertretung`, `Begleit-App`, `Rückgabe`, `Amtsübergabe`, `Import` oder `Protokoll`.
 3. Die zu übergebenden Fallakten über die filterbare Fallauswahl auswählen. Große Bestände werden nicht als vollständige Formularwand angezeigt.
 4. Empfängerprofil wählen oder die vollständige öffentliche Empfängerkennung der Zielinstanz einfügen und die angezeigte fünfstellige Zielinstanz-ID prüfen.
 5. Transport-Passphrase vergeben, sofern die gewählte Schutzart eine Passphrase verlangt.
@@ -97,6 +97,36 @@ Nicht Bestandteil einer Fallübergabe sind globale App-Einstellungen, Gremia.BR-
 
 Eine Amtsübergabe ergänzt diesen Umfang um individuelle Vorlagen, Frist- und Aufbewahrungsregeln, offene Datenschutzprüfungen der ausgewählten Fälle sowie digitale Wahlakten einschließlich ihrer Dokumente. Das persönliche Tätigkeitsjournal ist ausdrücklich ausgeschlossen. Bereits erzeugte anonymisierte Tätigkeitsberichte können nur als erforderliche, zugeordnete Dokumente Bestandteil des Pakets sein.
 
+## Begleit-App-Abgrenzung
+
+Die Android-Begleit-App erhält keinen vollständigen Fallaktenexport. Sie arbeitet mit einer zielgebunden verschlüsselten Projektion für ein gekoppeltes Gerät.
+
+Die Kopplung erfolgt nicht durch blindes Speichern einer öffentlichen Gerätekennung. Die Desktop-Anwendung erzeugt eine Pairinganfrage für die aktuelle Gremia.SBV-Instanz. Die Begleit-App beantwortet diese Anfrage mit ihrer öffentlichen mobilen Empfängerkennung. Gremia.SBV speichert das Gerät erst, wenn die Pairingantwort zur lokalen Desktop-Instanz passt und der in beiden Anwendungen angezeigte Sicherheitscode manuell bestätigt wurde.
+
+Die Desktop-Anwendung überträgt diese Projektion als automatisch wechselnde QR-Frame-Serie. Standard ist ein kamerafreundliches Tempo von zwei Frames pro Sekunde; für ältere Geräte steht ein kompatibler Modus mit einem Frame pro Sekunde bereit. Jeder Frame enthält Sitzung, Reihenfolge, Payload-Länge, Paket-Hash und Chunk-Checksumme, damit die Begleit-App verlorene, doppelte oder falsche Frames sicher erkennen kann. Der Ablauf besitzt Pause, manuelles Weiterschalten, Abbruch und ein sichtbares Zeitfenster. Die Fallauswahl ist filterbar und fachlich auf offene Arbeitsfälle begrenzt.
+
+Enthalten sind:
+
+- ausgewählte Fallköpfe mit Aktenzeichen, Anzeigename, Kategorie, Status und Priorität,
+- offene fallbezogene Fristen mit Fälligkeit, Rechtsgrundlage und Schweregrad,
+- technische Synchronisations- und Anzeigeinformationen.
+
+Nicht enthalten sind:
+
+- Gesprächsnotizen,
+- Maßnahmennotizen,
+- Dokumentdateien oder Dokumentnamen,
+- vollständige Fallzusammenfassungen,
+- globale Einstellungen, Zugangsdaten oder Backups.
+
+Damit bleibt der Desktop-Tresor fachlich führend. Die mobile Projektion hilft bei der Arbeit unterwegs, ohne aus der Begleit-App eine zweite vollständige Gremia.SBV-Instanz zu machen.
+
+### Mobile Rückgabe
+
+Die Begleit-App liefert Besprechungsnotizen, neue Wiedervorlagen und erledigte Fristen als verschlüsselte `.gsbvmobile`-Rückgabedatei zurück. Die Datei wird über den Android-Dokumentdialog an einem bewusst gewählten Speicherort abgelegt. Gremia.SBV entschlüsselt diese Datei nur auf der Zielinstanz, zeigt vor dem Schreiben einen Importplan und übernimmt konfliktfreie Änderungen über die bestehenden Fallnotiz- und Fristenservices.
+
+Konflikte blockieren den Import vollständig. Das gilt insbesondere für unbekannte oder deaktivierte Mobilgeräte, gelöschte oder abgeschlossene Fallakten und Fristen, deren Desktop-Stand seit dem Mobile-Snapshot geändert wurde. Audit- und Importprotokolle enthalten nur technische Zähldaten, keine Notiztexte oder sonstigen Freitextinhalte.
+
 ## Unterstützte Paketversionen
 
 Neue Übergaben verwenden das aktuelle zielgebundene Format. Unterstützte ältere Formate können weiterhin geprüft werden, erfordern vor dem Import aber eine gesonderte ausdrückliche Bestätigung. Pakethülle und Nutzdaten müssen dieselbe Version tragen. Amtsdaten sind ausschließlich im aktuellen Format zulässig; unbekannte Versionen und unerwartete Datenbereiche werden abgewiesen.
@@ -112,6 +142,7 @@ Protokolliert werden nur technische und organisatorische Eckdaten, zum Beispiel:
 - Aktion,
 - Ergebnis,
 - Anzahl exportierter oder importierter Fallakten, Maßnahmen, Dokumente und Fristen,
+- bei Mobile-Snapshots zusätzlich Frame-Anzahl und Zielinstanz,
 - ob ein Ablaufdatum gesetzt wurde,
 - Importmodus.
 

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { RecruitingParticipationsView } from '../../../src/app/features/recruiting/RecruitingParticipationsView';
 import { RecruitingProcedureForm } from '../../../src/app/features/recruiting/RecruitingProcedureForm';
 import { emptyParticipationForm } from '../../../src/app/features/recruiting/recruitingParticipationViewSupport';
-import { recruitingStatusLabels, getRecruitingRiskHints } from '../../../src/app/features/recruiting/recruitingViewLogic';
+import { recruitingStatusLabels, getRecruitingRiskHints, filterRecruitingRecords } from '../../../src/app/features/recruiting/recruitingViewLogic';
 import type { RecruitingParticipationRecord } from '../../../src/domain/models/recruiting-participation.model';
 import { ACTIVITY_JOURNAL_CONTEXT_TYPES, ACTIVITY_JOURNAL_TARGET_TYPES } from '../../../src/domain/models/activity-journal.model';
 import { DEADLINE_PROCESS_TYPES } from '../../../src/domain/models/deadline.model';
@@ -74,5 +74,16 @@ describe('Stellenbesetzungen 0.9.5-b UI- und Kontextintegration', () => {
       'Unterlagen unvollständig',
       'Anhörung vor Auswahlentscheidung offen',
     ]);
+  });
+
+  it('filtert nur nach Verfahrensdaten und trennt offene von abgeschlossenen Vorgängen', () => {
+    const open = recruitingRecord({ vacancyReference: 'REC-17', department: 'IT-Service', notes: 'vertrauliche Notiz' });
+    const closed = recruitingRecord({ id: 'recruiting-2', vacancyTitle: 'Sachbearbeitung', status: 'closed' });
+    const records = [open, closed];
+
+    expect(filterRecruitingRecords(records, 'rec-17', 'all')).toEqual([open]);
+    expect(filterRecruitingRecords(records, 'IT-Service', 'open')).toEqual([open]);
+    expect(filterRecruitingRecords(records, '', 'closed')).toEqual([closed]);
+    expect(filterRecruitingRecords(records, 'vertrauliche Notiz', 'all')).toEqual([]);
   });
 });

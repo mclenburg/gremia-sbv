@@ -27,11 +27,12 @@ import { useIcalExportHandlers } from "./features/deadlines/useIcalExportHandler
 import { DashboardFocusOverview } from "./features/dashboard/DashboardFocusOverview";
 import { applyTheme, getInitialTheme, nowLabel, type ThemeMode } from "./workflowViews";
 import { DeadlinesView, DeadlineEditor, DeadlineExtensionModal } from "./features/deadlines/DeadlinesView";
-import { resolveDeadlineOpenTarget } from "./features/deadlines/deadlineContext";
+import { resolveDeadlineOpenTarget, type DeadlineOpenTarget } from "./features/deadlines/deadlineContext";
 import { LoginGate } from "./features/auth/LoginGate";
 import { waitForBridge } from "./core/bridge/waitForBridge";
 import { recordRendererDiagnostic } from "./core/diagnostics/rendererDiagnostics";
 import { ToolbarButton } from "./shared/components/IndustrialButton";
+import { useGremiaBrStartupRefresh, type GremiaBrStartupNotice } from './core/security/useGremiaBrStartupRefresh';
 const IMPLEMENTED_VIEW_IDS = new Set<ViewId>([
   "dashboard",
   "cases",
@@ -266,12 +267,13 @@ function useGremiaBrNavigationVisibility(unlocked: boolean, currentView: ViewId,
 
 type WorkData = ReturnType<typeof useWorkData>;
 type PrimaryViewsProps = { currentView: ViewId; setCurrentView: (view: ViewId) => void; work: WorkData; caseNodeTarget: CaseNodeTarget | null;
-  setCaseNodeTarget: (target: CaseNodeTarget | null) => void; activityJournalPrefill: ActivityJournalPrefill | null;
+  setCaseNodeTarget: (target: CaseNodeTarget | null) => void; personTargetId: string | null; setPersonTargetId: (id: string | null) => void; activityJournalPrefill: ActivityJournalPrefill | null;
+  recordTarget: Extract<DeadlineOpenTarget, { kind: 'record' }> | null; setRecordTarget: (target: Extract<DeadlineOpenTarget, { kind: 'record' }> | null) => void;
   setActivityJournalPrefill: (prefill: ActivityJournalPrefill | null) => void; participationViolationPrefill: SbvParticipationViolationPrefill | null;
   setParticipationViolationPrefill: (prefill: SbvParticipationViolationPrefill | null) => void; };
 
 function PrimaryViews(props: PrimaryViewsProps & { openCaseNode: (target: CaseNodeTarget) => void }) {
-  const { currentView, setCurrentView, work, caseNodeTarget, setCaseNodeTarget, activityJournalPrefill, setActivityJournalPrefill,
+  const { currentView, setCurrentView, work, caseNodeTarget, setCaseNodeTarget, personTargetId, setPersonTargetId, recordTarget, setRecordTarget, activityJournalPrefill, setActivityJournalPrefill,
     participationViolationPrefill, setParticipationViolationPrefill } = props;
   const { cases, contacts, deadlines, persons, caseMeasures, dashboardDeadlines, setSelectedDeadline, createCase, createContact,
     deleteContact, createDeadline, completeDeadline, reloadWorkData, setDeadlineExtensionTarget } = work;
@@ -279,20 +281,24 @@ function PrimaryViews(props: PrimaryViewsProps & { openCaseNode: (target: CaseNo
   const openDeadlineContext = (deadline: DeadlineRecord) => {
     const target = resolveDeadlineOpenTarget(deadline, new Map(caseMeasures.map((item) => [item.id, item])));
     if (target.kind === "case") props.openCaseNode(target.target);
-    else setCurrentView(target.view);
+    else if (target.kind === "person") { setPersonTargetId(target.personId); setCurrentView("persons"); }
+    else if (target.kind === "deadline") setSelectedDeadline(deadline);
+    else if (target.kind === "record") { setRecordTarget(target); setCurrentView(target.view); }
   };
   if (currentView === "dashboard") return <DashboardFocusOverview onNavigate={setCurrentView} cases={cases} deadlines={deadlines}
     measures={caseMeasures} dashboardItems={dashboardDeadlines} onEditDeadline={setSelectedDeadline}
     onExtendDeadline={setDeadlineExtensionTarget} onOpenDeadlineContext={openDeadlineContext} onCompleteDeadline={(d) => void completeDeadline(d)} />;
-  if (currentView === "activity_journal") return <ActivityJournalView pendingPrefill={activityJournalPrefill} onPrefillConsumed={() => setActivityJournalPrefill(null)} />;
+  if (currentView === "activity_journal") return <ActivityJournalView pendingPrefill={activityJournalPrefill} onPrefillConsumed={() => setActivityJournalPrefill(null)}
+    targetId={recordTarget?.view === 'activity_journal' ? recordTarget.recordId : undefined} onTargetConsumed={() => setRecordTarget(null)} />;
   if (currentView === "participation_violations") return <SbvParticipationViolationsView cases={cases} measures={caseMeasures} pendingPrefill={participationViolationPrefill}
     onPrefillConsumed={() => setParticipationViolationPrefill(null)} onOpenCaseNode={props.openCaseNode}
+    targetId={recordTarget?.view === 'participation_violations' ? recordTarget.recordId : undefined} onTargetConsumed={() => setRecordTarget(null)}
     onOpenJournalPrefill={(prefill) => { setActivityJournalPrefill(prefill); setCurrentView("activity_journal"); }} />;
   if (currentView === "deadlines") return <DeadlinesView cases={cases} measures={caseMeasures} deadlines={deadlines}
     onCreateDeadline={createDeadline} onEditDeadline={setSelectedDeadline} onExtendDeadline={setDeadlineExtensionTarget}
     onOpenDeadlineContext={openDeadlineContext} onCompleteDeadline={(d) => void completeDeadline(d)}
     onExportIcal={(privacyLevel, filters) => icalHandlers.exportIcal({ privacyLevel, filters })} />;
-  if (currentView === "persons") return <PersonsView persons={persons} cases={cases}
+  if (currentView === "persons") return <PersonsView persons={persons} cases={cases} targetPersonId={personTargetId} onTargetConsumed={() => setPersonTargetId(null)}
     onCreateCaseForPerson={async (person, input) => createCase({ ...input, protectedPersonId: person.id, personBindingState: person.recordKind === "pseudonymous_request" ? "anonymous_request" : "active", isPseudonymized: true })}
     onCreate={personHandlers.createProtectedPerson} onUpdate={personHandlers.updateProtectedPerson}
     onSelectImportFile={personHandlers.selectProtectedPersonImportFile} onPreviewImport={personHandlers.previewProtectedPersonsImport}
@@ -306,14 +312,17 @@ function PrimaryViews(props: PrimaryViewsProps & { openCaseNode: (target: CaseNo
   return null;
 }
 
-function ProcessViews({ currentView, setCurrentView, work, caseNodeTarget, setCaseNodeTarget, openCaseNode, theme, setTheme, setParticipationViolationPrefill }: {
+function ProcessViews({ currentView, setCurrentView, work, caseNodeTarget, setCaseNodeTarget, recordTarget, setRecordTarget, openCaseNode, theme, setTheme, setParticipationViolationPrefill }: {
   currentView: ViewId; setCurrentView: (view: ViewId) => void; work: WorkData; caseNodeTarget: CaseNodeTarget | null;
   setCaseNodeTarget: (target: CaseNodeTarget | null) => void; openCaseNode: (target: CaseNodeTarget) => void;
+  recordTarget: Extract<DeadlineOpenTarget, { kind: 'record' }> | null; setRecordTarget: (target: Extract<DeadlineOpenTarget, { kind: 'record' }> | null) => void;
   theme: ThemeMode; setTheme: (theme: ThemeMode) => void; setParticipationViolationPrefill: (prefill: SbvParticipationViolationPrefill | null) => void;
 }) {
   const { cases, contacts, deadlines, persons, createCase, createContact, createDeadline, reloadWorkData } = work;
   if (currentView === "workplace_accommodation") return <WorkplaceAccommodationContainer onOpenCaseNode={openCaseNode} />;
   return <LazyFeatureHost view={currentView} cases={cases} persons={persons} theme={theme} onThemeChange={setTheme} onCreateDeadline={createDeadline}
+    recordTarget={recordTarget?.view === currentView ? recordTarget : null} onRecordTargetConsumed={() => setRecordTarget(null)}
+    measures={work.caseMeasures}
     onOpenCaseNode={openCaseNode} deadlines={deadlines} onNavigate={setCurrentView}
     onRecordsChanged={reloadWorkData}
     caseFeatureProps={{
@@ -332,7 +341,8 @@ function ProcessViews({ currentView, setCurrentView, work, caseNodeTarget, setCa
 }
 
 function WorkspaceMain(props: PrimaryViewsProps & { currentModule?: (typeof modules)[number]; openCaseNode: (target: CaseNodeTarget) => void;
-  theme: ThemeMode; setTheme: (theme: ThemeMode) => void; securityWarning?: string; onDismissSecurityWarning: () => void; }) {
+  theme: ThemeMode; setTheme: (theme: ThemeMode) => void; securityWarning?: string; onDismissSecurityWarning: () => void;
+  startupNotice: GremiaBrStartupNotice | null; onDismissStartupNotice: () => void; }) {
   const { currentView, currentModule, setCurrentView, work } = props;
   return <main id="main-content" className="industrial-content" tabIndex={-1}>
     <header className="industrial-topbar"><div><p className="industrial-kicker">SBV-Arbeitsbereich</p>
@@ -345,10 +355,15 @@ function WorkspaceMain(props: PrimaryViewsProps & { currentModule?: (typeof modu
         <ToolbarButton onClick={props.onDismissSecurityWarning}>Hinweis schließen</ToolbarButton>
       </div>
     </div>}
+    {props.startupNotice && <div className={`industrial-message ${props.startupNotice.kind === 'error' ? 'industrial-message-warning' : 'industrial-message-success'}`}
+      role={props.startupNotice.kind === 'error' ? 'alert' : 'status'}>
+      <p>{props.startupNotice.message}</p>
+      {props.startupNotice.kind !== 'loading' ? <ToolbarButton onClick={props.onDismissStartupNotice}>Hinweis schließen</ToolbarButton> : null}
+    </div>}
     {work.dataError && <div className="industrial-message industrial-message-warning" role="alert">{work.dataError}</div>}
     <PrimaryViews {...props} />
     <ProcessViews currentView={currentView} setCurrentView={setCurrentView} work={work} caseNodeTarget={props.caseNodeTarget}
-      setCaseNodeTarget={props.setCaseNodeTarget} openCaseNode={props.openCaseNode} theme={props.theme} setTheme={props.setTheme}
+      setCaseNodeTarget={props.setCaseNodeTarget} recordTarget={props.recordTarget} setRecordTarget={props.setRecordTarget} openCaseNode={props.openCaseNode} theme={props.theme} setTheme={props.setTheme}
       setParticipationViolationPrefill={props.setParticipationViolationPrefill} />
     {!isImplementedView(currentView) && currentModule && <PlaceholderView view={currentModule} />}
     <GlobalTextCommandController cases={work.cases} contacts={work.contacts} onCreateDeadline={work.createDeadline} /><TextCommandHelpModal />
@@ -373,9 +388,12 @@ function AppShell({ currentView, setCurrentView, onLock, children, gremiaBrConfi
 
 export function App() {
   const security = useSecuritySession();
+  const startupRefresh = useGremiaBrStartupRefresh(security.unlocked);
   const [currentView, setCurrentView] = useState<ViewId>(INITIAL_SESSION_VIEW);
   const [theme, setTheme] = useState<ThemeMode>(() => getInitialTheme());
   const [caseNodeTarget, setCaseNodeTarget] = useState<CaseNodeTarget | null>(null);
+  const [personTargetId, setPersonTargetId] = useState<string | null>(null);
+  const [recordTarget, setRecordTarget] = useState<Extract<DeadlineOpenTarget, { kind: 'record' }> | null>(null);
   const [participationViolationPrefill, setParticipationViolationPrefill] = useState<SbvParticipationViolationPrefill | null>(null);
   const journal = useActivityJournalNavigation(setCurrentView);
   const work = useWorkData(security.unlocked, setCurrentView, journal.setActivityJournalPrefill);
@@ -386,7 +404,7 @@ export function App() {
   useEffect(() => { applyTheme(theme); }, [theme]);
   if (!security.unlocked) return <LoginGate mode={security.authMode} onUnlock={security.completeUnlock}
     onResetToSetup={() => { security.setUnlocked(false); security.setAuthMode("setup"); }} />;
-  const viewProps: PrimaryViewsProps = { currentView, setCurrentView, work, caseNodeTarget, setCaseNodeTarget,
+  const viewProps: PrimaryViewsProps = { currentView, setCurrentView, work, caseNodeTarget, setCaseNodeTarget, personTargetId, setPersonTargetId, recordTarget, setRecordTarget,
     activityJournalPrefill: journal.activityJournalPrefill, setActivityJournalPrefill: journal.setActivityJournalPrefill,
     participationViolationPrefill, setParticipationViolationPrefill };
   return <AppShell
@@ -400,6 +418,7 @@ export function App() {
     }}
   >
     <WorkspaceMain {...viewProps} currentModule={currentModule} openCaseNode={openCaseNode} theme={theme} setTheme={setTheme}
-      securityWarning={security.maintenanceWarning} onDismissSecurityWarning={security.dismissMaintenanceWarning} />
+      securityWarning={security.maintenanceWarning} onDismissSecurityWarning={security.dismissMaintenanceWarning}
+      startupNotice={startupRefresh.notice} onDismissStartupNotice={startupRefresh.dismissNotice} />
   </AppShell>;
 }

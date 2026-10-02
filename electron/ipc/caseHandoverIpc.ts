@@ -3,10 +3,34 @@ import { dialog, type IpcMain } from 'electron';
 import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
 import type { CaseHandoverChecklistInput, CaseHandoverExportInput, CaseHandoverImportInput, CaseHandoverReturnDeltaExportInput } from '../../src/domain/models/case-handover.model.js';
-import { assertRecordInput, assertString, sanitizeDialogFileName } from './ipcValidation.js';
+import type { MobileCompanionDeviceStatus, MobileCompanionSnapshotInput, SaveMobileCompanionDeviceInput } from '../../src/domain/models/mobile-companion.model.js';
+import { assertAllowedEnum, assertRecordInput, assertString, sanitizeDialogFileName } from './ipcValidation.js';
 import { issueSelectedFileCapability, resolveSelectedFileCapability, SELECTED_FILE_PURPOSE } from './selectedFileCapability.js';
+import { registerMobilePairingFileIpc } from './mobilePairingFileIpc.js';
+import { validateMobileReturnImportInput } from './mobileReturnIpcValidation.js';
+
+function validateMobileDeviceInput(input: unknown): SaveMobileCompanionDeviceInput {
+  const value = assertRecordInput<Record<string, unknown>>(input, 'caseHandover:mobile:devices:save');
+  return {
+    label: assertString(value.label, 'caseHandover:mobile:devices:save', 'Gerätename', { minLength: 1, maxLength: 120 }),
+    pairingResponse: assertString(value.pairingResponse, 'caseHandover:mobile:devices:save', 'Pairingantwort', { minLength: 1, maxLength: 7000 }),
+    securityCode: assertString(value.securityCode, 'caseHandover:mobile:devices:save', 'Sicherheitscode', { minLength: 1, maxLength: 32 }),
+  };
+}
+
+function validateMobileSnapshotInput(input: unknown): MobileCompanionSnapshotInput {
+  const value = assertRecordInput<Record<string, unknown>>(input, 'caseHandover:mobile:snapshot:create');
+  const caseIds = Array.isArray(value.caseIds) ? value.caseIds.map((caseId) =>
+    assertString(caseId, 'caseHandover:mobile:snapshot:create', 'Fall-ID', { minLength: 1, maxLength: 120 })) : [];
+  return {
+    deviceId: assertString(value.deviceId, 'caseHandover:mobile:snapshot:create', 'Mobilgerät', { minLength: 1, maxLength: 120 }),
+    caseIds,
+    uiThemeMode: value.uiThemeMode === 'light' ? 'light' : 'dark',
+  };
+}
 
 export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
+  registerMobilePairingFileIpc(ipcMain, services);
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverCockpit, async () => services.caseHandover().listCockpit());
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverChecklist, async (_event, input: unknown) =>
@@ -81,5 +105,43 @@ export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityServ
     const validatedCaseId = assertString(caseId, 'caseHandover:continue-expired', 'Fall-ID', { minLength: 1, maxLength: 120 });
     const validatedReason = assertString(reason, 'caseHandover:continue-expired', 'Begründung', { minLength: 3, maxLength: 2000 });
     return services.caseHandover().continueExpired({ caseId: validatedCaseId, reason: validatedReason });
+  });
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverMobileDevicesList, async () =>
+    services.mobileCompanion().listDevices());
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverMobileDevicesSave, async (_event, input: unknown) =>
+    services.mobileCompanion().saveDevice(validateMobileDeviceInput(input)));
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverMobileDeviceStatus, async (_event, id: unknown, status: unknown) =>
+    services.mobileCompanion().setDeviceStatus(
+      assertString(id, 'caseHandover:mobile:device-status', 'Mobilgerät', { minLength: 1, maxLength: 120 }),
+      assertAllowedEnum<MobileCompanionDeviceStatus>(status, 'caseHandover:mobile:device-status', 'Status', ['active', 'disabled']),
+    ));
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverMobileSnapshotCreate, async (_event, input: unknown) =>
+    services.mobileCompanion().createSnapshot(validateMobileSnapshotInput(input)));
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverMobileReturnSelectInspect, async () => {
+    const result = await dialog.showOpenDialog({
+      title: 'Mobile Rückgabedatei öffnen',
+      properties: ['openFile'],
+      filters: [{ name: 'Gremia.SBV Mobile-Rückgabe', extensions: ['gsbvmobile'] }],
+    });
+    if (result.canceled || !result.filePaths[0]) return { canceled: true };
+    const filePath = result.filePaths[0];
+    const capability = issueSelectedFileCapability(filePath, SELECTED_FILE_PURPOSE.mobileCompanionReturn);
+    return {
+      canceled: false,
+      filePath: capability.fileToken,
+      fileName: capability.fileName,
+      inspection: services.mobileCompanionReturn().inspectFile(filePath),
+    };
+  });
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverMobileReturnImport, async (_event, input: unknown) => {
+    const validated = validateMobileReturnImportInput(input);
+    const resolvedFilePath = resolveSelectedFileCapability(validated.filePath, SELECTED_FILE_PURPOSE.mobileCompanionReturn, 'caseHandover:mobile:return:import');
+    return services.mobileCompanionReturn().importFile(resolvedFilePath, validated.resolutions);
   });
 }

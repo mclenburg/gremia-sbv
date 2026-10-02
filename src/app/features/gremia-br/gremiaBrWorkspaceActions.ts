@@ -1,8 +1,31 @@
 import type { CaseRecord } from "../../../domain/models/case.model";
 import type {
   GremiaBrDashboardOverview,
+  GremiaBrAgendaChanges,
+  GremiaBrMinutesSummary,
+  GremiaBrDocumentClassification,
+  ChangeGremiaBrDocumentClassificationInput,
+  GremiaBrDocumentDetail,
+  GremiaBrDocumentImportInput,
+  GremiaBrOwnShare,
+  GremiaBrManagedDocument,
+  GremiaBrShareCreateInput,
+  GremiaBrShareRevokeInput,
+  GremiaBrDocumentHit,
   GremiaBrGeneratedPdfDocument,
+  GremiaBrOwnTaskDetail,
+  GremiaBrProcedureDetail,
+  GremiaBrExternalReferenceRecord,
+  GremiaBrInformationRequest,
+  CreateGremiaBrInformationRequestInput,
+  CompleteGremiaBrInformationRequestInput,
+  CreateGremiaBrProcedureTaskInput,
+  GremiaBrTaskTransitionInput,
+  GremiaBrTaskTransitionOptions,
   GremiaBrPublicSettings,
+  GremiaBrProcedureTypeOption,
+  GremiaBrCaseCreationRecord,
+  CreateGremiaBrRemoteCaseInput,
   GremiaBrWorkspaceActionRecord,
 } from "../../../domain/models/gremia-br.model";
 import { waitForBridge } from "../../core/bridge/waitForBridge";
@@ -37,6 +60,30 @@ export async function loadWorkspaceSnapshot(): Promise<GremiaBrWorkspaceSnapshot
   return { settings, overview, documents, actions, cases };
 }
 
+export async function listRemoteProcedureTypes(): Promise<GremiaBrProcedureTypeOption[]> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.listProcedureTypes();
+}
+
+export async function getPendingRemoteCaseCreation(caseId: string): Promise<GremiaBrCaseCreationRecord | null> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.getPendingCaseCreation(caseId);
+}
+
+export async function createRemoteCase(input: CreateGremiaBrRemoteCaseInput): Promise<GremiaBrCaseCreationRecord> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.createRemoteCase(input);
+}
+
+export async function resumeRemoteCaseCreation(id: string): Promise<GremiaBrCaseCreationRecord> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.resumeCaseCreation(id);
+}
+
 export async function refreshReadContextSnapshot(): Promise<{ message: string; snapshot: GremiaBrWorkspaceSnapshot }> {
   const bridge = await waitForBridge();
   if (!bridge?.gremiaBr) throw new Error("Gremia.BR-Dienst ist nicht erreichbar.");
@@ -49,6 +96,157 @@ export async function loadTransferableDocuments(): Promise<GremiaBrGeneratedPdfD
   const bridge = await waitForBridge();
   if (!bridge?.gremiaBr) throw new Error("Gremia.BR-Dienst ist nicht erreichbar.");
   return bridge.gremiaBr.listTransferableDocuments(100);
+}
+
+export async function loadOwnTaskDetail(id: string): Promise<GremiaBrOwnTaskDetail> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.getOwnTaskDetail(id);
+}
+
+export async function loadMeetingRemoteAccess(meetingId: string): Promise<string> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.getMeetingRemoteAccess(meetingId);
+}
+
+export async function loadMeetingAgendaChanges(meetingId: string): Promise<GremiaBrAgendaChanges> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.getMeetingAgendaChanges(meetingId);
+}
+
+export async function loadMeetingMinutes(meetingId: string): Promise<GremiaBrMinutesSummary | null> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.getMeetingMinutes(meetingId);
+}
+
+export async function loadDocumentClassification(documentId: string): Promise<GremiaBrDocumentClassification> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.getDocumentClassification(documentId);
+}
+
+export async function changeDocumentClassification(input: ChangeGremiaBrDocumentClassificationInput): Promise<GremiaBrDocumentClassification> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.changeDocumentClassification(input);
+}
+
+export async function searchRemoteDocuments(query: string): Promise<GremiaBrDocumentHit[]> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.searchRemoteDocuments(query);
+}
+
+export async function loadRemoteDocumentDetail(documentId: string): Promise<GremiaBrDocumentDetail> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.getRemoteDocumentDetail(documentId);
+}
+
+export async function requestDocumentAccess(input: import('../../../domain/models/gremia-br.model').GremiaBrDocumentAccessRequestInput): Promise<import('../../../domain/models/gremia-br.model').GremiaBrOwnAccessApproval> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.requestDocumentAccess(input);
+}
+
+export async function openRemoteDocumentVersion(documentId: string, versionId: string): Promise<{ opened: boolean; error?: string }> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.openRemoteDocumentVersion(documentId, versionId);
+}
+
+export async function importRemoteDocumentVersion(input: GremiaBrDocumentImportInput): Promise<void> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  await bridge.gremiaBr.importRemoteDocumentVersion(input);
+}
+
+export async function listOwnDocumentShares(documentId: string): Promise<GremiaBrOwnShare[]> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.listOwnDocumentShares(documentId);
+}
+
+export async function listManagedRemoteDocuments(): Promise<GremiaBrManagedDocument[]> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.listManagedRemoteDocuments();
+}
+
+export async function createOwnDocumentShare(input: GremiaBrShareCreateInput): Promise<GremiaBrOwnShare> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.createOwnDocumentShare(input);
+}
+
+export async function revokeOwnDocumentShare(input: GremiaBrShareRevokeInput): Promise<GremiaBrOwnShare> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.revokeOwnDocumentShare(input);
+}
+
+export async function loadProcedureDetail(id: string): Promise<GremiaBrProcedureDetail> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.getProcedureDetail(id);
+}
+
+export async function loadInformationRequests(caseId: string, procedureId: string): Promise<GremiaBrInformationRequest[]> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.listInformationRequests(caseId, procedureId);
+}
+
+export async function createInformationRequest(input: CreateGremiaBrInformationRequestInput): Promise<GremiaBrInformationRequest> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.createInformationRequest(input);
+}
+
+export async function completeInformationRequest(input: CompleteGremiaBrInformationRequestInput): Promise<GremiaBrInformationRequest> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.completeInformationRequest(input);
+}
+
+export async function createProcedureTask(input: CreateGremiaBrProcedureTaskInput): Promise<GremiaBrOwnTaskDetail> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.createProcedureTask(input);
+}
+
+export async function loadProcedureLinks(caseId: string): Promise<GremiaBrExternalReferenceRecord[]> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.listExternalReferences(caseId);
+}
+
+export async function saveProcedureLink(caseId: string, procedureId: string): Promise<void> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  await bridge.gremiaBr.saveExternalReference({ caseId, sourceType: 'verfahren', sourceId: procedureId, title: '' });
+}
+
+export async function deleteProcedureLink(id: string): Promise<void> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  const result = await bridge.gremiaBr.deleteExternalReference(id);
+  if (!result.deleted) throw new Error('Die Verknüpfung war nicht mehr vorhanden. Bitte die lokale Ansicht neu laden.');
+}
+
+export async function loadOwnTaskTransitions(id: string): Promise<GremiaBrTaskTransitionOptions> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.getOwnTaskTransitions(id);
+}
+
+export async function transitionOwnTask(input: GremiaBrTaskTransitionInput): Promise<GremiaBrOwnTaskDetail> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
+  return bridge.gremiaBr.transitionOwnTask(input);
 }
 
 export async function loadWorkspaceActions(): Promise<GremiaBrWorkspaceActionRecord[]> {

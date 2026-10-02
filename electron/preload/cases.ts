@@ -15,6 +15,7 @@ import type {
 } from "../../src/domain/models/case-note.model.js";
 import type { CaseDocumentRecord } from "../../src/domain/models/case-document.model.js";
 import type { CaseHandoverChecklist, CaseHandoverChecklistInput, CaseHandoverCockpit, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult, CaseHandoverReturnDeltaExportInput } from "../../src/domain/models/case-handover.model.js";
+import type { MobileCompanionDevice, MobileCompanionDeviceStatus, MobileCompanionPairingRequestResult, MobileCompanionReturnImportInput, MobileCompanionReturnImportResult, MobileCompanionReturnInspectResult, MobileCompanionSnapshotInput, MobileCompanionSnapshotResult, SaveMobileCompanionDeviceInput } from "../../src/domain/models/mobile-companion.model.js";
 import type {
   CaseMeasureNoteProcessType,
   CaseMeasureNoteRecord,
@@ -61,6 +62,25 @@ function createCaseHandoverApi(invokeIpc: IpcInvoker) {
       invokeIpc(IPC_CHANNELS.caseHandoverImport, input),
     continueExpired: (caseId: string, reason: string): Promise<CaseHandoverContinueExpiredResult> =>
       invokeIpc(IPC_CHANNELS.caseHandoverContinueExpired, caseId, reason),
+    listMobileDevices: (): Promise<MobileCompanionDevice[]> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverMobileDevicesList),
+    createMobilePairingRequest: (): Promise<MobileCompanionPairingRequestResult> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverMobilePairingRequest),
+    exportMobilePairingRequest: (request: string): Promise<boolean> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverMobilePairingExport, request),
+    readMobilePairingResponse: (): Promise<string | null> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverMobilePairingRead),
+    cancelMobilePairing: (sessionId: string): Promise<void> => invokeIpc(IPC_CHANNELS.caseHandoverMobilePairingCancel, sessionId),
+    saveMobileDevice: (input: SaveMobileCompanionDeviceInput): Promise<MobileCompanionDevice> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverMobileDevicesSave, input),
+    setMobileDeviceStatus: (id: string, status: MobileCompanionDeviceStatus): Promise<MobileCompanionDevice> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverMobileDeviceStatus, id, status),
+    createMobileSnapshot: (input: MobileCompanionSnapshotInput): Promise<MobileCompanionSnapshotResult> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverMobileSnapshotCreate, input),
+    selectAndInspectMobileReturn: (): Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string; inspection: MobileCompanionReturnInspectResult }> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverMobileReturnSelectInspect),
+    importMobileReturn: (input: MobileCompanionReturnImportInput): Promise<MobileCompanionReturnImportResult> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverMobileReturnImport, input),
   };
 }
 

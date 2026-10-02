@@ -55,14 +55,14 @@ Die Gremia.BR-Anbindung dient ausschließlich der Zusammenarbeit zwischen BR und
 Regeln:
 
 - keine automatische Synchronisation,
-- keine Hintergrundabfragen,
+- keine periodischen Hintergrundabfragen; optional ein ausdrücklich aktivierter, einmaliger Gremia.BR-Startabruf nach Entsperren,
 - keine generischen Schreibzugriffe nach Gremia.BR,
 - keine Massentransfers vollständiger SBV-Falldaten,
 - nur explizit ausgelöste lesende Zugriffe und ausdrücklich modellierte SBV-Arbeitsbereichsaktionen,
 - harte Endpunkt-Whitelist,
 - JWT bevorzugt nur im Arbeitsspeicher,
 - Zugangsdaten im SQLCipher-Vault,
-- lokaler Gremia.BR-Lesecache mit fester 30-Tage-TTL und automatischem Leeren bei deaktivierter Anbindung,
+- flüchtiger Gremia.BR-Arbeitsstand ohne persistente Remote-Inhalte, der bei Konfigurationswechsel geleert wird; frühere Lesecache-Inhalte werden beim Upgrade entfernt,
 - Audit nur über Aktion, Zeitpunkt, Endpunkt und Ergebnis – nicht über Inhalte, Query-Werte oder Suchbegriffe.
 
 ## Audit

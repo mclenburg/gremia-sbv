@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import type {
-  GremiaBrApiMode,
   GremiaBrCachedOverview,
   GremiaBrPublicSettings,
   GremiaBrRelevanceKeywordGroup,
@@ -14,14 +13,18 @@ type Announce = (message: string, politeness?: "polite" | "assertive") => void;
 
 export const EMPTY_GREMIA_BR_SETTINGS: GremiaBrPublicSettings = {
   enabled: false,
+  autoRefreshOnStartup: false,
   serverUrl: "",
   username: "",
   hasStoredCredentials: false,
-  apiMode: "legacy_read_bridge",
+  apiMode: "gremia_br_v2",
   relevanceSettings: { groups: [] },
 };
 
 export const EMPTY_GREMIA_BR_CACHE: GremiaBrCachedOverview = {
+  accessibleCases: [],
+  ownTasks: [],
+  ownAccessApprovals: [],
   upcomingMeetings: [],
   pendingFollowUps: [],
   decisions: [],
@@ -44,10 +47,10 @@ export interface GremiaBrSettingsSetters {
   setSettings: Dispatch<SetStateAction<GremiaBrPublicSettings>>;
   setCache: Dispatch<SetStateAction<GremiaBrCachedOverview>>;
   setEnabled: Dispatch<SetStateAction<boolean>>;
+  setAutoRefreshOnStartup: Dispatch<SetStateAction<boolean>>;
   setServerUrl: Dispatch<SetStateAction<string>>;
   setUsername: Dispatch<SetStateAction<string>>;
   setPassword: Dispatch<SetStateAction<string>>;
-  setApiMode: Dispatch<SetStateAction<GremiaBrApiMode>>;
   setSelectedBodyId: Dispatch<SetStateAction<string>>;
   setSelectedBodyName: Dispatch<SetStateAction<string>>;
   setSelectedOrganizationId: Dispatch<SetStateAction<string>>;
@@ -64,10 +67,10 @@ export function applyGremiaBrSettingsSnapshot(
   setters.setSettings(next);
   setters.setCache(cached);
   setters.setEnabled(next.enabled);
+  setters.setAutoRefreshOnStartup(next.autoRefreshOnStartup);
   setters.setServerUrl(next.serverUrl);
   setters.setUsername(next.username);
   setters.setPassword("");
-  setters.setApiMode(next.apiMode);
   setters.setSelectedBodyId(next.selectedBodyId ?? "");
   setters.setSelectedBodyName(next.selectedBodyName ?? "");
   setters.setSelectedOrganizationId(next.selectedOrganizationId ?? "");

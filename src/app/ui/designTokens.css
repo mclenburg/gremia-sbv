@@ -118,6 +118,8 @@
   --industrial-select-option-bg: var(--industrial-panel);
   --industrial-select-arrow: var(--industrial-accent);
   --industrial-select-divider: rgba(250, 204, 21, 0.24);
+  --industrial-qr-bg: #ffffff;
+  --industrial-qr-fg: #10131c;
 }
 
 html[data-theme='light'] {
@@ -193,4 +195,6 @@ html[data-theme='light'] {
   --industrial-select-option-bg: #fffdf2;
   --industrial-select-arrow: #6f5600;
   --industrial-select-divider: rgba(111, 86, 0, 0.24);
+  --industrial-qr-bg: #ffffff;
+  --industrial-qr-fg: #10131c;
 }

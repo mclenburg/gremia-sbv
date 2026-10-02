@@ -118,6 +118,9 @@ CREATE TABLE IF NOT EXISTS case_documents (
   ocr_completed_at TEXT,
   ocr_error TEXT,
   contains_health_data INTEGER NOT NULL DEFAULT 0,
+  remote_document_id TEXT,
+  remote_version_id TEXT,
+  remote_title TEXT,
   created_at TEXT NOT NULL
 );
 
@@ -290,6 +293,7 @@ CREATE TABLE IF NOT EXISTS settings (
 CREATE TABLE IF NOT EXISTS gremia_br_settings (
   id TEXT PRIMARY KEY CHECK (id = 'default'),
   enabled INTEGER NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),
+  auto_refresh_on_startup INTEGER NOT NULL DEFAULT 0 CHECK (auto_refresh_on_startup IN (0, 1)),
   server_url TEXT NOT NULL DEFAULT '',
   username TEXT NOT NULL DEFAULT '',
   password_secret TEXT NOT NULL DEFAULT '',
@@ -341,6 +345,24 @@ CREATE TABLE IF NOT EXISTS gremia_br_workspace_actions (
 CREATE INDEX IF NOT EXISTS idx_gremia_br_workspace_actions_document ON gremia_br_workspace_actions(local_document_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_gremia_br_workspace_actions_case ON gremia_br_workspace_actions(case_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_gremia_br_workspace_actions_target ON gremia_br_workspace_actions(target_security_domain, created_at);
+
+CREATE TABLE IF NOT EXISTS gremia_br_case_creations (
+  id TEXT PRIMARY KEY,
+  local_case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+  organization_id TEXT NOT NULL,
+  security_domain TEXT NOT NULL,
+  procedure_type TEXT NOT NULL,
+  remote_case_id TEXT,
+  remote_case_reference TEXT,
+  remote_procedure_id TEXT,
+  status TEXT NOT NULL CHECK (status IN ('case_submission_pending','case_created','procedure_created','completed','needs_review')),
+  correlation_id TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_gremia_br_case_creations_pending_case
+  ON gremia_br_case_creations(local_case_id) WHERE status != 'completed';
 
 CREATE TABLE IF NOT EXISTS retention_actions (
   id TEXT PRIMARY KEY,
@@ -1066,7 +1088,7 @@ CREATE TABLE IF NOT EXISTS case_external_references (
   id TEXT PRIMARY KEY,
   case_id TEXT NOT NULL,
   source_system TEXT NOT NULL DEFAULT 'gremia_br' CHECK (source_system IN ('gremia_br')),
-  source_type TEXT NOT NULL CHECK (source_type IN ('beschluss','sitzung','agenda','protokoll')),
+  source_type TEXT NOT NULL CHECK (source_type IN ('beschluss','sitzung','agenda','protokoll','verfahren')),
   source_id TEXT NOT NULL,
   title TEXT NOT NULL,
   description TEXT,
@@ -1800,3 +1822,30 @@ CREATE TABLE IF NOT EXISTS transfer_recipient_profiles (
   updated_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_transfer_recipient_profiles_active_label ON transfer_recipient_profiles(active, label);
+
+CREATE TABLE IF NOT EXISTS mobile_companion_devices (
+  id TEXT PRIMARY KEY,
+  label TEXT NOT NULL,
+  instance_id TEXT NOT NULL,
+  key_fingerprint TEXT NOT NULL UNIQUE,
+  recipient_token TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','disabled')),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  last_snapshot_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_mobile_companion_devices_status_label ON mobile_companion_devices(status, label);
+
+CREATE TABLE IF NOT EXISTS mobile_companion_change_imports (
+  id TEXT PRIMARY KEY,
+  source_key_fingerprint TEXT NOT NULL,
+  mobile_change_id TEXT NOT NULL,
+  change_type TEXT NOT NULL,
+  local_entity_type TEXT NOT NULL,
+  local_entity_id TEXT NOT NULL,
+  handover_import_id TEXT NOT NULL REFERENCES case_handover_imports(id) ON DELETE CASCADE,
+  imported_at TEXT NOT NULL,
+  UNIQUE(source_key_fingerprint, mobile_change_id)
+);
+CREATE INDEX IF NOT EXISTS idx_mobile_companion_change_imports_local
+  ON mobile_companion_change_imports(local_entity_type, local_entity_id);

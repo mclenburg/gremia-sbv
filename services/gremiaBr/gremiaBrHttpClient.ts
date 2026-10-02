@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { checkGremiaBrEndpoint, validateGremiaBrBaseUrl } from './gremiaBrPolicy.js';
 import { findGremiaBrEndpointDefinition, toGremiaBrEndpointLabel } from './gremiaBrApiCatalog.js';
 import type { GremiaBrRequestOptions } from './gremiaBrTypes.js';
@@ -9,6 +10,7 @@ export type GremiaBrAuditSink = { append(input: CreatePersonalDataAuditInput): u
 
 const DEFAULT_TIMEOUT_MS = 8_000;
 export const MAX_GREMIA_BR_RESPONSE_BYTES = 5 * 1024 * 1024;
+export const MAX_GREMIA_BR_BINARY_BYTES = 25 * 1024 * 1024;
 
 function appendQuery(url: URL, query?: GremiaBrRequestOptions['query']): void {
   if (!query) return;
@@ -31,14 +33,26 @@ function endpointAuditAction(method: string, path: string): 'read' | 'export' | 
   const definition = findGremiaBrEndpointDefinition(method, maskPath(path));
   if (definition?.category !== 'workspace_action') return 'read';
   if (definition.template.includes('/revocation')) return 'delete';
-  if (definition.template.includes('/agenda') || definition.template.includes('/information-requests')) return 'update';
+  if (definition.template.includes('/agenda') || definition.template.includes('/information-requests') || definition.template.includes('/tasks/')) return 'update';
   return 'export';
 }
 
-async function readResponsePayload(response: Response): Promise<unknown> {
+function httpFailureMessage(status: number): string {
+  switch (status) {
+    case 401: return 'Die Gremia.BR-Sitzung ist abgelaufen. Bitte die Verbindung in den Einstellungen erneut prüfen und Gremia.BR aktualisieren.';
+    case 403: return 'Gremia.BR hat den Zugriff verweigert. Bitte Berechtigung und erforderliche Sicherheitsnachweise dort prüfen.';
+    case 404: return 'Der angeforderte Gremia.BR-Vorgang ist nicht mehr verfügbar. Bitte Gremia.BR aktualisieren.';
+    case 409: return 'Der Gremia.BR-Stand hat sich geändert. Bitte Gremia.BR aktualisieren und die Aktion erneut prüfen.';
+    case 503: return 'Gremia.BR ist derzeit nicht erreichbar. Bitte den Abruf später erneut versuchen.';
+    default: return `Gremia.BR konnte die Anfrage nicht abschließen (HTTP ${status}). Bitte den Vorgang prüfen und erneut versuchen.`;
+  }
+}
+
+async function readResponsePayload(response: Response, asBytes = false): Promise<unknown> {
   if (response.status === 204) return null;
+  const maxBytes = asBytes ? MAX_GREMIA_BR_BINARY_BYTES : MAX_GREMIA_BR_RESPONSE_BYTES;
   const declaredLength = Number(response.headers.get('content-length') ?? '0');
-  if (Number.isFinite(declaredLength) && declaredLength > MAX_GREMIA_BR_RESPONSE_BYTES) {
+  if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
     throw new Error('Gremia.BR-Antwort überschreitet die zulässige Größe.');
   }
 
@@ -51,7 +65,7 @@ async function readResponsePayload(response: Response): Promise<unknown> {
     if (done) break;
     if (!value) continue;
     total += value.byteLength;
-    if (total > MAX_GREMIA_BR_RESPONSE_BYTES) {
+    if (total > maxBytes) {
       await reader.cancel();
       throw new Error('Gremia.BR-Antwort überschreitet die zulässige Größe.');
     }
@@ -60,6 +74,7 @@ async function readResponsePayload(response: Response): Promise<unknown> {
   const bytes = new Uint8Array(total);
   let offset = 0;
   for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  if (asBytes) return bytes;
   const text = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
   const contentType = response.headers.get('content-type') ?? '';
   if (contentType.includes('application/json')) return text ? JSON.parse(text) : null;
@@ -79,14 +94,17 @@ export class GremiaBrHttpError extends Error {
 
 export class GremiaBrHttpClient {
   private readonly baseUrl: string;
+  private readonly fetchImpl: GremiaBrFetch;
 
   constructor(
     baseUrl: string,
-    private readonly fetchImpl: GremiaBrFetch = globalThis.fetch.bind(globalThis),
-    private readonly auditLog?: GremiaBrAuditSink,
+    fetchImpl: GremiaBrFetch | undefined,
+    private readonly auditLog: GremiaBrAuditSink,
   ) {
     this.baseUrl = validateGremiaBrBaseUrl(baseUrl);
     if (!this.baseUrl) throw new Error('Für die Gremia.BR-Anfrage fehlt die Serveradresse.');
+    if (!auditLog) throw new Error('Für Gremia.BR-Anfragen ist ein lokales Audit erforderlich.');
+    this.fetchImpl = fetchImpl ?? globalThis.fetch.bind(globalThis);
   }
 
   async request<T>(method: string, path: string, token?: string, options: GremiaBrRequestOptions = {}): Promise<T> {
@@ -95,19 +113,26 @@ export class GremiaBrHttpClient {
 
   async requestDetailed<T>(method: string, path: string, token?: string, options: GremiaBrRequestOptions = {}): Promise<{ payload: T; headers: Headers }> {
     const endpoint = endpointLabel(method, path);
+    const correlationId = options.correlationId && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(options.correlationId)
+      ? options.correlationId : randomUUID();
     const policy = checkGremiaBrEndpoint(method, path);
     if (!policy.allowed) {
-      this.auditRequest(endpoint, 'blocked_by_policy');
+      this.auditRequest(endpoint, 'blocked_by_policy', undefined, correlationId);
       throw new Error(policy.reason ?? 'Dieser Gremia.BR-Endpunkt ist nicht freigegeben.');
     }
+
+    this.auditRequest(endpoint, 'started', undefined, correlationId);
+    const startedAt = performance.now();
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? DEFAULT_TIMEOUT_MS);
     const url = new URL(`${this.baseUrl}${path.startsWith('/') ? path : `/${path}`}`);
     appendQuery(url, options.query);
 
+    let result: { payload: T; headers: Headers };
+    let responseStatus: number | undefined;
     try {
-      const headers: Record<string, string> = { Accept: 'application/json' };
+      const headers: Record<string, string> = { Accept: options.responseType === 'bytes' ? 'application/octet-stream' : 'application/json' };
       let body: BodyInit | undefined;
       if (options.formData) {
         body = options.formData;
@@ -116,6 +141,7 @@ export class GremiaBrHttpClient {
         body = JSON.stringify(options.body);
       }
       if (token) headers.Authorization = `Bearer ${token}`;
+      headers['x-correlation-id'] = correlationId;
       if (options.sessionCookie) headers.Cookie = options.sessionCookie;
 
       const response = await this.fetchImpl(url.toString(), {
@@ -125,33 +151,33 @@ export class GremiaBrHttpClient {
         redirect: 'manual',
         signal: controller.signal,
       });
+      responseStatus = response.status;
       if (response.status >= 300 && response.status < 400) {
-        this.auditRequest(endpoint, 'http_error', response.status);
         throw new GremiaBrHttpError('Gremia.BR hat auf eine andere Adresse umgeleitet. Die Anfrage wurde aus Sicherheitsgründen abgebrochen.', response.status, endpoint);
       }
       if (!response.ok) {
-        this.auditRequest(endpoint, 'http_error', response.status);
-        throw new GremiaBrHttpError(`Gremia.BR-Anfrage fehlgeschlagen (${response.status}).`, response.status, endpoint);
+        throw new GremiaBrHttpError(httpFailureMessage(response.status), response.status, endpoint);
       }
-      const payload = await readResponsePayload(response) as T;
-      this.auditRequest(endpoint, 'ok', response.status);
-      return { payload, headers: response.headers };
+      const payload = await readResponsePayload(response, options.responseType === 'bytes') as T;
+      result = { payload, headers: response.headers };
     } catch (error) {
       if ((error as Error).name === 'AbortError') {
-        this.auditRequest(endpoint, 'timeout');
+        this.auditRequest(endpoint, 'timeout', undefined, correlationId, performance.now() - startedAt);
         throw new Error('Die Gremia.BR-Anfrage wurde wegen Zeitüberschreitung abgebrochen.');
       }
-      if (!(error instanceof GremiaBrHttpError)) {
-        this.auditRequest(endpoint, 'network_error');
+      this.auditRequest(endpoint, error instanceof GremiaBrHttpError ? 'http_error' : 'request_error', responseStatus, correlationId, performance.now() - startedAt);
+      if (error instanceof TypeError) {
+        throw new Error('Die Verbindung zu Gremia.BR konnte nicht hergestellt werden. Bitte die Serververbindung prüfen und den Abruf erneut versuchen.');
       }
       throw error;
     } finally {
       clearTimeout(timeout);
     }
+    this.auditRequest(endpoint, 'ok', responseStatus, correlationId, performance.now() - startedAt);
+    return result;
   }
 
-  private auditRequest(endpoint: string, outcome: string, status?: number): void {
-    if (!this.auditLog) return;
+  private auditRequest(endpoint: string, outcome: string, status?: number, correlationId?: string, durationMs?: number): void {
     const method = endpoint.split(' ')[0] ?? 'GET';
     const path = endpoint.replace(/^[A-Z]+\s+/u, '');
     this.auditLog.append(auditGremiaBrReadRequest({
@@ -159,6 +185,8 @@ export class GremiaBrHttpClient {
       endpoint,
       outcome,
       ...(typeof status === 'number' ? { status } : {}),
+      correlationId,
+      durationMs: durationMs === undefined ? undefined : Math.round(durationMs),
     }));
   }
 }

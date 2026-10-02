@@ -1,4 +1,4 @@
-import type { GremiaBrApiMode } from '../../src/domain/models/gremia-br.model.js';
+import type { GremiaBrApiMode, GremiaBrOwnTask, GremiaBrOwnAccessApproval, GremiaBrRemoteCase } from '../../src/domain/models/gremia-br.model.js';
 
 export interface GremiaBrStoredSettings {
   id: 'default';
@@ -37,11 +37,13 @@ export interface GremiaBrProfileSnapshot {
 }
 
 export interface GremiaBrRequestOptions {
+  correlationId?: string;
   query?: Record<string, string | number | boolean | Array<string | number | boolean> | undefined>;
   body?: unknown;
   formData?: FormData;
   sessionCookie?: string;
   timeoutMs?: number;
+  responseType?: 'bytes';
 }
 
 export interface GremiaBrReadContext {
@@ -53,6 +55,9 @@ export interface GremiaBrReadContext {
 }
 
 export interface GremiaBrReadAdapter {
+  listAccessibleCases(): Promise<GremiaBrRemoteCase[]>;
+  listOwnTasks(): Promise<GremiaBrOwnTask[]>;
+  listOwnAccessApprovals(): Promise<GremiaBrOwnAccessApproval[]>;
   listWorksAgreements(): Promise<unknown[]>;
   listRelevantMeetings(): Promise<unknown[]>;
   getReferenceById(id: string): Promise<unknown | null>;

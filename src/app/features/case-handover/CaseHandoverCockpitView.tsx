@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import type { CaseRecord } from '../../../domain/models/case.model';
+import type { CaseMeasureRecord } from '../../../domain/models/case-measure.model';
 import type { CaseHandoverCockpit } from '../../../domain/models/case-handover.model';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { IndustrialButton } from '../../shared/components/IndustrialButton';
 import { WorkbenchNavigation, WorkbenchPage, WorkbenchSummary, WorkbenchWorkspace } from '../../shared/components/WorkbenchLayout';
 import { HandoverImportTab } from './HandoverImportTab';
+import { HandoverMobileCompanionTab } from './HandoverMobileCompanionTab';
 import { HandoverOfficeTab } from './HandoverOfficeTab';
 import { HandoverOverviewTab } from './HandoverOverviewTab';
 import { HandoverProtocolTab } from './HandoverProtocolTab';
@@ -24,7 +26,7 @@ const EMPTY_COCKPIT: CaseHandoverCockpit = {
   incoming: [],
 };
 
-export function CaseHandoverCockpitView({ cases, onRecordsChanged }: { cases: CaseRecord[]; onRecordsChanged: () => Promise<void> }) {
+export function CaseHandoverCockpitView({ cases, measures = [], onRecordsChanged }: { cases: CaseRecord[]; measures?: CaseMeasureRecord[]; onRecordsChanged: () => Promise<void> }) {
   const announce = useAnnouncer();
   const [cockpit, setCockpit] = useState<CaseHandoverCockpit>(EMPTY_COCKPIT);
   const [activeTab, setActiveTab] = useState<CaseHandoverTabId>('overview');
@@ -67,6 +69,7 @@ export function CaseHandoverCockpitView({ cases, onRecordsChanged }: { cases: Ca
     >
       {activeTab === 'overview' ? <HandoverOverviewTab cockpit={cockpit} onSelectTab={setActiveTab} /> : null}
       {activeTab === 'vacation' ? <HandoverVacationTab cases={cases} onCompleted={complete} /> : null}
+      {activeTab === 'mobile' ? <HandoverMobileCompanionTab cases={cases} measures={measures} /> : null}
       {activeTab === 'return' ? <HandoverReturnTab items={cockpit.incoming} cases={cases} onCompleted={complete} /> : null}
       {activeTab === 'office' ? <HandoverOfficeTab cases={cases} inventory={cockpit.officeInventory} onCompleted={complete} /> : null}
       {activeTab === 'import' ? <HandoverImportTab onCompleted={complete} /> : null}

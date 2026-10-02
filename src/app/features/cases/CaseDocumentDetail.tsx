@@ -27,6 +27,14 @@ export function CaseDocumentDetail({
       {document.measureTitle && (
         <p className="industrial-meta">Zugeordnete Maßnahme: {document.measureTitle}</p>
       )}
+      {document.remoteOrigin ? <details>
+        <summary>Herkunft aus Gremia.BR</summary>
+        <dl className="industrial-meta-grid">
+          <div><dt>Remote-Titel</dt><dd>{document.remoteOrigin.title}</dd></div>
+          <div><dt>Dokumentkennung</dt><dd>{document.remoteOrigin.documentId}</dd></div>
+          <div><dt>Versionskennung</dt><dd>{document.remoteOrigin.versionId}</dd></div>
+        </dl>
+      </details> : null}
       <p className="industrial-meta">SHA-256: {document.sha256}</p>
       {document.extractedText ? <p className="case-note-content">{document.extractedText.slice(0, 2000)}</p> : <p className="industrial-empty">Für dieses Dokument wurde kein lesbarer Volltext extrahiert. Dateiname und Metadaten sind trotzdem suchbar.</p>}
       <div className="industrial-message industrial-message-warning">Beim Öffnen oder Exportieren entsteht temporär bzw. bewusst eine Klartextkopie außerhalb des verschlüsselten Dokumentenspeichers.</div>

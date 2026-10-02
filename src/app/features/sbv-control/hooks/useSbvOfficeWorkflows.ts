@@ -1,5 +1,6 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import { waitForBridge } from '../../../core/bridge/waitForBridge';
+import type { ControlSectionId } from '../sbvControlSections';
 import type {
   ComplaintWorkflowRecord,
   EmployerObligationReviewRecord,
@@ -11,6 +12,7 @@ import type {
 } from '../../../../domain/models/sbv-office-workflow.model';
 
 export function useSbvOfficeWorkflows() {
+  const [loaded, setLoaded] = useState(false);
   const [assemblyWarning, setAssemblyWarning] = useState(false);
   const [meetings, setMeetings] = useState<SbvMeetingRecord[]>([]);
   const [assemblies, setAssemblies] = useState<SbvAssemblyRecord[]>([]);
@@ -59,9 +61,11 @@ export function useSbvOfficeWorkflows() {
     setComplaints(loadedComplaints);
     setTemplates(loadedTemplates);
     setAssemblyWarning(warning);
+    setLoaded(true);
   }, []);
 
   return {
+    loaded,
     meetings,
     assemblies,
     assemblyWarning,
@@ -73,4 +77,46 @@ export function useSbvOfficeWorkflows() {
     load,
     bridge,
   };
+}
+
+export type SbvOfficeRecordTarget = {
+  recordId: string;
+  processType: 'employer_obligation_review' | 'inclusion_agreement' | 'sbv_assembly' | 'sbv_meeting';
+  sourceEvent?: string;
+};
+
+export function useSbvOfficeRecordTarget({ target, onTargetConsumed, loaded, obligations, agreements, assemblies, meetings, setActiveSection, setError }: {
+  target?: SbvOfficeRecordTarget;
+  onTargetConsumed?: () => void;
+  loaded: boolean;
+  obligations: EmployerObligationReviewRecord[];
+  agreements: InclusionAgreementRecord[];
+  assemblies: SbvAssemblyRecord[];
+  meetings: SbvMeetingRecord[];
+  setActiveSection: Dispatch<SetStateAction<ControlSectionId>>;
+  setError: Dispatch<SetStateAction<string>>;
+}) {
+  const [selectedTarget, setSelectedTarget] = useState<SbvOfficeRecordTarget>();
+  const onTargetConsumedRef = useRef(onTargetConsumed);
+  useEffect(() => { onTargetConsumedRef.current = onTargetConsumed; }, [onTargetConsumed]);
+  useEffect(() => {
+    if (!target) return;
+    const isObligation = target.processType === 'employer_obligation_review';
+    const isAssembly = target.processType === 'sbv_assembly';
+    const isMeeting = target.processType === 'sbv_meeting';
+    setActiveSection(isMeeting ? 'meetings' : isObligation ? 'obligations' : isAssembly ? 'assembly' : 'inclusion');
+    if (!loaded) return;
+    const records = isObligation ? obligations : isAssembly ? assemblies : agreements;
+    const exists = isMeeting ? meetings.some((meeting) => meeting.agenda.some((agenda) => agenda.id === target.recordId))
+      : records.some((record) => record.id === target.recordId);
+    if (exists) {
+      setSelectedTarget(target);
+      setError('');
+    } else {
+      setSelectedTarget(undefined);
+      setError(`${isMeeting ? 'Der verknüpfte Tagesordnungspunkt' : isObligation ? 'Der verknüpfte Prüfvorgang' : isAssembly ? 'Die verknüpfte Versammlung' : 'Die verknüpfte Verhandlungsakte'} ist nicht mehr vorhanden. Prüfen Sie die Wiedervorlage im Fristenregister.`);
+    }
+    onTargetConsumedRef.current?.();
+  }, [agreements, assemblies, loaded, meetings, obligations, setActiveSection, setError, target]);
+  return selectedTarget;
 }

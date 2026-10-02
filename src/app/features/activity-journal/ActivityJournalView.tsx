@@ -1,4 +1,4 @@
-import { Clock, Plus, Search, Trash2 } from 'lucide-react';
+import { Clock, Eye, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { ActivityJournalCategory, ActivityJournalEntryRecord, ActivityJournalPrefill } from '../../../domain/models/activity-journal.model';
 import { ACTIVITY_JOURNAL_CATEGORIES } from '../../../domain/models/activity-journal.model';
@@ -6,10 +6,12 @@ import { activityJournalCategoryLabels, activityJournalTimeModeLabels } from '..
 import { IconButton, IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 import { FormSection, SelectInput, TextInput } from '../../shared/components/IndustrialForm';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
-import { DataTable, EmptyState, WorkbenchGrid, WorkbenchPage, WorkbenchSummary } from '../../shared/components/WorkbenchLayout';
+import { DataTable, EmptyState, WorkbenchGrid, WorkbenchPage, WorkbenchSummary, type DataTableRow } from '../../shared/components/WorkbenchLayout';
 import { useConfirmDialog } from '../../shared/dialogs/ConfirmDialogProvider';
+import { IndustrialModal } from '../../shared/dialogs/IndustrialDialogs';
 import { categoryLabel, entryReferenceLabel, formatDuration } from './activityJournalLogic';
 import { useActivityJournal } from './hooks/useActivityJournal';
+import { useActivityJournalTarget } from './hooks/useActivityJournalTarget';
 import { ActivityJournalCreateDialog } from './ActivityJournalCreateDialog';
 
 const categoryOptions = ACTIVITY_JOURNAL_CATEGORIES.map((category) => ({
@@ -34,16 +36,61 @@ function statusLabel(entry: ActivityJournalEntryRecord): string {
   return 'final';
 }
 
+function ActivityJournalEntryDialog({ entry, onClose }: { entry: ActivityJournalEntryRecord; onClose: () => void }) {
+  return <IndustrialModal title={entry.title} kicker="Journaleintrag" onClose={onClose}
+    actions={<ToolbarButton onClick={onClose}>Schließen</ToolbarButton>}>
+    <dl className="industrial-meta-grid">
+      <div><dt>Datum</dt><dd>{new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' }).format(new Date(entry.entryDate))}</dd></div>
+      <div><dt>Kategorie</dt><dd>{categoryLabel(entry.category)}</dd></div>
+      <div><dt>Status</dt><dd>{statusLabel(entry)}</dd></div>
+      <div><dt>Zeit</dt><dd>{formatDuration(entry.durationMinutes)}</dd></div>
+      {entry.followUpDueAt ? <div><dt>Wiedervorlage</dt><dd>{new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' }).format(new Date(entry.followUpDueAt))}</dd></div> : null}
+      {entry.description ? <div><dt>Beschreibung</dt><dd>{entry.description}</dd></div> : null}
+      {entry.resultNote ? <div><dt>Ergebnis</dt><dd>{entry.resultNote}</dd></div> : null}
+    </dl>
+  </IndustrialModal>;
+}
+
+function entryRows(entries: ActivityJournalEntryRecord[], busy: boolean, onOpen: (entry: ActivityJournalEntryRecord) => void, onDelete: (entry: ActivityJournalEntryRecord) => void): DataTableRow[] {
+  return entries.map((entry) => ({
+    id: entry.id,
+    cells: [
+      entry.entryDate,
+      <div key="activity" className="industrial-content-fragment">
+        <strong>{entry.title}</strong>
+        {entry.resultNote ? <p className="industrial-settings-note">{entry.resultNote}</p> : null}
+      </div>,
+      categoryLabel(entry.category),
+      <span key="time" className="industrial-text-fragment"><Clock className="inline-icon" /> {formatDuration(entry.durationMinutes)}</span>,
+      entryReferenceLabel(entry),
+      statusLabel(entry),
+      <div key="actions" className="industrial-table-actions">
+        <IconButton aria-label={`Journaleintrag ${entry.title} ansehen`} onClick={() => onOpen(entry)}>
+          <Eye className="industrial-icon" aria-hidden="true" />
+        </IconButton>
+        <IconButton aria-label={`Journaleintrag ${entry.title} löschen`} disabled={busy} onClick={() => onDelete(entry)}>
+          <Trash2 className="industrial-icon" aria-hidden="true" />
+        </IconButton>
+      </div>,
+    ],
+  }));
+}
+
 export function ActivityJournalView({
   pendingPrefill,
   onPrefillConsumed,
+  targetId,
+  onTargetConsumed,
 }: {
   pendingPrefill?: ActivityJournalPrefill | null;
   onPrefillConsumed?: () => void;
+  targetId?: string;
+  onTargetConsumed?: () => void;
 }) {
   const journal = useActivityJournal(pendingPrefill, onPrefillConsumed);
   const confirmDialog = useConfirmDialog();
   const [createOpen, setCreateOpen] = useState(Boolean(pendingPrefill));
+  const { detailEntry, setDetailEntry, targetError, targetLoading } = useActivityJournalTarget(targetId, onTargetConsumed);
   useEffect(() => { if (pendingPrefill) setCreateOpen(true); }, [pendingPrefill]);
 
   async function confirmDelete(entry: ActivityJournalEntryRecord) {
@@ -64,23 +111,7 @@ export function ActivityJournalView({
     { label: 'Einträge', value: journal.summary.totalEntries },
   ] : [];
 
-  const rows = journal.entries.map((entry) => ({
-    id: entry.id,
-    cells: [
-      entry.entryDate,
-      <div key="activity" className="industrial-content-fragment">
-        <strong>{entry.title}</strong>
-        {entry.resultNote ? <p className="industrial-settings-note">{entry.resultNote}</p> : null}
-      </div>,
-      categoryLabel(entry.category),
-      <span key="time" className="industrial-text-fragment"><Clock className="inline-icon" /> {formatDuration(entry.durationMinutes)}</span>,
-      entryReferenceLabel(entry),
-      statusLabel(entry),
-      <IconButton key="delete" aria-label={`Journaleintrag ${entry.title} löschen`} disabled={journal.busy} onClick={() => void confirmDelete(entry)}>
-        <Trash2 className="industrial-icon" />
-      </IconButton>,
-    ],
-  }));
+  const rows = entryRows(journal.entries, journal.busy, setDetailEntry, (entry) => void confirmDelete(entry));
 
   return (
     <WorkbenchPage
@@ -91,7 +122,11 @@ export function ActivityJournalView({
       <ModuleFeedback items={[
         journal.message ? { id: 'activity-journal-message', tone: 'success', message: journal.message } : null,
         journal.error ? { id: 'activity-journal-error', tone: 'warning', message: journal.error } : null,
+        targetError ? { id: 'activity-journal-target-error', tone: 'warning', message: targetError } : null,
       ]} />
+
+      {targetLoading ? <p role="status">Journaleintrag wird geladen.</p> : null}
+      {detailEntry ? <ActivityJournalEntryDialog entry={detailEntry} onClose={() => setDetailEntry(null)} /> : null}
 
       {createOpen ? <ActivityJournalCreateDialog journal={journal} categoryOptions={categoryOptions} timeModeOptions={timeModeOptions} onClose={() => setCreateOpen(false)} /> : null}
 

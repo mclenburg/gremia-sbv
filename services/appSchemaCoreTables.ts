@@ -175,6 +175,7 @@ export const CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS = [
 export const GREMIA_BR_SETTINGS_REQUIRED_COLUMNS = [
   'id',
   'enabled',
+  'auto_refresh_on_startup',
   'server_url',
   'username',
   'password_secret',
@@ -218,6 +219,12 @@ export const GREMIA_BR_WORKSPACE_ACTIONS_REQUIRED_COLUMNS = [
   'purpose',
   'status',
   'created_at'
+] as const;
+
+export const GREMIA_BR_CASE_CREATIONS_REQUIRED_COLUMNS = [
+  'id', 'local_case_id', 'organization_id', 'security_domain', 'procedure_type',
+  'remote_case_id', 'remote_case_reference', 'remote_procedure_id', 'status',
+  'correlation_id', 'created_at', 'updated_at'
 ] as const;
 
 

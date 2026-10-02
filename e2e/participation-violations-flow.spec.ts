@@ -44,12 +44,12 @@ test('creates a general violation without a case and progressively offers search
   await expect(secondDialog.getByLabel('Fallakte suchen und auswählen')).toHaveCount(0);
   const measureSelection = secondDialog.getByLabel('SBV-Beteiligungsmaßnahme suchen und auswählen');
   await expect(measureSelection).toBeVisible();
+  await measureSelection.click();
+  const resultList = secondDialog.getByRole('listbox');
+  await expect(resultList).toBeVisible();
   await measureSelection.fill('Arbeitszeitregelung');
-  const resultListId = await measureSelection.getAttribute('list');
-  expect(resultListId).toBeTruthy();
-  await expect(page.locator(`#${resultListId} option`)).toHaveCount(1);
-  await measureSelection.fill('Beteiligung zur allgemeinen Arbeitszeitregelung · TEST-0001');
-  await measureSelection.blur();
+  await expect(resultList.getByRole('option')).toHaveCount(1);
+  await resultList.getByRole('option', { name: 'Beteiligung zur allgemeinen Arbeitszeitregelung · TEST-0001' }).click();
   await expect(measureSelection).toHaveValue('Beteiligung zur allgemeinen Arbeitszeitregelung · TEST-0001');
 
   await secondSourceContext.selectOption('general_employer_practice');
@@ -72,4 +72,42 @@ test('uses the full tracking width and requests an external PDF preview', async 
   await row.getByRole('button', { name: 'PDF erzeugen', exact: true }).click();
   await expect(page.locator('.industrial-live-region[role="status"]')).toContainText('an die externe Vorschau übergeben');
   await expect(page.locator('.industrial-message-ok')).toContainText('beteiligungsverstoss-e2e.pdf');
+});
+
+test('opens a case-related violation deadline at its violation record', async ({ page }) => {
+  await page.evaluate(async () => {
+    await window.gremiaSbv.deadlines.create({
+      caseId: 'case-test-0001', processId: 'violation-e2e-0001',
+      processType: 'sbv_participation_violation', deadlineType: 'follow_up',
+      title: 'Nachholung der SBV-Beteiligung prüfen', dueAt: '2026-05-20T10:00:00.000Z',
+      sourceEvent: 'sbv_participation_violation.follow_up', severity: 'important',
+      calculationMode: 'workflow', isLegalDeadline: false,
+    });
+  });
+  await mainNavigation(page).getByRole('button', { name: 'Verstöße', exact: true }).click();
+  await mainNavigation(page).getByRole('button', { name: 'Fristen', exact: true }).click();
+  const row = page.getByRole('table', { name: 'Offene Fristen und Wiedervorlagen' }).locator('tbody tr').filter({ hasText: 'Nachholung der SBV-Beteiligung prüfen' });
+  await row.getByRole('button', { name: 'Beteiligungsverstoß öffnen' }).click();
+  const detail = page.getByRole('dialog', { name: 'E2E Beteiligungsverstoß aus Maßnahme' });
+  await expect(detail).toBeVisible();
+  await expect(detail).toContainText('Unterrichtung unvollständig.');
+  await expect(detail.getByRole('button', { name: 'PDF erzeugen' })).toBeVisible();
+});
+
+test('reports a missing linked violation instead of opening the case overview', async ({ page }) => {
+  await page.evaluate(async () => {
+    await window.gremiaSbv.deadlines.create({
+      caseId: 'case-test-0001', processId: 'missing-violation',
+      processType: 'sbv_participation_violation', deadlineType: 'follow_up',
+      title: 'Fehlenden Verstoß nachhalten', dueAt: '2026-05-20T10:00:00.000Z',
+      sourceEvent: 'sbv_participation_violation.follow_up', severity: 'important',
+      calculationMode: 'workflow', isLegalDeadline: false,
+    });
+  });
+  await mainNavigation(page).getByRole('button', { name: 'Verstöße', exact: true }).click();
+  await mainNavigation(page).getByRole('button', { name: 'Fristen', exact: true }).click();
+  const row = page.getByRole('table', { name: 'Offene Fristen und Wiedervorlagen' }).locator('tbody tr').filter({ hasText: 'Fehlenden Verstoß nachhalten' });
+  await row.getByRole('button', { name: 'Beteiligungsverstoß öffnen' }).click();
+  await expect(page.getByText('Der verknüpfte Beteiligungsverstoß ist nicht mehr vorhanden. Prüfen Sie die Wiedervorlage im Fristenregister.')).toBeVisible();
+  await expect(page.getByRole('dialog', { name: 'E2E Beteiligungsverstoß aus Maßnahme' })).toHaveCount(0);
 });

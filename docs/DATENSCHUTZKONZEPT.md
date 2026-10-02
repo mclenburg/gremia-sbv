@@ -49,7 +49,7 @@ Bei destruktiven Datenschutzaktionen weist die Anwendung darauf hin, dass Sicher
 
 ## Gremia.BR-Kooperationsbrücke und Cache-Speicherbegrenzung
 
-Die optionale Gremia.BR-Anbindung bleibt eine manuell ausgelöste Kooperationsbrücke. Lesende Abrufe liefern kurzfristigen BR-Kontext; schreibende Aktionen sind auf ausdrücklich modellierte SBV-Arbeitsbereichsaktionen begrenzt, insbesondere die Übergabe zentral erzeugter Gremia.SBV-PDF-Dokumente und die Anforderung eines Tagesordnungspunkts. Der lokale Lesecache ist technisch auf 30 Tage begrenzt und wird bei deaktivierter Anbindung bzw. beim Löschen der Zugangsdaten geleert. Damit dient der Cache nur der kurzfristigen Arbeitsunterstützung und nicht der dauerhaften Aufbewahrung von Betriebsratsdaten im SBV-Vault.
+Die optionale Gremia.BR-Anbindung bleibt eine manuell ausgelöste Kooperationsbrücke. Lesende Abrufe liefern kurzfristigen BR-Kontext und eigene offene Aufgaben; schreibende Aktionen sind auf ausdrücklich modellierte SBV-Arbeitsbereichsaktionen begrenzt, insbesondere die Übergabe zentral erzeugter Gremia.SBV-PDF-Dokumente und die Anforderung eines Tagesordnungspunkts. Der Remote-Arbeitsstand bleibt nur im Arbeitsspeicher und wird bei deaktivierter Anbindung, beim Löschen der Zugangsdaten oder beim Sperren des Tresors geleert. Er wird nicht als dauerhafte Aufbewahrung von Betriebsratsdaten im SBV-Vault genutzt.
 
 ## Fallübergabe / Vertretung
 
@@ -58,6 +58,8 @@ Für Urlaubsvertretung, Krankheit, Amtswechsel oder Nachfolge kann die SBV einze
 Abgelaufene Übergabepakete dürfen nicht importiert werden. Bereits importierte Übergabedaten werden nach Ablauf der Vertretungszeit als abgelaufen markiert. Eine weitere Bearbeitung erfordert eine bewusste Bestätigung mit Begründung. Export, Import und Fortführung nach Ablauf werden ohne Personennamen, Diagnosen, Falltitel, Dokumentnamen oder Freitexte auditiert.
 
 Vor dem Import bewertet Gremia.SBV mögliche lokale Gegenstücke. Sichere Treffer, mögliche Treffer und echte Konflikte werden getrennt ausgewiesen. Eine Zusammenführung ist nur zulässig, wenn kein echter Konflikt vorliegt; widersprüchliche Akten-/Personenbezüge werden als neue lokale Übergabeakte importiert und danach fachlich geprüft. Jeder erfolgreiche Import erzeugt zusätzlich einen konkreten Datenschutzprüfauftrag für die betroffene Fallakte. Die Löschung oder Fortführung bleibt manuell.
+
+Mobile Begleit-App-Projektionen sind davon getrennt. Sie enthalten nur ausgewählte Fallköpfe und offene Fristen für ein gekoppeltes Zielgerät. Notizen, Dokumente, Dokumentnamen, Fallzusammenfassungen und freie Fallinhalte werden nicht übertragen. Die Protokollierung beschränkt sich auf Paketkennung, Zielinstanz und technische Zähldaten.
 
 ## Auskunft nach Art. 15 DSGVO
 

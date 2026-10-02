@@ -75,7 +75,7 @@ describe('Legacy-Fall-Zuordnung und große Fallauswahlen', () => {
     });
 
     const nodes = descendants(tree);
-    expect(nodes.some((node) => node.tag === 'input' && node.attrs.type === 'search')).toBe(true);
-    expect(nodes.some((node) => node.tag === 'datalist')).toBe(true);
+    expect(nodes.some((node) => node.tag === 'input' && node.attrs.role === 'combobox')).toBe(true);
+    expect(nodes.some((node) => node.tag === 'datalist')).toBe(false);
   });
 });

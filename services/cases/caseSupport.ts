@@ -184,6 +184,11 @@ export function mapDocument(row: DatabaseRow | undefined): CaseDocumentRecord {
     ocrCompletedAt: row.ocr_completed_at ?? undefined,
     ocrError: row.ocr_error ?? undefined,
     containsHealthData: Boolean(row.contains_health_data),
+    ...(row.remote_document_id && row.remote_version_id && row.remote_title ? { remoteOrigin: {
+      documentId: String(row.remote_document_id),
+      versionId: String(row.remote_version_id),
+      title: String(row.remote_title),
+    } } : {}),
     createdAt: row.created_at,
   };
 }

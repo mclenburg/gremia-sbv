@@ -2,6 +2,7 @@ import type { CaseRecord } from "../../../domain/models/case.model";
 import type {
   GremiaBrDashboardOverview,
   GremiaBrGeneratedPdfDocument,
+  GremiaBrOwnAccessApproval,
   GremiaBrPublicSettings,
   GremiaBrProtectionClass,
   GremiaBrWorkspaceActionRecord,
@@ -10,6 +11,7 @@ import { IndustrialButton, ToolbarButton } from "../../shared/components/Industr
 import { SearchableSelectInput, SelectInput, TextareaInput, TextInput } from "../../shared/components/IndustrialForm";
 import { DataTable, EmptyState, WorkbenchSummary } from "../../shared/components/WorkbenchLayout";
 import { IndustrialPanel } from "../../shared/components/WorkbenchPanels";
+import { GREMIA_BR_TASK_STATUS_LABELS } from './gremiaBrTaskPresentation';
 import type { BrMeetingDraft } from "./gremiaBrWorkspaceModel";
 import {
   caseOptions,
@@ -29,11 +31,26 @@ const PROTECTION_OPTIONS = [
   { value: "INTERNAL", label: "Intern" },
 ];
 
+const ACCESS_APPROVAL_STATUS_LABELS: Record<GremiaBrOwnAccessApproval['status'], string> = {
+  PENDING: 'Ausstehend',
+  APPROVED: 'Genehmigt',
+  REJECTED: 'Abgelehnt',
+  REVOKED: 'Widerrufen',
+  EXPIRED: 'Abgelaufen',
+};
+
+function accessApprovalResourceLabel(resourceType: string): string {
+  if (resourceType.toLowerCase().includes('document')) return 'Dokument';
+  if (resourceType.toLowerCase().includes('procedure')) return 'Verfahren';
+  if (resourceType.toLowerCase().includes('meeting')) return 'Sitzung';
+  return 'Gremia.BR-Inhalt';
+}
+
 function searchableOptions(options: Array<{ value: string; label: string }>) {
   return options.filter((option) => option.value);
 }
 
-type BusyAction = "read" | "summary" | "transfer" | "agenda" | "import" | null;
+export type BusyAction = "read" | "summary" | "transfer" | "agenda" | "import" | "procedure" | null;
 
 export type GremiaBrWorkspaceDraft = {
   selectedCaseId: string;
@@ -96,12 +113,11 @@ export function GremiaBrConfigurationCard({ settings }: { settings: GremiaBrPubl
       <dl className="industrial-meta-grid">
         <div><dt>Server</dt><dd>{settings.serverUrl}</dd></div>
         <div><dt>Benutzerkonto</dt><dd>{settings.username}</dd></div>
-        <div><dt>API-Modus</dt><dd>{settings.apiMode === "gremia_br_v2" ? "Gremia.BR 2.0" : "Legacy-Lesebrücke"}</dd></div>
         <div><dt>SBV-Gremium</dt><dd>{workspaceLabel(settings)}</dd></div>
       </dl>
-      {settings.apiMode === "gremia_br_v2" && !settings.selectedBodyId ? (
+      {!settings.selectedBodyId ? (
         <div className="industrial-message industrial-message-warning" role="status">
-          Für Gremia.BR 2.0 muss in den Einstellungen ein berechtigtes SBV-Gremium ausgewählt sein.
+          Für Gremia.BR muss in den Einstellungen ein berechtigtes SBV-Gremium ausgewählt sein.
         </div>
       ) : null}
     </IndustrialPanel>
@@ -111,18 +127,75 @@ export function GremiaBrConfigurationCard({ settings }: { settings: GremiaBrPubl
 export function GremiaBrReadContextPanel({
   busy,
   onRefresh,
+  lastFetchedAt,
 }: {
   busy: boolean;
   onRefresh: () => void;
+  lastFetchedAt?: string;
 }) {
   return (
     <IndustrialPanel
       kicker="Lesekontext"
-      title="BR-/Gremienkontext abrufen"
-      description="Sitzungen, Tagesordnungen und Beschlüsse werden nur auf ausdrückliche Aktion geladen und lokal als Lesekontext genutzt."
-      actions={<ToolbarButton loading={busy} onClick={onRefresh}>{busy ? "Abruf läuft …" : "Lesekontext abrufen"}</ToolbarButton>}
+      title="Gremia.BR-Arbeitsstand"
+      actions={<ToolbarButton loading={busy} onClick={onRefresh}>{busy ? "Aktualisierung läuft …" : "Gremia.BR aktualisieren"}</ToolbarButton>}
     >
-      <p className="industrial-meta">Keine automatische Synchronisation, keine Fallübertragung.</p>
+      <p className="industrial-meta">Letzter erfolgreicher Abruf: {lastFetchedAt ? <time dateTime={lastFetchedAt}>{new Date(lastFetchedAt).toLocaleString('de-DE')}</time> : 'noch keiner'}</p>
+      {lastFetchedAt ? <p className="industrial-meta">Momentaufnahme, möglicherweise veraltet.</p> : null}
+    </IndustrialPanel>
+  );
+}
+
+export function GremiaBrOpenActionsPanel({ overview, onOpenTask }: { overview: GremiaBrDashboardOverview; onOpenTask: (id: string) => void }) {
+  const rows = [
+    ...overview.ownTasks.map((task) => ({
+      id: `task:${task.id}`,
+      cells: [
+        task.title,
+        task.subjectType === 'MEETING' ? 'Sitzung' : task.subjectType === 'AGENDA_ITEM' ? 'Tagesordnungspunkt' : task.subjectType === 'PROCEDURE' ? 'Verfahren' : 'Gremia.BR-Aufgabe',
+        GREMIA_BR_TASK_STATUS_LABELS[task.status],
+        task.dueAt ? `Fällig: ${new Date(task.dueAt).toLocaleString('de-DE')}` : 'Keine Fälligkeit',
+        <ToolbarButton key={task.id} onClick={() => onOpenTask(task.id)} aria-label={`Details zu ${task.title}`}>Details</ToolbarButton>,
+      ],
+    })),
+    ...overview.ownAccessApprovals.filter((approval) => approval.status === 'PENDING').map((approval) => ({
+      id: `access:${approval.id}`,
+      cells: [
+        'Zugriffsantrag',
+        accessApprovalResourceLabel(approval.resourceType),
+        'Ausstehend',
+        `Beantragt: ${new Date(approval.requestedAt).toLocaleString('de-DE')}`,
+        '',
+      ],
+    })),
+  ];
+  return (
+    <IndustrialPanel kicker="Persönlicher Arbeitsvorrat" title="Offene Aktionen">
+      <DataTable
+        ariaLabel="Eigene offene Gremia.BR-Aktionen"
+        headers={['Vorgang', 'Herkunft', 'Status', 'Termin', 'Aktion']}
+        rows={rows}
+        empty={<EmptyState title="Keine offenen Aktionen" text="Nach dem nächsten Abruf erscheinen hier Ihre eigenen Gremia.BR-Aufgaben und Zugriffsanträge." />}
+      />
+    </IndustrialPanel>
+  );
+}
+
+export function GremiaBrAccessApprovalsPanel({ approvals }: { approvals: GremiaBrOwnAccessApproval[] }) {
+  return (
+    <IndustrialPanel kicker="Eigene Anträge" title="Zugriffsanträge">
+      <DataTable
+        ariaLabel="Eigene Gremia.BR-Zugriffsanträge"
+        headers={['Inhalt', 'Status', 'Beantragt am']}
+        rows={approvals.map((approval) => ({
+          id: approval.id,
+          cells: [
+            accessApprovalResourceLabel(approval.resourceType),
+            ACCESS_APPROVAL_STATUS_LABELS[approval.status],
+            new Date(approval.requestedAt).toLocaleString('de-DE'),
+          ],
+        }))}
+        empty={<EmptyState title="Keine Zugriffsanträge" text="Nach dem nächsten bewussten Abruf erscheinen hier Ihre eigenen Anträge." />}
+      />
     </IndustrialPanel>
   );
 }
@@ -275,20 +348,20 @@ export function GremiaBrMeetingImportPanel({
 export function GremiaBrCacheTables({ overview }: { overview: GremiaBrDashboardOverview }) {
   return (
     <div className="industrial-grid-two">
-      <IndustrialPanel kicker="Gelesene Sitzungen" title="Sitzungen im lokalen Cache">
+      <IndustrialPanel kicker="Gelesene Sitzungen" title="Sitzungen">
         <DataTable
-          ariaLabel="Gremia.BR-Sitzungen im lokalen Cache"
+          ariaLabel="Gremia.BR-Sitzungen im Arbeitsstand"
           headers={["Sitzung", "Termin", "Einordnung"]}
           rows={resolveGremiaBrMeetingRows(overview)}
           empty={<EmptyState title="Kein Lesekontext" text="Noch keine Sitzungen aus Gremia.BR abgerufen." />}
         />
       </IndustrialPanel>
-      <IndustrialPanel kicker="Gelesene Beschlüsse" title="Beschlüsse im lokalen Cache">
+      <IndustrialPanel kicker="Gelesene Beschlüsse" title="Beschlüsse">
         <DataTable
-          ariaLabel="Gremia.BR-Beschlüsse im lokalen Cache"
+          ariaLabel="Gremia.BR-Beschlüsse im Arbeitsstand"
           headers={["Beschluss", "Datum", "Status"]}
           rows={resolveGremiaBrDecisionRows(overview)}
-          empty={<EmptyState title="Keine Beschlüsse" text="Noch keine Beschlüsse aus Gremia.BR im lokalen Cache." />}
+          empty={<EmptyState title="Keine Beschlüsse" text="Noch keine Beschlüsse aus Gremia.BR abgerufen." />}
         />
       </IndustrialPanel>
     </div>

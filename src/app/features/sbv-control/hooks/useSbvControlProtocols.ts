@@ -1,8 +1,9 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import type { SbvControlProtocolRecord } from '../../../../domain/models/sbv-control-protocol.model';
 import { useAnnouncer } from '../../../shared/a11y/LiveRegionProvider';
 import { waitForBridge } from '../../../core/bridge/waitForBridge';
 import type { TextCommandTextareaChange } from '../../../shared/textCommands/TextCommandTextarea';
+import type { ControlSectionId } from '../sbvControlSections';
 import {
   filterProtocolsForQuery,
   initialProtocolForm,
@@ -27,7 +28,8 @@ export function useSbvControlProtocols() {
 
   const loadProtocols = useCallback(async () => {
     const bridge = await waitForBridge();
-    if (bridge?.sbvControlProtocols) setProtocols(await bridge.sbvControlProtocols.list());
+    if (!bridge?.sbvControlProtocols) throw new Error('SBV-Protokoll-Dienst ist nicht erreichbar.');
+    setProtocols(await bridge.sbvControlProtocols.list());
   }, []);
 
   function updateProtocolForm<K extends keyof ProtocolFormState>(key: K, value: ProtocolFormState[K]) {
@@ -51,12 +53,12 @@ export function useSbvControlProtocols() {
     announce(applied.message, 'polite');
   }
 
-  function editProtocol(record: SbvControlProtocolRecord) {
+  const editProtocol = useCallback((record: SbvControlProtocolRecord) => {
     setEditingProtocolId(record.id);
     setProtocolForm(protocolFormFromRecord(record));
     setProtocolFormSubmitted(false);
     setProtocolTitleTouched(false);
-  }
+  }, []);
 
   function resetProtocolForm() {
     setEditingProtocolId(null);
@@ -137,3 +139,30 @@ export function useSbvControlProtocols() {
 }
 
 export type UseSbvControlProtocolsValue = ReturnType<typeof useSbvControlProtocols>;
+
+export function useSbvControlProtocolTarget({ targetProtocolId, onTargetConsumed, protocolsLoaded, protocolsState, setActiveSection, setError }: {
+  targetProtocolId?: string;
+  onTargetConsumed?: () => void;
+  protocolsLoaded: boolean;
+  protocolsState: UseSbvControlProtocolsValue;
+  setActiveSection: Dispatch<SetStateAction<ControlSectionId>>;
+  setError: Dispatch<SetStateAction<string>>;
+}) {
+  const onTargetConsumedRef = useRef(onTargetConsumed);
+  const { protocols, editProtocol, setProtocolQuery } = protocolsState;
+  useEffect(() => { onTargetConsumedRef.current = onTargetConsumed; }, [onTargetConsumed]);
+  useEffect(() => {
+    if (!targetProtocolId) return;
+    setActiveSection('protocols');
+    if (!protocolsLoaded) return;
+    const record = protocols.find((item) => item.id === targetProtocolId);
+    if (record) {
+      setProtocolQuery('');
+      editProtocol(record);
+      setError('');
+    } else {
+      setError('Das verknüpfte SBV-Protokoll ist nicht mehr vorhanden. Prüfen Sie die Wiedervorlage im Fristenregister.');
+    }
+    onTargetConsumedRef.current?.();
+  }, [editProtocol, protocols, protocolsLoaded, setActiveSection, setError, setProtocolQuery, targetProtocolId]);
+}

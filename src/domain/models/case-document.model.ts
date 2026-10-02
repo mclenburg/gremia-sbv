@@ -23,5 +23,6 @@ export interface CaseDocumentRecord {
   ocrCompletedAt?: string;
   ocrError?: string;
   containsHealthData: boolean;
+  remoteOrigin?: { documentId: string; versionId: string; title: string };
   createdAt: string;
 }

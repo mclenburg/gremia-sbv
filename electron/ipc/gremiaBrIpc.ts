@@ -3,31 +3,46 @@ import type { IpcMain } from 'electron';
 import type { SecurityService } from '../../services/securityService.js';
 import type { ApplicationServices } from '../applicationServices.js';
 import { GremiaBrHttpReadAdapter } from '../../services/gremiaBr/gremiaBrHttpReadAdapter.js';
+import { GremiaBrTaskService } from '../../services/gremiaBr/gremiaBrTaskService.js';
+import { GremiaBrMeetingAccessService } from '../../services/gremiaBr/gremiaBrMeetingAccessService.js';
+import { GremiaBrHttpError } from '../../services/gremiaBr/gremiaBrHttpClient.js';
+import { ApplicationError } from '../../src/domain/models/application-error.model.js';
 import { GremiaBrV2WorkspaceService } from '../../services/gremiaBr/gremiaBrV2WorkspaceService.js';
 import type {
   CreateGremiaBrCaseSummaryInput,
-  CreateGremiaBrExternalReferenceInput,
   GremiaBrRelevanceSettings,
   GremiaBrSettingsInput,
   RequestGremiaBrAgendaItemInput,
   TransferGremiaBrDocumentInput,
 } from '../../src/domain/models/gremia-br.model.js';
-import { assertRecordInput, assertString } from './ipcValidation.js';
+import { assertPlainObject, assertRecordInput, assertString, IpcValidationError } from './ipcValidation.js';
+import { registerGremiaBrReferenceIpc } from './gremiaBrReferenceIpc.js';
+import { registerGremiaBrDocumentReadIpc } from './gremiaBrDocumentReadIpc.js';
+import { registerGremiaBrOwnShareIpc } from './gremiaBrOwnShareIpc.js';
+import { GremiaBrStartupRefreshService } from '../../services/gremiaBr/gremiaBrStartupRefreshService.js';
+import { registerGremiaBrAccessApprovalIpc } from './gremiaBrAccessApprovalIpc.js';
+import { registerGremiaBrCaseCreationIpc } from './gremiaBrCaseCreationIpc.js';
+import { registerGremiaBrMeetingMinutesIpc } from './gremiaBrMeetingMinutesIpc.js';
 
 export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
   const settings = services.gremiaBrSettings;
   const auth = services.gremiaBrAuth;
   const cache = services.gremiaBrCache;
-  const adapter = new GremiaBrHttpReadAdapter(auth);
   const workspace = new GremiaBrV2WorkspaceService(auth);
-  const references = services.gremiaBrReferences;
-
+  const startupRefresh = new GremiaBrStartupRefreshService(settings, auth, cache);
+  function ownTaskId(rawId: unknown, channel: string): string {
+    const id = assertString(rawId, channel, 'Aufgaben-ID', { minLength: 1, maxLength: 120 });
+    if (!cache.getOverview().ownTasks.some((task) => task.id === id)) {
+      throw new ApplicationError('NOT_FOUND', 'Diese Aufgabe gehört nicht zum aktuellen eigenen Arbeitsstand. Bitte Gremia.BR erneut aktualisieren.');
+    }
+    return id;
+  }
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrSettingsGet, async () => settings.getPublicSettings());
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrSettingsSave, async (_event, input: unknown) => {
     auth.clearToken();
     const saved = settings.saveSettings(assertRecordInput<GremiaBrSettingsInput>(input, 'gremia-br:settings:save'));
-    if (!saved.enabled) cache.clear();
+    cache.clear();
     return saved;
   });
 
@@ -71,27 +86,61 @@ export function registerGremiaBrIpc(ipcMain: IpcMain, security: SecurityService,
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrDashboardGet, async () => cache.getDashboardOverview(settings.getRelevanceSettings()));
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrCacheRefresh, async () => {
-    const result = await cache.refresh(adapter);
+    const result = await cache.refresh(new GremiaBrHttpReadAdapter(auth));
     return {
       ...result,
       cached: cache.getDashboardOverview(settings.getRelevanceSettings()),
     };
   });
 
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrStartupRefresh, async () => startupRefresh.run());
 
-  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrInlineSuggest, async (_event, query: unknown) => {
-    return references.suggestBrDecisions(adapter, assertString(query, 'gremia-br:inline-suggest', 'Suchbegriff', { minLength: 1, maxLength: 120 }));
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrOwnTaskDetailGet, async (_event, rawId: unknown) => {
+    const id = ownTaskId(rawId, 'gremia-br:own-task:detail:get');
+    return new GremiaBrHttpReadAdapter(auth).getOwnTaskDetail(id);
   });
 
-  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrReferencesList, async (_event, caseId: unknown) => {
-    return references.listForCase(assertString(caseId, 'gremia-br:references:list', 'Fallakten-ID', { minLength: 1, maxLength: 120 }));
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrMeetingRemoteAccessGet, async (_event, rawId: unknown) => {
+    const channel = 'gremia-br:meeting:remote-access:get';
+    const id = assertString(rawId, channel, 'Sitzungs-ID', { minLength: 1, maxLength: 120 });
+    return new GremiaBrMeetingAccessService(auth).getAccess(id, cache.getOverview());
   });
 
-  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrReferencesCreate, async (_event, input: unknown) => {
-    return references.createOrUpdate(assertRecordInput<CreateGremiaBrExternalReferenceInput>(input, 'gremia-br:references:create'));
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrMeetingAgendaChangesGet, async (_event, rawId: unknown) => {
+    const channel = 'gremia-br:meeting:agenda-changes:get';
+    const id = assertString(rawId, channel, 'Sitzungs-ID', { minLength: 1, maxLength: 120 });
+    return new GremiaBrMeetingAccessService(auth).getAgendaChanges(id, cache.getOverview());
+  });
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrOwnTaskTransitionsGet, async (_event, rawId: unknown) => {
+    const id = ownTaskId(rawId, 'gremia-br:own-task:transitions:get');
+    return new GremiaBrTaskService(auth).getTransitionOptions(id);
   });
 
-  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrReferencesDelete, async (_event, referenceId: unknown) => {
-    return references.delete(assertString(referenceId, 'gremia-br:references:delete', 'Referenz-ID', { minLength: 1, maxLength: 120 }));
+  registerIpcHandler(ipcMain, IPC_CHANNELS.gremiaBrOwnTaskTransitionPost, async (_event, rawInput: unknown) => {
+    const channel = 'gremia-br:own-task:transition:post';
+    const input = assertPlainObject(rawInput, channel);
+    const id = ownTaskId(input.taskId, channel);
+    const to = assertString(input.to, channel, 'Zielstatus', { minLength: 1, maxLength: 40 });
+    const version = input.expectedVersion;
+    if (typeof version !== 'number' || !Number.isInteger(version) || version < 0) {
+      throw new IpcValidationError(channel, 'Aufgabenversion ist ungültig.');
+    }
+    try {
+      return await new GremiaBrTaskService(auth).transition(id, to, version);
+    } catch (error) {
+      if (error instanceof GremiaBrHttpError && error.status === 409) {
+        throw new ApplicationError('CONFLICT', 'Die Aufgabe wurde zwischenzeitlich geändert. Bitte Gremia.BR aktualisieren und den Aufgabenstand erneut prüfen.');
+      }
+      if (error instanceof GremiaBrHttpError && error.status === 403) {
+        throw new ApplicationError('PERMISSION_DENIED', 'Gremia.BR erlaubt diese Statusänderung nicht. Bitte den eigenen Zugriff dort prüfen.');
+      }
+      throw error;
+    }
   });
+  registerGremiaBrReferenceIpc(ipcMain, services);
+  registerGremiaBrDocumentReadIpc(ipcMain, auth, security, services.cases);
+  registerGremiaBrOwnShareIpc(ipcMain, auth, () => security.getActiveDatabase());
+  registerGremiaBrAccessApprovalIpc(ipcMain, auth);
+  registerGremiaBrCaseCreationIpc(ipcMain, security, services);
+  registerGremiaBrMeetingMinutesIpc(ipcMain, services);
 }

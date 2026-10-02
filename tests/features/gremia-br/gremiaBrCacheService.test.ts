@@ -1,69 +1,24 @@
 import { describe, expect, it } from 'vitest';
-import type { DatabaseAdapter } from '../../../services/databaseService';
-import { GREMIA_BR_CACHE_TTL_DAYS, GremiaBrCacheService } from '../../../services/gremiaBr/gremiaBrCacheService';
+import { GremiaBrCacheService } from '../../../services/gremiaBr/gremiaBrCacheService';
 import type { GremiaBrReadAdapter } from '../../../services/gremiaBr/gremiaBrTypes';
-
-interface CacheRow {
-  id: string;
-  cache_key: string;
-  source_type: string;
-  payload_json: string;
-  fetched_at: string;
-  created_at: string;
-  updated_at: string;
-}
-
-class CacheDb implements DatabaseAdapter {
-  rows = new Map<string, CacheRow>();
-
-  prepare<T = unknown>(sql: string) {
-    const self = this;
-    return {
-      get(cacheKey?: string): T | undefined {
-        if (/FROM gremia_br_cache_entries/i.test(sql) && /WHERE cache_key = \?/i.test(sql)) {
-          return self.rows.get(String(cacheKey)) as T | undefined;
-        }
-        return undefined;
-      },
-      all(): T[] { return []; },
-      run(...params: unknown[]) {
-        if (/INSERT INTO gremia_br_cache_entries/i.test(sql)) {
-          const row: CacheRow = {
-            id: String(params[0]),
-            cache_key: String(params[1]),
-            source_type: String(params[2]),
-            payload_json: String(params[3]),
-            fetched_at: String(params[4]),
-            created_at: String(params[5]),
-            updated_at: String(params[6]),
-          };
-          self.rows.set(row.cache_key, row);
-        }
-        if (/DELETE FROM gremia_br_cache_entries/i.test(sql) && /WHERE fetched_at < \?/i.test(sql)) {
-          const cutoff = String(params[0]);
-          const before = self.rows.size;
-          for (const [key, row] of [...self.rows.entries()]) {
-            if (row.fetched_at < cutoff) self.rows.delete(key);
-          }
-          return { changes: before - self.rows.size };
-        }
-        if (/DELETE FROM gremia_br_cache_entries/i.test(sql)) {
-          const before = self.rows.size;
-          self.rows.clear();
-          return { changes: before };
-        }
-        return { changes: 1 };
-      },
-    };
-  }
-
-  exec(): void {}
-  pragma(): unknown { return undefined; }
-  close(): void {}
-}
 
 class FakeReadAdapter implements GremiaBrReadAdapter {
   calls: string[] = [];
+
+  async listAccessibleCases() {
+    this.calls.push('accessible-cases');
+    return [{ id: 'case-1', reference: 'BR-2026-17', subject: 'Arbeitsplatzgestaltung', procedureIds: ['procedure-1'] }];
+  }
+
+  async listOwnTasks() {
+    this.calls.push('own-tasks');
+    return [{ id: 'task-1', title: 'Stellungnahme prüfen', status: 'OPEN' as const, dueAt: '2026-10-01T10:00:00.000Z' }];
+  }
+
+  async listOwnAccessApprovals() {
+    this.calls.push('own-access-approvals');
+    return [{ id: 'approval-1', resourceType: 'DOCUMENT', status: 'PENDING' as const, requestedAt: '2026-10-01T10:00:00.000Z' }];
+  }
 
   async listWorksAgreements(): Promise<unknown[]> { return []; }
   async listRelevantMeetings(): Promise<unknown[]> { return this.getUpcomingMeetings(); }
@@ -126,17 +81,19 @@ class FakeReadAdapter implements GremiaBrReadAdapter {
   }
 }
 
-describe('Gremia.BR Lesecache 0.9.2-C', () => {
-  it('aktualisiert den Cache nur über den explizit aufgerufenen ReadAdapter und liefert eine Übersicht', async () => {
-    const db = new CacheDb();
+describe('Gremia.BR Remote-Arbeitsstand', () => {
+  it('aktualisiert den flüchtigen Arbeitsstand nur über den explizit aufgerufenen ReadAdapter', async () => {
     const adapter = new FakeReadAdapter();
-    const service = new GremiaBrCacheService(() => db);
+    const service = new GremiaBrCacheService();
 
     const result = await service.refresh(adapter);
 
     expect(result.status).toBe('ok');
-    expect(result.refreshedKeys).toEqual(['next_meeting', 'current_meeting', 'upcoming_meetings', 'meeting_agendas', 'pending_follow_ups', 'decisions', 'due_decisions', 'overdue_decisions', 'decision_statistics', 'extended_decision_statistics']);
-    expect(adapter.calls).toEqual(['next', 'current', 'upcoming', 'followups', 'agenda:s1', 'agenda:s0', 'agenda:s2', 'decisions', 'due', 'overdue', 'stats', 'extended-stats']);
+    expect(result.refreshedKeys).toEqual(['accessible_cases', 'own_tasks', 'own_access_approvals', 'next_meeting', 'current_meeting', 'upcoming_meetings', 'meeting_agendas', 'pending_follow_ups', 'decisions', 'due_decisions', 'overdue_decisions', 'decision_statistics', 'extended_decision_statistics']);
+    expect(adapter.calls).toEqual(['accessible-cases', 'own-tasks', 'own-access-approvals', 'next', 'current', 'upcoming', 'followups', 'agenda:s1', 'agenda:s0', 'agenda:s2', 'decisions', 'due', 'overdue', 'stats', 'extended-stats']);
+    expect(result.cached.accessibleCases).toMatchObject([{ id: 'case-1', procedureIds: ['procedure-1'] }]);
+    expect(result.cached.ownTasks).toMatchObject([{ id: 'task-1', title: 'Stellungnahme prüfen' }]);
+    expect(result.cached.ownAccessApprovals).toMatchObject([{ id: 'approval-1', status: 'PENDING' }]);
     expect(result.cached.nextMeeting).toMatchObject({ id: 's1' });
     expect(result.cached.currentMeeting).toMatchObject({ id: 's0' });
     expect(result.cached.upcomingMeetings).toHaveLength(2);
@@ -146,40 +103,26 @@ describe('Gremia.BR Lesecache 0.9.2-C', () => {
     expect(result.cached.dueDecisions).toHaveLength(1);
     expect(result.cached.overdueDecisions).toHaveLength(1);
     expect(result.cached.decisionStatistics).toMatchObject({ offen: 1 });
-    expect(db.rows.size).toBe(10);
   });
 
+  it('behält bei einem fehlgeschlagenen Gesamt-Refresh den vorherigen Stand vollständig', async () => {
+    const service = new GremiaBrCacheService();
+    await service.refresh(new FakeReadAdapter());
+    const previous = service.getOverview();
+    const failing = new FakeReadAdapter();
+    failing.getDueDecisions = async () => { throw new Error('Abruf fehlgeschlagen'); };
 
-
-  it('begrenzt BR-Lesecache technisch auf 30 Tage und entfernt abgelaufene Einträge', () => {
-    const db = new CacheDb();
-    const service = new GremiaBrCacheService(() => db);
-
-    const now = new Date();
-    const oldFetchedAt = new Date(now.getTime() - (GREMIA_BR_CACHE_TTL_DAYS + 5) * 24 * 60 * 60 * 1000).toISOString();
-    const freshFetchedAt = new Date(now.getTime() - (GREMIA_BR_CACHE_TTL_DAYS - 5) * 24 * 60 * 60 * 1000).toISOString();
-
-    service.saveEntry('decisions', [{ id: 'alt' }], oldFetchedAt);
-    service.saveEntry('due_decisions', [{ id: 'frisch' }], freshFetchedAt);
-
-    const deleted = service.purgeExpiredEntries(now);
-
-    expect(GREMIA_BR_CACHE_TTL_DAYS).toBe(30);
-    expect(deleted).toBe(1);
-    expect(service.getEntry('decisions')).toBeUndefined();
-    expect(service.getEntry('due_decisions')?.payload).toEqual([{ id: 'frisch' }]);
+    await expect(service.refresh(failing)).rejects.toThrow('Abruf fehlgeschlagen');
+    expect(service.getOverview()).toEqual(previous);
   });
 
-  it('löscht gecachte BR-Daten ohne Settings oder Credentials zu berühren', () => {
-    const db = new CacheDb();
-    const service = new GremiaBrCacheService(() => db);
-
-    service.saveEntry('decisions', [{ id: 'b1' }], new Date().toISOString());
+  it('hält Remote-Inhalte nur für die Lebensdauer des Service im Speicher', async () => {
+    const service = new GremiaBrCacheService();
+    await service.refresh(new FakeReadAdapter());
     expect(service.getOverview().decisions).toHaveLength(1);
+    expect(new GremiaBrCacheService().getOverview().decisions).toEqual([]);
 
     service.clear();
-
     expect(service.getOverview().decisions).toEqual([]);
-    expect(db.rows.size).toBe(0);
   });
 });

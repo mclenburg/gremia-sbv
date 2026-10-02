@@ -45,13 +45,14 @@ describe('Fallübergabe mit öffentlichem Empfängerschlüssel', () => {
     insertSourceCase();
     const packagePath = path.join(temporaryRoot, 'key-only.gsbvtransfer');
     const targetIdentity = new TransferInstanceIdentityService(target).getPublicIdentity();
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
     const exported = await new CaseHandoverService(source, () => path.join(temporaryRoot, 'source-data')).exportToFile({
       caseIds: ['case-key-only-1'],
       passphrase: '',
       targetRecipientToken: targetIdentity.recipientToken,
       protectionMode: 'recipient_key_only',
-      expiresAt: '2026-10-01T21:59:59.000Z',
+      expiresAt,
       purpose: 'Urlaubsvertretung ohne geteilte Passphrase',
     }, packagePath);
 

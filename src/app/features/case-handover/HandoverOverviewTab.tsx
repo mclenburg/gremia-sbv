@@ -27,8 +27,11 @@ export function HandoverOverviewTab({
         <IndustrialButton type="button" variant="secondary" onClick={() => onSelectTab('import')}>
           Paket importieren
         </IndustrialButton>
+        <IndustrialButton type="button" variant="secondary" onClick={() => onSelectTab('mobile')}>
+          Mobile Projektion erstellen
+        </IndustrialButton>
         <IndustrialButton type="button" variant="secondary" onClick={() => onSelectTab('return')} disabled={!cockpit.returnableCount}>
-          Rückgabe-Delta erstellen
+          Rückgabe übernehmen
         </IndustrialButton>
         <IndustrialButton type="button" variant="secondary" onClick={() => onSelectTab('office')}>
           Amtsübergabe starten
@@ -42,7 +45,7 @@ export function HandoverOverviewTab({
       ) : (
         <EmptyState
           title="Keine offene Übergabeaktion"
-          text="Du kannst eine neue Urlaubsvertretung, eine Amtsübergabe oder den Import eines geprüften Pakets starten."
+          text="Du kannst eine Urlaubsvertretung, eine mobile Arbeitsprojektion, eine Amtsübergabe oder den Import eines geprüften Pakets starten."
         />
       )}
     </IndustrialPanel>

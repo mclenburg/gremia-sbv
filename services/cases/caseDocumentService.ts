@@ -72,6 +72,7 @@ export class CaseDocumentService extends CaseNoteService {
       filePath: string,
       containsHealthData = true,
       measureId?: string,
+      remoteOrigin?: { documentId: string; versionId: string; title: string },
     ): Promise<CaseDocumentRecord> {
       const db = this.getSafeDb();
       const caseRow = db
@@ -105,8 +106,9 @@ export class CaseDocumentService extends CaseNoteService {
           `
           INSERT INTO case_documents (
             id, case_id, measure_id, filename, display_title, mime_type, storage_path, sha256, extracted_text,
-            document_key, iv, auth_tag, size_bytes, contains_health_data, extraction_quality, text_extraction_status, text_extracted_at, text_extractor_id, text_extraction_error, ocr_status, created_at, imported_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            document_key, iv, auth_tag, size_bytes, contains_health_data, extraction_quality, text_extraction_status, text_extracted_at, text_extractor_id, text_extraction_error, ocr_status, created_at, imported_at,
+            remote_document_id, remote_version_id, remote_title
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
         ).run(
           id,
@@ -131,6 +133,9 @@ export class CaseDocumentService extends CaseNoteService {
           'not_required',
           timestamp,
           timestamp,
+          remoteOrigin?.documentId ?? null,
+          remoteOrigin?.versionId ?? null,
+          remoteOrigin?.title ?? null,
         );
 
         this.indexDocument(db, id);

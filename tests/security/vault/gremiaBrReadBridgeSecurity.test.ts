@@ -1,24 +1,12 @@
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { checkGremiaBrEndpoint, validateGremiaBrBaseUrl } from '../../../services/gremiaBr/gremiaBrPolicy';
-import { GremiaBrHttpClient, MAX_GREMIA_BR_RESPONSE_BYTES, type GremiaBrFetch } from '../../../services/gremiaBr/gremiaBrHttpClient';
+import { GremiaBrHttpClient, MAX_GREMIA_BR_BINARY_BYTES, MAX_GREMIA_BR_RESPONSE_BYTES, type GremiaBrFetch } from '../../../services/gremiaBr/gremiaBrHttpClient';
+import type { CreatePersonalDataAuditInput } from '../../../src/domain/models/audit.model';
+
+const audit = { append: () => undefined };
 
 describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
   it('erlaubt nur explizit freigegebene Lese- und Arbeitsbereichsendpunkte und blockiert Verwaltungszugriffe vor dem Netzwerk', async () => {
-    expect(checkGremiaBrEndpoint('GET', '/sitzungen/kommende').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('GET', '/sitzungen/aktuelle').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('GET', '/sitzungen/wiedervorlagen?datum=2026-05-27').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('GET', '/sitzungen/s1').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('GET', '/sitzungen/s1/protokoll-status').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('GET', '/protokolle').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('GET', '/protokolle/p1').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('GET', '/protokolle/sitzung/s1').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('GET', '/protokolle/p1/beschluesse').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('GET', '/protokolle/beschluesse/faellig').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('GET', '/protokolle/beschluesse/statistik').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('GET', '/protokolle/beschluesse/statistik-extended').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('GET', '/search/suggest?q=BEM').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('POST', '/auth/login').allowed).toBe(true);
     expect(checkGremiaBrEndpoint('POST', '/api/v1/auth/login').allowed).toBe(true);
     expect(checkGremiaBrEndpoint('GET', '/api/v1/auth/session').allowed).toBe(true);
     expect(checkGremiaBrEndpoint('GET', '/api/v1/me/bodies').allowed).toBe(true);
@@ -28,9 +16,16 @@ describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
     expect(checkGremiaBrEndpoint('POST', '/api/v1/documents').allowed).toBe(true);
     expect(checkGremiaBrEndpoint('POST', '/api/v1/documents/document-1/shares').allowed).toBe(true);
     expect(checkGremiaBrEndpoint('POST', '/api/v1/meetings/meeting-1/agenda').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('GET', '/api/v1/tasks/task-1/transitions').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('POST', '/api/v1/procedures/tasks/task-1/transitions').allowed).toBe(true);
 
     for (const [method, path] of [
       ['GET', '/admin/health'],
+      ['GET', '/sitzungen/kommende'],
+      ['GET', '/sitzungen/s1/protokoll-status'],
+      ['GET', '/protokolle/beschluesse/faellig'],
+      ['GET', '/search/suggest?q=BEM'],
+      ['POST', '/auth/login'],
       ['GET', '/dsgvo/dashboard'],
       ['GET', '/mitglieder'],
       ['GET', '/abwesenheiten'],
@@ -53,10 +48,25 @@ describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
       networkCalls += 1;
       return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
     };
-    const client = new GremiaBrHttpClient('https://br.example.local', fetchImpl);
+    const client = new GremiaBrHttpClient('https://br.example.local', fetchImpl, audit);
 
     await expect(client.request('GET', '/admin/health')).rejects.toThrow(/gesperrt|nicht freigegeben/i);
     expect(networkCalls).toBe(0);
+  });
+
+  it('auditiert eine Aufgabenstatusänderung ohne die Aufgaben-ID', async () => {
+    const entries: CreatePersonalDataAuditInput[] = [];
+    const client = new GremiaBrHttpClient('https://br.example.local', async () => new Response('{}', {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    }), { append: (entry) => entries.push(entry) });
+
+    await client.request('POST', '/api/v1/procedures/tasks/task-1/transitions', 'token', {
+      body: { to: 'IN_PROGRESS', expectedVersion: 3 },
+    });
+
+    expect(entries.map((entry) => entry.action)).toEqual(['update', 'update']);
+    expect(JSON.stringify(entries)).not.toContain('task-1');
   });
 
   it('normalisiert Serveradressen ohne Credentials und akzeptiert HTTP nur für lokale Testserver', () => {
@@ -74,9 +84,9 @@ describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
       status: 302,
       headers: { location: 'https://evil.example.test/collect' },
     });
-    const client = new GremiaBrHttpClient('https://br.example.local', fetchImpl);
+    const client = new GremiaBrHttpClient('https://br.example.local', fetchImpl, audit);
 
-    await expect(client.request('GET', '/search', 'token', { query: { q: 'BEM' } })).rejects.toThrow(/umgeleitet/i);
+    await expect(client.request('GET', '/api/v1/me/bodies', 'token')).rejects.toThrow(/umgeleitet/i);
   });
 
 
@@ -85,8 +95,8 @@ describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
       status: 200,
       headers: { 'content-type': 'application/json', 'content-length': String(MAX_GREMIA_BR_RESPONSE_BYTES + 1) },
     });
-    const client = new GremiaBrHttpClient('https://br.example.local', oversizedByHeader);
-    await expect(client.request('GET', '/search', 'token', { query: { q: 'BEM' } })).rejects.toThrow(/zulässige Größe/i);
+    const client = new GremiaBrHttpClient('https://br.example.local', oversizedByHeader, audit);
+    await expect(client.request('GET', '/api/v1/me/bodies', 'token')).rejects.toThrow(/zulässige Größe/i);
 
     const chunk = 'x'.repeat(1024 * 1024);
     const body = new ReadableStream<Uint8Array>({
@@ -96,28 +106,28 @@ describe('Gremia.BR Lesebrücke Security-Härtung 0.9.2-F', () => {
       },
     });
     const oversizedStream: GremiaBrFetch = async () => new Response(body, { status: 200, headers: { 'content-type': 'text/plain' } });
-    const streamingClient = new GremiaBrHttpClient('https://br.example.local', oversizedStream);
-    await expect(streamingClient.request('GET', '/search', 'token', { query: { q: 'BEM' } })).rejects.toThrow(/zulässige Größe/i);
+    const streamingClient = new GremiaBrHttpClient('https://br.example.local', oversizedStream, audit);
+    await expect(streamingClient.request('GET', '/api/v1/me/bodies', 'token')).rejects.toThrow(/zulässige Größe/i);
   });
 
-  it('leert den lokalen BR-Lesecache bei Deaktivierung oder Credential-Clear der Anbindung', () => {
-    const ipc = readFileSync('electron/ipc/gremiaBrIpc.ts', 'utf8');
+  it('liest Dokumentbytes begrenzt und auditiert nur das Endpunkt-Template', async () => {
+    const entries: CreatePersonalDataAuditInput[] = [];
+    const bytes = new TextEncoder().encode('%PDF-1.4\nVertraulich');
+    const fetchImpl: GremiaBrFetch = async (_url, init) => {
+      expect((init?.headers as Record<string, string>).Accept).toBe('application/octet-stream');
+      return new Response(bytes, { status: 200, headers: { 'content-type': 'application/pdf' } });
+    };
+    const client = new GremiaBrHttpClient('https://br.example.local', fetchImpl, { append: (entry) => entries.push(entry) });
 
-    expect(ipc).toContain('if (!saved.enabled) cache.clear();');
-    expect(ipc).toContain('const next = settings.clearCredentials();');
-    expect(ipc).toContain('cache.clear();');
-  });
+    expect(await client.request<Uint8Array>('GET', '/api/v1/documents/versions/version-1/content', 'token', { responseType: 'bytes' })).toEqual(bytes);
+    expect(JSON.stringify(entries)).not.toContain('Vertraulich');
+    expect(JSON.stringify(entries)).not.toContain('version-1');
 
-
-  it('dokumentiert die 30-Tage-TTL des lokalen BR-Lesecaches als Datenschutzgrenze', () => {
-    const dsfa = readFileSync('docs/gremia-br/DSFA_TOM_VVT.md', 'utf8');
-    const readme = readFileSync('docs/gremia-br/README.md', 'utf8');
-    const privacy = readFileSync('docs/PRIVACY_AND_SECURITY.md', 'utf8');
-
-    expect(dsfa).toContain('30 Tage');
-    expect(readme).toContain('30 Tage');
-    expect(privacy).toContain('30-Tage-TTL');
-    expect(dsfa).toContain('Leeren des Lesecaches bei deaktivierter Gremia.BR-Anbindung');
+    const oversized = new GremiaBrHttpClient('https://br.example.local', async () => new Response('x', {
+      headers: { 'content-length': String(MAX_GREMIA_BR_BINARY_BYTES + 1) },
+    }), audit);
+    await expect(oversized.request('GET', '/api/v1/documents/versions/version-1/content', 'token', { responseType: 'bytes' }))
+      .rejects.toThrow('zulässige Größe');
   });
 
 });

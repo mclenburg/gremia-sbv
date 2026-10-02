@@ -66,6 +66,18 @@ export class ProtectedPersonService {
     const before = this.get(id);
     if (!before) throw new Error(`Person nicht gefunden: ${id}`);
     const merged = { ...before, ...input };
+    const statusValidityChanged = input.statusValidUntil !== undefined && normalizeOptional(input.statusValidUntil) !== normalizeOptional(before.statusValidUntil);
+    if (statusValidityChanged) {
+      new DeadlineService(this.database).cancelAutomaticPersonStatusDeadlines(id);
+      if (merged.protectionStatus === 'expired' && (!merged.statusValidUntil || merged.statusValidUntil >= legalToday())) {
+        merged.protectionStatus = 'unclear';
+      }
+      if (merged.lifecycleState === 'expiring_soon' || merged.lifecycleState === 'expired_review_required') {
+        merged.lifecycleState = 'active';
+        merged.expiryWarningCreatedAt = undefined;
+        merged.expiryReviewDueAt = undefined;
+      }
+    }
     if ((merged.recordKind ?? 'identified_person') === 'identified_person' && (!normalizeOptional(merged.firstName) || !normalizeOptional(merged.lastName))) throw new Error('Vor- und Nachname sind Pflichtfelder.');
     this.database.prepare(`
       UPDATE protected_persons SET

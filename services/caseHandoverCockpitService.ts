@@ -101,8 +101,10 @@ export class CaseHandoverCockpitService {
   private packageType(header: HeaderRow): CaseHandoverPackageType {
     if (header.package_type === 'return_delta') return 'return_delta';
     if (header.package_type === 'office_handover') return 'office_handover';
+    if (header.package_type === 'mobile_snapshot') return 'mobile_snapshot';
     const metadata = parseMetadata(header.metadata_json);
     if (metadata.mode === 'return_delta') return 'return_delta';
+    if (metadata.packageType === 'mobile_snapshot') return 'mobile_snapshot';
     return metadata.packageType === 'office_handover' ? 'office_handover' : 'vacation_handover';
   }
 

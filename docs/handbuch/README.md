@@ -34,6 +34,7 @@ Gremia.SBV folgt drei Grundsätzen:
 | [Stellenbesetzungen](16-stellenbesetzungen.md) | Bewerbungsverfahren, Unterlagen und SBV-Anhörung nachhalten |
 | [Wahlen](17-wahlen.md) | Örtliche SBV-Wahl vorbereiten, durchführen, abschließen und geschützt übergeben |
 | [Amtsübergabe und Vertretung](18-amtsuebergabe-und-vertretung.md) | Urlaubsvertretung, Rückgabe-Delta und dauerhafter Amtswechsel |
+| [Gremia.BR](gremia-br.md) | Verbindung, eigene Aufgaben, Sitzungen, Verfahren und bewusste Übergaben |
 | [Glossar](19-glossar.md) | Fachbegriffe kurz erklärt |
 
 Das Glossar steht bewusst am Ende, damit es die fachlichen Arbeitsabläufe nicht unterbricht.

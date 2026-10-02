@@ -5,9 +5,12 @@ import { CaseDetailPanel } from '../../../../src/app/features/cases/CaseDetailPa
 import { CaseHandoverTransferDialogs } from '../../../../src/app/features/cases/CaseHandoverTransferDialogs';
 import { CaseHandoverCockpitView } from '../../../../src/app/features/case-handover/CaseHandoverCockpitView';
 import { CaseHandoverCasePicker } from '../../../../src/app/features/case-handover/CaseHandoverCasePicker';
+import { HandoverMobileCompanionTab } from '../../../../src/app/features/case-handover/HandoverMobileCompanionTab';
+import { HandoverReturnTab } from '../../../../src/app/features/case-handover/HandoverReturnTab';
 import { ImportPackageReview } from '../../../../src/app/shared/components/ImportExportFeedback';
 import { LiveRegionProvider } from '../../../../src/app/shared/a11y/LiveRegionProvider';
 import type { CaseRecord } from '../../../../src/domain/models/case.model';
+import type { CaseMeasureRecord } from '../../../../src/domain/models/case-measure.model';
 import { descendants, findDescendants, renderComponent, renderElement, visibleText } from '../../../helpers/renderedMarkup';
 
 const caseRecord: CaseRecord = {
@@ -35,6 +38,20 @@ const importPlan = {
   decisions: [],
 };
 
+const openMeasure: CaseMeasureRecord = {
+  id: 'measure-1',
+  caseId: 'case-1',
+  type: 'sbv_participation',
+  title: 'SBV-Beteiligung',
+  status: 'open',
+  riskLevel: 'normal',
+  createdFrom: 'manual',
+  openedAt: '2026-05-01T08:00:00.000Z',
+  requiresFollowUp: true,
+  createdAt: '2026-05-01T08:00:00.000Z',
+  updatedAt: '2026-05-01T08:00:00.000Z',
+};
+
 function noopForm(event?: { preventDefault: () => void }) {
   event?.preventDefault();
 }
@@ -44,6 +61,7 @@ describe('case handover placement 0.9.2', () => {
     const { markup } = renderElement(createElement(LiveRegionProvider, {
       children: createElement(CaseHandoverCockpitView, {
         cases: [caseRecord],
+        measures: [openMeasure],
         onRecordsChanged: async () => undefined,
       }),
     }));
@@ -58,8 +76,46 @@ describe('case handover placement 0.9.2', () => {
     expect(text).toContain('Import');
     expect(text).toContain('Protokoll');
     expect(text).toContain('Was ist als Nächstes zu tun?');
+    expect(text).toContain('Mobile Projektion erstellen');
     expect(text).not.toContain('Fallakten für die Vertretung');
     expect(text).not.toContain('Erforderliche Fallakten für die Amtsübergabe');
+  });
+
+  it('trennt mobile Ausgabe und mobile Rückgabe in die fachlich passenden Register', () => {
+    const mobile = renderElement(createElement(LiveRegionProvider, {
+      children: createElement(HandoverMobileCompanionTab, { cases: [caseRecord], measures: [openMeasure] }),
+    }));
+    const returnTab = renderElement(createElement(LiveRegionProvider, {
+      children: createElement(HandoverReturnTab, {
+        items: [],
+        cases: [caseRecord],
+        onCompleted: async () => undefined,
+      }),
+    }));
+
+    expect(visibleText(mobile.markup)).toContain('Mobile Arbeitsprojektion erstellen');
+    expect(visibleText(mobile.markup)).toContain('SBV-2026-001');
+    expect(visibleText(mobile.markup)).not.toContain('Mobile Änderungen übernehmen');
+    expect(visibleText(returnTab.markup)).toContain('Mobile Änderungen übernehmen');
+    expect(visibleText(returnTab.markup)).toContain('Mobile Rückgabe auswählen');
+  });
+
+  it('zeigt die filterbare Fallauswahl direkt in der Desktop-Begleit-App-Ausgabe', () => {
+    const manyCases = Array.from({ length: 30 }, (_, index) => ({
+      ...caseRecord,
+      id: `case-${index + 1}`,
+      caseNumber: `SBV-2026-${String(index + 1).padStart(3, '0')}`,
+      displayName: `Mobile Fallakte ${index + 1}`,
+    }));
+    const mobile = renderElement(createElement(LiveRegionProvider, {
+      children: createElement(HandoverMobileCompanionTab, { cases: manyCases, measures: [] }),
+    }));
+    const text = visibleText(mobile.markup);
+
+    expect(text).toContain('Fallakten filtern');
+    expect(text).toContain('20 von 30 Treffern angezeigt');
+    expect(text).toContain('SBV-2026-020');
+    expect(text).not.toContain('SBV-2026-021');
   });
 
   it('begrenzt große Fallauswahlen auf eine kompakte, filterbare Trefferliste', () => {

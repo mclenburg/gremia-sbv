@@ -15,13 +15,15 @@ const TARGETS = {
     os: 'win',
     label: 'Windows portable x64 EXE + MSI',
     builderArgs: ['--win', 'portable', 'msi', '--x64'],
-    artifactHint: 'release/Gremia.SBV-<version>-win-x64-portable.exe + release/Gremia.SBV-<version>-win-x64.msi'
+    artifactHint: 'release/Gremia.SBV-<version>-win-x64-portable.exe + release/Gremia.SBV-<version>-win-x64.msi',
+    packagingAttempts: 3
   },
   windows: {
     os: 'win',
     label: 'Windows portable x64 EXE + MSI',
     builderArgs: ['--win', 'portable', 'msi', '--x64'],
-    artifactHint: 'release/Gremia.SBV-<version>-win-x64-portable.exe + release/Gremia.SBV-<version>-win-x64.msi'
+    artifactHint: 'release/Gremia.SBV-<version>-win-x64-portable.exe + release/Gremia.SBV-<version>-win-x64.msi',
+    packagingAttempts: 3
   },
   'win-portable': {
     os: 'win-portable',
@@ -66,6 +68,21 @@ function runNodeScript(script, args = []) {
   run(process.execPath, [script, ...args], { shell: false });
 }
 
+function runElectronBuilder(args, attempts = 1) {
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const result = spawnSync(process.execPath, ['scripts/run-electron-builder.cjs', ...args], {
+      stdio: 'inherit',
+      shell: false,
+    });
+    if (result.status === 0) return;
+    if (attempt < attempts) {
+      console.warn(`electron-builder fehlgeschlagen (Versuch ${attempt}/${attempts}). Wiederhole den Paketbuild ...`);
+      continue;
+    }
+    process.exit(result.status ?? 1);
+  }
+}
+
 function runNpmScript(script) {
   const npmCli = process.env.npm_execpath;
   if (npmCli) {
@@ -93,7 +110,7 @@ console.log(`Plattform: ${process.platform}, Node: ${process.version}`);
 runNodeScript('scripts/build-artifact-state.cjs', ['check']);
 runNpmScript('native:rebuild:electron');
 const packagingStartedAt = Date.now();
-runNodeScript('scripts/run-electron-builder.cjs', [...selected.builderArgs, '--publish', 'never']);
+runElectronBuilder([...selected.builderArgs, '--publish', 'never'], selected.packagingAttempts ?? 1);
 runNodeScript('scripts/verify-release-artifacts.cjs', [selected.os, '--since', String(packagingStartedAt), '--write-receipt']);
 
 console.log('');

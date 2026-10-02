@@ -7,6 +7,7 @@ import { assertAllowedEnum, assertString } from "./ipcValidation.js";
 export interface SecurityIpcRuntimeHooks {
   readonly status?: () => Promise<SecurityStatus> | SecurityStatus;
   readonly unlock?: (password: string) => Promise<SecurityResult | null> | SecurityResult | null;
+  readonly afterLock?: () => void;
 }
 
 export function registerSecurityIpc(
@@ -45,17 +46,20 @@ export function registerSecurityIpc(
       ),
   );
 
-  registerIpcHandler(ipcMain, IPC_CHANNELS.securityDestroyLocalVault, async (_event, confirmation: unknown) =>
-    security.destroyLocalVault(
+  registerIpcHandler(ipcMain, IPC_CHANNELS.securityDestroyLocalVault, async (_event, confirmation: unknown) => {
+    const result = security.destroyLocalVault(
       assertString(confirmation, "security:destroy-local-vault", "Bestätigung", { minLength: 1, maxLength: 200 }),
-    ),
-  );
+    );
+    if (result.ok) hooks.afterLock?.();
+    return result;
+  });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.securityLock, async (_event, reason?: unknown) => {
     const lockReason = reason === undefined || reason === null
       ? "manual"
       : assertAllowedEnum(reason, "security:lock", "Sperrgrund", ["manual", "auto"] as const);
     security.lock(lockReason);
+    hooks.afterLock?.();
     return { locked: true };
   });
 

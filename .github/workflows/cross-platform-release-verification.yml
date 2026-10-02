@@ -6,6 +6,7 @@ on:
     paths:
       - "electron/**"
       - "services/**"
+      - "companion-app/**"
       - "scripts/**"
       - "tests/**"
       - "package.json"
@@ -24,6 +25,32 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
+  verify-android:
+    name: Verify Android companion
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install Android SDK components
+        run: '"${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;34.0.0"'
+      - name: Install desktop interoperability dependencies
+        run: npm ci
+      - name: Test, lint and build without release credentials or upload
+        run: ./companion-app/android/gradlew -p companion-app/android --no-daemon --max-workers=2 testDebugUnitTest lintDebug assembleDebug
+
   verify-platform:
     name: Verify ${{ matrix.label }}
     runs-on: ${{ matrix.os }}
@@ -38,10 +65,8 @@ jobs:
             package_script: build:package:linux
             platform_check: release:platform:linux
           - platform: windows
-            label: Windows portable EXE
+            label: Windows
             os: windows-latest
-            package_script: build:package:windows-portable
-            platform_check: release:platform:windows-portable
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -73,12 +98,25 @@ jobs:
       - name: Compile application
         run: npm run build:compile
 
-      - name: Package current platform
+      - name: Package Linux AppImage
+        if: matrix.platform == 'linux'
         run: npm run ${{ matrix.package_script }}
 
-      - name: Run packaged startup and path/backup checks
-        if: matrix.platform == 'windows'
-        run: npm run ${{ matrix.platform_check }}
+      - name: Package Windows portable EXE for pull requests
+        if: matrix.platform == 'windows' && github.event_name == 'pull_request'
+        run: npm run build:package:windows-portable
+
+      - name: Package Windows portable EXE + MSI for manual artifact refresh
+        if: matrix.platform == 'windows' && github.event_name == 'workflow_dispatch'
+        run: npm run build:package:windows
+
+      - name: Run Windows portable startup and path/backup checks for pull requests
+        if: matrix.platform == 'windows' && github.event_name == 'pull_request'
+        run: npm run release:platform:windows-portable
+
+      - name: Run Windows release artifact, startup and path/backup checks for manual artifact refresh
+        if: matrix.platform == 'windows' && github.event_name == 'workflow_dispatch'
+        run: npm run release:platform:windows
 
       - name: Run packaged startup and path/backup checks under Xvfb
         if: matrix.platform == 'linux'
@@ -92,5 +130,6 @@ jobs:
           path: |
             release/*.AppImage
             release/*.exe
+            release/*.msi
           if-no-files-found: error
           retention-days: 7

@@ -10,6 +10,8 @@ export type ReviewCaseAnonymizationInput = Required<Pick<PrivacyReviewActionInpu
 export type PersonsViewProps = {
   persons: ProtectedPersonRecord[];
   cases: CaseRecord[];
+  targetPersonId?: string | null;
+  onTargetConsumed?: () => void;
   onCreateCaseForPerson: (person: ProtectedPersonRecord, input: CreateCaseForPersonInput) => Promise<void>;
   onCreate: (input: CreateProtectedPersonInput) => Promise<void>;
   onUpdate: (id: string, input: UpdateProtectedPersonInput) => Promise<void>;

@@ -117,9 +117,12 @@ export type GremiaBrRequestAuditArgs = {
   endpoint: string;
   outcome: string;
   status?: number;
+  correlationId?: string;
+  durationMs?: number;
 };
 
 export type GremiaBrWorkspaceActionAuditArgs = {
+  correlationId?: string;
   action: Extract<PersonalDataAuditAction, 'export' | 'update' | 'delete'>;
   actionId: string;
   actionType: string;
@@ -310,7 +313,7 @@ export function auditGremiaBrReadRequest(args: GremiaBrRequestAuditArgs): Create
     subjectType: AUDIT_SUBJECT_TYPES.gremiaBrHttpRequest,
     subjectId: args.endpoint,
     purpose: action === 'read' || action === 'security' ? AUDIT_PURPOSES.gremiaBrRequest : AUDIT_PURPOSES.gremiaBrWorkspaceAction,
-    metadata: compactMetadata({ endpoint: args.endpoint, outcome: args.outcome, status: args.status }),
+    metadata: compactMetadata({ endpoint: args.endpoint, outcome: args.outcome, status: args.status, correlationId: args.correlationId, durationMs: args.durationMs }),
   };
 }
 
@@ -327,6 +330,7 @@ export function auditGremiaBrWorkspaceAction(args: GremiaBrWorkspaceActionAuditA
       localDocumentId: args.localDocumentId,
       remoteDocumentId: args.remoteDocumentId,
       targetSecurityDomain: args.targetSecurityDomain,
+      correlationId: args.correlationId,
     }),
   };
 }

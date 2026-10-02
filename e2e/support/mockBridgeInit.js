@@ -121,6 +121,8 @@
       links: [],
     },
   ];
+  const sbvControlProtocols = [];
+  let nextSbvControlProtocolId = 1;
   const activityJournalPreferences = {};
   function activityJournalSummary() {
     const totalMinutes = activityJournalEntries.reduce((sum, entry) => sum + (entry.durationMinutes || 0), 0);
@@ -473,11 +475,33 @@
       .map((item, index) => toSearchResult(item, input.query, index + 1));
   };
 
-  let gremiaBrSettings = { enabled: false, serverUrl: '', username: '', hasStoredCredentials: false, apiMode: 'legacy_read_bridge', relevanceSettings: { groups: [] } };
-  let gremiaBrCache = { upcomingMeetings: [], meetingAgendas: {}, decisions: [], dueDecisions: [], overdueDecisions: [] };
+  const defaultGremiaBrSettings = { enabled: false, autoRefreshOnStartup: false, serverUrl: '', username: '', hasStoredCredentials: false, apiMode: 'gremia_br_v2', relevanceSettings: { groups: [] } };
+  let gremiaBrSettings = JSON.parse(sessionStorage.getItem('gremia-br-e2e-settings') || 'null')
+    || cloneForIpc(defaultGremiaBrSettings);
+  let gremiaBrCache = { accessibleCases: [], ownTasks: [], ownAccessApprovals: [], upcomingMeetings: [], meetingAgendas: {}, decisions: [], dueDecisions: [], overdueDecisions: [] };
+  let remoteAccessRequests = 0;
+  window.__GREMIA_BR_REMOTE_ACCESS_REQUESTS = () => remoteAccessRequests;
+  let meetingMinutesRequests = 0;
+  window.__GREMIA_BR_MEETING_MINUTES_REQUESTS = () => meetingMinutesRequests;
+  let remoteDocumentSearches = 0;
+  window.__GREMIA_BR_DOCUMENT_SEARCHES = () => remoteDocumentSearches;
+  let documentAccessRequests = 0;
+  window.__GREMIA_BR_DOCUMENT_ACCESS_REQUESTS = () => documentAccessRequests;
+  let classificationChanges = 0;
+  window.__GREMIA_BR_CLASSIFICATION_CHANGES = () => classificationChanges;
+  let remoteCaseCreations = 0;
+  window.__GREMIA_BR_CASE_CREATIONS = () => remoteCaseCreations;
+  let startupRefreshes = 0;
+  window.__GREMIA_BR_STARTUP_REFRESHES = () => startupRefreshes;
+  let readRefreshes = 0;
+  window.__GREMIA_BR_READ_REFRESHES = () => readRefreshes;
   const gremiaBrSampleCache = () => ({
-    nextMeeting: { id: 'br-meeting-2026-05-29', title: 'BR-Sitzung Mai', date: '2026-05-29T09:00:00.000Z' },
-    upcomingMeetings: [{ id: 'br-meeting-2026-05-29', title: 'BR-Sitzung Mai', date: '2026-05-29T09:00:00.000Z' }],
+    accessibleCases: [], ownTasks: [], ownAccessApprovals: [],
+    nextMeeting: { id: 'br-meeting-2026-05-29', bodyId: 'sbv-body-e2e', title: 'BR-Sitzung Mai', date: '2026-05-29T09:00:00.000Z', mode: 'HYBRID', hasRemoteAccess: true },
+    upcomingMeetings: [
+      { id: 'br-meeting-2026-05-29', bodyId: 'sbv-body-e2e', title: 'BR-Sitzung Mai', date: '2026-05-29T09:00:00.000Z', mode: 'HYBRID', hasRemoteAccess: true },
+      { id: 'br-meeting-2026-06-05', bodyId: 'sbv-body-e2e', title: 'Präsenzsitzung', date: '2026-06-05T09:00:00.000Z', mode: 'PRESENCE', hasRemoteAccess: false },
+    ],
     meetingAgendas: {
       'br-meeting-2026-05-29': [
         { id: 'top-1', title: 'TOP 1: Arbeitsplatzausstattung' },
@@ -619,6 +643,7 @@
     persons,
     deadlines,
     activityJournalEntries,
+    sbvControlProtocols,
     recruitingParticipations,
     recruitingInterviews,
     participationViolations,
@@ -648,7 +673,7 @@
   ];
   const resettableCollectionSnapshots = resettableCollections.map((collection) => cloneForIpc(collection));
   const activityJournalPreferencesSnapshot = cloneForIpc(activityJournalPreferences);
-  const gremiaBrSettingsSnapshot = cloneForIpc(gremiaBrSettings);
+  const gremiaBrSettingsSnapshot = cloneForIpc(defaultGremiaBrSettings);
   const gremiaBrCacheSnapshot = cloneForIpc(gremiaBrCache);
   const securityStateSnapshot = cloneForIpc(securityState);
 
@@ -663,7 +688,16 @@
     });
     resetObject(activityJournalPreferences, activityJournalPreferencesSnapshot);
     gremiaBrSettings = cloneForIpc(gremiaBrSettingsSnapshot);
+    sessionStorage.removeItem('gremia-br-e2e-settings');
     gremiaBrCache = cloneForIpc(gremiaBrCacheSnapshot);
+    remoteAccessRequests = 0;
+    meetingMinutesRequests = 0;
+    remoteDocumentSearches = 0;
+    documentAccessRequests = 0;
+    classificationChanges = 0;
+    remoteCaseCreations = 0;
+    startupRefreshes = 0;
+    readRefreshes = 0;
     securityState = cloneForIpc(securityStateSnapshot);
     window.__GREMIA_SBV_E2E_ICAL_EXPORTS.splice(0, window.__GREMIA_SBV_E2E_ICAL_EXPORTS.length);
   };
@@ -852,10 +886,11 @@
       saveSettings: async (input) => {
         gremiaBrSettings = {
           enabled: !!input.enabled,
+          autoRefreshOnStartup: !!input.autoRefreshOnStartup,
           serverUrl: input.serverUrl || '',
           username: input.username || '',
           hasStoredCredentials: !!input.password || gremiaBrSettings.hasStoredCredentials,
-          apiMode: input.apiMode || gremiaBrSettings.apiMode || 'legacy_read_bridge',
+          apiMode: 'gremia_br_v2',
           selectedBodyId: input.selectedBodyId || gremiaBrSettings.selectedBodyId,
           selectedBodyName: input.selectedBodyName || gremiaBrSettings.selectedBodyName,
           selectedOrganizationId: input.selectedOrganizationId || gremiaBrSettings.selectedOrganizationId,
@@ -863,11 +898,13 @@
           relevanceSettings: input.relevanceSettings || { groups: [] },
           updatedAt: now,
         };
+        sessionStorage.setItem('gremia-br-e2e-settings', JSON.stringify(gremiaBrSettings));
         return { ...gremiaBrSettings };
       },
       clearCredentials: async () => {
-        gremiaBrSettings = { enabled: false, serverUrl: '', username: '', hasStoredCredentials: false, apiMode: 'legacy_read_bridge', relevanceSettings: { groups: [] }, updatedAt: now };
-        gremiaBrCache = { upcomingMeetings: [], meetingAgendas: {}, decisions: [], dueDecisions: [], overdueDecisions: [] };
+        gremiaBrSettings = { enabled: false, autoRefreshOnStartup: false, serverUrl: '', username: '', hasStoredCredentials: false, apiMode: 'gremia_br_v2', relevanceSettings: { groups: [] }, updatedAt: now };
+        sessionStorage.removeItem('gremia-br-e2e-settings');
+        gremiaBrCache = { accessibleCases: [], ownTasks: [], ownAccessApprovals: [], upcomingMeetings: [], meetingAgendas: {}, decisions: [], dueDecisions: [], overdueDecisions: [] };
         return { ...gremiaBrSettings };
       },
       saveRelevanceSettings: async (input) => {
@@ -887,14 +924,80 @@
           contentProtectionClass: 'HIGH',
         },
       ],
+      listTransferableDocuments: async () => [],
+      listWorkspaceActions: async () => [],
+      listProcedureTypes: async () => [{ id: 'sbv.participation', title: 'SBV-Beteiligung' }],
+      getPendingCaseCreation: async () => null,
+      createRemoteCase: async (input) => {
+        remoteCaseCreations += 1;
+        if (!input.localCaseId || !input.subject || input.procedureType !== 'sbv.participation') throw new Error('Anlage ungültig.');
+        return { id: 'creation-e2e', localCaseId: input.localCaseId, procedureType: input.procedureType, remoteCaseReference: 'BR-2026-17', status: 'completed' };
+      },
+      resumeCaseCreation: async () => { throw new Error('Keine offene Anlage.'); },
+      getMeetingRemoteAccess: async (meetingId) => {
+        remoteAccessRequests += 1;
+        if (meetingId !== 'br-meeting-2026-05-29') throw new Error('Kein Remote-Zugang verfügbar.');
+        return 'Einwahl: https://konferenz.example.invalid/raum\nPIN: 123456';
+      },
+      getMeetingAgendaChanges: async (meetingId) => {
+        if (meetingId !== 'br-meeting-2026-05-29') throw new Error('Keine Tagesordnung verfügbar.');
+        return {
+          items: [{ title: 'TOP 1: Arbeitsplatzausstattung' }, { title: 'TOP 2: Mobiles Arbeiten' }],
+          comparisonAvailable: true,
+          changes: [{ kind: 'added', title: 'TOP 2: Mobiles Arbeiten' }],
+        };
+      },
+      getMeetingMinutes: async (meetingId) => {
+        meetingMinutesRequests += 1;
+        if (meetingId !== 'br-meeting-2026-05-29') throw new Error('Niederschrift nicht verfügbar.');
+        return { kind: 'RESULT_MINUTES', status: 'CONTENT_REVIEW', protectionClass: 'HIGH', version: 2, contentComplete: false, contentMissing: ['Beschlusstext'] };
+      },
+      searchRemoteDocuments: async () => {
+        remoteDocumentSearches += 1;
+        return [{ documentId: 'remote-doc-1', documentVersionId: 'remote-version-1', title: 'Stellungnahme', filename: 'stellungnahme.pdf' }];
+      },
+      getRemoteDocumentDetail: async (documentId) => {
+        if (documentId !== 'remote-doc-1') throw new Error('Dokument nicht verfügbar.');
+        return {
+          id: documentId, title: 'Stellungnahme', description: 'Für die BR-Beratung',
+          protectionClass: 'HIGH', status: 'ACTIVE', currentVersionId: 'remote-version-1',
+          versions: [{ id: 'remote-version-1', versionNumber: 1, filename: 'stellungnahme.pdf', mimeType: 'application/pdf', byteSize: 1024, processingState: 'READY' }],
+          shares: [{ id: 'share-1', status: 'ACTIVE', targetSecurityDomain: 'br-domain', validUntil: '2026-12-01T00:00:00Z', requirement: 'NONE' }],
+          signatures: { requested: 1, signed: 2, declined: 0, cancelled: 0, expired: 0, verificationFailed: 0 },
+        };
+      },
+      requestDocumentAccess: async (input) => {
+        documentAccessRequests += 1;
+        if (input.documentId !== 'remote-doc-1' || !input.purpose.trim()) throw new Error('Antrag ungültig.');
+        return { id: 'approval-1', resourceType: 'documents.document', status: 'PENDING', requestedAt: now };
+      },
+      openRemoteDocumentVersion: async () => ({ opened: true }),
+      importRemoteDocumentVersion: async () => ({ id: 'imported-doc-1', caseId: 'case-1' }),
+      listManagedRemoteDocuments: async () => [{ remoteDocumentId: 'owned-doc-e2e', title: 'Eigene Stellungnahme' }],
+      getDocumentClassification: async () => ({ documentId: 'owned-doc-e2e', protectionClass: classificationChanges ? 'CONFIDENTIAL' : 'HIGH', version: classificationChanges ? 2 : 1 }),
+      changeDocumentClassification: async (input) => {
+        if (input.documentId !== 'owned-doc-e2e' || !input.reason || input.expectedVersion !== 1) throw new Error('Klassifizierung ungültig.');
+        classificationChanges += 1;
+        return { documentId: input.documentId, protectionClass: input.protectionClass, version: 2 };
+      },
+      listOwnDocumentShares: async () => [],
+      createOwnDocumentShare: async () => ({ id: 'share-created', status: 'REQUESTED', targetSecurityDomain: 'br-domain', validUntil: '2026-12-01T00:00:00Z', requirement: 'APPROVAL', purpose: 'Beratung' }),
+      revokeOwnDocumentShare: async () => ({ id: 'share-created', status: 'REVOKED', targetSecurityDomain: 'br-domain', validUntil: '2026-12-01T00:00:00Z', requirement: 'APPROVAL', purpose: 'Beratung' }),
       getCachedOverview: async () => ({ ...gremiaBrCache }),
       getDashboardOverview: async () => gremiaBrDashboardOverview(),
       refreshCache: async () => {
+        readRefreshes += 1;
         if (!gremiaBrSettings.enabled) {
           return { status: 'disabled', message: 'Die Gremia.BR-Anbindung ist deaktiviert.', checkedAt: now, refreshedKeys: [], cached: gremiaBrDashboardOverview() };
         }
         gremiaBrCache = gremiaBrSampleCache();
         return { status: 'ok', message: 'Gremia.BR-Lesecache wurde manuell aktualisiert.', checkedAt: now, refreshedKeys: ['next_meeting', 'upcoming_meetings', 'meeting_agendas'], cached: gremiaBrDashboardOverview() };
+      },
+      refreshOnStartup: async () => {
+        if (!gremiaBrSettings.enabled || !gremiaBrSettings.autoRefreshOnStartup) return { started: false, message: 'Startabruf ist nicht aktiviert.' };
+        startupRefreshes += 1;
+        gremiaBrCache = gremiaBrSampleCache();
+        return { started: true, message: 'Gremia.BR wurde nach dem Programmstart aktualisiert.' };
       },
       suggestInlineReferences: async (query) => String(query || '').length < 2 ? [] : [{ sourceSystem: 'gremia_br', sourceType: 'beschluss', sourceId: 'BR-B-2026-012', title: 'Betriebsvereinbarung Homeoffice', label: 'BR-Beschluss · Betriebsvereinbarung Homeoffice' }],
       listExternalReferences: async () => [],
@@ -928,7 +1031,17 @@
       list: async () => persons,
       create: async (input) => { const row = { id: `person-${Date.now()}`, ...input, createdAt: now, updatedAt: now, lifecycleState: 'active' }; persons.push(row); return row; },
       createAnonymousRequest: async (label) => { const row = { id: `person-anon-${Date.now()}`, recordKind: 'pseudonymous_request', firstName: '', lastName: '', pseudonymLabel: label || 'Anonyme Anfrage 2026-0001', employmentState: 'unknown', protectionStatus: 'unclear', statusSource: 'manual', lifecycleState: 'active', createdAt: now, updatedAt: now }; persons.push(row); return row; },
-      update: async (id, input) => { const row = persons.find((person) => person.id === id); Object.assign(row, input, { updatedAt: now }); return row; },
+      update: async (id, input) => {
+        const row = persons.find((person) => person.id === id);
+        if (input.statusValidUntil !== undefined && input.statusValidUntil !== row.statusValidUntil) {
+          for (const deadline of deadlines) {
+            if (deadline.processId === id && deadline.sourceEvent === 'protected_person.status_expiry_warning' && deadline.status === 'open') deadline.status = 'cancelled';
+          }
+          row.lifecycleState = 'active';
+        }
+        Object.assign(row, input, { updatedAt: now });
+        return row;
+      },
       linkCase: async (personId, caseId) => ({ id: `link-${Date.now()}`, protectedPersonId: personId, caseFileId: caseId, linkState: 'active', createdAt: now }),
       previewImport: async (input) => {
         const lines = String(input?.csvText || 'Name;Status\nImportperson, Ida;gleichgestellt').trim().split(/\r?\n/);
@@ -950,7 +1063,19 @@
         return { run: { id: `run-${Date.now()}`, totalRows: 1, createdCount: 1, updatedCount: 0, unchangedCount: 0, conflictCount: 0, skippedCount: 0, missingCount: 0, sourceFileName: 'e2e.csv', sourceFileHash: 'synthetic', importedAt: now }, imported: [importedPerson] };
       },
       selectImportFile: async () => null,
-      evaluateExpiry: async () => ({ expiringSoon: persons, expiredReviewRequired: [] }),
+      evaluateExpiry: async () => {
+        const today = new Date().toISOString().slice(0, 10);
+        const warningEnd = new Date();
+        warningEnd.setUTCDate(warningEnd.getUTCDate() + 30);
+        const expiringSoon = persons.filter((person) => person.employmentState !== 'left_company' && person.statusValidUntil >= today && person.statusValidUntil <= warningEnd.toISOString().slice(0, 10));
+        for (const person of expiringSoon) {
+          person.lifecycleState = 'expiring_soon';
+          if (!deadlines.some((deadline) => deadline.processId === person.id && deadline.sourceEvent === 'protected_person.status_expiry_warning' && deadline.status === 'open')) {
+            deadlines.unshift({ id: `deadline-status-${person.id}`, processId: person.id, processType: 'custom', deadlineType: 'warning', title: 'Statusnachweis läuft ab', dueAt: `${person.statusValidUntil}T09:00:00.000Z`, sourceEvent: 'protected_person.status_expiry_warning', severity: 'important', status: 'open', calculationMode: 'workflow', isLegalDeadline: false, isUserEditable: false, warningThresholdHours: 720, criticalThresholdHours: 168, createdAt: now, updatedAt: now });
+          }
+        }
+        return { expiringSoon, expiredReviewRequired: [] };
+      },
       anonymize: async (id, reason) => {
         const row = persons.find((person) => person.id === id);
         const affected = cases.filter((item) => item.protectedPersonId === id);
@@ -1058,6 +1183,25 @@
         const ics = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nSUMMARY:${summary}\r\nDESCRIPTION:Bitte Vorgang in Gremia.SBV prüfen.\r\nEND:VCALENDAR\r\n`;
         window.__GREMIA_SBV_E2E_ICAL_EXPORTS.push({ filters, privacyLevel: level, ics });
         return ics;
+      },
+    },
+    sbvControlProtocols: {
+      list: async () => cloneForIpc(sbvControlProtocols),
+      create: async (input) => {
+        const row = { id: `protocol-e2e-${nextSbvControlProtocolId++}`, title: input.title, partner: input.partner || 'employer', topic: input.topic || 'other', meetingAt: input.meetingAt || now.slice(0, 10), status: input.status || 'documented', createdAt: now, updatedAt: now, ...input };
+        sbvControlProtocols.unshift(row);
+        return cloneForIpc(row);
+      },
+      update: async (id, input) => {
+        const row = sbvControlProtocols.find((item) => item.id === id);
+        if (!row) throw new Error('Protokoll nicht gefunden.');
+        Object.assign(row, input, { updatedAt: now });
+        return cloneForIpc(row);
+      },
+      delete: async (id) => {
+        const index = sbvControlProtocols.findIndex((item) => item.id === id);
+        if (index >= 0) sbvControlProtocols.splice(index, 1);
+        return { deleted: index >= 0 };
       },
     },
     caseMeasures: { list: async () => measures, create: createRecord, update: createRecord, listNotes: async () => [], createNote: createRecord, updateNote: createRecord, deleteNote: async () => ({ deleted: true }) },

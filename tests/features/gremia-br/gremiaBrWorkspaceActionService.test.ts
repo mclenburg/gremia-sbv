@@ -202,6 +202,14 @@ describe('GremiaBrWorkspaceActionService', () => {
         '/api/v1/documents',
         '/api/v1/documents/br-doc-1/shares',
       ]);
+      const correlationId = auth.posted[0].options?.correlationId;
+      expect(correlationId).toMatch(/^[0-9a-f-]{36}$/i);
+      expect(auth.posted[1].options?.correlationId).toBe(correlationId);
+      const actionAudits = database.prepare<{ metadata_json: string }>(`
+        SELECT metadata_json FROM personal_data_audit_log
+        WHERE subject_type = 'gremia_br_workspace_action' ORDER BY sequence ASC
+      `).all();
+      expect(actionAudits.map((audit) => JSON.parse(audit.metadata_json).correlationId)).toEqual([correlationId, correlationId]);
       expect(auth.posted[0].options?.formData?.get('title')).toBe('Fallzusammenfassung für BR');
       expect(auth.posted[0].options?.formData?.get('bodyId')).toBe('body-sbv');
       expect(auth.posted[0].options?.formData?.get('protectionClass')).toBe('HIGH');

@@ -1,22 +1,15 @@
 import type {
-  GremiaBrApiMode,
   GremiaBrCachedOverview,
   GremiaBrPublicSettings,
   GremiaBrRelevanceKeywordGroup,
   GremiaBrWorkspaceBody,
 } from "../../../domain/models/gremia-br.model";
-import { CheckboxField, PasswordInput, SearchInput, SelectInput, TextareaInput, TextInput } from "../../shared/components/IndustrialForm";
-import type { IndustrialFieldOption } from "../../shared/components/IndustrialFormCore";
+import { CheckboxField, PasswordInput, SearchInput, TextareaInput, TextInput } from "../../shared/components/IndustrialForm";
 import { DangerButton, IndustrialButton, ToolbarButton } from "../../shared/components/IndustrialButton";
 
 function maskStoredPassword(hasStoredCredentials: boolean): string {
   return hasStoredCredentials ? "••••••••••••" : "";
 }
-
-const gremiaBrApiModeOptions: IndustrialFieldOption[] = [
-  { value: "legacy_read_bridge", label: "Legacy-Lesebrücke" },
-  { value: "gremia_br_v2", label: "Gremia.BR 2.0" },
-];
 
 export function GremiaBrSettingsIntro() {
   return (
@@ -24,8 +17,8 @@ export function GremiaBrSettingsIntro() {
       <p className="industrial-kicker">Optionale Gremiumsanbindung</p>
       <h3 id="gremia-br-settings-title">Gremia.BR</h3>
       <p className="industrial-muted">
-        Gremia.SBV arbeitet mit klarer Datensouveränität: keine Hintergrundsynchronisation, kein Rückschreiben nach Gremia.BR ohne ausdrückliche Aktion.
-        Lesecache und schreibende Aktionen erfolgen nur auf ausdrückliche Nutzeraktion; PDF-Übergaben ausschließlich im eigenen Gremia.BR-Bereich
+        Gremia.SBV arbeitet mit klarer Datensouveränität: Der Abruf erfolgt standardmäßig manuell; ein einzelner automatischer Startabruf ist wählbar. Es gibt keine laufende Hintergrundsynchronisation und kein Rückschreiben nach Gremia.BR ohne ausdrückliche Aktion.
+        PDF-Übergaben erfolgen ausschließlich im eigenen Gremia.BR-Bereich
         und nur mit von Gremia.SBV erzeugten PDF-Dokumenten.
       </p>
     </div>
@@ -60,9 +53,19 @@ export function GremiaBrEnabledToggle({
   );
 }
 
+export function GremiaBrStartupRefreshToggle({ enabled, checked, onCheckedChange }: {
+  enabled: boolean;
+  checked: boolean;
+  onCheckedChange: (value: boolean) => void;
+}) {
+  return <div className="industrial-subsection compact">
+    <CheckboxField label="Gremia.BR nach dem Entsperren beim Programmstart automatisch aktualisieren"
+      checked={checked} onCheckedChange={onCheckedChange} disabled={!enabled}
+      helpText="Einmal pro Programmstart nach dem Entsperren; danach nur über Gremia.BR aktualisieren. Jeder Request wird auditiert." />
+  </div>;
+}
+
 export function GremiaBrCredentialsSection({
-  apiMode,
-  onApiModeChange,
   serverUrl,
   onServerUrlChange,
   username,
@@ -71,8 +74,6 @@ export function GremiaBrCredentialsSection({
   onPasswordChange,
   hasStoredCredentials,
 }: {
-  apiMode: GremiaBrApiMode;
-  onApiModeChange: (value: GremiaBrApiMode) => void;
   serverUrl: string;
   onServerUrlChange: (value: string) => void;
   username: string;
@@ -83,13 +84,6 @@ export function GremiaBrCredentialsSection({
 }) {
   return (
     <div className="gremia-br-settings-credentials">
-      <SelectInput
-        label="API-Modus"
-        value={apiMode}
-        onValueChange={(value) => onApiModeChange(value as GremiaBrApiMode)}
-        options={gremiaBrApiModeOptions}
-        helpText="Gremia.BR 2.0 behandelt die SBV als eigenes berechtigtes Gremium mit eigenem Arbeitsbereich."
-      />
       <TextInput
         label="Serveradresse / URL"
         type="url"

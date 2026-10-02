@@ -12,6 +12,7 @@ import {
 
 const SETTINGS: GremiaBrPublicSettings = {
   enabled: true,
+  autoRefreshOnStartup: false,
   serverUrl: "https://br.example.invalid",
   username: "sbv",
   hasStoredCredentials: true,
@@ -28,6 +29,9 @@ function overview(): GremiaBrDashboardOverview {
     plannedStart: "2026-10-01T09:00:00.000Z",
   };
   return {
+    accessibleCases: [],
+    ownTasks: [{ id: 'task-1', title: 'Stellungnahme prüfen', status: 'OPEN' }],
+    ownAccessApprovals: [{ id: 'approval-1', resourceType: 'DOCUMENT', status: 'PENDING', requestedAt: '2026-10-01T10:00:00.000Z' }],
     upcomingMeetings: [
       relevantMeeting,
       { id: "meeting-2", title: "Regelsitzung", plannedStart: "2026-10-08T09:00:00.000Z" },
@@ -52,11 +56,20 @@ describe("Gremia.BR-Arbeitsbereich View-Model", () => {
     const summary = resolveGremiaBrWorkspaceSummary(SETTINGS, overview());
 
     expect(summary).toEqual([
-      { label: "API-Modus", value: "2.0" },
-      { label: "Sitzungen im Cache", value: "2" },
+      { label: "Offene Aktionen", value: "2" },
+      { label: "Sitzungen", value: "2" },
       { label: "SBV-Treffer", value: "1", tone: "warning" },
       { label: "Beschlüsse", value: "1" },
     ]);
+  });
+
+  it('zählt genehmigte Zugriffsanträge nicht als offene Aktion', () => {
+    const state = overview();
+    state.ownAccessApprovals.push({
+      id: 'approval-2', resourceType: 'DOCUMENT', status: 'APPROVED', requestedAt: '2026-09-30T10:00:00.000Z',
+    });
+
+    expect(resolveGremiaBrWorkspaceSummary(SETTINGS, state)[0]).toEqual({ label: 'Offene Aktionen', value: '2' });
   });
 
   it("bereitet gelesene Sitzungen und Beschlüsse ohne technische Eingabe-IDs für zentrale Tabellen auf", () => {

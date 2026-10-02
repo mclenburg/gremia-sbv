@@ -4,22 +4,27 @@ import type { CreateDeadlineInput } from '../../../domain/models/deadline.model'
 import type { CreateRecruitingParticipationInput, RecruitingAccessibilityCheckStatus, RecruitingApplicantReferenceMode, RecruitingApplicantStatus, RecruitingInterviewEventRecord, RecruitingParticipationRecord, UpdateRecruitingParticipationInput } from '../../../domain/models/recruiting-participation.model';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
-import { GhostButton, IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
+import { IndustrialButton } from '../../shared/components/IndustrialButton';
 import { CheckboxField, DateInput, FormSection, SelectInput, TextInput, TextareaInput } from '../../shared/components/IndustrialForm';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
-import { EmptyState, WorkbenchDetailPanel, WorkbenchGrid, WorkbenchListPanel, WorkbenchPage, WorkbenchSummary } from '../../shared/components/WorkbenchLayout';
-import { ActivityJournalContextButton } from '../activity-journal/components/ActivityJournalContextButton';
+import { EmptyState, WorkbenchDetailPanel, WorkbenchGrid, WorkbenchPage, WorkbenchSummary } from '../../shared/components/WorkbenchLayout';
 import { buildParticipationViolationPrefillFromRecruiting, type SbvParticipationViolationPrefill } from '../participation-violations/sbvParticipationViolationViewLogic';
-import { formatRecruitingDate, getRecruitingRiskHints, recruitingAccessibilityStatusLabels, recruitingApplicantStatusLabels, recruitingStatusLabels } from './recruitingViewLogic';
+import { filterRecruitingRecords, getRecruitingRiskHints, type RecruitingListStatusFilter } from './recruitingViewLogic';
 import { ParticipationFormState, InterviewFormState, applicantStatusOptions, applicantReferenceModeOptions, accessibilityOptions, fromDateInput, emptyParticipationForm, formFromRecord, inputFromForm, emptyInterviewForm, interviewInputFromForm } from './recruitingParticipationViewSupport';
 import { RecruitingProcedureForm } from './RecruitingProcedureForm';
+import { RecruitingInterviewEvents, RecruitingListPanel } from './RecruitingPanels';
 export function RecruitingParticipationsView({
   onCreateDeadline,
   onOpenParticipationViolationPrefill,
+  targetId,
+  onTargetConsumed,
 }: {
   onCreateDeadline: (input: CreateDeadlineInput) => Promise<void>;
   onOpenParticipationViolationPrefill?: (prefill: SbvParticipationViolationPrefill) => void;
+  targetId?: string;
+  onTargetConsumed?: () => void;
 }) {
+  const initialTargetId = useRef(targetId).current;
   const [records, setRecords] = useState<RecruitingParticipationRecord[]>([]);
   const [interviews, setInterviews] = useState<RecruitingInterviewEventRecord[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -31,10 +36,13 @@ export function RecruitingParticipationsView({
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<RecruitingListStatusFilter>('all');
   const creatingRef = useRef(false);
   const announce = useAnnouncer();
 
-  const selected = useMemo(() => records.find((record) => record.id === selectedId) ?? null, [records, selectedId]);
+  const filteredRecords = useMemo(() => filterRecruitingRecords(records, query, statusFilter), [records, query, statusFilter]);
+  const selected = useMemo(() => filteredRecords.find((record) => record.id === selectedId) ?? null, [filteredRecords, selectedId]);
   const riskHints = selected ? getRecruitingRiskHints(selected) : [];
 
   const reload = useCallback(async (preferredId?: string | null) => {
@@ -47,7 +55,8 @@ export function RecruitingParticipationsView({
       setRecords(rows);
       if (preferredId === undefined && creatingRef.current) { setSelectedId(null); setInterviews([]); return; }
       const nextId = preferredId === undefined ? rows[0]?.id ?? null : preferredId;
-      const resolvedId = nextId && rows.some((row) => row.id === nextId) ? nextId : rows[0]?.id ?? null;
+      const resolvedId = nextId && rows.some((row) => row.id === nextId) ? nextId : preferredId ? null : rows[0]?.id ?? null;
+      if (preferredId && !resolvedId) setError('Die Stellenbesetzung zur Frist ist nicht mehr vorhanden.');
       setSelectedId(resolvedId);
       if (resolvedId) {
         const detail = rows.find((row) => row.id === resolvedId) ?? null;
@@ -66,8 +75,14 @@ export function RecruitingParticipationsView({
   }, []);
 
   useEffect(() => {
-    void reload();
-  }, [reload]);
+    void reload(initialTargetId);
+  }, [reload, initialTargetId]);
+
+  useEffect(() => {
+    if (!targetId || loading) return;
+    if (selectedId === targetId) document.querySelector<HTMLElement>('.workbench-detail-panel')?.focus();
+    if (selectedId === targetId || error) onTargetConsumed?.();
+  }, [targetId, selectedId, loading, error, onTargetConsumed]);
 
   useEffect(() => {
     if (error) announce(error, 'assertive');
@@ -98,6 +113,8 @@ export function RecruitingParticipationsView({
       const bridge = await waitForBridge();
       if (!bridge?.recruitingParticipations) throw new Error('Stellenbesetzungsdienst ist nicht erreichbar.');
       const created = await bridge.recruitingParticipations.create(inputFromForm(form) as CreateRecruitingParticipationInput);
+      setQuery('');
+      setStatusFilter('all');
       creatingRef.current = false;
       setCreateOpen(false);
       setMessage('Stellenbesetzung wurde angelegt.');
@@ -220,28 +237,19 @@ export function RecruitingParticipationsView({
       />
 
       <WorkbenchGrid>
-        <WorkbenchListPanel ariaLabel="Liste der Stellenbesetzungen">
-          {records.length === 0 && !loading ? <div className="industrial-empty-state">Noch keine Stellenbesetzung dokumentiert.</div> : null}
-          {records.map((record) => {
-            const hints = getRecruitingRiskHints(record);
-            return (
-              <GhostButton
-                key={record.id}
-                className={`industrial-record-card industrial-tone-${record.flaggedForViolationReview ? 'danger' : hints.length > 0 ? 'warning' : 'default'} ${selected?.id === record.id ? 'is-active' : ''}`}
-                onClick={() => void selectRecord(record.id)}
-                aria-current={selected?.id === record.id ? 'true' : undefined}
-              >
-                <span className="industrial-kicker">{record.vacancyReference || 'ohne Kennziffer'}</span>
-                <strong>{record.vacancyTitle}</strong>
-                <span>{record.department || 'Organisationseinheit offen'} · {recruitingStatusLabels[record.status]}</span>
-                <span>{record.interviewCount} Gespräch(e) · Anhörung bis {formatRecruitingDate(record.hearingDueDate)}</span>
-                {hints.length > 0 ? <span className="participation-card-warning"><AlertTriangle className="industrial-icon-sm" /> {hints.join(' · ')}</span> : null}
-              </GhostButton>
-            );
-          })}
-        </WorkbenchListPanel>
+        <RecruitingListPanel
+          records={records}
+          filteredRecords={filteredRecords}
+          selectedId={selected?.id ?? null}
+          loading={loading}
+          query={query}
+          statusFilter={statusFilter}
+          onQueryChange={setQuery}
+          onStatusFilterChange={setStatusFilter}
+          onSelect={(id) => void selectRecord(id)}
+        />
 
-        <WorkbenchDetailPanel ariaLabel="Stellenbesetzung Detail">
+        <WorkbenchDetailPanel ariaLabel="Stellenbesetzung Detail" tabIndex={-1}>
           {selected || createOpen ? <RecruitingProcedureForm
             form={form}
             selected={selected}
@@ -284,29 +292,7 @@ export function RecruitingParticipationsView({
                 </div>
               </FormSection>
 
-              <FormSection kicker="Ereignisse" title="Dokumentierte Vorstellungsgespräche">
-                {interviews.length === 0 ? <div className="industrial-empty-state">Noch kein Vorstellungsgespräch erfasst.</div> : null}
-                <div className="industrial-stack">
-                  {interviews.map((interview) => (
-                    <article key={interview.id} className="industrial-record-card industrial-tone-default">
-                      <p className="industrial-kicker">{formatRecruitingDate(interview.interviewDate)} · {recruitingApplicantStatusLabels[interview.applicantStatus]}</p>
-                      <strong>{interview.applicantRef}</strong>
-                      <p>SBV eingeladen: {interview.sbvInvited ? 'ja' : 'nein'} · teilgenommen: {interview.sbvAttended ? 'ja' : 'nein'} · Barrierefreiheit: {recruitingAccessibilityStatusLabels[interview.accessibilityCheckStatus]}</p>
-                      <div className="industrial-action-row">
-                        <ActivityJournalContextButton
-                          compact
-                          context={{
-                            contextType: 'recruiting_interview',
-                            contextId: interview.id,
-                            title: 'Vorstellungsgespräch: SBV-Teilnahme dokumentiert',
-                            category: 'participation',
-                          }}
-                        />
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </FormSection>
+              <RecruitingInterviewEvents interviews={interviews} />
 
               {riskHints.length > 0 ? (
                 <section className="industrial-message industrial-message-warning" role="note" aria-label="Prüfhinweise zur Stellenbesetzung">

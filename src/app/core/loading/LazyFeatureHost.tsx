@@ -1,11 +1,13 @@
 import { useMemo, type ComponentType, type LazyExoticComponent } from "react";
 import type { CaseRecord } from "../../../domain/models/case.model";
+import type { CaseMeasureRecord } from "../../../domain/models/case-measure.model";
 import type { ProtectedPersonRecord } from "../../../domain/models/protected-person.model";
 import type { ViewId } from "../navigation/modules";
 import type { ThemeMode } from "../../shared/theme/appTheme";
 import type { CreateDeadlineInput, DeadlineRecord } from "../../../domain/models/deadline.model";
 import type { SbvParticipationViolationPrefill } from "../../features/participation-violations/sbvParticipationViolationViewLogic";
 import type { CaseNodeTarget } from "../navigation/caseNodeTarget";
+import type { DeadlineOpenTarget } from "../../features/deadlines/deadlineContext";
 import type { CasesViewProps } from "../../features/cases/casesViewTypes";
 import { LazyFeatureBoundary } from "./LazyFeatureBoundary";
 import { getLazyFeatureComponent, preloadLazyFeature } from "./lazyFeatureViews";
@@ -13,6 +15,7 @@ import { getLazyFeatureComponent, preloadLazyFeature } from "./lazyFeatureViews"
 type LazyFeatureHostProps = {
   view: ViewId;
   cases: CaseRecord[];
+  measures?: CaseMeasureRecord[];
   persons?: ProtectedPersonRecord[];
   theme: ThemeMode;
   onThemeChange: (theme: ThemeMode) => void;
@@ -23,9 +26,11 @@ type LazyFeatureHostProps = {
   onNavigate?: (view: ViewId) => void;
   caseFeatureProps?: CasesViewProps;
   onRecordsChanged?: () => Promise<void>;
+  recordTarget?: Extract<DeadlineOpenTarget, { kind: 'record' }> | null;
+  onRecordTargetConsumed?: () => void;
 };
 
-export function LazyFeatureHost({ view, cases, persons = [], theme, onThemeChange, onCreateDeadline, onOpenParticipationViolationPrefill, onOpenCaseNode, deadlines = [], onNavigate, caseFeatureProps, onRecordsChanged }: LazyFeatureHostProps) {
+export function LazyFeatureHost({ view, cases, measures = [], persons = [], theme, onThemeChange, onCreateDeadline, onOpenParticipationViolationPrefill, onOpenCaseNode, deadlines = [], onNavigate, caseFeatureProps, onRecordsChanged, recordTarget, onRecordTargetConsumed }: LazyFeatureHostProps) {
   const Feature = useMemo(() => getLazyFeatureComponent(view), [view]);
   if (!Feature) return null;
 
@@ -33,6 +38,7 @@ export function LazyFeatureHost({ view, cases, persons = [], theme, onThemeChang
   const CaseWorkbenchFeature = Feature as LazyExoticComponent<ComponentType<CasesViewProps>>;
   const HandoverFeature = Feature as LazyExoticComponent<ComponentType<{
     cases: CaseRecord[];
+    measures: CaseMeasureRecord[];
     onRecordsChanged: () => Promise<void>;
   }>>;
   const SettingsFeature = Feature as LazyExoticComponent<ComponentType<{
@@ -46,7 +52,10 @@ export function LazyFeatureHost({ view, cases, persons = [], theme, onThemeChang
   const RecruitingFeature = Feature as LazyExoticComponent<ComponentType<{
     onCreateDeadline: (input: CreateDeadlineInput) => Promise<void>;
     onOpenParticipationViolationPrefill?: (prefill: SbvParticipationViolationPrefill) => void;
+    targetId?: string;
+    onTargetConsumed?: () => void;
   }>>;
+  const ElectionFeature = Feature as LazyExoticComponent<ComponentType<{ targetId?: string; sourceEvent?: string; onTargetConsumed?: () => void }>>;
   const CaseNodeFeature = Feature as LazyExoticComponent<ComponentType<{
     cases: CaseRecord[];
     onOpenCaseNode: (target: CaseNodeTarget) => void;
@@ -62,13 +71,16 @@ export function LazyFeatureHost({ view, cases, persons = [], theme, onThemeChang
     deadlines: DeadlineRecord[];
     onNavigate?: (viewId: ViewId) => void;
     initialSection?: "meetings";
+    targetProtocolId?: string;
+    targetOffice?: { recordId: string; processType: 'employer_obligation_review' | 'inclusion_agreement' | 'sbv_assembly' | 'sbv_meeting'; sourceEvent?: string };
+    onTargetConsumed?: () => void;
   }>>;
   return (
     <LazyFeatureBoundary view={view} onRetry={() => { void preloadLazyFeature(view).catch(() => undefined); }}>
       {view === "cases" && caseFeatureProps ? (
         <CaseWorkbenchFeature {...caseFeatureProps} />
       ) : view === "case_handover" && onRecordsChanged ? (
-        <HandoverFeature cases={cases} onRecordsChanged={onRecordsChanged} />
+        <HandoverFeature cases={cases} measures={measures} onRecordsChanged={onRecordsChanged} />
       ) : view === "knowledge" ? (
         <CasesFeature cases={cases} />
       ) : view === "equalization" && onOpenCaseNode && onRecordsChanged ? (
@@ -76,7 +88,13 @@ export function LazyFeatureHost({ view, cases, persons = [], theme, onThemeChang
       ) : ["bem", "prevention", "participation", "termination_hearing"].includes(view) && onOpenCaseNode ? (
         <CaseNodeFeature cases={cases} onOpenCaseNode={onOpenCaseNode} />
       ) : view === "sbv_control" || view === "meetings" ? (
-        <SbvControlFeature cases={cases} deadlines={deadlines} onNavigate={onNavigate} initialSection={view === "meetings" ? "meetings" : undefined} />
+        <SbvControlFeature cases={cases} deadlines={deadlines} onNavigate={onNavigate} initialSection={view === "meetings" ? "meetings" : undefined}
+          targetProtocolId={recordTarget?.view === 'sbv_control' && recordTarget.processType === 'sbv_control_protocol' ? recordTarget.recordId : undefined}
+          targetOffice={recordTarget?.view === 'meetings'
+            ? { recordId: recordTarget.recordId, processType: 'sbv_meeting', sourceEvent: recordTarget.sourceEvent }
+            : recordTarget?.view === 'sbv_control' && (recordTarget.processType === 'employer_obligation_review' || recordTarget.processType === 'inclusion_agreement' || recordTarget.processType === 'sbv_assembly')
+              ? { recordId: recordTarget.recordId, processType: recordTarget.processType, sourceEvent: recordTarget.sourceEvent } : undefined}
+          onTargetConsumed={onRecordTargetConsumed} />
       ) : view === "settings" ? (
         <SettingsFeature theme={theme} onThemeChange={onThemeChange} />
       ) : view === "privacy_review" && onNavigate && onOpenCaseNode ? (
@@ -85,7 +103,11 @@ export function LazyFeatureHost({ view, cases, persons = [], theme, onThemeChang
         <RecruitingFeature
           onCreateDeadline={onCreateDeadline}
           onOpenParticipationViolationPrefill={onOpenParticipationViolationPrefill}
+          targetId={recordTarget?.view === view ? recordTarget.recordId : undefined}
+          onTargetConsumed={onRecordTargetConsumed}
         />
+      ) : view === "elections" ? (
+        <ElectionFeature targetId={recordTarget?.view === view ? recordTarget.recordId : undefined} sourceEvent={recordTarget?.sourceEvent} onTargetConsumed={onRecordTargetConsumed} />
       ) : (
         <Feature />
       )}

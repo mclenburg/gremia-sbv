@@ -23,6 +23,44 @@ test('opens persons module and shows status expiry workflow without horizontal o
   expect(hasHorizontalOverflow).toBe(false);
 });
 
+test('öffnet die Person aus ihrer Statusfrist und entfernt die Warnung nach Datumsänderung', async ({ page }) => {
+  const dateAfter = (days: number) => {
+    const date = new Date();
+    date.setUTCDate(date.getUTCDate() + days);
+    return date.toISOString().slice(0, 10);
+  };
+  await page.locator('[data-e2e="main-nav-persons"]').click();
+  await page.locator('[data-e2e="open-person-create-dialog"]').click();
+  const createDialog = page.locator('[data-e2e="person-create-dialog"]');
+  await createDialog.getByLabel('Vorname').fill('Nora');
+  await createDialog.getByLabel('Nachname').fill('Fristprobe');
+  await createDialog.getByLabel('Status gültig bis').fill(dateAfter(2));
+  await createDialog.getByRole('button', { name: 'Person anlegen' }).click();
+  await page.getByRole('button', { name: /Ablauf prüfen/ }).click();
+  await expect(page.locator('.person-expiry-card [role="status"]')).toBeVisible();
+
+  const target = await page.evaluate(async () => {
+    const person = (await window.gremiaSbv.persons.list()).find((item) => item.lastName === 'Fristprobe');
+    const deadlines = await window.gremiaSbv.deadlines.list();
+    const index = deadlines.findIndex((item) => item.processId === person?.id && item.sourceEvent === 'protected_person.status_expiry_warning');
+    return { personId: person?.id, index, deadlineId: deadlines[index]?.id };
+  });
+  expect(target.personId).toBeTruthy();
+  expect(target.index).toBeGreaterThanOrEqual(0);
+  await page.locator('[data-e2e="main-nav-deadlines"]').click();
+  await page.getByRole('table', { name: 'Offene Fristen und Wiedervorlagen' }).locator('tbody tr').nth(target.index).getByRole('button', { name: 'Person öffnen' }).click();
+  await expect(page.locator('#person-detail-heading')).toHaveText('Fristprobe, Nora');
+  await expect(page.locator('#person-detail-heading')).toBeFocused();
+
+  await page.getByRole('button', { name: 'Person bearbeiten: Fristprobe, Nora' }).click();
+  const editDialog = page.locator('[data-e2e="person-edit-dialog"]');
+  await editDialog.getByLabel('Status gültig bis').fill(dateAfter(90));
+  await editDialog.getByRole('button', { name: 'Person speichern' }).click();
+  await expect(page.locator('.person-detail')).toContainText(dateAfter(90));
+  const status = await page.evaluate(async (id) => (await window.gremiaSbv.deadlines.list()).find((item) => item.id === id)?.status, target.deadlineId);
+  expect(status).toBe('cancelled');
+});
+
 test('guides CSV import through preview, mapping and validation', async ({ page }) => {
   await page.locator('[data-e2e="main-nav-persons"]').click();
 

@@ -128,7 +128,7 @@ import type {
   UpdateLegalNormInput,
 } from "./domain/models/knowledge.model";
 import type { TemplateDefaultValues } from "./domain/models/template-default.model";
-import type { CreateGremiaBrCaseSummaryInput, CreateGremiaBrExternalReferenceInput, GremiaBrAgendaItemRequestResult, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrCreatedPdfDocument, GremiaBrDashboardOverview, GremiaBrDocumentTransferResult, GremiaBrExternalReferenceRecord, GremiaBrGeneratedPdfDocument, GremiaBrInlineSuggestion, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput, GremiaBrWorkspaceActionRecord, GremiaBrWorkspaceBody, RequestGremiaBrAgendaItemInput, TransferGremiaBrDocumentInput } from "./domain/models/gremia-br.model";
+import type { CompleteGremiaBrInformationRequestInput, CreateGremiaBrCaseSummaryInput, CreateGremiaBrExternalReferenceInput, CreateGremiaBrInformationRequestInput, CreateGremiaBrProcedureTaskInput, GremiaBrAgendaChanges, GremiaBrAgendaItemRequestResult, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrCreatedPdfDocument, GremiaBrDashboardOverview, GremiaBrDocumentDetail, GremiaBrDocumentHit, GremiaBrDocumentTransferResult, GremiaBrExternalReferenceRecord, GremiaBrGeneratedPdfDocument, GremiaBrInformationRequest, GremiaBrInlineSuggestion, GremiaBrOwnTaskDetail, GremiaBrProcedureDetail, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput, GremiaBrTaskTransitionInput, GremiaBrTaskTransitionOptions, GremiaBrWorkspaceActionRecord, GremiaBrWorkspaceBody, RequestGremiaBrAgendaItemInput, TransferGremiaBrDocumentInput } from "./domain/models/gremia-br.model";
 
 import type {
   CreateTemplateInput,
@@ -274,6 +274,16 @@ declare global {
       selectAndInspect: (passphrase: string) => Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string; inspection: CaseHandoverInspectResult }>;
       import: (input: CaseHandoverImportInput) => Promise<CaseHandoverImportResult>;
       continueExpired: (caseId: string, reason: string) => Promise<CaseHandoverContinueExpiredResult>;
+      listMobileDevices: () => Promise<import("./domain/models/mobile-companion.model").MobileCompanionDevice[]>;
+      createMobilePairingRequest: () => Promise<import("./domain/models/mobile-companion.model").MobileCompanionPairingRequestResult>;
+      exportMobilePairingRequest: (request: string) => Promise<boolean>;
+      readMobilePairingResponse: () => Promise<string | null>;
+      cancelMobilePairing: (sessionId: string) => Promise<void>;
+      saveMobileDevice: (input: import("./domain/models/mobile-companion.model").SaveMobileCompanionDeviceInput) => Promise<import("./domain/models/mobile-companion.model").MobileCompanionDevice>;
+      setMobileDeviceStatus: (id: string, status: import("./domain/models/mobile-companion.model").MobileCompanionDeviceStatus) => Promise<import("./domain/models/mobile-companion.model").MobileCompanionDevice>;
+      createMobileSnapshot: (input: import("./domain/models/mobile-companion.model").MobileCompanionSnapshotInput) => Promise<import("./domain/models/mobile-companion.model").MobileCompanionSnapshotResult>;
+      selectAndInspectMobileReturn: () => Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string; inspection: import("./domain/models/mobile-companion.model").MobileCompanionReturnInspectResult }>;
+      importMobileReturn: (input: import("./domain/models/mobile-companion.model").MobileCompanionReturnImportInput) => Promise<import("./domain/models/mobile-companion.model").MobileCompanionReturnImportResult>;
     };
 
     caseMeasures: {
@@ -521,6 +531,33 @@ declare global {
         getCachedOverview(): Promise<GremiaBrCachedOverview>;
         getDashboardOverview(): Promise<GremiaBrDashboardOverview>;
         refreshCache(): Promise<GremiaBrCacheRefreshResult>;
+        refreshOnStartup(): Promise<import('./domain/models/gremia-br.model').GremiaBrStartupRefreshResult>;
+        getOwnTaskDetail(id: string): Promise<GremiaBrOwnTaskDetail>;
+        getMeetingRemoteAccess(meetingId: string): Promise<string>;
+        getMeetingAgendaChanges(meetingId: string): Promise<GremiaBrAgendaChanges>;
+        getMeetingMinutes(meetingId: string): Promise<import('./domain/models/gremia-br.model').GremiaBrMinutesSummary | null>;
+        searchRemoteDocuments(query: string): Promise<GremiaBrDocumentHit[]>;
+        getRemoteDocumentDetail(documentId: string): Promise<GremiaBrDocumentDetail>;
+        requestDocumentAccess(input: import('./domain/models/gremia-br.model').GremiaBrDocumentAccessRequestInput): Promise<import('./domain/models/gremia-br.model').GremiaBrOwnAccessApproval>;
+        openRemoteDocumentVersion(documentId: string, versionId: string): Promise<{ opened: boolean; error?: string }>;
+        importRemoteDocumentVersion(input: import('./domain/models/gremia-br.model').GremiaBrDocumentImportInput): Promise<CaseDocumentRecord>;
+        listOwnDocumentShares(documentId: string): Promise<import('./domain/models/gremia-br.model').GremiaBrOwnShare[]>;
+        getDocumentClassification(documentId: string): Promise<import('./domain/models/gremia-br.model').GremiaBrDocumentClassification>;
+        changeDocumentClassification(input: import('./domain/models/gremia-br.model').ChangeGremiaBrDocumentClassificationInput): Promise<import('./domain/models/gremia-br.model').GremiaBrDocumentClassification>;
+        listManagedRemoteDocuments(): Promise<import('./domain/models/gremia-br.model').GremiaBrManagedDocument[]>;
+        createOwnDocumentShare(input: import('./domain/models/gremia-br.model').GremiaBrShareCreateInput): Promise<import('./domain/models/gremia-br.model').GremiaBrOwnShare>;
+        revokeOwnDocumentShare(input: import('./domain/models/gremia-br.model').GremiaBrShareRevokeInput): Promise<import('./domain/models/gremia-br.model').GremiaBrOwnShare>;
+        getOwnTaskTransitions(id: string): Promise<GremiaBrTaskTransitionOptions>;
+        transitionOwnTask(input: GremiaBrTaskTransitionInput): Promise<GremiaBrOwnTaskDetail>;
+        getProcedureDetail(id: string): Promise<GremiaBrProcedureDetail>;
+        listProcedureTypes(): Promise<import('./domain/models/gremia-br.model').GremiaBrProcedureTypeOption[]>;
+        getPendingCaseCreation(caseId: string): Promise<import('./domain/models/gremia-br.model').GremiaBrCaseCreationRecord | null>;
+        createRemoteCase(input: import('./domain/models/gremia-br.model').CreateGremiaBrRemoteCaseInput): Promise<import('./domain/models/gremia-br.model').GremiaBrCaseCreationRecord>;
+        resumeCaseCreation(id: string): Promise<import('./domain/models/gremia-br.model').GremiaBrCaseCreationRecord>;
+        listInformationRequests(caseId: string, procedureId: string): Promise<GremiaBrInformationRequest[]>;
+        createInformationRequest(input: CreateGremiaBrInformationRequestInput): Promise<GremiaBrInformationRequest>;
+        completeInformationRequest(input: CompleteGremiaBrInformationRequestInput): Promise<GremiaBrInformationRequest>;
+        createProcedureTask(input: CreateGremiaBrProcedureTaskInput): Promise<GremiaBrOwnTaskDetail>;
         suggestInlineReferences(query: string): Promise<GremiaBrInlineSuggestion[]>;
         listExternalReferences(caseId: string): Promise<GremiaBrExternalReferenceRecord[]>;
         saveExternalReference(input: CreateGremiaBrExternalReferenceInput): Promise<GremiaBrExternalReferenceRecord>;

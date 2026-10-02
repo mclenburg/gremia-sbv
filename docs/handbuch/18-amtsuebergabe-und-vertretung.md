@@ -1,10 +1,11 @@
 # Amtsübergabe und Vertretung
 
-Der Bereich **Übergaben** liegt als letzter Punkt der Kernarbeit in der Navigation. Er ist in Register gegliedert, damit Urlaubsvertretung, Rückgabe, Amtsübergabe, Import und Protokoll nicht in einem gemeinsamen Formular vermischt werden.
+Der Bereich **Übergaben** liegt als letzter Punkt der Kernarbeit in der Navigation. Er ist in Register gegliedert, damit Urlaubsvertretung, Begleit-App, Rückgabe, Amtsübergabe, Import und Protokoll nicht in einem gemeinsamen Formular vermischt werden.
 
 Der Bereich unterstützt zwei unterschiedliche Situationen:
 
 - Eine **Urlaubs- oder Krankheitsvertretung** ist zeitlich begrenzt. Ausgewählte Fallakten werden an die Stellvertretung übergeben und Änderungen später als Rückgabe-Delta zurückgeführt.
+- Die **Begleit-App** erhält nur eine reduzierte mobile Arbeitsprojektion für kurze Arbeitssituationen außerhalb des Desktop-Arbeitsplatzes.
 - Eine **Amtsübergabe** ist dauerhaft. Die gewählte Nachfolge übernimmt den erforderlichen Arbeits- und Nachweisbestand in ihre eigene Gremia.SBV-Instanz.
 
 Ein Übergabepaket ist weder ein Backup noch eine gemeinsame Datenbank. Beide Instanzen bleiben technisch selbstständig.
@@ -28,6 +29,64 @@ Die Zielinstanz zeigt unter **Einstellungen** ihre kurze Instanz-ID und die voll
 9. Die ursprüngliche SBV prüft und importiert das Delta. Die Zuordnung erfolgt über das protokollierte Ausgangspaket.
 
 Abgelaufene Pakete dürfen nicht importiert werden. Bereits importierte Vertretungsdaten werden nach Ablauf sichtbar als prüfbedürftig markiert. Eine fachlich erforderliche Fortführung muss begründet werden.
+
+## Begleit-App
+
+Die Begleit-App ist kein zweiter vollständiger Tresor. Sie dient dazu, unterwegs den notwendigen Arbeitskontext zu sehen, ohne vertrauliche Fallakten vollständig auf ein Mobilgerät zu übertragen.
+
+1. Öffne **Übergaben**.
+2. Öffne das Register **Begleit-App**.
+3. Starte über **Mobilgerät koppeln** die Kopplung. Gremia.SBV zeigt einen QR-Code und bietet die öffentliche Anfrage auch als `.gsbvpair`-Datei an.
+4. Öffne in der Begleit-App unter **Synchronisation** den Dialog **Desktop koppeln**. Scanne den Anfrage-QR oder öffne die Anfragedatei. Alternativ kannst du den Anfragetext einfügen.
+5. Speichere die Antwortdatei in der App und öffne sie im Desktop über **Antwortdatei öffnen**; alternativ überträgst du den Antworttext. Vergleiche den Sicherheitscode und bestätige am Desktop. Bestätige anschließend auch in der App **Gleichen Code am Desktop bestätigt**. Erst diese bewusste Bestätigung speichert dort den vertrauenswürdigen Desktop. Die Desktop-Anfrage gilt fünf Minuten; bei Ablauf beginnt die Kopplung erneut. Abbrechen ersetzt keine bestehende Kopplung.
+6. Wähle nur offene Arbeitsfälle aus, die mobil benötigt werden. Abgeschlossene Fälle ohne offene Maßnahmen werden nicht angeboten. Bei größeren Beständen filterst du gezielt.
+7. Erzeuge die mobile Arbeitsprojektion für genau dieses Gerät.
+8. Öffne in der Begleit-App den Scan-Ablauf. Gremia.SBV zeigt die QR-Frames automatisch nacheinander an.
+9. Nutze bei älteren oder schwächeren Kameras das Tempo **Kompatibel**. Die Automatik kann jederzeit pausiert, manuell weitergeschaltet oder abgebrochen werden.
+10. Nach der Besprechung speichert die Begleit-App eine verschlüsselte Rückgabedatei. Wähle diese im Desktop aus, prüfe den Importplan und übernimm nur konfliktfreie Änderungen.
+
+Übertragen werden Fallkopf, Status und offene Fristen. Notizen, Dokumentdateien, Dokumentnamen, vollständige Freitexte und Fallzusammenfassungen bleiben im Desktop-Tresor. Die Protokollierung enthält nur technische Zähldaten wie Fallanzahl, Fristanzahl, Frame-Anzahl und Zielinstanz.
+
+Die App akzeptiert neue Projektionen nur vom bestätigt gekoppelten Desktop
+mit passendem kryptografischem Herkunftsnachweis. Bereits gespeicherte mobile
+Arbeitsstände werden durch diese Prüfung nicht gelöscht. Bei älteren, noch
+nicht bestätigt gekoppelten App-Installationen zuerst offene Änderungen
+zurückgeben, dann den mobilen Arbeitsbestand entfernen und beide Geräte neu
+koppeln. Projektionen anschließend mit dem aktuellen Desktop neu erzeugen.
+Ein Desktopwechsel ist bei vorhandenem mobilen Arbeitsbestand gesperrt.
+
+Auch bei der Rückgabe prüft der Desktop den kryptografischen Herkunftsnachweis
+des weiterhin aktiv gekoppelten Mobilgeräts – erneut beim Import, nicht nur
+bei der Vorschau. Fehlt der Nachweis in einer älteren Rückgabedatei, aktualisiere
+die Begleit-App und erzeuge die Rückgabedatei aus den vorhandenen Entwürfen
+erneut. Weder Entwürfe noch Arbeitsbestand dafür löschen oder die App
+deinstallieren. Eine deaktivierte Kopplung verhindert die Übernahme.
+Neue Projektionen werden dem Empfängerschlüssel zugeordnet, nicht allein
+der fünfstelligen Kennung. Bei älteren Projektionen ohne gespeicherten
+Schlüsselbezug muss die Gerätezuordnung eindeutig sein; mehrdeutige
+Altbestände werden nicht automatisch übernommen.
+
+Aus der Begleit-App zurück übernommen werden mobile Gesprächsnotizen, neue mobile Wiedervorlagen und erledigte Fristen. Der Desktop bleibt führend: wurde eine Frist seit dem Snapshot im Desktop geändert, blockiert Gremia.SBV die mobile Erledigung und zeigt den Konflikt im Importplan.
+
+In der Begleit-App führt **Start** durch die aktuelle Arbeit. **Fristen** bietet
+eine filterbare Liste und erfasst Erledigungen mit optionaler Abschlussnotiz;
+**Erfassen** nimmt Gesprächsnotizen, Eingangsthemen und neue Wiedervorlagen auf.
+Unter **Synchronisation** werden neue Projektionen eingelesen, Rückgabedateien
+gespeichert und der verschlüsselte technische Verlauf angezeigt. Eine neue
+Projektion kann ungesendete Änderungen nicht still überschreiben.
+
+Unter **Einstellungen** werden Displayschutz und automatische Sperre verwaltet.
+**Arbeitsbestand löschen** entfernt Projektion, Entwürfe, Verlauf,
+Benachrichtigungen und temporäre Rückgabedateien vom Gerät, behält aber die
+Kopplungsidentität und bestätigten Desktop. **Gerät neu initialisieren** entfernt zusätzlich Identität, Desktop-Kopplung
+und lokale Einstellungen. Bereits außerhalb der App gespeicherte
+Rückgabedateien müssen am gewählten Speicherort separat gelöscht werden.
+
+Über **Technischen Diagnosebericht speichern** in den mobilen Einstellungen
+kannst du einen Bericht für Supportanfragen an einem selbst gewählten Ort
+speichern. Er enthält Versionsnummern, die Anzahl ungesendeter Änderungen und
+Sperr-/Displayschutzeinstellungen, aber keine Namen, Falltexte, Gerätekennungen
+oder Schlüssel. Die App versendet den Bericht nicht automatisch.
 
 ## Amtsübergabe
 

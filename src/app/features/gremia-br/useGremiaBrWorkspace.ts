@@ -16,7 +16,9 @@ import {
   EMPTY_GREMIA_BR_DASHBOARD,
   EMPTY_GREMIA_BR_SETTINGS,
 } from "./gremiaBrWorkspaceModel";
-import type { GremiaBrWorkspaceDraft } from "./GremiaBrWorkspacePanels";
+import type { BusyAction, GremiaBrWorkspaceDraft } from "./GremiaBrWorkspacePanels";
+import { useGremiaBrTaskDetail } from './useGremiaBrTaskDetail';
+import { useGremiaBrProcedureLinks } from './useGremiaBrProcedureLinks';
 
 const INITIAL_DRAFT: GremiaBrWorkspaceDraft = {
   selectedCaseId: "",
@@ -34,8 +36,6 @@ const INITIAL_DRAFT: GremiaBrWorkspaceDraft = {
   selectedImportMeetingId: "",
 };
 
-export type BusyAction = "read" | "summary" | "transfer" | "agenda" | "import" | null;
-
 export function useGremiaBrWorkspace(announce: (message: string, politeness?: "polite" | "assertive") => void) {
   const [settings, setSettings] = useState(EMPTY_GREMIA_BR_SETTINGS);
   const [overview, setOverview] = useState<GremiaBrDashboardOverview>(EMPTY_GREMIA_BR_DASHBOARD);
@@ -46,9 +46,12 @@ export function useGremiaBrWorkspace(announce: (message: string, politeness?: "p
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const [busyAction, setBusyAction] = useState<BusyAction>(null);
+  const [snapshotRevision, setSnapshotRevision] = useState(0);
+  const taskDetailState = useGremiaBrTaskDetail(announce);
   const meetingDrafts = useMemo(() => buildBrMeetingDrafts(overview), [overview]);
 
   function applySnapshot(snapshot: Awaited<ReturnType<typeof loadWorkspaceSnapshot>>) {
+    setSnapshotRevision((revision) => revision + 1);
     setSettings(snapshot.settings);
     setOverview(snapshot.overview);
     setDocuments(snapshot.documents);
@@ -77,6 +80,8 @@ export function useGremiaBrWorkspace(announce: (message: string, politeness?: "p
     }
   }
 
+  const procedureState = useGremiaBrProcedureLinks(announce, runAction, setError);
+
   useEffect(() => {
     let active = true;
     void loadWorkspaceSnapshot()
@@ -100,11 +105,16 @@ export function useGremiaBrWorkspace(announce: (message: string, politeness?: "p
     status,
     error,
     busyAction,
+    snapshotRevision,
+    ...taskDetailState,
+    ...procedureState,
     meetingDrafts,
     updateDraft,
     refreshReadContext: () => runAction("read", async () => {
       const result = await refreshReadContextSnapshot();
       applySnapshot(result.snapshot);
+      taskDetailState.closeTaskDetail();
+      procedureState.resetRemoteSelection();
       return result.message;
     }),
     refreshDocuments: () => runAction("transfer", async () => {

@@ -20,20 +20,21 @@ class GremiaBrSettingsDb implements DatabaseAdapter {
         if (/INSERT INTO gremia_br_settings/i.test(sql) && /ON CONFLICT\(id\) DO UPDATE SET/i.test(sql)) {
           self.row = {
             enabled: params[0],
-            server_url: params[1],
-            username: params[2],
-            password_secret: params[3],
-            api_mode: params[4],
-            selected_body_id: params[5],
-            selected_body_name: params[6],
-            selected_organization_id: params[7],
-            selected_security_domain: params[8],
-            last_connection_test_at: params[9] ?? null,
-            last_successful_login_at: params[10] ?? null,
-            profile_json: params[11] ?? null,
-            relevance_keywords_json: params[12] ?? null,
-            created_at: params[13],
-            updated_at: params[14],
+            auto_refresh_on_startup: params[1],
+            server_url: params[2],
+            username: params[3],
+            password_secret: params[4],
+            api_mode: params[5],
+            selected_body_id: params[6],
+            selected_body_name: params[7],
+            selected_organization_id: params[8],
+            selected_security_domain: params[9],
+            last_connection_test_at: params[10] ?? null,
+            last_successful_login_at: params[11] ?? null,
+            profile_json: params[12] ?? null,
+            relevance_keywords_json: params[13] ?? null,
+            created_at: params[14],
+            updated_at: params[15],
           };
         } else if (/UPDATE gremia_br_settings/i.test(sql)) {
           if (self.row) {
@@ -66,6 +67,8 @@ describe('Gremia.BR Einstellungen 0.9.2-A', () => {
     expect(saved.enabled).toBe(true);
     expect(saved.serverUrl).toBe('https://br.example.invalid');
     expect(saved.username).toBe('sbv@example.invalid');
+    expect(saved.apiMode).toBe('gremia_br_v2');
+    expect(db.row?.api_mode).toBe('gremia_br_v2');
     expect(saved.hasStoredCredentials).toBe(true);
     expect(saved.relevanceSettings.groups.length).toBeGreaterThan(0);
     expect(JSON.stringify(saved)).not.toContain('streng-geheim');
@@ -74,6 +77,25 @@ describe('Gremia.BR Einstellungen 0.9.2-A', () => {
     expect(String(db.row?.password_secret)).not.toMatch(/^b64:v1:/);
     expect(String(db.row?.password_secret)).not.toContain(Buffer.from('streng-geheim', 'utf8').toString('base64'));
     expect(decodeGremiaBrSecret(String(db.row?.password_secret), TEST_DATABASE_KEY)).toBe('streng-geheim');
+  });
+
+  it('liest einen gespeicherten Entwicklungsmodus ohne Datenverlust als aktuellen API-Vertrag', () => {
+    const db = new GremiaBrSettingsDb();
+    const service = new GremiaBrSettingsService(() => db, () => TEST_DATABASE_KEY);
+    service.saveSettings({
+      enabled: true,
+      serverUrl: 'https://br.example.invalid',
+      username: 'sbv@example.invalid',
+      password: 'streng-geheim',
+      selectedBodyId: 'body-sbv',
+    });
+    db.row!.api_mode = 'legacy_read_bridge';
+
+    expect(service.getPublicSettings()).toMatchObject({ apiMode: 'gremia_br_v2', selectedBodyId: 'body-sbv', hasStoredCredentials: true });
+    expect(service.getServiceSettings()).toMatchObject({ apiMode: 'gremia_br_v2', selectedBodyId: 'body-sbv', password: 'streng-geheim' });
+    expect(db.row?.api_mode).toBe('legacy_read_bridge');
+    service.saveSettings({ enabled: true, serverUrl: 'https://br.example.invalid', username: 'sbv@example.invalid', selectedBodyId: 'body-sbv', apiMode: 'legacy_read_bridge' });
+    expect(db.row?.api_mode).toBe('gremia_br_v2');
   });
 
   it('speichert den Gremia.BR-2-Arbeitsbereich als fachliche Konfiguration ohne Secret-Leakage', () => {
@@ -134,8 +156,9 @@ describe('Gremia.BR Einstellungen 0.9.2-A', () => {
     expect(validateGremiaBrBaseUrl('http://localhost:4200')).toBe('http://localhost:4200');
     expect(() => validateGremiaBrBaseUrl('http://br.example.invalid')).toThrow(/HTTPS/);
 
-    expect(checkGremiaBrEndpoint('GET', '/search').allowed).toBe(true);
-    expect(checkGremiaBrEndpoint('POST', '/auth/login').allowed).toBe(true);
+    expect(checkGremiaBrEndpoint('GET', '/search').allowed).toBe(false);
+    expect(checkGremiaBrEndpoint('POST', '/auth/login').allowed).toBe(false);
+    expect(checkGremiaBrEndpoint('POST', '/api/v1/auth/login').allowed).toBe(true);
     expect(checkGremiaBrEndpoint('GET', '/admin/health').allowed).toBe(false);
     expect(checkGremiaBrEndpoint('POST', '/protokolle/beschluesse').allowed).toBe(false);
   });

@@ -73,6 +73,11 @@
     "sbv_retention_legal_holds"
   ],
   "exceptions": {
+    "services/mobileCompanionReturnImportApplier.ts#MobileCompanionReturnImportApplier.insertImport": {
+      "classification": "delegated",
+      "owner": "MobileCompanionReturnImportApplier.apply",
+      "reason": "Technischer Paketdatensatz innerhalb des transaktionalen mobilen Rückimports; apply protokolliert den bestätigten Gesamtimport direkt im Audit-Log."
+    },
     "services/activityJournalService.ts#ActivityJournalService.deleteLinkedDeadline": {
       "classification": "delegated",
       "owner": "ActivityJournalService.deleteEntry/updateEntry",

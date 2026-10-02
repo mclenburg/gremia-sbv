@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="gremia_background">#0B0B0F</color>
+    <color name="gremia_surface">#15151B</color>
+    <color name="gremia_value_background">#0F0F14</color>
+    <color name="gremia_border">#3E3E48</color>
+    <color name="gremia_text_primary">#F7F7FA</color>
+    <color name="gremia_text_secondary">#B8B8C3</color>
+    <color name="gremia_accent">#FFD400</color>
+    <color name="gremia_accent_dark">#B38900</color>
+    <color name="gremia_action_text">#0B0B0F</color>
+    <color name="gremia_background_light">#F4F2EC</color>
+    <color name="gremia_surface_light">#FFFFFF</color>
+    <color name="gremia_value_background_light">#FAF9F5</color>
+    <color name="gremia_border_light">#A8A49A</color>
+    <color name="gremia_text_primary_light">#171717</color>
+    <color name="gremia_text_secondary_light">#5F5B54</color>
+    <color name="gremia_accent_light">#D8B400</color>
+    <color name="gremia_accent_dark_light">#A98600</color>
+</resources>

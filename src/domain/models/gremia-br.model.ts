@@ -1,7 +1,91 @@
 export type GremiaBrApiMode = 'legacy_read_bridge' | 'gremia_br_v2';
 
+export interface GremiaBrAgendaChanges {
+  items: Array<{ title: string }>;
+  comparisonAvailable: boolean;
+  changes: Array<{ kind: 'added' | 'changed' | 'removed'; title: string; previousTitle?: string }>;
+}
+
+export interface GremiaBrMinutesSummary {
+  kind: 'RESULT_MINUTES' | 'PROCEEDINGS_MINUTES';
+  status: 'DRAFT' | 'CONTENT_REVIEW' | 'CONTENT_FINAL' | 'SIGNATURE_PENDING' | 'SIGNED_EVIDENCE_COMPLETE' | 'COMPLETED';
+  protectionClass: 'INTERNAL' | 'CONFIDENTIAL' | 'HIGH' | 'RESTRICTED';
+  version: number;
+  contentComplete: boolean;
+  contentMissing: string[];
+}
+
+export interface GremiaBrDocumentHit {
+  documentId: string;
+  documentVersionId: string;
+  title: string;
+  filename: string;
+}
+
+export interface GremiaBrDocumentImportInput {
+  documentId: string;
+  versionId: string;
+  title: string;
+  caseId: string;
+  containsHealthData: boolean;
+}
+
+export interface GremiaBrOwnShare {
+  id: string;
+  status: string;
+  targetSecurityDomain: string;
+  validUntil: string;
+  requirement: string;
+  purpose: string;
+}
+
+export interface GremiaBrManagedDocument {
+  remoteDocumentId: string;
+  title: string;
+}
+
+export interface GremiaBrShareCreateInput {
+  documentId: string;
+  targetSecurityDomain: string;
+  purpose: string;
+  validUntil: string;
+  soloJustification?: string;
+}
+
+export interface GremiaBrShareRevokeInput {
+  documentId: string;
+  shareId: string;
+  reason: string;
+}
+
+export interface GremiaBrDocumentClassification {
+  documentId: string;
+  protectionClass: GremiaBrProtectionClass;
+  version: number;
+}
+
+export interface ChangeGremiaBrDocumentClassificationInput {
+  documentId: string;
+  protectionClass: GremiaBrProtectionClass;
+  reason: string;
+  expectedVersion: number;
+}
+
+export interface GremiaBrDocumentDetail {
+  id: string;
+  title: string;
+  description?: string;
+  protectionClass: string;
+  status: string;
+  currentVersionId?: string;
+  versions: Array<{ id: string; versionNumber: number; filename: string; mimeType: string; byteSize: number; processingState: string }>;
+  shares: Array<{ id: string; status: string; targetSecurityDomain: string; validUntil: string; requirement: string }>;
+  signatures?: { requested: number; signed: number; declined: number; cancelled: number; expired: number; verificationFailed: number };
+}
+
 export interface GremiaBrSettingsInput {
   enabled: boolean;
+  autoRefreshOnStartup?: boolean;
   serverUrl: string;
   username: string;
   password?: string;
@@ -15,6 +99,7 @@ export interface GremiaBrSettingsInput {
 
 export interface GremiaBrPublicSettings {
   enabled: boolean;
+  autoRefreshOnStartup: boolean;
   serverUrl: string;
   username: string;
   hasStoredCredentials: boolean;
@@ -41,6 +126,11 @@ export interface GremiaBrConnectionTestResult {
   checkedAt: string;
 }
 
+export interface GremiaBrStartupRefreshResult {
+  started: boolean;
+  message: string;
+}
+
 export interface GremiaBrWorkspaceBody {
   bodyId: string;
   bodyName: string;
@@ -58,6 +148,9 @@ export interface GremiaBrPolicyCheckResult {
 
 
 export type GremiaBrCacheSourceType =
+  | 'accessible_cases'
+  | 'own_tasks'
+  | 'own_access_approvals'
   | 'next_meeting'
   | 'current_meeting'
   | 'upcoming_meetings'
@@ -77,6 +170,9 @@ export interface GremiaBrCacheEntry {
 }
 
 export interface GremiaBrCachedOverview {
+  accessibleCases: GremiaBrRemoteCase[];
+  ownTasks: GremiaBrOwnTask[];
+  ownAccessApprovals: GremiaBrOwnAccessApproval[];
   nextMeeting?: unknown;
   currentMeeting?: unknown;
   upcomingMeetings: unknown[];
@@ -89,6 +185,128 @@ export interface GremiaBrCachedOverview {
   extendedDecisionStatistics?: unknown;
   lastFetchedAt?: string;
   cacheAgeLabel?: string;
+}
+
+export interface GremiaBrRemoteCase {
+  id: string;
+  reference: string;
+  subject: string;
+  procedureIds: string[];
+}
+
+export interface GremiaBrProcedureDetail {
+  id: string;
+  masterCaseId: string;
+  procedureType: string;
+  state: string;
+  workflow: string;
+  openedAt: string;
+  version: number;
+  technicalCompleteness: string;
+  substantiveCompleteness: string;
+  outcome: { code: string; recordedAt: string } | null;
+  deadlines: Array<{ id: string; rule: string; dueAt: string; status: string }>;
+  deferrals: Array<{ id: string; title: string; dueAt: string }>;
+}
+
+export interface GremiaBrInformationRequest {
+  id: string;
+  procedureId: string;
+  status: 'OPEN' | 'PARTIALLY_FULFILLED' | 'FULFILLED' | 'WITHDRAWN';
+  requestedAt: string;
+  responseDueAt?: string;
+  version: number;
+}
+
+export interface CreateGremiaBrInformationRequestInput {
+  caseId: string;
+  procedureId: string;
+  items: string;
+  reason?: string;
+  responseDueAt?: string;
+}
+
+export interface CompleteGremiaBrInformationRequestInput {
+  caseId: string;
+  procedureId: string;
+  requestId: string;
+  expectedVersion: number;
+}
+
+export interface CreateGremiaBrProcedureTaskInput {
+  caseId: string;
+  procedureId: string;
+  title: string;
+  description?: string;
+  dueAt?: string;
+}
+
+export const GREMIA_BR_OPEN_TASK_STATUSES = ['OPEN', 'IN_PROGRESS', 'BLOCKED', 'WAITING_EXTERNAL', 'QUESTION'] as const;
+export type GremiaBrOwnTaskStatus = (typeof GREMIA_BR_OPEN_TASK_STATUSES)[number];
+export const GREMIA_BR_TASK_STATUSES = [...GREMIA_BR_OPEN_TASK_STATUSES, 'COMPLETED', 'CANCELLED'] as const;
+export type GremiaBrTaskStatus = (typeof GREMIA_BR_TASK_STATUSES)[number];
+
+export interface GremiaBrOwnTask {
+  id: string;
+  title: string;
+  status: GremiaBrOwnTaskStatus;
+  dueAt?: string;
+  subjectType?: string;
+  subjectId?: string;
+}
+
+export interface GremiaBrOwnTaskDetail {
+  id: string;
+  title: string;
+  status: GremiaBrTaskStatus;
+  version: number;
+  description?: string;
+  dueAt?: string;
+  subjectType?: string;
+}
+
+export interface GremiaBrTaskTransitionOptions {
+  from: GremiaBrTaskStatus;
+  allowed: GremiaBrTaskStatus[];
+}
+
+export interface GremiaBrTaskTransitionInput {
+  taskId: string;
+  to: GremiaBrTaskStatus;
+  expectedVersion: number;
+}
+
+export interface GremiaBrOwnAccessApproval {
+  id: string;
+  resourceType: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'REVOKED' | 'EXPIRED';
+  requestedAt: string;
+}
+
+export interface GremiaBrDocumentAccessRequestInput {
+  documentId: string;
+  actionScope: 'READ' | 'MANAGE';
+  purpose: string;
+  durationMs: number;
+}
+
+export interface GremiaBrProcedureTypeOption {
+  id: string;
+  title: string;
+}
+
+export interface CreateGremiaBrRemoteCaseInput {
+  localCaseId: string;
+  subject: string;
+  procedureType: string;
+}
+
+export interface GremiaBrCaseCreationRecord {
+  id: string;
+  localCaseId: string;
+  procedureType: string;
+  remoteCaseReference?: string;
+  status: 'case_submission_pending' | 'case_created' | 'procedure_created' | 'completed' | 'needs_review';
 }
 
 export interface GremiaBrCacheRefreshResult extends GremiaBrConnectionTestResult {
@@ -122,7 +340,7 @@ export interface GremiaBrDashboardOverview extends GremiaBrCachedOverview {
   overdueDecisionCount: number;
 }
 
-export type GremiaBrExternalReferenceType = 'beschluss' | 'sitzung' | 'agenda' | 'protokoll';
+export type GremiaBrExternalReferenceType = 'beschluss' | 'sitzung' | 'agenda' | 'protokoll' | 'verfahren';
 
 export interface GremiaBrExternalReferenceRecord {
   id: string;

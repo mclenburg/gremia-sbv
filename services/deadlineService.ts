@@ -239,6 +239,24 @@ export class DeadlineService {
     });
   }
 
+  cancelAutomaticPersonStatusDeadlines(personId: string, expected?: { sourceEvent: 'protected_person.status_expiry_warning' | 'protected_person.status_expired_privacy_review'; dueAt?: string }): void {
+    const rows = this.database.prepare<DeadlineRow>(`
+      SELECT * FROM deadlines
+      WHERE process_id = ?
+        AND source_event IN ('protected_person.status_expiry_warning', 'protected_person.status_expired_privacy_review')
+        AND status IN ('open', 'overdue')
+    `).all(personId);
+    for (const row of rows) {
+      if (expected && row.source_event === expected.sourceEvent && (!expected.dueAt || row.due_at === expected.dueAt)) continue;
+      const timestamp = nowIso();
+      this.database.prepare(`
+        UPDATE deadlines SET status = 'cancelled', cancelled_at = ?, cancelled_reason = ?, updated_at = ? WHERE id = ?
+      `).run(timestamp, 'Statusgültigkeit der Person wurde geändert', timestamp, row.id);
+      this.audit(row.id, 'updated', JSON.stringify(mapDeadline(row)), JSON.stringify({ status: 'cancelled' }), 'Statusgültigkeit der Person wurde geändert');
+      this.personalDataAudit('update', row.id, row.case_id ?? undefined, 'Automatische Statusfrist nach Personenkorrektur aufgehoben', { status: 'cancelled' });
+    }
+  }
+
   listTemplates(): DeadlineTemplateRecord[] {
     return this.database.prepare<DeadlineTemplateRow>('SELECT * FROM deadline_templates ORDER BY process_type, title').all().map(mapTemplate);
   }

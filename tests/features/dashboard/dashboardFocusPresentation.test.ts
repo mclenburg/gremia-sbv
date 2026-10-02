@@ -3,6 +3,9 @@ import { formatGermanDateTime, resolveGremiaBrDashboardTile, resolveNextGremiaBr
 import type { GremiaBrDashboardOverview } from '../../../src/domain/models/gremia-br.model';
 
 const overview: GremiaBrDashboardOverview = {
+  accessibleCases: [],
+  ownTasks: [],
+  ownAccessApprovals: [],
   nextMeeting: { id: 'meeting-1', title: 'BR-Sitzung' },
   upcomingMeetings: [{ id: 'meeting-2', title: 'Ersatztermin' }],
   meetingAgendas: {

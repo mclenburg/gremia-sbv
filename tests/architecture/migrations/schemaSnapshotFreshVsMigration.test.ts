@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { ACTIVITY_JOURNAL_CATEGORY_PREFERENCES_REQUIRED_COLUMNS, ACTIVITY_JOURNAL_ENTRIES_REQUIRED_COLUMNS, ACTIVITY_JOURNAL_LINKS_REQUIRED_COLUMNS, CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS, COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS, GREMIA_BR_CACHE_REQUIRED_COLUMNS, GREMIA_BR_SETTINGS_REQUIRED_COLUMNS, GREMIA_BR_WORKSPACE_ACTIONS_REQUIRED_COLUMNS, SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS, TRANSFER_RECIPIENT_PROFILES_REQUIRED_COLUMNS } from '../../../services/appSchema';
+import { ACTIVITY_JOURNAL_CATEGORY_PREFERENCES_REQUIRED_COLUMNS, ACTIVITY_JOURNAL_ENTRIES_REQUIRED_COLUMNS, ACTIVITY_JOURNAL_LINKS_REQUIRED_COLUMNS, CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS, COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS, GREMIA_BR_CACHE_REQUIRED_COLUMNS, GREMIA_BR_CASE_CREATIONS_REQUIRED_COLUMNS, GREMIA_BR_SETTINGS_REQUIRED_COLUMNS, GREMIA_BR_WORKSPACE_ACTIONS_REQUIRED_COLUMNS, MOBILE_COMPANION_CHANGE_IMPORTS_REQUIRED_COLUMNS, MOBILE_COMPANION_DEVICES_REQUIRED_COLUMNS, SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS, TRANSFER_RECIPIENT_PROFILES_REQUIRED_COLUMNS } from '../../../services/appSchema';
 import { compareIndexSnapshot, compareTableSnapshot, createSqlSchemaSnapshot } from '../../../services/schemaSnapshotPolicy';
 
 describe('Schema-Snapshot Fresh Install vs. Legacy-Migration 0.9.1', () => {
@@ -80,9 +80,9 @@ describe('Schema-Snapshot Fresh Install vs. Legacy-Migration 0.9.1', () => {
   });
 
 
-  it('hält Gremia.BR-Einstellungen in Basisschema und Migration 0032 plus 0034 plus 0053 strukturgleich', () => {
+  it('hält Gremia.BR-Einstellungen in Basisschema und allen Erweiterungsmigrationen strukturgleich', () => {
     const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
-    const migrated = createSqlSchemaSnapshot(`${readFileSync('database/migrations/0032_gremia_br_settings.sql', 'utf8')}\n${readFileSync('database/migrations/0034_gremia_br_relevance_settings.sql', 'utf8')}\n${readFileSync('database/migrations/0053_gremia_br_v2_workspace_settings.sql', 'utf8')}`);
+    const migrated = createSqlSchemaSnapshot(`${readFileSync('database/migrations/0032_gremia_br_settings.sql', 'utf8')}\n${readFileSync('database/migrations/0034_gremia_br_relevance_settings.sql', 'utf8')}\n${readFileSync('database/migrations/0053_gremia_br_v2_workspace_settings.sql', 'utf8')}\n${readFileSync('database/migrations/0062_gremia_br_startup_refresh.sql', 'utf8')}`);
 
     const problems = compareTableSnapshot(fresh, migrated, 'gremia_br_settings');
 
@@ -120,6 +120,13 @@ describe('Schema-Snapshot Fresh Install vs. Legacy-Migration 0.9.1', () => {
     expect(fresh.tables.gremia_br_workspace_actions.columns).toEqual(expect.arrayContaining([...GREMIA_BR_WORKSPACE_ACTIONS_REQUIRED_COLUMNS]));
   });
 
+  it('hält begonnene Gremia.BR-Fallanlagen in Basisschema und Migration 0063 strukturgleich', () => {
+    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
+    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0063_gremia_br_case_creations.sql', 'utf8'));
+    expect(compareTableSnapshot(fresh, migrated, 'gremia_br_case_creations')).toEqual([]);
+    expect(fresh.tables.gremia_br_case_creations.columns).toEqual(expect.arrayContaining([...GREMIA_BR_CASE_CREATIONS_REQUIRED_COLUMNS]));
+  });
+
   it('hält öffentliche Transfer-Empfängerprofile in Basisschema und Migration 0056 strukturgleich', () => {
     const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
     const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0056_transfer_recipient_profiles.sql', 'utf8'));
@@ -131,6 +138,31 @@ describe('Schema-Snapshot Fresh Install vs. Legacy-Migration 0.9.1', () => {
 
     expect(problems).toEqual([]);
     expect(fresh.tables.transfer_recipient_profiles.columns).toEqual(expect.arrayContaining([...TRANSFER_RECIPIENT_PROFILES_REQUIRED_COLUMNS]));
+  });
+
+  it('hält Mobile-Begleitgeräte in Basisschema und Migration 0057 strukturgleich', () => {
+    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
+    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0057_mobile_companion_devices.sql', 'utf8'));
+
+    const problems = [
+      ...compareTableSnapshot(fresh, migrated, 'mobile_companion_devices'),
+      ...compareIndexSnapshot(fresh, migrated, 'idx_mobile_companion_devices_status_label'),
+    ];
+
+    expect(problems).toEqual([]);
+    expect(fresh.tables.mobile_companion_devices.columns).toEqual(expect.arrayContaining([...MOBILE_COMPANION_DEVICES_REQUIRED_COLUMNS]));
+  });
+
+  it('hält die Idempotenznachweise mobiler Änderungen in Basisschema und Migration 0058 strukturgleich', () => {
+    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
+    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0058_mobile_companion_change_imports.sql', 'utf8'));
+    const problems = [
+      ...compareTableSnapshot(fresh, migrated, 'mobile_companion_change_imports'),
+      ...compareIndexSnapshot(fresh, migrated, 'idx_mobile_companion_change_imports_local'),
+    ];
+    expect(problems).toEqual([]);
+    expect(fresh.tables.mobile_companion_change_imports.columns)
+      .toEqual(expect.arrayContaining([...MOBILE_COMPANION_CHANGE_IMPORTS_REQUIRED_COLUMNS]));
   });
 
 

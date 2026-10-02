@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ShieldAlert } from 'lucide-react';
 import { ModuleFrame } from '../../shared/components/ModuleFrame';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
@@ -18,6 +18,8 @@ import { IndustrialButton } from '../../shared/components/IndustrialButton';
 import { WorkbenchSummary } from '../../shared/components/WorkbenchLayout';
 import type { CreateCaseForPersonInput, PersonsViewProps } from './personsViewTypes';
 import { summarizePersonDirectory } from './personSummary';
+import { usePersonDeadlineTarget } from './usePersonDeadlineTarget';
+import { usePersonExpiryEvaluation } from './usePersonExpiryEvaluation';
 
 function personCaseDialogLabel(selected: ProtectedPersonRecord | null): string {
   if (!selected) return 'ausgewählte Person';
@@ -26,10 +28,10 @@ function personCaseDialogLabel(selected: ProtectedPersonRecord | null): string {
 }
 
 export function PersonsView(props: PersonsViewProps) {
-  const { persons, cases, onCreateCaseForPerson, onCreate, onUpdate, onSelectImportFile, onPreviewImport, onExecuteImport, onEvaluateExpiry, onExportIcal, onListOpenPrivacyReviews, onDocumentRetention, onScheduleReviewLater, onClearReview, onAnonymizeReviewCase, onDeleteReviewCase, onAnonymizePerson, onDeletePerson } = props;
+  const { persons, cases, targetPersonId, onTargetConsumed, onCreateCaseForPerson, onCreate, onUpdate, onSelectImportFile, onPreviewImport, onExecuteImport, onEvaluateExpiry, onExportIcal, onListOpenPrivacyReviews, onDocumentRetention, onScheduleReviewLater, onClearReview, onAnonymizeReviewCase, onDeleteReviewCase, onAnonymizePerson, onDeletePerson } = props;
   const announce = useAnnouncer();
   const [query, setQuery] = useState('');
-  const [selected, setSelected] = useState<ProtectedPersonRecord | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [importOpen, setImportOpen] = useState(false);
@@ -40,9 +42,13 @@ export function PersonsView(props: PersonsViewProps) {
   const [personPrivacyAction, setPersonPrivacyAction] = useState<PersonPrivacyActionMode | null>(null);
   const [privacyReviews, setPrivacyReviews] = useState<PrivacyReviewItemRecord[]>([]);
   const [privacyReviewLoading, setPrivacyReviewLoading] = useState(false);
-  const [expiryEvaluating, setExpiryEvaluating] = useState(false);
-  const [expiryFeedback, setExpiryFeedback] = useState('');
   const summary = useMemo(() => summarizePersonDirectory(persons), [persons]);
+  const selected = persons.find((person) => person.id === selectedId) ?? null;
+  const reportMissingTarget = useCallback(() => {
+    setError('Die Person zur Frist ist nicht mehr im Verzeichnis vorhanden.');
+    announce('Die Person zur Frist ist nicht mehr im Verzeichnis vorhanden.');
+  }, [announce]);
+  usePersonDeadlineTarget({ persons, targetPersonId, onTargetConsumed, setSelectedId, setQuery, onMissing: reportMissingTarget });
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -52,23 +58,10 @@ export function PersonsView(props: PersonsViewProps) {
 
   function showMessage(nextMessage: string) { setError(''); setMessage(nextMessage); announce(nextMessage); }
   function showError(nextError: string) { setMessage(''); setError(nextError); announce(nextError); }
+  const expiry = usePersonExpiryEvaluation(onEvaluateExpiry, announce, showError);
   async function createPerson(input: CreateProtectedPersonInput) { setError(''); await onCreate(input); announce('Person wurde angelegt.'); }
-  async function updatePerson(id: string, input: UpdateProtectedPersonInput) { setError(''); await onUpdate(id, input); if (selected?.id === id) setSelected({ ...selected, ...input } as ProtectedPersonRecord); announce('Personendaten wurden aktualisiert.'); }
+  async function updatePerson(id: string, input: UpdateProtectedPersonInput) { setError(''); await onUpdate(id, input); announce('Personendaten wurden aktualisiert.'); }
   async function createCaseFromPerson(input: CreateCaseForPersonInput) { if (!selected) return; setError(''); await onCreateCaseForPerson(selected, input); showMessage('Fallakte wurde aus der Person heraus angelegt.'); }
-  async function evaluateExpiry() {
-    setExpiryEvaluating(true);
-    try {
-      const result = await onEvaluateExpiry();
-      const warningCount = result.expiringSoon.length;
-      const reviewCount = result.expiredReviewRequired.length;
-      const feedback = warningCount || reviewCount
-        ? `${warningCount} neue Ablaufwarnungen und ${reviewCount} Datenschutzprüfungen wurden erzeugt.`
-        : 'Alle Statusabläufe sind aktuell.';
-      setExpiryFeedback(feedback);
-      announce(feedback);
-    } catch (err) { showError(err instanceof Error ? err.message : 'Statusabläufe konnten nicht geprüft werden.'); }
-    finally { setExpiryEvaluating(false); }
-  }
   async function exportIcal() { await onExportIcal(); announce('Fristenexport wurde erstellt.'); }
 
   async function openPrivacyReview() {
@@ -86,12 +79,12 @@ export function PersonsView(props: PersonsViewProps) {
     if (!selected || !personPrivacyAction) return;
     if (personPrivacyAction === 'anonymize') {
       await onAnonymizePerson(selected.id, reason);
-      setSelected(null);
+      setSelectedId(null);
       showMessage('Person wurde anonymisiert. Verbundene Fallakten benötigen Datenschutzprüfung.');
       return;
     }
     await onDeletePerson(selected.id, reason);
-    setSelected(null);
+    setSelectedId(null);
     showMessage('Person wurde gelöscht. Verbundene Fallakten benötigen Datenschutzprüfung.');
   }
 
@@ -114,10 +107,10 @@ export function PersonsView(props: PersonsViewProps) {
         error ? { id: 'persons-error', tone: 'warning', message: error } : null
       ]} />
       <div className="person-workbench-grid" data-e2e="persons-workbench">
-        <PersonList persons={filtered} selectedId={selected?.id} onSelect={setSelected} onEdit={(person) => { setSelected(person); setPersonEditOpen(true); }} onDelete={(person) => { setSelected(person); setPersonPrivacyAction('delete'); }} onCreatePerson={() => setPersonCreateOpen(true)} onImportPersons={() => setImportOpen(true)} />
+        <PersonList persons={filtered} selectedId={selected?.id} onSelect={(person) => setSelectedId(person.id)} onEdit={(person) => { setSelectedId(person.id); setPersonEditOpen(true); }} onDelete={(person) => { setSelectedId(person.id); setPersonPrivacyAction('delete'); }} onCreatePerson={() => setPersonCreateOpen(true)} onImportPersons={() => setImportOpen(true)} />
         <div className="person-side-stack">
           <PersonDetail person={selected} cases={cases} onUpdate={updatePerson} privacyReviewOpen={privacyReviewOpen} privacyReviews={privacyReviews} privacyReviewLoading={privacyReviewLoading} onOpenPrivacyReview={openPrivacyReview} onClosePrivacyReview={() => setPrivacyReviewOpen(false)} onOpenCaseCreate={() => setCaseDialogOpen(true)} onOpenAnonymize={() => setPersonPrivacyAction('anonymize')} onDocumentRetention={onDocumentRetention} onScheduleLater={onScheduleReviewLater} onClearReview={onClearReview} onAnonymizeCase={onAnonymizeReviewCase} onDeleteCase={onDeleteReviewCase} onMessage={showMessage} onError={showError} />
-          <PersonExpiryDashboardCard persons={persons} evaluating={expiryEvaluating} lastEvaluationMessage={expiryFeedback} onEvaluateExpiry={evaluateExpiry} onExportIcal={exportIcal} />
+          <PersonExpiryDashboardCard persons={persons} evaluating={expiry.evaluating} lastEvaluationMessage={expiry.feedback} onEvaluateExpiry={expiry.evaluate} onExportIcal={exportIcal} />
         </div>
       </div>
       <PersonForm open={personCreateOpen} onClose={() => setPersonCreateOpen(false)} onCreate={createPerson} onCreated={showMessage} onError={showError} />
@@ -133,7 +126,7 @@ export function PersonsView(props: PersonsViewProps) {
         onOpenPerson={(id) => {
           const person = persons.find((item) => item.id === id);
           if (person) {
-            setSelected(person);
+            setSelectedId(person.id);
             showMessage(`Person geöffnet: ${person.lastName}, ${person.firstName}`);
           } else {
             showError('Die verknüpfte Person wird nach dem Neuladen der Liste sichtbar.');
