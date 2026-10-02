@@ -24,7 +24,7 @@ function TerminationBasicsFields({ inlineTerminationDraft, setInlineTerminationD
           }
           placeholder="z. B. Anhörung zur ordentlichen Kündigung" className="industrial-input" />
       </label>
-      <label>
+      <label className="industrial-field">
         <FieldCaption
           draft={inlineTerminationDraft}
           field="terminationType"
@@ -59,7 +59,7 @@ function TerminationBasicsFields({ inlineTerminationDraft, setInlineTerminationD
           <option value="sonstiges">Sonstiges</option>
         </select>
       </label>
-      <label>
+      <label className="industrial-field">
         <FieldCaption
           draft={inlineTerminationDraft}
           field="protectionStatus"
@@ -94,7 +94,7 @@ function TerminationBasicsFields({ inlineTerminationDraft, setInlineTerminationD
 function TerminationFollowUpFields({ inlineTerminationDraft, setInlineTerminationDraft }: FieldsProps) {
   return (
     <>
-      <label>
+      <label className="industrial-field">
         <FieldCaption draft={inlineTerminationDraft} field="receivedAt">
           Eingang optional
         </FieldCaption>
@@ -109,8 +109,8 @@ function TerminationFollowUpFields({ inlineTerminationDraft, setInlineTerminatio
             )
           } className="industrial-input" />
       </label>
-      <label>
-        <span>SBV-Frist optional</span>
+      <label className="industrial-field">
+        <span className="industrial-field-label">SBV-Frist optional</span>
         <input
           type="datetime-local"
           value={inlineTerminationDraft.sbvStatementDueAt}

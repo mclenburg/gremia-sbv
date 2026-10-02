@@ -48,7 +48,7 @@ function WorkplaceRequestFields({ inlineWorkplaceAccommodationDraft, setInlineWo
           }
           placeholder="z. B. fester Arbeitsplatz wegen behinderungsbedingter Belastung" className="industrial-input" />
       </label>
-      <label>
+      <label className="industrial-field">
         <FieldCaption
           draft={inlineWorkplaceAccommodationDraft}
           field="category"
@@ -94,7 +94,7 @@ function WorkplaceRequestFields({ inlineWorkplaceAccommodationDraft, setInlineWo
 function WorkplaceFollowUpFields({ inlineWorkplaceAccommodationDraft, setInlineWorkplaceAccommodationDraft }: FieldsProps) {
   return (
     <>
-      <label>
+      <label className="industrial-field">
         <FieldCaption
           draft={inlineWorkplaceAccommodationDraft}
           field="riskLevel"
@@ -120,8 +120,8 @@ function WorkplaceFollowUpFields({ inlineWorkplaceAccommodationDraft, setInlineW
           <option value="kritisch">kritisch</option>
         </select>
       </label>
-      <label>
-        <span>Umsetzungs-/Wiedervorlage optional</span>
+      <label className="industrial-field">
+        <span className="industrial-field-label">Umsetzungs-/Wiedervorlage optional</span>
         <input
           type="datetime-local"
           value={inlineWorkplaceAccommodationDraft.implementationDueAt}

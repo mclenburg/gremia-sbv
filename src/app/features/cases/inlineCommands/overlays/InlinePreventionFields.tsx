@@ -42,7 +42,7 @@ function PrimaryPreventionFields({ inlinePreventionDraft, setInlinePreventionDra
           }
           placeholder="z. B. Konflikt mit Führungskraft, Überlastung, Kündigungsrisiko" className="industrial-input" />
       </label>
-      <label>
+      <label className="industrial-field">
         <FieldCaption
           draft={inlinePreventionDraft}
           field="difficultyType"
@@ -81,8 +81,8 @@ function PrimaryPreventionFields({ inlinePreventionDraft, setInlinePreventionDra
 function FollowUpPreventionFields({ inlinePreventionDraft, setInlinePreventionDraft }: FieldsProps) {
   return (
     <>
-      <label>
-        <span>Risiko</span>
+      <label className="industrial-field">
+        <span className="industrial-field-label">Risiko</span>
         <select className="industrial-select"
           value={inlinePreventionDraft.riskType}
           onChange={(event) =>
@@ -111,8 +111,8 @@ function FollowUpPreventionFields({ inlinePreventionDraft, setInlinePreventionDr
           <option value="sonstiges">Sonstiges</option>
         </select>
       </label>
-      <label>
-        <span>Arbeitgeberantwort optional</span>
+      <label className="industrial-field">
+        <span className="industrial-field-label">Arbeitgeberantwort optional</span>
         <input
           type="datetime-local"
           value={inlinePreventionDraft.employerResponseDueAt}
