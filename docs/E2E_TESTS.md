@@ -10,6 +10,8 @@ npm run test:e2e:headed
 npm run test:e2e:debug
 ```
 
+`test:e2e` führt die Browser-Suite aus. Für die zusätzlich gepackte Desktop-Anwendung gibt es `npm run test:e2e:full-product`; `npm run test:e2e:full-product:reuse` verwendet einen vorhandenen Build. Diese Suite verwendet je Testslot einen isolierten Test-Tresor.
+
 ## Abgedeckte Kernflüsse
 
 - App startet in isolierter Testumgebung.
@@ -21,14 +23,7 @@ npm run test:e2e:debug
 - Responsive Layouts bleiben bei HD small, Laptop, Full HD und QHD stabil.
 - Compliance Light-/Dark-Mode bleibt lesbar.
 
-## Erweiterungen
-
-Neue E2E-Pfade müssen zusätzlich prüfen:
-
-- Person anlegen und Fallakte aus Person erstellen.
-- Anonyme Beratungsanfrage ohne Direktidentifikatoren anlegen.
-- Statusablauf führt zur Frist und Datenschutzprüfung.
-- iCal-Export aus dem Fristenmodul enthält `process_type`-Titel, aber keine Namen.
+Die vollständige Produkttour wird mit `npm run test:e2e:complete-tour` gezielt ausgeführt und ist auch Teil des lokalen Release-E2E-Gates.
 
 ## Barrierefreiheit
 
@@ -46,12 +41,11 @@ GitHub Actions führt die Browser-E2E-Tests aus Kostengründen nicht im taggebun
 npm run release:local-e2e
 ```
 
-Das Script führt in fester Reihenfolge aus:
+Das Skript installiert die isolierten Playwright-/Axe-Werkzeuge und führt danach in fester Reihenfolge aus:
 
 1. `npm run test:e2e:setup`
-2. `npm run test:e2e:visual`
-3. `npm run test:e2e:core-ui-flows`
-4. `npm run test:e2e:complete-tour`
-5. `npm run test:e2e:a11y`
+2. `npm run test:e2e:ui-flows`
+3. `npm run test:e2e:visual-a11y`
+4. `npm run test:e2e:isolated`
 
-Damit bleibt die Browser-Abnahme erhalten, ohne GitHub-Runner-Minuten, Playwright-Downloads oder ffmpeg-Artefakte in der Release-Action zu verbrennen.
+Die Projekte bündeln Nutzerflüsse einschließlich Produkttour, Visual-/Responsive-/Accessibility-Prüfungen sowie Tests mit eigener Browserinstanz. Die Full-Product-Suite ist ein eigener Lauf gegen ein gepacktes Desktop-Artefakt und nicht Teil von `release:local-e2e`.

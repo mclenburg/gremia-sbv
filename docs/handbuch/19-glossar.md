@@ -14,6 +14,10 @@ Dauerhafte Übergabe eines ausgewählten Arbeits- und Nachweisbestands an die na
 
 Entfernen des Personenbezugs, sodass eine Zuordnung zu einer Person nicht mehr möglich ist. In Gremia.SBV erfolgt dies erst nach fachlicher Prüfung und bewusster Entscheidung.
 
+## Art.-15-Auskunft
+
+Auskunft über personenbezogene Daten auf Grundlage von Artikel 15 DSGVO. Gremia.SBV unterstützt die SBV mit einem zu prüfenden Arbeitsentwurf; Identitäts- und Drittdatenprüfung bleiben erforderlich.
+
 ## Auditkette
 
 Verkettete, auf Unversehrtheit prüfbare Nachweise wichtiger Datenaktionen. Der Tätigkeitsbericht wird ausschließlich aus der verifizierten Auditkette abgeleitet.
@@ -26,17 +30,29 @@ Sicherung des verschlüsselten lokalen Bestands zur Wiederherstellung. Ein Über
 
 Mobile Ergänzung für ausgewählte offene Fälle, Fristen und kurze Erfassungen. Der Desktop-Tresor bleibt führend; Änderungen kommen über eine geprüfte Rückgabedatei zurück.
 
-## Beteiligungsverstoß
-
-Eigener Nachweis- und Eskalationsvorgang für einen möglichen Verstoß gegen Beteiligungs- oder andere Arbeitgeberpflichten. Er kann mit einem Ausgangsvorgang verknüpft sein, aber auch ohne Fall- oder Personenbezug bestehen.
-
 ## BEM
 
 Betriebliches Eingliederungsmanagement. Verfahren zur Überwindung von Arbeitsunfähigkeit, Vorbeugung erneuter Arbeitsunfähigkeit und Erhalt des Arbeitsplatzes.
 
+## Beteiligungsverstoß
+
+Eigener Nachweis- und Eskalationsvorgang für einen möglichen Verstoß gegen Beteiligungs- oder andere Arbeitgeberpflichten. Er kann mit einem Ausgangsvorgang verknüpft sein, aber auch ohne Fall- oder Personenbezug bestehen.
+
+## Briefwahlpaket
+
+Für die Briefwahl zusammengestellte Unterlagen. Die Wahlakte hält Erstellung, Ausgabe und weitere Nachweise des Verfahrens fest.
+
+## Dashboard
+
+Startansicht nach einem regulären Programmstart mit Überblick über Fristen, Wiedervorlagen und Aufgaben. Nach Sperren und Entsperren bleibt die zuletzt genutzte Arbeitsansicht erhalten.
+
 ## Datenschutzprüfauftrag
 
 Hinweis auf einen konkret zu prüfenden Datenbestand, etwa bei erreichter Aufbewahrungsfrist. Er löst keine automatische Löschung aus.
+
+## Demo-Modus
+
+Start mit erfundenen Testdaten in einem getrennten temporären Bestand. Er berührt den normalen Tresor nicht.
 
 ## Empfängerkennung
 
@@ -69,6 +85,10 @@ Vereinbarung zu Zielen und Maßnahmen der betrieblichen Inklusion. In der Dokume
 ## Journal
 
 Eigenaufzeichnung der SBV-Tätigkeit und ihres Zeitaufwands. Es ist keine vollständige Fallakte und keine direkte Quelle vertraulicher Falltexte für den Tätigkeitsbericht.
+
+## Kopplung
+
+Bewusste Verbindung von Desktop und Begleit-App durch Anfrage, Antwort und Abgleich eines Sicherheitscodes auf beiden Geräten. Erst die Bestätigung begründet das Vertrauen für mobile Übertragungen.
 
 ## Maßnahme
 
@@ -129,6 +149,14 @@ Für eine bestimmte Zielinstanz verschlüsselter, bewusst ausgewählter Bestand 
 ## Wahlakte
 
 Nachweisbestand zu einer SBV-Wahl mit Verfahrensstand, Dokumenten und weiteren Wahlunterlagen. Digitale und physische Nachweise werden getrennt nachgehalten.
+
+## Wahlleitung
+
+Für die Durchführung der Wahl verantwortliche Rolle. Gremia.SBV unterstützt ihre Verfahrens- und Nachweisdokumentation, trifft aber keine Wahlentscheidung.
+
+## Wählerliste
+
+Verzeichnis der Wahlberechtigten für das Wahlverfahren. Seine Erstellung und Prüfung erfolgen im Wahlkontext; personenbezogene Angaben sind geschützt zu behandeln.
 
 ## Wiedervorlage
 

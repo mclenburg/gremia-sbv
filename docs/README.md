@@ -2,13 +2,11 @@
 
 Diese Dokumentation beschreibt das Gesamtprodukt Gremia.SBV. Sie ist als dauerhafte Arbeits-, Betriebs-, Datenschutz- und Entwicklungsdokumentation für eine lokale Fachanwendung der Schwerbehindertenvertretung gedacht.
 
-Die README im Projektstamm erklärt Nutzen, Demo-Modus und Grundprinzipien aus Anwendersicht. Technische Details, Sicherheitsentscheidungen und Prüfunterlagen liegen hier unter `docs/`.
+Die README im Projektstamm erklärt Nutzen, Demo-Modus und Grundprinzipien aus Anwendersicht. Das Benutzerhandbuch führt durch die Bedienung. Fachliche Referenzen, technische Details, Sicherheitsentscheidungen und Prüfunterlagen liegen hier unter `docs/`.
 
 ## Für wen ist diese Dokumentation gedacht?
 
-Die wichtigste Zielgruppe sind Schwerbehindertenvertretungen und ihre Stellvertretungen. Die Texte sollen erklären, was die Anwendung fachlich leistet, welche Grenzen sie hat und worauf bei sensiblen SBV-Daten zu achten ist.
-
-Zweite Zielgruppe sind Personen, die Gremia.SBV betreiben, prüfen oder weiterentwickeln: Datenschutz, IT-Sicherheit, Administration und Entwicklung.
+Das [Benutzerhandbuch](handbuch/README.md) richtet sich an Schwerbehindertenvertretungen und ihre Stellvertretungen. Die übrigen Dokumente dienen je nach Thema der fachlichen Prüfung, dem Betrieb, Datenschutz, IT-Sicherheit oder der Entwicklung.
 
 ## Einstieg für Anwenderinnen und Anwender
 
@@ -16,6 +14,16 @@ Zweite Zielgruppe sind Personen, die Gremia.SBV betreiben, prüfen oder weiteren
 | --- | --- |
 | `../README.md` | öffentlicher Projekteinstieg und Produktüberblick |
 | `handbuch/README.md` | Benutzerhandbuch für die tägliche SBV-Arbeit |
+| `handbuch/18-amtsuebergabe-und-vertretung.md` | Bedienung der Übergabe und der Android-Begleit-App |
+| `handbuch/gremia-br.md` | Bedienung der optionalen Gremia.BR-Brücke |
+| `BETRIEBSGRENZEN.md` | Betriebsgrenzen und Prüfpunkte vor produktiver Nutzung |
+
+## Fachliche Referenz
+
+Diese Dokumente beschreiben fachliche Modelle und Datenschutzentscheidungen im Detail. Für die Bedienung ist das Handbuch maßgeblich.
+
+| Datei | Zweck |
+| --- | --- |
 | `CASE_PROCESS_WORKFLOW.md` | Fallaktenarbeit, Personenbindung, anonyme Beratung und Datenschutzprüfung |
 | `PROCESS_MODULES.md` | Fachmodule, Maßnahmen und Fristen im SBV-Alltag |
 | `CASE_HANDOVER_TRANSFER.md` | verschlüsselte Fallübergabe für Vertretung und Nachfolge |
@@ -25,7 +33,6 @@ Zweite Zielgruppe sind Personen, die Gremia.SBV betreiben, prüfen oder weiteren
 | `TEMPLATES_MODULE.md` | Vorlagen, Platzhalter und datensparsame Schreiben |
 | `KNOWLEDGE_BASE.md` | Wissensbasis und fachliche Hinweise |
 | `SBV_STEUERUNG.md` | SBV-Steuerung, Tätigkeitsbericht und Strukturarbeit |
-| `BETRIEBSGRENZEN.md` | Betriebsgrenzen und Prüfpunkte vor produktiver Nutzung |
 
 ## Datenschutz, Sicherheit und Freigabe
 
@@ -57,6 +64,7 @@ Zweite Zielgruppe sind Personen, die Gremia.SBV betreiben, prüfen oder weiteren
 | `WINDOWS_BUILD.md` | portable Windows-Artefakte |
 | `APPIMAGE_DATA_PATHS.md` | Datenpfade bei AppImage-Nutzung |
 | `DEVELOPMENT.md` | Entwicklungsumgebung und lokale Arbeit |
+| `../companion-app/README.md` | Architektur, Build und Signierung der Android-Begleit-App |
 | `E2E_TESTS.md` | End-to-End-Tests |
 | `QUALITY_GATE.md` | verbindliche Qualitätsprüfungen |
 | `UI_VISUAL_QA.md` | visuelle UI-QA |

@@ -2,21 +2,23 @@
 
 ## Zielplattformen
 
-Gremia.SBV wird als lokale Electron-App gebaut.
+Gremia.SBV besteht aus der lokalen Electron-Desktop-App und der Android-Begleit-App.
 
 | Plattform | Artefakt | Hinweis |
 | --- | --- | --- |
 | Linux | `.AppImage` | direkt startbares Linux-Artefakt |
 | Windows | portable `.exe` + `.msi` | portable Nutzung oder reguläre/administrierte Installation; beide Release-Artefakte |
-| macOS | `.dmg` | macOS-Artefakt; Signatur und Notarisierung richten sich nach der Signaturstrategie |
+| Android | signierte `.apk` + `.sha256` | Begleit-App; Release-Signierung erforderlich |
+| macOS | `.dmg` | lokal baubar; nicht Teil des aktuellen taggebundenen GitHub-Release-Workflows |
 
-Der GitHub-Workflow für bereitgestellte Artefakte liegt unter `.github/workflows/build-release.yml`. Hochgeladen werden sollen ausschließlich die Endanwender-Artefakte:
+Der taggebundene GitHub-Workflow für bereitgestellte Artefakte liegt unter `.github/workflows/build-release.yml`. Er lädt diese Desktop-Artefakte und Android-Dateien hoch:
 
 ```text
 release/*.AppImage
 release/*-win-x64-portable.exe
 release/*-win-x64.msi
-release/*.dmg
+release/Gremia.SBV-<version>-android.apk
+release/Gremia.SBV-<version>-android.apk.sha256
 ```
 
 Nicht hochgeladen werden sollen `.blockmap`, `latest*.yml`, zusätzliche ZIPs, DEB/TAR.GZ oder interne Build-Dateien. Die von GitHub automatisch angezeigten Source-code-Archive sind keine vom Workflow hochgeladenen Build-Artefakte.
@@ -87,9 +89,13 @@ npx tsc -p tsconfig.json --noEmit
 - Tests müssen plattformunabhängig laufen; Pfade und Zeilenenden sind zu normalisieren.
 - Endanwender-Artefakte sind von internen Build-Dateien zu trennen.
 
+## Android
+
+Die Android-Begleit-App wird im Release-Workflow separat getestet, signiert und geprüft. Der Build benötigt die in der [Begleit-App-Dokumentation](../companion-app/README.md) beschriebenen Signing-Secrets; ein abweichendes Schlüsselpasswort ist optional. Debug-Builds kommen ohne Release-Schlüssel aus.
+
 ## macOS
 
-macOS-Artefakte richten sich nach der Signaturstrategie in `CODE_SIGNING.md`. Ohne Signatur beziehungsweise Notarisierung können Betriebssystemwarnungen auftreten.
+Ein macOS-Artefakt kann lokal mit `npm run build:mac` erstellt werden, gehört aber nicht zu den aktuell vom Tag-Workflow veröffentlichten Dateien. Signatur und Notarisierung richten sich nach `CODE_SIGNING.md`; ohne sie können Betriebssystemwarnungen auftreten.
 
 ## Windows
 
