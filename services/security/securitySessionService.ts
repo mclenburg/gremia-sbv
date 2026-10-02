@@ -1,35 +1,15 @@
 import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  readdirSync,
   rmSync,
 } from "node:fs";
-import path from "node:path";
-import {
-  createCipheriv,
-  createDecipheriv,
-  createHash,
-  randomBytes,
-  scryptSync,
-  timingSafeEqual,
-} from "node:crypto";
 import type {
   SecurityResult,
-  SecurityStatus,
 } from "../../src/domain/models/security.model.js";
 import { ApplicationError } from "../../src/domain/models/application-error.model.js";
-import { DatabaseService, type DatabaseAdapter } from "../databaseService.js";
-import { PersonalDataAuditLogService } from "../auditLogService.js";
+import { type DatabaseAdapter } from "../databaseService.js";
 import {
-  TempFileService,
   type TempFileCleanupResult,
   type TempFileStatus,
 } from "../tempFileService.js";
-import { MigrationService } from "../migrationService.js";
-import { DatabaseRuntimeInitializer } from "../databaseRuntimeInitializer.js";
-import { atomicWriteFileSync, commitAtomicArtifacts } from "../secureFileOperations.js";
-import { validateAppPassword, validatePasswordStore, validateVaultManifest, type KeyWrap, type PasswordStore, type ScryptKdfParams, type VaultManifest } from "../securityArtifactValidation.js";
 import { VaultCredentialService } from './vaultCredentialService.js';
 import { RESET_CONFIRMATION } from './securitySupport.js';
 
