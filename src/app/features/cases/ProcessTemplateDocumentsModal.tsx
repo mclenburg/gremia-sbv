@@ -1,4 +1,4 @@
-import { Download, FileText } from 'lucide-react';
+import { Download } from 'lucide-react';
 import type { PreventionProcessRecord } from '../../../domain/models/prevention.model';
 import type { BemProcessRecord } from '../../../domain/models/bem.model';
 import type { EqualizationProcessRecord } from '../../../domain/models/equalization.model';
@@ -86,12 +86,10 @@ export function ProcessTemplateDocumentsModal({
   state,
   onClose,
   onDownload,
-  processTypeLabel
 }: {
   state: ProcessTemplateModalState | null;
   onClose: () => void;
   onDownload: (template: TemplateRecord) => void;
-  processTypeLabel: (processType: 'prevention' | 'bem') => string;
 }) {
   if (!state) return null;
 

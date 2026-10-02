@@ -273,7 +273,7 @@ type PrimaryViewsProps = { currentView: ViewId; setCurrentView: (view: ViewId) =
   setParticipationViolationPrefill: (prefill: SbvParticipationViolationPrefill | null) => void; };
 
 function PrimaryViews(props: PrimaryViewsProps & { openCaseNode: (target: CaseNodeTarget) => void }) {
-  const { currentView, setCurrentView, work, caseNodeTarget, setCaseNodeTarget, personTargetId, setPersonTargetId, recordTarget, setRecordTarget, activityJournalPrefill, setActivityJournalPrefill,
+  const { currentView, setCurrentView, work, personTargetId, setPersonTargetId, recordTarget, setRecordTarget, activityJournalPrefill, setActivityJournalPrefill,
     participationViolationPrefill, setParticipationViolationPrefill } = props;
   const { cases, contacts, deadlines, persons, caseMeasures, dashboardDeadlines, setSelectedDeadline, createCase, createContact,
     deleteContact, createDeadline, completeDeadline, reloadWorkData, setDeadlineExtensionTarget } = work;
