@@ -14,7 +14,7 @@
   },
   "summary": {
     "filesScanned": 632,
-    "debtFiles": 39
+    "debtFiles": 38
   },
   "debt": {
     "electron/ipc/protectedPersonIpc.ts": {
@@ -81,12 +81,6 @@
       "physicalLines": 240,
       "codeLines": 237,
       "maxFunctionLines": 200,
-      "imports": 11
-    },
-    "src/app/features/cases/inlineCommands/overlays/InlineParticipationOverlay.tsx": {
-      "physicalLines": 245,
-      "codeLines": 242,
-      "maxFunctionLines": 205,
       "imports": 11
     },
     "src/app/features/cases/inlineCommands/overlays/InlinePreventionOverlay.tsx": {

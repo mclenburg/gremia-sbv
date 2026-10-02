@@ -1,7 +1,7 @@
 import { ClipboardCheck } from "lucide-react";
 import type { InlineCommandOverlaysProps } from "../InlineCommandOverlays";
-import type { InlineParticipationDraft } from "../inlineCommandTypes";
-import { FieldCaption, IndustrialModalSurface } from "./inlineCommandOverlayShared";
+import { IndustrialModalSurface } from "./inlineCommandOverlayShared";
+import { InlineParticipationFields } from "./InlineParticipationFields";
 
 type OverlayProps = Pick<InlineCommandOverlaysProps,
   "inlineParticipationDraft" | "setInlineParticipationDraft" | "createParticipationFromProtocol" | "cancelInlineParticipationDraft">;
@@ -32,94 +32,8 @@ export function InlineParticipationOverlay({ props }: { props: OverlayProps }) {
             </p>
           </div>
         </div>
-        <div className="industrial-modal-grid">
-          <label className="industrial-modal-wide">
-            <FieldCaption draft={inlineParticipationDraft} field="title">
-              Titel
-            </FieldCaption>
-            <input
-              value={inlineParticipationDraft.title}
-              onChange={(event) =>
-                setInlineParticipationDraft((current) =>
-                  current
-                    ? { ...current, title: event.target.value }
-                    : current,
-                )
-              }
-              placeholder="z. B. Versetzung ohne vorherige SBV-Anhörung" className="industrial-input" />
-          </label>
-          <label>
-            <FieldCaption
-              draft={inlineParticipationDraft}
-              field="employerMeasure"
-            >
-              Arbeitgebermaßnahme / Kurznotiz
-            </FieldCaption>
-            <input
-              value={inlineParticipationDraft.employerMeasure}
-              onChange={(event) =>
-                setInlineParticipationDraft((current) =>
-                  current
-                    ? { ...current, employerMeasure: event.target.value }
-                    : current,
-                )
-              }
-              placeholder="z. B. Versetzung angekündigt, Unterlagen fehlen" className="industrial-input" />
-          </label>
-          <label>
-            <FieldCaption
-              draft={inlineParticipationDraft}
-              field="riskLevel"
-            >
-              Risikostufe
-            </FieldCaption>
-            <select className="industrial-select"
-              value={inlineParticipationDraft.riskLevel}
-              onChange={(event) =>
-                setInlineParticipationDraft((current) =>
-                  current
-                    ? {
-                        ...current,
-                        riskLevel: event.target
-                          .value as InlineParticipationDraft["riskLevel"],
-                      }
-                    : current,
-                )
-              }
-            >
-              <option value="normal">normal</option>
-              <option value="erhoeht">erhöht</option>
-              <option value="kritisch">kritisch</option>
-            </select>
-          </label>
-          <label>
-            <span>Stellungnahmefrist optional</span>
-            <input
-              type="datetime-local"
-              value={inlineParticipationDraft.statementDueAt}
-              onChange={(event) =>
-                setInlineParticipationDraft((current) =>
-                  current
-                    ? { ...current, statementDueAt: event.target.value }
-                    : current,
-                )
-              } className="industrial-input" />
-          </label>
-          <label className="industrial-modal-wide">
-            <FieldCaption draft={inlineParticipationDraft} field="nextStep">
-              Nächster Schritt
-            </FieldCaption>
-            <input
-              value={inlineParticipationDraft.nextStep}
-              onChange={(event) =>
-                setInlineParticipationDraft((current) =>
-                  current
-                    ? { ...current, nextStep: event.target.value }
-                    : current,
-                )
-              } className="industrial-input" />
-          </label>
-        </div>
+        <InlineParticipationFields inlineParticipationDraft={inlineParticipationDraft} setInlineParticipationDraft={setInlineParticipationDraft} />
+
         <div className="industrial-modal-preview">
           <ClipboardCheck className="industrial-icon" /> Wird mit dem Speichern der Notiz als Fallaktenmaßnahme angelegt:{" "}
           <strong>
