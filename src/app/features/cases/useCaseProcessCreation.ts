@@ -1,15 +1,9 @@
 import { waitForBridge } from "../../core/bridge/waitForBridge";
 import { fromDateTimeLocalValue } from "./caseWorkbenchFormat";
-import type { Dispatch, FormEvent, SetStateAction } from "react";
-import type { CaseNoteRecord } from "../../../domain/models/case-note.model";
-import type { CaseDocumentRecord } from "../../../domain/models/case-document.model";
+import type { Dispatch, SetStateAction } from "react";
 import type { CaseRecord } from "../../../domain/models/case.model";
 import type { CaseExplorerSelection } from "./caseWorkbenchTypes";
-import type { TemplateRecord, RenderedTemplateResult } from "../../../domain/models/template.model";
-import { buildExportWarningMessage, scanBemProcessExport, scanSensitiveExportText } from "@/domain/privacy/exportGuardPolicy";
-import { buildTerminationExportContext, terminationPrivacyExportNotice } from "@/domain/termination/terminationPrivacyPolicy";
-import { buildProcessTemplateValues, defaultCaseProcessDraft, downloadRenderedTemplate, isBemProcessRecord, isEqualizationProcessRecord, isTemplateConnectedToProcessStatus, isTerminationHearingRecord } from "./casesViewProcessUtils";
-import { loadTemplateDefaultValues } from "../../shared/templates/templateDefaults";
+import { defaultCaseProcessDraft } from "./casesViewProcessUtils";
 import type { CaseProcessDraft, CaseProcessType } from "./casesViewProcessUtils";
 
 type UseCaseProcessCreationDeps = {
