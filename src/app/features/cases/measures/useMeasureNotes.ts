@@ -14,14 +14,11 @@ async function requireCaseMeasuresBridge() {
   return bridge.caseMeasures;
 }
 
-export function useMeasureNotes({ caseId, measureType, measureId }: Omit<MeasureNotesPanelProps, "measureTitle">) {
+type MeasureIdentity = Omit<MeasureNotesPanelProps, "measureTitle">;
+
+function useMeasureNotesLoading({ caseId, measureType, measureId }: MeasureIdentity, announce: ReturnType<typeof useAnnouncer>) {
   const [notes, setNotes] = useState<CaseMeasureNoteRecord[]>([]);
-  const [isCreating, setIsCreating] = useState(false);
-  const [createForm, setCreateForm] = useState<MeasureNoteFormState>(() => createEmptyMeasureNoteForm());
-  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<MeasureNoteFormState>(() => createEmptyMeasureNoteForm());
   const [error, setError] = useState("");
-  const announce = useAnnouncer();
 
   const loadNotes = useCallback(async () => {
     const caseMeasures = await requireCaseMeasuresBridge();
@@ -49,6 +46,17 @@ export function useMeasureNotes({ caseId, measureType, measureId }: Omit<Measure
       active = false;
     };
   }, [announce, caseId, measureId, measureType]);
+
+  return { notes, loadNotes, error, setError };
+}
+
+export function useMeasureNotes({ caseId, measureType, measureId }: MeasureIdentity) {
+  const [isCreating, setIsCreating] = useState(false);
+  const [createForm, setCreateForm] = useState<MeasureNoteFormState>(() => createEmptyMeasureNoteForm());
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<MeasureNoteFormState>(() => createEmptyMeasureNoteForm());
+  const announce = useAnnouncer();
+  const { notes, loadNotes, error, setError } = useMeasureNotesLoading({ caseId, measureType, measureId }, announce);
 
   function startCreate() {
     setEditingNoteId(null);
