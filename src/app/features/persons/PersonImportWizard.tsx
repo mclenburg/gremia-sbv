@@ -46,8 +46,6 @@ export function PersonImportWizard({
   const [mapping, setMapping] = useState<PersonImportColumnMapping>(buildDefaultMapping());
   const [preview, setPreview] = useState<PersonImportPreviewResult | null>(null);
   const [result, setResult] = useState<PersonImportExecuteResult | null>(null);
-  const [showHelp, setShowHelp] = useState(false);
-
   if (!open) return null;
 
   function resetAndClose() {
@@ -57,7 +55,6 @@ export function PersonImportWizard({
     setMapping(buildDefaultMapping());
     setPreview(null);
     setResult(null);
-    setShowHelp(false);
     onClose();
   }
 
@@ -127,10 +124,7 @@ export function PersonImportWizard({
       actions={<IndustrialButton type="button" variant="secondary" onClick={resetAndClose} data-e2e="person-import-close-icon">Schließen</IndustrialButton>}
     >
         <ImportSteps currentStep={step} />
-        <IndustrialButton type="button" variant="secondary" compact className="person-help-toggle" onClick={() => setShowHelp((current) => !current)} aria-expanded={showHelp}>
-          Wie funktioniert der Import?
-        </IndustrialButton>
-        {showHelp && <ImportHelp />}
+        <ImportHelpToggle />
         {step === 'source' && (
           <SourceStep csvText={csvText} onCsvTextChange={setCsvText} onLoadFile={loadFileForPreview} onPreviewPastedCsv={previewPastedCsv} />
         )}
@@ -172,6 +166,18 @@ function ImportHelp() {
     <div className="industrial-alert person-import-help">
       <p>Wählen Sie eine Excel- oder CSV-Datei aus, prüfen Sie die Vorschau und ordnen Sie danach die Spalten den Zielfeldern zu. Personalnummer ist optional. Name und Vorname können getrennt oder in einer Vollnamen-Spalte stehen. Der Schutzstatus kann aus einer Statusspalte oder aus Nachweis-Datumsspalten wie „schwerbehindert seit“ und „Gleichstellung vorgelegt“ ermittelt werden.</p>
     </div>
+  );
+}
+
+function ImportHelpToggle() {
+  const [showHelp, setShowHelp] = useState(false);
+  return (
+    <>
+      <IndustrialButton type="button" variant="secondary" compact className="person-help-toggle" onClick={() => setShowHelp((current) => !current)} aria-expanded={showHelp}>
+        Wie funktioniert der Import?
+      </IndustrialButton>
+      {showHelp && <ImportHelp />}
+    </>
   );
 }
 
