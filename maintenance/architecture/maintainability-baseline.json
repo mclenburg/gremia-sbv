@@ -14,7 +14,7 @@
   },
   "summary": {
     "filesScanned": 787,
-    "debtFiles": 29
+    "debtFiles": 28
   },
   "debt": {
     "services/participationService.ts": {
@@ -148,12 +148,6 @@
       "codeLines": 297,
       "maxFunctionLines": 293,
       "imports": 15
-    },
-    "src/app/features/sbv-control/SbvControlView.tsx": {
-      "physicalLines": 180,
-      "codeLines": 169,
-      "maxFunctionLines": 141,
-      "imports": 18
     },
     "src/app/features/settings/BackupRestoreForm.tsx": {
       "physicalLines": 216,

@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { getParticipationDocumentRequirements, getParticipationEscalationAdvice } from '../../../src/app/features/participation/participationPolicy';
 import { modules } from '../../../src/app/core/navigation/modules';
 import { buildSbvControlSections } from '../../../src/app/features/sbv-control/sbvControlSections';
+import { SbvControlView } from '../../../src/app/features/sbv-control/SbvControlView';
+import { LiveRegionProvider } from '../../../src/app/shared/a11y/LiveRegionProvider';
 import type { ParticipationRecord } from '../../../src/domain/models/participation.model';
 
 const baseRecord: ParticipationRecord = {
@@ -21,6 +25,15 @@ const baseRecord: ParticipationRecord = {
 };
 
 describe('SBV-Dokumentationsstruktur', () => {
+  it('benennt Kennzahlen, Arbeitsbereiche und Rückmeldungen für assistive Technologien', () => {
+    const html = renderToStaticMarkup(createElement(LiveRegionProvider, null,
+      createElement(SbvControlView, { cases: [], deadlines: [] })));
+
+    expect(html).toContain('aria-label="SBV-Dokumentation Kennzahlen"');
+    expect(html).toContain('aria-label="SBV-Dokumentation Arbeitsbereiche"');
+    expect(html).toMatch(/<section[^>]*class="workbench-content industrial-workspace-content"[^>]*aria-live="polite"/);
+  });
+
   it('bewertet kritische Beteiligung nicht als normale Dokumentation', () => {
     const advice = getParticipationEscalationAdvice(baseRecord, new Date('2026-05-23T09:00:00.000Z'));
 
