@@ -14,15 +14,9 @@
   },
   "summary": {
     "filesScanned": 787,
-    "debtFiles": 32
+    "debtFiles": 31
   },
   "debt": {
-    "services/demoSeedCases.ts": {
-      "physicalLines": 346,
-      "codeLines": 345,
-      "maxFunctionLines": 131,
-      "imports": 2
-    },
     "services/participationService.ts": {
       "physicalLines": 398,
       "codeLines": 395,

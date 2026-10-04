@@ -80,71 +80,49 @@ export function seedCasesAndProcesses(db: DatabaseAdapter, timestamp: string): v
       timestamp
     );
 
-    const deadlineStatus = index % 6 === 0 ? "completed" : "open";
-    const deadlineDueAt = deadlineStatus === "completed" ? daysFromNow(-2 - index) : daysFromNow(5 + index);
-
-    run(
-      db,
-      `INSERT INTO deadlines (
-        id, case_id, person_id, process_id, process_type, deadline_type, title,
-        confidential_title, description, due_at, reminder_at, legal_basis,
-        source_event, severity, status, calculation_mode, is_legal_deadline,
-        dashboard_from_at, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'manual', ?, ?, ?, ?)`,
-      id("deadline", index),
-      caseId,
-      id("legacy-person", personIndex),
-      caseId,
-      CASE_CATEGORIES[(index - 1) % CASE_CATEGORIES.length],
-      index % 3 === 0 ? "legal_deadline" : "follow_up",
-      `Demo-Frist ${index}`,
-      `Vertrauliche Demo-Frist ${index}`,
-      "Synthetische Wiedervorlage für Demo-Dashboard.",
-      deadlineDueAt,
-      deadlineStatus === "completed" ? daysFromNow(-3 - index) : daysFromNow(2 + index),
-      index % 3 === 0 ? "§ 178 Abs. 2 Satz 1 SGB IX" : "§ 164 Abs. 4 SGB IX",
-      "demo_seed",
-      ["normal", "important", "critical", "fatal"][index % 4],
-      deadlineStatus,
-      index % 3 === 0 ? 1 : 0,
-      daysFromNow(-3),
-      timestamp,
-      timestamp
-    );
+    seedCaseDeadline(db, caseId, personIndex, index, timestamp);
 
     seedProcessRows(db, caseId, index, timestamp);
     seedMeasures(db, caseId, index, timestamp);
   }
 }
 
-function seedProcessRows(db: DatabaseAdapter, caseId: string, index: number, timestamp: string): void {
+function seedCaseDeadline(db: DatabaseAdapter, caseId: string, personIndex: number, index: number, timestamp: string): void {
+  const deadlineStatus = index % 6 === 0 ? "completed" : "open";
+  const deadlineDueAt = deadlineStatus === "completed" ? daysFromNow(-2 - index) : daysFromNow(5 + index);
+
   run(
     db,
-    `INSERT INTO bem_processes (
-      id, case_id, status, title, trigger_type, trigger_description,
-      sickness_days_twelve_months, bem_offered_at, response_due_at,
-      employee_response, privacy_notice_at, first_meeting_at, participants,
-      measures, next_review_at, result, confidential_notes, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, 'au_zeiten', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    id("bem", index),
+    `INSERT INTO deadlines (
+      id, case_id, person_id, process_id, process_type, deadline_type, title,
+      confidential_title, description, due_at, reminder_at, legal_basis,
+      source_event, severity, status, calculation_mode, is_legal_deadline,
+      dashboard_from_at, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'manual', ?, ?, ?, ?)`,
+    id("deadline", index),
     caseId,
-    ["zu_pruefen", "angeboten", "laufend", "abgeschlossen"][index % 4],
-    `Demo-BEM ${index}`,
-    "Mehr als sechs Wochen Arbeitsunfähigkeit innerhalb von zwölf Monaten.",
-    42 + index,
-    daysFromNow(-10 - index),
-    daysFromNow(7 + index),
-    ["offen", "zugestimmt", "abgelehnt"][index % 3],
-    daysFromNow(-9 - index),
-    daysFromNow(4 + index),
-    "SBV, BEM-Team, betroffene Person",
-    "Arbeitszeit, technische Hilfen, Aufgabenklärung",
-    daysFromNow(30 + index),
-    index % 4 === 0 ? "abgeschlossen_mit_massnahmen" : null,
-    "Demo-BEM ohne reale Gesundheitsdaten.",
+    id("legacy-person", personIndex),
+    caseId,
+    CASE_CATEGORIES[(index - 1) % CASE_CATEGORIES.length],
+    index % 3 === 0 ? "legal_deadline" : "follow_up",
+    `Demo-Frist ${index}`,
+    `Vertrauliche Demo-Frist ${index}`,
+    "Synthetische Wiedervorlage für Demo-Dashboard.",
+    deadlineDueAt,
+    deadlineStatus === "completed" ? daysFromNow(-3 - index) : daysFromNow(2 + index),
+    index % 3 === 0 ? "§ 178 Abs. 2 Satz 1 SGB IX" : "§ 164 Abs. 4 SGB IX",
+    "demo_seed",
+    ["normal", "important", "critical", "fatal"][index % 4],
+    deadlineStatus,
+    index % 3 === 0 ? 1 : 0,
+    daysFromNow(-3),
     timestamp,
     timestamp
   );
+}
+
+function seedProcessRows(db: DatabaseAdapter, caseId: string, index: number, timestamp: string): void {
+  seedBemProcess(db, caseId, index, timestamp);
 
   run(
     db,
@@ -249,6 +227,37 @@ function seedProcessRows(db: DatabaseAdapter, caseId: string, index: number, tim
   );
 }
 
+function seedBemProcess(db: DatabaseAdapter, caseId: string, index: number, timestamp: string): void {
+  run(
+    db,
+    `INSERT INTO bem_processes (
+      id, case_id, status, title, trigger_type, trigger_description,
+      sickness_days_twelve_months, bem_offered_at, response_due_at,
+      employee_response, privacy_notice_at, first_meeting_at, participants,
+      measures, next_review_at, result, confidential_notes, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, 'au_zeiten', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    id("bem", index),
+    caseId,
+    ["zu_pruefen", "angeboten", "laufend", "abgeschlossen"][index % 4],
+    `Demo-BEM ${index}`,
+    "Mehr als sechs Wochen Arbeitsunfähigkeit innerhalb von zwölf Monaten.",
+    42 + index,
+    daysFromNow(-10 - index),
+    daysFromNow(7 + index),
+    ["offen", "zugestimmt", "abgelehnt"][index % 3],
+    daysFromNow(-9 - index),
+    daysFromNow(4 + index),
+    "SBV, BEM-Team, betroffene Person",
+    "Arbeitszeit, technische Hilfen, Aufgabenklärung",
+    daysFromNow(30 + index),
+    index % 4 === 0 ? "abgeschlossen_mit_massnahmen" : null,
+    "Demo-BEM ohne reale Gesundheitsdaten.",
+    timestamp,
+    timestamp
+  );
+
+}
+
 function seedMeasures(db: DatabaseAdapter, caseId: string, caseIndex: number, timestamp: string): void {
   CASE_MEASURE_TYPES.forEach((type, offset) => {
     const index = caseIndex * 10 + offset;
@@ -342,4 +351,3 @@ function seedMeasures(db: DatabaseAdapter, caseId: string, caseIndex: number, ti
     }
   });
 }
-
