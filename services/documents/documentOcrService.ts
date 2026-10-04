@@ -136,8 +136,8 @@ export class DocumentOcrService {
   }
 
   async runPending(limit = 2): Promise<number> {
-    const jobs = this.database.prepare<{ id: string; document_id: string; case_id: string; attempts: number }>(`
-      SELECT id, document_id, case_id, attempts
+    const jobs = this.database.prepare<{ id: string; document_id: string; attempts: number }>(`
+      SELECT id, document_id, attempts
       FROM case_document_ocr_jobs
       WHERE status = 'queued'
       ORDER BY created_at ASC
@@ -145,13 +145,13 @@ export class DocumentOcrService {
     `).all(limit);
     let processed = 0;
     for (const job of jobs) {
-      await this.processJob(job.id, job.document_id, job.case_id, job.attempts);
+      await this.processJob(job.id, job.document_id, job.attempts);
       processed += 1;
     }
     return processed;
   }
 
-  private async processJob(jobId: string, documentId: string, caseId: string, attempts: number): Promise<void> {
+  private async processJob(jobId: string, documentId: string, attempts: number): Promise<void> {
     const startedAt = nowIso();
     this.database.prepare("UPDATE case_document_ocr_jobs SET status = 'processing', attempts = ?, updated_at = ? WHERE id = ?").run(attempts + 1, startedAt, jobId);
     this.database.prepare("UPDATE case_documents SET ocr_status = 'processing', ocr_started_at = ? WHERE id = ?").run(startedAt, documentId);

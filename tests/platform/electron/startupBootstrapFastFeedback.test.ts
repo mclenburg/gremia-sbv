@@ -26,9 +26,9 @@ function inspectBootstrap(bootstrap: string) {
 
 function inspectRuntime(runtime: string, runtimeSupport: string) {
   const createWindow = "await createWindow()";
-  const scheduleDemo = "scheduleDemoVaultPreparation(dataDirectory)";
+  const scheduleDemo = "scheduleDemoVaultPreparation(";
   const createWindowIndex = runtime.indexOf(createWindow);
-  const scheduleDemoIndex = runtime.indexOf(scheduleDemo);
+  const scheduleDemoIndex = runtime.lastIndexOf(scheduleDemo);
   return {
     ownsHeavyInitialization: [
       "SecurityService",

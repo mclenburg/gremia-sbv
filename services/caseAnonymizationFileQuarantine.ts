@@ -26,7 +26,7 @@ export class CaseAnonymizationFileQuarantine {
   private caseDirectoryQuarantined = false;
   private stagedFileCount = 0;
 
-  constructor(dataDir: string, private readonly caseId: string) {
+  constructor(dataDir: string, caseId: string) {
     this.dataRoot = path.resolve(dataDir);
     this.caseDirectory = path.resolve(this.dataRoot, 'documents', caseId);
     this.quarantineRoot = path.resolve(this.dataRoot, '.anonymization-quarantine', `${caseId}-${randomUUID()}`);
