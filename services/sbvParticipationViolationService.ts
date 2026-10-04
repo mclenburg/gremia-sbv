@@ -75,14 +75,9 @@ export class SbvParticipationViolationService {
         if (!participation) throw new Error('Der ausgewählte Vorgang ist keine vollständige SBV-Beteiligungsmaßnahme.');
         assertMatchingCaseContext(explicitCaseId, measure.case_id);
         return {
+          ...emptyViolationRelations(),
           caseId: measure.case_id,
-          relatedParticipationId: null,
           relatedCaseMeasureId: measure.id,
-          relatedTerminationHearingId: null,
-          relatedDeadlineId: null,
-          relatedActivityJournalEntryId: null,
-          relatedSbvControlProtocolId: null,
-          relatedRecruitingParticipationId: null,
         };
       }
       case 'case': {
@@ -104,27 +99,16 @@ export class SbvParticipationViolationService {
         if (!hearing) throw new Error('Ausgangskontext termination_hearing wurde nicht gefunden.');
         assertMatchingCaseContext(explicitCaseId, hearing.case_id);
         return {
+          ...emptyViolationRelations(),
           caseId: hearing.case_id,
-          relatedParticipationId: null,
-          relatedCaseMeasureId: null,
           relatedTerminationHearingId: hearing.id,
-          relatedDeadlineId: null,
-          relatedActivityJournalEntryId: null,
-          relatedSbvControlProtocolId: null,
-          relatedRecruitingParticipationId: null,
         };
       }
       case 'sbv_control_protocol':
         this.ensureContextExists(input.sourceContextType, input.sourceContextId);
         return {
-          caseId: null,
-          relatedParticipationId: null,
-          relatedCaseMeasureId: null,
-          relatedTerminationHearingId: null,
-          relatedDeadlineId: null,
-          relatedActivityJournalEntryId: null,
+          ...emptyViolationRelations(),
           relatedSbvControlProtocolId: input.sourceContextId,
-          relatedRecruitingParticipationId: null,
         };
       case 'deadline':
         this.ensureContextExists(input.sourceContextType, input.sourceContextId);
@@ -156,26 +140,15 @@ export class SbvParticipationViolationService {
           throw new Error('Stellenbesetzungs-Verstöße bleiben fallaktenunabhängig. Bitte keinen Fallbezug automatisch setzen.');
         }
         return {
-          caseId: null,
-          relatedParticipationId: null,
-          relatedCaseMeasureId: null,
-          relatedTerminationHearingId: null,
-          relatedDeadlineId: null,
-          relatedActivityJournalEntryId: null,
-          relatedSbvControlProtocolId: null,
+          ...emptyViolationRelations(),
           relatedRecruitingParticipationId: input.sourceContextId,
         };
       case 'sbv_participation':
         this.ensureContextExists(input.sourceContextType, input.sourceContextId);
         return {
+          ...emptyViolationRelations(),
           caseId: explicitCaseId,
           relatedParticipationId: input.sourceContextId,
-          relatedCaseMeasureId: null,
-          relatedTerminationHearingId: null,
-          relatedDeadlineId: null,
-          relatedActivityJournalEntryId: null,
-          relatedSbvControlProtocolId: null,
-          relatedRecruitingParticipationId: null,
         };
       default:
         throw new Error('Bitte zuerst die SBV-Beteiligung oder einen anderen Ausgangskontext auswählen.');

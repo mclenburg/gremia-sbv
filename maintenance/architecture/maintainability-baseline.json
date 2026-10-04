@@ -14,7 +14,7 @@
   },
   "summary": {
     "filesScanned": 787,
-    "debtFiles": 30
+    "debtFiles": 29
   },
   "debt": {
     "services/participationService.ts": {
@@ -22,12 +22,6 @@
       "codeLines": 395,
       "maxFunctionLines": 156,
       "imports": 9
-    },
-    "services/sbvParticipationViolationService.ts": {
-      "physicalLines": 415,
-      "codeLines": 411,
-      "maxFunctionLines": 130,
-      "imports": 10
     },
     "src/app/features/activity-journal/hooks/useActivityJournal.ts": {
       "physicalLines": 258,
