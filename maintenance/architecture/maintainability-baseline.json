@@ -13,16 +13,10 @@
     "imports": 35
   },
   "summary": {
-    "filesScanned": 786,
-    "debtFiles": 33
+    "filesScanned": 787,
+    "debtFiles": 32
   },
   "debt": {
-    "electron/startupStatus.ts": {
-      "physicalLines": 276,
-      "codeLines": 254,
-      "maxFunctionLines": 161,
-      "imports": 0
-    },
     "services/demoSeedCases.ts": {
       "physicalLines": 346,
       "codeLines": 345,
