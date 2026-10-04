@@ -303,7 +303,7 @@ function PrimaryViews(props: PrimaryViewsProps & { openCaseNode: (target: CaseNo
     onCreate={personHandlers.createProtectedPerson} onUpdate={personHandlers.updateProtectedPerson}
     onSelectImportFile={personHandlers.selectProtectedPersonImportFile} onPreviewImport={personHandlers.previewProtectedPersonsImport}
     onExecuteImport={personHandlers.executeProtectedPersonsImport} onEvaluateExpiry={personHandlers.evaluateProtectedPersonExpiry}
-    onExportIcal={personHandlers.exportDeadlinesAsIcal} onListOpenPrivacyReviews={personHandlers.listOpenPrivacyReviewsForPerson}
+    onExportIcal={icalHandlers.exportIcal} onListOpenPrivacyReviews={personHandlers.listOpenPrivacyReviewsForPerson}
     onDocumentRetention={personHandlers.documentPrivacyRetention} onScheduleReviewLater={personHandlers.schedulePrivacyReviewLater}
     onClearReview={personHandlers.clearPrivacyReview} onAnonymizeReviewCase={personHandlers.anonymizePrivacyReviewCase}
     onDeleteReviewCase={personHandlers.deletePrivacyReviewCase} onAnonymizePerson={personHandlers.anonymizeProtectedPerson}
