@@ -283,6 +283,14 @@
       "classification": "infrastructure",
       "reason": "Synthetische Demo-Initialisierung ohne Benutzer-Fachoperation."
     },
+    "services/demoSeedCases.ts#<module>.seedBemProcess": {
+      "classification": "infrastructure",
+      "reason": "Synthetische Demo-Initialisierung ohne Benutzer-Fachoperation."
+    },
+    "services/demoSeedCases.ts#<module>.seedCaseDeadline": {
+      "classification": "infrastructure",
+      "reason": "Synthetische Demo-Initialisierung ohne Benutzer-Fachoperation."
+    },
     "services/demoSeedCases.ts#<module>.seedCasesAndProcesses": {
       "classification": "infrastructure",
       "reason": "Synthetische Demo-Initialisierung ohne Benutzer-Fachoperation."
