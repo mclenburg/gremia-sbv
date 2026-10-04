@@ -209,7 +209,7 @@ export class ParticipationService {
       "SBV-Beteiligungsmaßnahme in Fallakte angelegt",
     );
     return this.getById(measure.id)!;
-  
+
     });
   }
 
@@ -234,30 +234,7 @@ export class ParticipationService {
       (input.suspensionRequestedAt ? "aussetzung_verlangt" : existing.status);
     const timestamp = nowIso();
 
-    this.caseMeasures.update(id, {
-      title: input.title !== undefined ? input.title : existing.title,
-      status: participationStatusToMeasureStatus(nextStatus),
-      riskLevel: input.riskLevel ?? existing.riskLevel,
-      summary:
-        input.violationSummary !== undefined
-          ? input.violationSummary
-          : existing.violationSummary,
-      nextStep:
-        input.nextStep !== undefined ? input.nextStep : existing.nextStep,
-      dueAt:
-        input.statementDueAt !== undefined
-          ? input.statementDueAt
-          : existing.statementDueAt,
-      closedAt:
-        nextStatus === "abgeschlossen" ||
-        nextStatus === "pflichtverstoss_dokumentiert"
-          ? timestamp
-          : undefined,
-      requiresFollowUp: ![
-        "abgeschlossen",
-        "pflichtverstoss_dokumentiert",
-      ].includes(nextStatus),
-    });
+    this.updateCaseMeasure(id, input, existing, nextStatus, timestamp);
 
     this.database
       .prepare(
@@ -332,6 +309,59 @@ export class ParticipationService {
         id,
       );
 
+    this.scheduleSuspensionFollowUp(id, input, existing, suspensionDueAt);
+
+    this.event(
+      id,
+      "updated",
+      "SBV-Beteiligungsmaßnahme aktualisiert",
+      JSON.stringify(input),
+    );
+    this.audit(
+      "update",
+      id,
+      existing.caseId,
+      "SBV-Beteiligungsmaßnahme geändert",
+    );
+    return this.getById(id)!;
+
+    });
+  }
+
+  private updateCaseMeasure(
+    id: string, input: UpdateParticipationInput, existing: ParticipationRecord,
+    nextStatus: ParticipationStatus, timestamp: string,
+  ): void {
+    this.caseMeasures.update(id, {
+      title: input.title !== undefined ? input.title : existing.title,
+      status: participationStatusToMeasureStatus(nextStatus),
+      riskLevel: input.riskLevel ?? existing.riskLevel,
+      summary:
+        input.violationSummary !== undefined
+          ? input.violationSummary
+          : existing.violationSummary,
+      nextStep:
+        input.nextStep !== undefined ? input.nextStep : existing.nextStep,
+      dueAt:
+        input.statementDueAt !== undefined
+          ? input.statementDueAt
+          : existing.statementDueAt,
+      closedAt:
+        nextStatus === "abgeschlossen" ||
+        nextStatus === "pflichtverstoss_dokumentiert"
+          ? timestamp
+          : undefined,
+      requiresFollowUp: ![
+        "abgeschlossen",
+        "pflichtverstoss_dokumentiert",
+      ].includes(nextStatus),
+    });
+  }
+
+  private scheduleSuspensionFollowUp(
+    id: string, input: UpdateParticipationInput, existing: ParticipationRecord,
+    suspensionDueAt: string | undefined,
+  ): void {
     if (input.suspensionRequestedAt && suspensionDueAt) {
       this.deadlines.create({
         caseId: existing.caseId,
@@ -352,22 +382,6 @@ export class ParticipationService {
         criticalThresholdHours: 24,
       });
     }
-
-    this.event(
-      id,
-      "updated",
-      "SBV-Beteiligungsmaßnahme aktualisiert",
-      JSON.stringify(input),
-    );
-    this.audit(
-      "update",
-      id,
-      existing.caseId,
-      "SBV-Beteiligungsmaßnahme geändert",
-    );
-    return this.getById(id)!;
-  
-    });
   }
 
   warnings(id: string): ParticipationWarning[] {
