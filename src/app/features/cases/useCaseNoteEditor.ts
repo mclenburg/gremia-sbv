@@ -5,6 +5,7 @@ import type { CaseExplorerSelection } from './caseWorkbenchTypes';
 import { fromDateTimeLocalValue, toDateTimeLocalValue } from './caseWorkbenchFormat';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useCaseNoteInlineActionBindings } from './useCaseNoteInlineActionBindings';
+import { createCaseNoteFormActions } from './caseNoteFormActions';
 
 export function useCaseNoteEditor({ selectedCaseId, searchQuery, reloadSelectedCaseChildren, reloadWorkData, runSearch, setSelection }: {
   selectedCaseId: string; searchQuery: string;
@@ -27,78 +28,15 @@ export function useCaseNoteEditor({ selectedCaseId, searchQuery, reloadSelectedC
   const [noteError, setNoteError] = useState('');
   const [noteInfo, setNoteInfo] = useState('');
 
-  function resetNoteForm() {
-    setEditingNote(null);
-    setNoteTitle('');
-    setNoteDate(toDateTimeLocalValue(new Date().toISOString()));
-    setNoteType('gespraech');
-    setParticipants('');
-    setContent('');
-    setNextSteps('');
-    setContainsHealthData(true);
-    setConfidentialLevel('sensibel');
-    setLinkedCaseIds(selectedCaseId ? [selectedCaseId] : []);
-    setEntityLinks([]);
-    inlineActionBindings.clearDrafts.current();
-    setNoteError('');
-    setNoteInfo('');
-  }
-  function startEditNote(note: CaseNoteRecord) {
-    setEditingNote(note);
-    setNoteTitle(note.title);
-    setNoteDate(toDateTimeLocalValue(note.noteDate));
-    setNoteType(note.noteType);
-    setParticipants(note.participants ?? '');
-    setContent(note.content);
-    setNextSteps(note.nextSteps ?? '');
-    setContainsHealthData(note.containsHealthData);
-    setConfidentialLevel(note.confidentialLevel);
-    setLinkedCaseIds(note.caseIds?.length ? note.caseIds : (selectedCaseId ? [selectedCaseId] : []));
-    setEntityLinks((note.links ?? []).map((link) => ({
-      targetType: link.targetType,
-      targetId: link.targetId,
-      caseId: link.caseId,
-      label: link.label,
-      accessibleLabel: link.accessibleLabel,
-      textStart: link.textStart,
-      textEnd: link.textEnd,
-    })));
-    setSelection({ type: 'note', id: note.id });
-    setIsNoteModalOpen(true);
-    inlineActionBindings.clearDrafts.current();
-    setNoteError('');
-    setNoteInfo('');
-  }
-  function toggleLinkedCase(caseId: string, checked: boolean) {
-    setLinkedCaseIds((current) => {
-      const next = checked ? [...current, caseId] : current.filter((id) => id !== caseId);
-      return [...new Set(next)];
-    });
-  }
-
-  function addEntityLink(link: CreateCaseNoteLinkInput) {
-    setEntityLinks((current) => {
-      const withoutDuplicate = current.filter(
-        (item) => !(item.targetType === link.targetType && item.targetId === link.targetId),
-      );
-      return [...withoutDuplicate, link];
-    });
-  }
-
-  function openNewNoteModal() {
-    if (!selectedCaseId) {
-      setNoteError('Bitte zuerst eine Fallakte auswählen.');
-      return;
-    }
-    resetNoteForm();
-    setLinkedCaseIds([selectedCaseId]);
-    setIsNoteModalOpen(true);
-  }
-
-  function cancelNoteModal() {
-    setIsNoteModalOpen(false);
-    resetNoteForm();
-  }
+  const formActions = createCaseNoteFormActions({
+    selectedCaseId, setSelection, clearInlineDrafts: () => inlineActionBindings.clearDrafts.current(),
+    setters: {
+      setIsNoteModalOpen, setEditingNote, setNoteTitle, setNoteDate,
+      setNoteType, setParticipants, setContent, setNextSteps,
+      setContainsHealthData, setConfidentialLevel, setLinkedCaseIds,
+      setEntityLinks, setNoteError, setNoteInfo,
+    },
+  });
 
   async function saveNote(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -113,10 +51,6 @@ export function useCaseNoteEditor({ selectedCaseId, searchQuery, reloadSelectedC
       return;
     }
     const normalizedLinkedCaseIds = [...new Set([selectedCaseId, ...linkedCaseIds].filter(Boolean))];
-    if (!normalizedLinkedCaseIds.length) {
-      setNoteError('Bitte mindestens eine Fallakte als Bezug auswählen.');
-      return;
-    }
 
     try {
       const bridge = await waitForBridge();
@@ -139,7 +73,7 @@ export function useCaseNoteEditor({ selectedCaseId, searchQuery, reloadSelectedC
       const saved = editingNote
         ? await bridge.cases.updateNote(editingNote.id, payload)
         : await bridge.cases.createNote(payload);
-      resetNoteForm();
+      formActions.resetNoteForm();
       setIsNoteModalOpen(false);
       await reloadSelectedCaseChildren();
       if (inlineActions.length) await reloadWorkData();
@@ -187,12 +121,7 @@ export function useCaseNoteEditor({ selectedCaseId, searchQuery, reloadSelectedC
     setNoteError,
     noteInfo,
     setNoteInfo,
-    resetNoteForm,
-    startEditNote,
-    toggleLinkedCase,
-    addEntityLink,
-    openNewNoteModal,
-    cancelNoteModal,
+    ...formActions,
     saveNote,
     ensureSelectedCaseLink
   };
