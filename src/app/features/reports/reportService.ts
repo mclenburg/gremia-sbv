@@ -1,6 +1,5 @@
-import type { GenerateReportInput, ReportDescriptor, ReportExportHistoryItem, ReportGenerationResult, ReportType } from '../../../domain/models/report.model';
+import type { ReportDescriptor, ReportType } from '../../../domain/models/report.model';
 import { legalToday } from '../../../domain/time/legalTime';
-import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { buildPdfExportFeedback, type PdfOpenResult } from '../../shared/documents/pdfExportFeedback';
 
 export const REPORT_TYPE_ORDER: ReportType[] = [
@@ -63,20 +62,6 @@ export function defaultReportDateRange(): { periodStart: string; periodEnd: stri
   };
 }
 
-export function defaultReportPeriod(): { periodStart: string; periodEnd: string } {
-  const year = new Date().getFullYear();
-  return {
-    periodStart: `${year}-01-01T00:00`,
-    periodEnd: `${year}-12-31T23:59`
-  };
-}
-
-export function reportConfidentialityLabel(value: ReportDescriptor['confidentiality']): string {
-  if (value === 'anonymized') return 'anonymisiert';
-  if (value === 'technical') return 'technisch vertraulich';
-  return 'intern vertraulich';
-}
-
 export function reportConfidentialityDisplayLabel(value: ReportDescriptor['confidentiality']): string {
   if (value === 'anonymized') return 'Anonymisiert';
   if (value === 'technical') return 'Technisch vertraulich';
@@ -111,23 +96,4 @@ export function isReportOpenActionDisabled(input: {
   fileName: string;
 }): boolean {
   return input.openingFileName === input.fileName;
-}
-
-export async function loadReportMetadata(): Promise<{ descriptors: ReportDescriptor[]; history: ReportExportHistoryItem[] }> {
-  const bridge = await waitForBridge();
-  if (!bridge?.reports) throw new Error('Berichtsdienst ist nicht erreichbar.');
-  const [descriptorRows, historyRows] = await Promise.all([
-    bridge.reports.descriptors(),
-    bridge.reports.history(15)
-  ]);
-  return {
-    descriptors: sortReportDescriptorsByPriority(descriptorRows),
-    history: historyRows
-  };
-}
-
-export async function generateReportDocument(input: GenerateReportInput): Promise<ReportGenerationResult> {
-  const bridge = await waitForBridge();
-  if (!bridge?.reports) throw new Error('Berichtsdienst ist nicht erreichbar.');
-  return bridge.reports.generate(input);
 }

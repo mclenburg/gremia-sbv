@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "movedTests": 235,
+  "movedTests": 234,
   "entries": [
     {
       "from": "tests/accessibilityKnowledgeSelectP15o.test.ts",
@@ -921,10 +921,6 @@
     {
       "from": "tests/uiFoundation092Block5Behavior.test.ts",
       "to": "tests/ui/uiFoundationSemanticSections.test.ts"
-    },
-    {
-      "from": "tests/unifiedActivityReportCleanup095.test.ts",
-      "to": "tests/features/reports/unifiedActivityReportCleanup.test.ts"
     },
     {
       "from": "tests/unlockDelay089.test.ts",
