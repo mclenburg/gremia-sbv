@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { FolderOpen, Save } from "lucide-react";
-import { waitForBridge } from "../../core/bridge/waitForBridge";
-import type { BackupInspectionResult, BackupOperationResult } from "../../../domain/models/backup.model";
+import { createBackupRestoreActions } from "./backupRestoreActions";
+import { BackupOperationFeedback } from "./BackupOperationFeedback";
+import type { BackupOperationResult } from "../../../domain/models/backup.model";
 import { IndustrialButton } from "../../shared/components/IndustrialButton";
 import { FormActions, PasswordInput, TextInput } from "../../shared/components/IndustrialForm";
 
@@ -11,100 +12,10 @@ export function BackupRestoreForm() {
   const [restorePassphrase, setRestorePassphrase] = useState("");
   const [restoreConfirmation, setRestoreConfirmation] = useState("");
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<
-    BackupOperationResult | BackupInspectionResult | null
-  >(null);
+  const [result, setResult] = useState<BackupOperationResult | null>(null);
   const [error, setError] = useState("");
 
-  function resetMessages() {
-    setResult(null);
-    setError("");
-  }
-
-  function validateBackupPassphrase(passphrase: string): string | null {
-    if (passphrase.length < 12)
-      return "Die Backup-Passphrase muss mindestens 12 Zeichen lang sein.";
-    return null;
-  }
-
-  async function createBackup() {
-    resetMessages();
-    const validation = validateBackupPassphrase(backupPassphrase);
-    if (validation) {
-      setError(validation);
-      return;
-    }
-    setBusy(true);
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.backup)
-        throw new Error("Backup-Dienst ist nicht erreichbar.");
-      const operationResult = await bridge.backup.create(backupPassphrase);
-      if (!operationResult.ok)
-        setError(
-          operationResult.error ?? "Backup konnte nicht erstellt werden.",
-        );
-      setResult(operationResult);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : String(error));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function inspectBackup() {
-    resetMessages();
-    const validation = validateBackupPassphrase(verifyPassphrase);
-    if (validation) {
-      setError(validation);
-      return;
-    }
-    setBusy(true);
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.backup)
-        throw new Error("Backup-Dienst ist nicht erreichbar.");
-      const operationResult = await bridge.backup.inspect(verifyPassphrase);
-      if (!operationResult.ok)
-        setError(
-          operationResult.error ?? "Backup konnte nicht geprüft werden.",
-        );
-      setResult(operationResult);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : String(error));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function restoreBackup() {
-    resetMessages();
-    const validation = validateBackupPassphrase(restorePassphrase);
-    if (validation) {
-      setError(validation);
-      return;
-    }
-    setBusy(true);
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.backup)
-        throw new Error("Backup-Dienst ist nicht erreichbar.");
-      const operationResult = await bridge.backup.restore(
-        restorePassphrase,
-        restoreConfirmation,
-      );
-      if (!operationResult.ok)
-        setError(
-          operationResult.error ??
-            "Backup konnte nicht wiederhergestellt werden.",
-        );
-      setResult(operationResult);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : String(error));
-    } finally {
-      setBusy(false);
-    }
-  }
+  const { createBackup, inspectBackup, restoreBackup } = createBackupRestoreActions({ setBusy, setResult, setError });
 
   return (
     <section className="industrial-settings-form settings-section-full">
@@ -128,7 +39,7 @@ export function BackupRestoreForm() {
             helpText="Mindestens 12 Zeichen. Diese Passphrase wird nicht gespeichert und ist für die Wiederherstellung erforderlich."
           />
           <FormActions align="start">
-            <IndustrialButton disabled={busy} onClick={() => void createBackup()}>
+            <IndustrialButton disabled={busy} onClick={() => void createBackup(backupPassphrase)}>
               <Save className="industrial-icon" aria-hidden="true" /> Backup speichern
             </IndustrialButton>
           </FormActions>
@@ -143,7 +54,7 @@ export function BackupRestoreForm() {
             helpText="Prüft Manifest, Integrität und Wiederherstellbarkeit ohne den aktuellen Tresor zu verändern."
           />
           <FormActions align="start">
-            <IndustrialButton variant="secondary" disabled={busy} onClick={() => void inspectBackup()}>
+            <IndustrialButton variant="secondary" disabled={busy} onClick={() => void inspectBackup(verifyPassphrase)}>
               Backup prüfen
             </IndustrialButton>
           </FormActions>
@@ -168,7 +79,7 @@ export function BackupRestoreForm() {
             helpText="Schreibe die Bestätigung exakt aus, damit die Wiederherstellung bewusst ausgelöst wird."
           />
           <FormActions align="start">
-            <IndustrialButton variant="danger" disabled={busy} onClick={() => void restoreBackup()}>
+            <IndustrialButton variant="danger" disabled={busy} onClick={() => void restoreBackup(restorePassphrase, restoreConfirmation)}>
               Backup wiederherstellen
             </IndustrialButton>
           </FormActions>
@@ -184,32 +95,7 @@ export function BackupRestoreForm() {
         </IndustrialButton>
       </div>
 
-      {error && (
-        <div className="industrial-message industrial-message-warning" role="alert">
-          {error}
-        </div>
-      )}
-      {result?.ok && (
-        <div className="industrial-message industrial-message-ok" role="status">
-          <strong>
-            {result.restartRequired
-              ? "Wiederherstellung vorbereitet."
-              : "verifiedAt" in result
-                ? "Backup erfolgreich geprüft."
-                : "Backup-Vorgang abgeschlossen."}
-          </strong>
-          <p>{result.fileName}</p>
-          <p>
-            {result.fileCount ?? 0} Dateien · {result.totalBytes ?? 0} Bytes
-          </p>
-          {result.restartRequired && (
-            <p>Bitte Gremia.SBV jetzt vollständig schließen und neu starten.</p>
-          )}
-          {result.warnings?.map((warning) => (
-            <p key={warning}>{warning}</p>
-          ))}
-        </div>
-      )}
+      <BackupOperationFeedback error={error} result={result} />
     </section>
   );
 }
