@@ -19,12 +19,6 @@
       "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
     },
     {
-      "file": "tests/architecture/dependencyHygiene.test.ts",
-      "category": "A",
-      "sourceAssertions": 1,
-      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
-    },
-    {
       "file": "tests/privacy/dsbTransparencyPatch.test.ts",
       "category": "A",
       "sourceAssertions": 12,
