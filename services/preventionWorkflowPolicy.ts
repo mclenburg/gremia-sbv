@@ -100,17 +100,3 @@ export function evaluatePreventionWarnings(process: PreventionProcessRecord, ref
 
   return warnings;
 }
-
-export function preventionStatusLabel(status: PreventionStatus): string {
-  const labels: Record<PreventionStatus, string> = {
-    zu_pruefen: 'zu prüfen',
-    angefordert: 'angefordert',
-    arbeitgeber_reagiert: 'Arbeitgeber reagiert',
-    inklusionsamt_eingeschaltet: 'Inklusionsamt eingeschaltet',
-    massnahmen_in_klaerung: 'Maßnahmen in Klärung',
-    massnahmen_vereinbart: 'Maßnahmen vereinbart',
-    abgeschlossen: 'abgeschlossen',
-    blockiert_verweigert: 'blockiert / verweigert'
-  };
-  return labels[status];
-}

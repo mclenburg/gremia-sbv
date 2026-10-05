@@ -167,9 +167,3 @@ export function assertExtension(
   }
   return filePath;
 }
-
-export function safeIpcError(error: unknown): Error {
-  if (error instanceof IpcValidationError) return error;
-  if (error instanceof Error) return error;
-  return new Error(String(error));
-}

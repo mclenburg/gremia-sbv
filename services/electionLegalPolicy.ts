@@ -33,10 +33,6 @@ function parseDateOnly(value: string): Date {
   return date;
 }
 
-function dateOnly(date: Date): string {
-  return date.toISOString().slice(0, 10);
-}
-
 function regularElectionYear(year: number): boolean {
   return (year - REGULAR_ELECTION_ANCHOR_YEAR) % 4 === 0;
 }
@@ -144,9 +140,4 @@ export class ElectionLegalPolicy {
     }
     return result;
   }
-}
-
-export function regularElectionPeriodForYear(year: number): RegularElectionPeriod | null {
-  if (!Number.isInteger(year) || !regularElectionYear(year)) return null;
-  return { year, startsOn: dateOnly(new Date(Date.UTC(year, 9, 1))), endsOn: dateOnly(new Date(Date.UTC(year, 10, 30))) };
 }
