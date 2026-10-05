@@ -1215,8 +1215,7 @@ html[data-theme='light'] .industrial-action-note {
   margin-top: 0.35rem;
 }
 
-.industrial-search-toolbar,
-.industrial-filter-bar {
+.industrial-search-toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: end;

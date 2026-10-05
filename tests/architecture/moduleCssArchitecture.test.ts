@@ -79,7 +79,6 @@ const centralWorkbenchSelectors = [
   "industrial-confirm-dialog",
   "industrial-empty-state-action",
   "industrial-search-toolbar",
-  "industrial-filter-bar",
   "industrial-search-field",
   "industrial-search-count",
   "industrial-search-actions",

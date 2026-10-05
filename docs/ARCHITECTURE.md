@@ -90,7 +90,7 @@ Verbindliche Bausteine:
 - `FormSection`, `FormField`, `TextInput`, `TextareaInput`, `SelectInput`, `DateInput`, `DateTimeInput`, `PasswordInput`, `CheckboxField`, `FormActions`
 - `StatusBadge`, `RiskBadge`, `DeadlineBadge`, `ComplianceBadge`, `ProcessStatusBadge`
 - `IndustrialModal`, `ConfirmDialog`, `ExportResultDialog`
-- `SearchToolbar`, `FilterBar`, `RecordList`, `DataTable`, `EmptyState`
+- `SearchToolbar`, `RecordList`, `DataTable`, `EmptyState`
 
 Für neue Features bedeutet das: Erst zentrale Komponente nutzen, dann fachliche Abweichung klein begründen und testen. Neue modulnahe CSS-Dateien, direkte Feature-CSS-Imports und lokale Nachbauten zentraler Industrial-/Workbench-Klassen sind nicht zulässig. Native Formularfelder oder Buttons in Feature-Views sind nur noch erlaubt, wenn ein bestehendes zentrales Pattern technisch nicht passt und der Architekturtest dafür bewusst erweitert wird.
 

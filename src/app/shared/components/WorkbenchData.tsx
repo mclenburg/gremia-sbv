@@ -77,19 +77,6 @@ export function SearchToolbar({
     </div>
   );
 }
-export function FilterBar({
-  children,
-  ariaLabel = "Filter",
-}: {
-  children: ReactNode;
-  ariaLabel?: string;
-}) {
-  return (
-    <div className="industrial-filter-bar" aria-label={ariaLabel}>
-      {children}
-    </div>
-  );
-}
 export function RecordList<T>({
   items,
   renderItem,
