@@ -1,6 +1,7 @@
 import { test, expect } from './support/test';
 import { VISUAL_QA_ROUTES } from '../src/app/shared/theme/visualQa';
 import type { Page } from '@playwright/test';
+import { HELP_REGISTRY } from '../src/app/shared/help/helpRegistry';
 
 function mainNavigation(page: Page) {
   return page.getByRole('navigation', { name: 'Hauptnavigation' });
@@ -17,6 +18,29 @@ const HELP_DIALOG_ROUTES = [
 ] as const;
 
 test.describe('0.9.5-k Hilfe-on-demand Dialoge', () => {
+  test('öffnet die Hilfen zu Gespräch und Wiedervorlage per Tastatur und erhält den Entwurf', async ({ page }) => {
+    await openRoute(page, 'Stellenbesetzungen');
+    const applicant = page.getByRole('textbox', { name: 'Bewerbungsreferenz', exact: true });
+    await applicant.fill('Synthetische anonyme Referenz');
+    for (const helpId of ['recruiting.interviewEvent', 'recruiting.deadlineFollowUp'] as const) {
+      const entry = HELP_REGISTRY[helpId];
+      const trigger = page.getByTitle(entry.title, { exact: true });
+      await trigger.focus();
+      await trigger.press('Enter');
+      const dialog = page.getByRole('dialog', { name: entry.title, exact: true });
+      await expect(dialog).toBeVisible();
+      await expect(dialog.getByRole('button', { name: 'Schließen', exact: true })).toBeFocused();
+      for (const block of entry.blocks) {
+        const explanations = block.type === 'list' ? block.items : [block.text];
+        for (const explanation of explanations) await expect(dialog.getByText(explanation, { exact: true })).toBeVisible();
+      }
+      await page.keyboard.press('Escape');
+      await expect(dialog).toBeHidden();
+      await expect(trigger).toBeFocused();
+      await expect(applicant).toHaveValue('Synthetische anonyme Referenz');
+    }
+  });
+
   for (const helpRoute of HELP_DIALOG_ROUTES) {
     test(`öffnet und schließt Hilfe-Dialog tastaturstabil für ${helpRoute.id}`, async ({ page }) => {
       const route = VISUAL_QA_ROUTES.find((candidate) => candidate.id === helpRoute.id);

@@ -13,8 +13,8 @@
     "imports": 35
   },
   "summary": {
-    "filesScanned": 813,
-    "debtFiles": 2
+    "filesScanned": 817,
+    "debtFiles": 1
   },
   "debt": {
     "src/app/features/dashboard/DashboardFocusOverview.tsx": {
@@ -22,12 +22,6 @@
       "codeLines": 314,
       "maxFunctionLines": 224,
       "imports": 11
-    },
-    "src/app/features/recruiting/RecruitingParticipationsView.tsx": {
-      "physicalLines": 309,
-      "codeLines": 297,
-      "maxFunctionLines": 293,
-      "imports": 15
     }
   }
 }
