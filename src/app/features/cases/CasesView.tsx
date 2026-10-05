@@ -6,7 +6,7 @@ import { useCaseRegisterFilter } from "./useCaseRegisterFilter";
 import { useCaseWorkbenchSearch } from "./useCaseWorkbenchSearch";
 import { useCaseNoteEditor } from "./useCaseNoteEditor";
 import { useCaseProcessUpdates } from "./useCaseProcessUpdates";
-import { useProcessTemplateActions } from "./useProcessTemplateActions";
+import { createProcessTemplateActions } from "./processTemplateActions";
 import { createCaseProcessActions } from "./caseProcessActions";
 import { createCaseCrudActions } from "./caseCrudActions";
 import { useLegacyCaseBindingHandlers } from "./useLegacyCaseBindingHandlers";
@@ -156,7 +156,7 @@ export function CasesView(props: CasesViewProps) {
     ensureSelectedCaseLink: noteEditor.ensureSelectedCaseLink, selectedCaseId: workbench.selectedCaseId, editingNote: noteEditor.editingNote });
   const processUpdates = useCaseProcessUpdates({ setNoteError: noteEditor.setNoteError, setNoteInfo: noteEditor.setNoteInfo,
     reloadSelectedCaseChildren: workbench.reloadSelectedCaseChildren, selectedCase: workbench.selectedCase });
-  const templates = useProcessTemplateActions({ processTemplateModal: form.processTemplateModal, setProcessTemplateModal: form.setProcessTemplateModal,
+  const templates = createProcessTemplateActions({ processTemplateModal: form.processTemplateModal, setProcessTemplateModal: form.setProcessTemplateModal,
     selectedCase: workbench.selectedCase, confirmDialog });
   const processCreation = createCaseProcessActions({ selectedCase: workbench.selectedCase, selectedCaseId: workbench.selectedCaseId,
     caseProcessDraft: form.caseProcessDraft, setCaseProcessDraft: form.setCaseProcessDraft, setSelection: workbench.setSelection,

@@ -14,7 +14,7 @@
   },
   "summary": {
     "filesScanned": 788,
-    "debtFiles": 19
+    "debtFiles": 18
   },
   "debt": {
     "src/app/features/activity-journal/hooks/useActivityJournal.ts": {
@@ -46,12 +46,6 @@
       "codeLines": 168,
       "maxFunctionLines": 171,
       "imports": 15
-    },
-    "src/app/features/cases/useProcessTemplateActions.ts": {
-      "physicalLines": 227,
-      "codeLines": 222,
-      "maxFunctionLines": 196,
-      "imports": 13
     },
     "src/app/features/compliance/components/ComplianceIncidentsPanel.tsx": {
       "physicalLines": 270,
