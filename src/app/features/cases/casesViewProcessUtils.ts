@@ -10,13 +10,8 @@ import { bemStatusLabel } from "../bem/bemShared";
 import { processTypeLabel } from "./caseWorkbenchFormat";
 
 
-export type CaseProcessType =
-  | "prevention"
-  | "bem"
-  | "participation"
-  | "workplace_accommodation"
-  | "termination_hearing"
-  | "equalization";
+import type { CaseProcessType } from './caseWorkbenchTypes';
+export type { CaseProcessType } from './caseWorkbenchTypes';
 
 export type CaseProcessDraft = {
   processType: CaseProcessType;

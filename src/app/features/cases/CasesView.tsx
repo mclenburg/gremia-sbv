@@ -7,7 +7,7 @@ import { useCaseWorkbenchSearch } from "./useCaseWorkbenchSearch";
 import { useCaseNoteEditor } from "./useCaseNoteEditor";
 import { useCaseProcessUpdates } from "./useCaseProcessUpdates";
 import { useProcessTemplateActions } from "./useProcessTemplateActions";
-import { useCaseProcessCreation } from "./useCaseProcessCreation";
+import { createCaseProcessActions } from "./caseProcessActions";
 import { useCaseCrudActions } from "./useCaseCrudActions";
 import { useLegacyCaseBindingHandlers } from "./useLegacyCaseBindingHandlers";
 import { CasesViewRender } from "./CasesViewRender";
@@ -158,7 +158,7 @@ export function CasesView(props: CasesViewProps) {
     reloadSelectedCaseChildren: workbench.reloadSelectedCaseChildren, selectedCase: workbench.selectedCase });
   const templates = useProcessTemplateActions({ processTemplateModal: form.processTemplateModal, setProcessTemplateModal: form.setProcessTemplateModal,
     selectedCase: workbench.selectedCase, confirmDialog });
-  const processCreation = useCaseProcessCreation({ selectedCase: workbench.selectedCase, selectedCaseId: workbench.selectedCaseId,
+  const processCreation = createCaseProcessActions({ selectedCase: workbench.selectedCase, selectedCaseId: workbench.selectedCaseId,
     caseProcessDraft: form.caseProcessDraft, setCaseProcessDraft: form.setCaseProcessDraft, setSelection: workbench.setSelection,
     setNoteError: noteEditor.setNoteError, setNoteInfo: noteEditor.setNoteInfo, reloadSelectedCaseChildren: workbench.reloadSelectedCaseChildren, onCasesChanged });
   const crud = useCaseCrudActions({ setError: form.setError, setIsCaseCreateModalOpen: form.setIsCaseCreateModalOpen, caseNumber: form.caseNumber,
