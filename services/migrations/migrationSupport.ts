@@ -109,10 +109,6 @@ export function parseAddColumnStatement(statement: string): { table: string; col
   return { table: match[1], column: match[2] };
 }
 
-export function isCreateIndexStatement(statement: string): boolean {
-  return /^CREATE\s+(UNIQUE\s+)?INDEX\s+IF\s+NOT\s+EXISTS\s+/i.test(statement.trim());
-}
-
 export function rowToBoolean(row: unknown): boolean {
   return Boolean((row as { found?: number } | undefined)?.found);
 }
