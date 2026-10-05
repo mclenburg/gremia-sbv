@@ -2266,12 +2266,6 @@ html[data-theme='light'] .text-command-help-item span {
   display: none;
 }
 
-.industrial-help-inline {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-}
-
 .industrial-help-dialog-body {
   display: grid;
   gap: 0.85rem;

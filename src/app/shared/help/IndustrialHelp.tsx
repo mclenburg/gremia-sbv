@@ -77,12 +77,3 @@ export function IndustrialHelpButton({
     </>
   );
 }
-
-export function IndustrialHelpInline({ helpId, children }: { helpId: HelpRegistryId; children: ReactNode }) {
-  return (
-    <span className="industrial-help-inline">
-      <span>{children}</span>
-      <IndustrialHelpButton helpId={helpId} label="Bereichshilfe öffnen" />
-    </span>
-  );
-}
