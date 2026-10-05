@@ -4,13 +4,12 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
-import { AlertTriangle, Download, KeyRound, ShieldAlert } from "lucide-react";
+import { AlertTriangle, Download, ShieldAlert } from "lucide-react";
 import {
   DangerButton,
   GhostButton,
   IndustrialButton,
 } from "../components/IndustrialButton";
-import { FormActions, PasswordInput } from "../components/IndustrialForm";
 import { FileLocationNotice } from "../components/ImportExportFeedback";
 import { useDialogFocusManagement } from "./useDialogFocusManagement";
 
@@ -206,89 +205,6 @@ export function ConfirmDialog({
   );
 }
 
-export function DestructiveConfirmDialog(
-  props: Omit<ConfirmDialogProps, "variant">,
-) {
-  return <ConfirmDialog {...props} variant="danger" />;
-}
-
-export type PassphraseDialogProps = {
-  title: string;
-  kicker?: string;
-  description: ReactNode;
-  passphrase: string;
-  onPassphraseChange: (value: string) => void;
-  passphraseLabel?: string;
-  minLength?: number;
-  error?: string;
-  busy?: boolean;
-  children?: ReactNode;
-  submitLabel: string;
-  cancelLabel?: string;
-  onSubmit: () => void;
-  onCancel: () => void;
-  canSubmit?: boolean;
-  wide?: boolean;
-};
-
-export function PassphraseDialog({
-  title,
-  kicker = "Geschützter Vorgang",
-  description,
-  passphrase,
-  onPassphraseChange,
-  passphraseLabel = "Passphrase",
-  minLength,
-  error,
-  busy = false,
-  children,
-  submitLabel,
-  cancelLabel = "Abbrechen",
-  onSubmit,
-  onCancel,
-  canSubmit = true,
-  wide = false,
-}: PassphraseDialogProps) {
-  return (
-    <IndustrialModal
-      title={title}
-      kicker={kicker}
-      description={description}
-      icon={<KeyRound className="industrial-icon-md" />}
-      onClose={onCancel}
-      wide={wide}
-    >
-      <form
-        className="industrial-modal-grid"
-        onSubmit={(event) => {
-          event.preventDefault();
-          onSubmit();
-        }}
-      >
-        <PasswordInput
-          label={passphraseLabel}
-          value={passphrase}
-          minLength={minLength}
-          autoFocus
-          required
-          wide
-          error={error}
-          onValueChange={onPassphraseChange}
-        />
-        {children}
-        <FormActions>
-          <GhostButton type="button" onClick={onCancel} disabled={busy}>
-            {cancelLabel}
-          </GhostButton>
-          <IndustrialButton type="submit" disabled={busy || !canSubmit}>
-            {busy ? "Bitte warten …" : submitLabel}
-          </IndustrialButton>
-        </FormActions>
-      </form>
-    </IndustrialModal>
-  );
-}
-
 export type ExportResultDialogProps = {
   title: string;
   kicker?: string;
@@ -325,73 +241,6 @@ export function ExportResultDialog({
       }
     >
       <FileLocationNotice filePath={filePath} />
-    </IndustrialModal>
-  );
-}
-
-export type ReasonRequiredDialogProps = {
-  title: string;
-  description: ReactNode;
-  reason: string;
-  onReasonChange: (value: string) => void;
-  error?: string;
-  confirmLabel?: string;
-  cancelLabel?: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-};
-
-export function ReasonRequiredDialog({
-  title,
-  description,
-  reason,
-  onReasonChange,
-  error,
-  confirmLabel = "Begründung übernehmen",
-  cancelLabel = "Abbrechen",
-  onConfirm,
-  onCancel,
-}: ReasonRequiredDialogProps) {
-  return (
-    <IndustrialModal
-      title={title}
-      kicker="Begründung erforderlich"
-      description={description}
-      icon={<AlertTriangle className="industrial-icon-md" />}
-      role="alertdialog"
-      variant="warning"
-      onClose={onCancel}
-    >
-      <form
-        className="industrial-modal-grid"
-        onSubmit={(event) => {
-          event.preventDefault();
-          onConfirm();
-        }}
-      >
-        <label className="industrial-modal-wide">
-          <span>Begründung</span>
-          <textarea
-            value={reason}
-            onChange={(event) => onReasonChange(event.currentTarget.value)}
-            aria-invalid={error ? "true" : undefined}
-            className="industrial-textarea-input"
-          />
-        </label>
-        {error ? (
-          <div className="industrial-message industrial-message-warning industrial-modal-wide" role="alert">
-            {error}
-          </div>
-        ) : null}
-        <FormActions>
-          <GhostButton type="button" onClick={onCancel}>
-            {cancelLabel}
-          </GhostButton>
-          <IndustrialButton type="submit" disabled={!reason.trim()}>
-            {confirmLabel}
-          </IndustrialButton>
-        </FormActions>
-      </form>
     </IndustrialModal>
   );
 }
