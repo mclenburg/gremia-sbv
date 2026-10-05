@@ -52,7 +52,7 @@ export function ComplianceView() {
           {state.workspace === "incidents" && (
             <ComplianceIncidentsPanel
               incidents={state.incidents}
-              onCreate={(input) => void state.createIncident(input)}
+              onCreate={state.createIncident}
               onUpdate={(id, input) => void state.updateIncident(id, input)}
             />
           )}

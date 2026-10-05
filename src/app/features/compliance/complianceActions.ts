@@ -67,10 +67,12 @@ export function createComplianceIncidentActions({ refreshIncidents, refreshSelfC
       await refreshIncidents();
       await refreshSelfCheck();
       onSuccess();
+      return true;
     } catch (error) {
       const info = error instanceof Error ? error.message : failureMessage;
       setMessage(info);
       announce(info, "assertive");
+      return false;
     }
   }
 

@@ -84,8 +84,10 @@ describe('compliance action workflows', () => {
 
   it.each(['create', 'update'] as const)('refreshes incidents and the self check only after confirmed %s', async (mode) => {
     const state = setup();
-    if (mode === 'create') await state.incidents.createIncident(incident);
-    else await state.incidents.updateIncident('incident-1', { status: 'closed', authorityNotificationChecked: true });
+    const saved = mode === 'create'
+      ? await state.incidents.createIncident(incident)
+      : await state.incidents.updateIncident('incident-1', { status: 'closed', authorityNotificationChecked: true });
+    expect(saved).toBe(true);
     if (mode === 'create') expect(state.compliance.createIncident).toHaveBeenCalledExactlyOnceWith(incident);
     else expect(state.compliance.updateIncident).toHaveBeenCalledExactlyOnceWith('incident-1', { status: 'closed', authorityNotificationChecked: true });
     expect(state.refreshIncidents).toHaveBeenCalledOnce();
@@ -98,8 +100,10 @@ describe('compliance action workflows', () => {
     const state = setup();
     state.compliance.createIncident.mockRejectedValue(new Error('Speichern fehlgeschlagen'));
     state.compliance.updateIncident.mockRejectedValue(new Error('Speichern fehlgeschlagen'));
-    if (mode === 'create') await state.incidents.createIncident(incident);
-    else await state.incidents.updateIncident('incident-1', { summary: 'Korrektur' });
+    const saved = mode === 'create'
+      ? await state.incidents.createIncident(incident)
+      : await state.incidents.updateIncident('incident-1', { summary: 'Korrektur' });
+    expect(saved).toBe(false);
     expect(state.refreshIncidents).not.toHaveBeenCalled();
     expect(state.refreshSelfCheck).not.toHaveBeenCalled();
     expect(state.setMessage).toHaveBeenCalledExactlyOnceWith('Speichern fehlgeschlagen');

@@ -13,16 +13,10 @@
     "imports": 35
   },
   "summary": {
-    "filesScanned": 804,
-    "debtFiles": 7
+    "filesScanned": 806,
+    "debtFiles": 6
   },
   "debt": {
-    "src/app/features/compliance/components/ComplianceIncidentsPanel.tsx": {
-      "physicalLines": 270,
-      "codeLines": 264,
-      "maxFunctionLines": 211,
-      "imports": 9
-    },
     "src/app/features/dashboard/DashboardFocusOverview.tsx": {
       "physicalLines": 335,
       "codeLines": 314,
