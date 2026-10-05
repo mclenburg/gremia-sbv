@@ -73,6 +73,30 @@ function person(overrides: Partial<ProtectedPersonRecord> = {}): ProtectedPerson
 
 describe('UI-Fundament Block 4 Verhalten', () => {
 
+  it.each([5, 6])('erhält den ausdrücklich gesetzten zugänglichen Namen bei %s Optionen', (optionCount) => {
+    const { tree } = renderComponent(SelectInput, {
+      label: 'Quelle',
+      'aria-label': 'Quelle der Wissenssuche',
+      value: '',
+      onValueChange: () => undefined,
+      options: Array.from({ length: optionCount }, (_, index) => ({ value: String(index), label: `Quelle ${index + 1}` })),
+    });
+    const control = descendants(tree).find((node) => node.tag === 'select' || node.attrs.role === 'combobox');
+    expect(control?.attrs['aria-label']).toBe('Quelle der Wissenssuche');
+  });
+
+  it.each([5, 6])('erhält die Verknüpfung mit einer externen Beschriftung bei %s Optionen', (optionCount) => {
+    const { tree } = renderComponent(SelectInput, {
+      label: 'Quelle',
+      'aria-labelledby': 'external-source-label',
+      value: '',
+      onValueChange: () => undefined,
+      options: Array.from({ length: optionCount }, (_, index) => ({ value: String(index), label: `Quelle ${index + 1}` })),
+    });
+    const control = descendants(tree).find((node) => node.tag === 'select' || node.attrs.role === 'combobox');
+    expect(control?.attrs['aria-labelledby']).toBe('external-source-label');
+  });
+
   it('macht Auswahlen mit mehr als fünf Optionen automatisch filterbar', () => {
     const { tree } = renderComponent(SelectInput, {
       label: 'Vorgang auswählen',
