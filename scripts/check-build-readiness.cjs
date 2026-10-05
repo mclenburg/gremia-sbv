@@ -252,9 +252,13 @@ function main() {
   console.log(`Build-Readiness OK: ${pkg.name}@${pkg.version}, Schema ${extractSchemaVersion()}.`);
 }
 
-try {
-  main();
-} catch (error) {
-  console.error(error instanceof Error ? error.message : String(error));
-  process.exit(1);
+if (require.main === module) {
+  try {
+    main();
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  }
 }
+
+module.exports = { validateElectronBuilderConfiguration, validateRuntimeDependencyBoundaries };
