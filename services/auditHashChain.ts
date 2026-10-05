@@ -88,12 +88,16 @@ export function sanitizeAuditActor(actor: string): string {
 }
 
 const AUDIT_SAFE_METADATA_TEXT_PATTERN = /^[\p{Letter}\p{Number}:_.\/ -]{1,180}$/u;
+const AUDIT_CORRELATION_UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-function normalizeAllowedAuditMetadataValue(value: unknown): string | number | boolean | null {
+function normalizeAllowedAuditMetadataValue(value: unknown, key: string): string | number | boolean | null {
   if (value == null) return null;
   if (value instanceof Date) return value.toISOString();
   if (typeof value === 'string') {
     const text = value.trim();
+    // UUID segments can contain long digit sequences without identifying a person.
+    // Keep this exception restricted to the allowlisted technical correlation field.
+    if (key === 'correlationId' && AUDIT_CORRELATION_UUID_PATTERN.test(text)) return text;
     if (DIRECT_IDENTIFIER_PATTERNS.some((pattern) => pattern.test(text))) return null;
     return AUDIT_SAFE_METADATA_TEXT_PATTERN.test(text) ? text : null;
   }
@@ -106,7 +110,7 @@ export function normalizeAuditMetadata(metadata?: Record<string, unknown>, subje
   const allowedMetadataFields = allowedAuditMetadataFields(subjectType);
   for (const [key, value] of Object.entries(metadata ?? {})) {
     if (!allowedMetadataFields.has(key)) continue;
-    const safeValue = normalizeAllowedAuditMetadataValue(value);
+    const safeValue = normalizeAllowedAuditMetadataValue(value, key);
     if (safeValue !== null) normalized[key] = safeValue;
   }
   return stableStringify(normalized);
