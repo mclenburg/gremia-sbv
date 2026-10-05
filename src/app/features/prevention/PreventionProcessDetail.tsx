@@ -3,10 +3,8 @@ import type {
   PreventionProcessRecord,
   PreventionRiskType,
   PreventionStatus,
-  UpdatePreventionProcessInput,
 } from "../../../domain/models/prevention.model";
 import {
-  DeferredDateTimeInput,
   DeferredTextareaInput,
   SelectInput,
 } from "../../shared/components/IndustrialForm";
@@ -14,11 +12,8 @@ import {
   ProcessDetailHeader,
   ProcessSection,
 } from "../../shared/process/ProcessDetailHeader";
-import type { CaseProcessType } from "../cases/caseWorkbenchTypes";
 import {
-  fromDateTimeLocalValue,
   processTypeLabel,
-  toDateTimeLocalValue,
 } from "../cases/caseWorkbenchFormat";
 import { preventionStatusOrder, statusLabel } from "./preventionShared";
 import { ActivityJournalContextButton } from "../activity-journal/components/ActivityJournalContextButton";
@@ -60,61 +55,17 @@ const personStatusOptions: {
   { value: "antrag_laeuft", label: "Antrag läuft" },
 ];
 
-function preventionStatusReached(
-  current: PreventionStatus,
-  minimum: PreventionStatus,
-): boolean {
-  return (
-    preventionStatusOrder.indexOf(current) >=
-    preventionStatusOrder.indexOf(minimum)
-  );
-}
-
-function canShowEmployerReactionSection(status: PreventionStatus): boolean {
-  return preventionStatusReached(status, "arbeitgeber_reagiert");
-}
-
-function canShowMeasureClarificationSection(status: PreventionStatus): boolean {
-  return (
-    preventionStatusReached(status, "massnahmen_in_klaerung") ||
-    status === "blockiert_verweigert"
-  );
-}
-
-function canShowResultSection(status: PreventionStatus): boolean {
-  return status === "abgeschlossen" || status === "blockiert_verweigert";
-}
-
-function normalizeDateTime(value: string): string | undefined {
-  return value ? fromDateTimeLocalValue(value) : undefined;
-}
+import { PreventionFollowUpSections, type PreventionProcessEditorProps } from "./PreventionFollowUpSections";
 
 export function PreventionProcessDetail({
-  processType,
   process,
   onUpdate,
   onOpenTemplates,
 }: {
-  processType: CaseProcessType;
   process?: PreventionProcessRecord;
-  onUpdate: (
-    processId: string,
-    input: UpdatePreventionProcessInput,
-  ) => void | Promise<void>;
+  onUpdate: PreventionProcessEditorProps["onUpdate"];
   onOpenTemplates: (process: PreventionProcessRecord) => void | Promise<void>;
 }) {
-  if (processType !== "prevention") {
-    return (
-      <article className="case-detail-content">
-        <p className="industrial-meta">
-          Dieses Fachmodul ist noch nicht vollständig umgesetzt. Die Maßnahme
-          wurde als fallbezogene Notiz vorgemerkt und erscheint in der
-          Fallhistorie.
-        </p>
-      </article>
-    );
-  }
-
   if (!process) {
     return (
       <article className="case-detail-content">
@@ -127,7 +78,7 @@ export function PreventionProcessDetail({
     <article className="case-detail-content">
       <div className="case-detail-inline-form">
         <ProcessDetailHeader
-          title={processTypeLabel(processType)}
+          title={processTypeLabel("prevention")}
           description="Prävention setzt vor dem BEM an: erkennbare Gefährdung, unverzügliche Beteiligung, konkrete Maßnahmenklärung."
           documentAction={() => void onOpenTemplates(process)}
           actions={
@@ -219,87 +170,7 @@ export function PreventionProcessDetail({
             />
           </ProcessSection>
 
-          {preventionStatusReached(process.status, "angefordert") && (
-            <ProcessSection
-              title="2. Anforderung an den Arbeitgeber"
-              objective="Frist und Anforderung müssen nachvollziehbar dokumentiert sein."
-              announceOnMount="Abschnitt Anforderung an den Arbeitgeber wurde eingeblendet."
-            >
-              <div className="industrial-form-grid">
-                <DeferredDateTimeInput
-                  label="Arbeitgeber angefordert am"
-                  value={toDateTimeLocalValue(process.requestedAt)}
-                  onCommit={(value) =>
-                    onUpdate(process.id, {
-                      requestedAt: normalizeDateTime(value),
-                    })
-                  }
-                />
-                <DeferredDateTimeInput
-                  label="Frist Arbeitgeberreaktion"
-                  value={toDateTimeLocalValue(process.employerResponseDueAt)}
-                  onCommit={(value) =>
-                    onUpdate(process.id, {
-                      employerResponseDueAt: normalizeDateTime(value),
-                    })
-                  }
-                />
-              </div>
-            </ProcessSection>
-          )}
-
-          {canShowEmployerReactionSection(process.status) && (
-            <ProcessSection
-              title="3. Reaktion des Arbeitgebers"
-              objective="Hier gehört der Stand der Arbeitgeberseite hin, nicht die gesundheitliche Bewertung der betroffenen Person."
-              announceOnMount="Abschnitt Reaktion des Arbeitgebers wurde eingeblendet."
-            >
-              <DeferredTextareaInput
-                label="Arbeitgeberreaktion / Stand"
-                value={process.employerRequestSummary ?? ""}
-                textCommandFieldId="prevention-employer-reaction"
-                onCommit={(value) =>
-                  onUpdate(process.id, { employerRequestSummary: value })
-                }
-                wide
-              />
-            </ProcessSection>
-          )}
-
-          {canShowMeasureClarificationSection(process.status) && (
-            <ProcessSection
-              title="4. Maßnahmenklärung und Umsetzung"
-              objective="Maßnahmen brauchen Verantwortlichkeit, Timing und spätere Wirksamkeitsprüfung."
-              announceOnMount="Abschnitt Maßnahmenklärung und Umsetzung wurde eingeblendet."
-            >
-              {/* DeferredTextareaInput keeps the historic blur-save contract:
-                  defaultValue={process.measures ?? ''}
-                  onBlur={(event) => void onUpdate(process.id, { measures: event.currentTarget.value })} */}
-              <DeferredTextareaInput
-                label="Maßnahmen"
-                value={process.measures ?? ""}
-                textCommandFieldId="prevention-measures"
-                onCommit={(value) => onUpdate(process.id, { measures: value })}
-                wide
-              />
-            </ProcessSection>
-          )}
-
-          {canShowResultSection(process.status) && (
-            <ProcessSection
-              title="5. Ergebnis / Abschluss"
-              objective="Blockade und Abschluss getrennt und prüffähig festhalten."
-              announceOnMount="Abschnitt Ergebnis und Abschluss wurde eingeblendet."
-            >
-              <DeferredTextareaInput
-                label="Ergebnis / Abschluss"
-                value={process.result ?? ""}
-                textCommandFieldId="prevention-result"
-                onCommit={(value) => onUpdate(process.id, { result: value })}
-                wide
-              />
-            </ProcessSection>
-          )}
+          <PreventionFollowUpSections process={process} onUpdate={onUpdate} />
         </div>
       </div>
     </article>

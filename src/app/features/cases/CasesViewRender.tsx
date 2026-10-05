@@ -80,7 +80,7 @@ function PrimaryProcessContent({ props }: { props: CasesViewRenderProps }) {
     updateCasePreventionProcess, updateCaseBemProcess, updateCaseTerminationProcess, openProcessTemplateModal } = props;
   if (selection.type !== "process") return null;
   if (selection.processType === "prevention") return <>
-    <PreventionProcessDetail processType={selection.processType} process={selectedPreventionProcess}
+    <PreventionProcessDetail process={selectedPreventionProcess}
       onUpdate={updateCasePreventionProcess} onOpenTemplates={openProcessTemplateModal} />
     {selectedPreventionProcess && selectedCase && <MeasureNotesPanel caseId={selectedCase.id} measureType="prevention"
       measureId={selectedPreventionProcess.id} measureTitle="Präventionsverfahren" />}
