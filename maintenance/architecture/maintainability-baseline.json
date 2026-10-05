@@ -13,16 +13,10 @@
     "imports": 35
   },
   "summary": {
-    "filesScanned": 791,
-    "debtFiles": 15
+    "filesScanned": 793,
+    "debtFiles": 14
   },
   "debt": {
-    "src/app/features/activity-journal/hooks/useActivityJournal.ts": {
-      "physicalLines": 258,
-      "codeLines": 241,
-      "maxFunctionLines": 167,
-      "imports": 5
-    },
     "src/app/features/auth/AuthRecoveryViews.tsx": {
       "physicalLines": 302,
       "codeLines": 284,
