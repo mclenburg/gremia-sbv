@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "movedTests": 234,
+  "movedTests": 233,
   "entries": [
     {
       "from": "tests/accessibilityKnowledgeSelectP15o.test.ts",
@@ -905,10 +905,6 @@
     {
       "from": "tests/uiFoundation092Block1.test.ts",
       "to": "tests/ui/uiFoundationTokensAndForms.test.ts"
-    },
-    {
-      "from": "tests/uiFoundation092Block2.test.ts",
-      "to": "tests/ui/uiFoundationStyleOrder.test.ts"
     },
     {
       "from": "tests/uiFoundation092Block3.test.ts",

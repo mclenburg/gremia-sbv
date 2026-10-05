@@ -114,8 +114,7 @@
   }
 
   .industrial-card,
-  .industrial-deadline-card,
-  .industrial-dashboard-card {
+  .industrial-deadline-card {
     min-height: auto;
   }
 
