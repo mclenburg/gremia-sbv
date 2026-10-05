@@ -1,16 +1,6 @@
 import type { UpdateWorkplaceAccommodationInput, WorkplaceAccommodationRecord } from '../../../domain/models/workplace-accommodation.model';
 import { DeferredDateTimeInput, DeferredTextInput, DeferredTextareaInput } from '../../shared/components/IndustrialForm';
-
-function toDateTimeLocal(iso?: string): string {
-  if (!iso) return '';
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '';
-  return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
-}
-
-function fromDateTimeLocal(value: string): string | undefined {
-  return value ? new Date(value).toISOString() : undefined;
-}
+import { fromDateTimeLocal, toDateTimeLocal } from '../../shared/format/dates';
 
 export function WorkplaceAccommodationFundingSection({ process, onUpdate }: {
   process: WorkplaceAccommodationRecord;
