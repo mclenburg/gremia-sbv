@@ -1,19 +1,28 @@
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import vitestConfig from '../../vitest.config';
 
-describe('service coverage configuration', () => {
-  it('uses v8 coverage and gates RC-critical service contracts at 70 percent', () => {
-    const config = readFileSync('vitest.config.ts', 'utf8');
+describe('Coverage für kritische Services', () => {
+  it('wendet v8-Coverage mit den RC-Grenzwerten auf die kritischen Services an', () => {
+    const coverage = vitestConfig.test?.coverage;
 
-    expect(config).toContain("provider: 'v8'");
-    expect(config).toContain('const rcCriticalServiceCoverage');
-    expect(config).toContain("'services/securityService.ts'");
-    expect(config).toContain("'services/security/**/*.ts'");
-    expect(config).toContain("'services/backupService.ts'");
-    expect(config).toContain("'services/terminationWorkflowPolicy.ts'");
-    expect(config).toContain('branches: 70');
-    expect(config).toContain('functions: 70');
-    expect(config).toContain('lines: 70');
-    expect(config).toContain('statements: 70');
+    expect(coverage).toMatchObject({
+      provider: 'v8',
+      thresholds: {
+        branches: 70,
+        functions: 70,
+        lines: 70,
+        statements: 70,
+      },
+      include: expect.arrayContaining([
+        'services/securityService.ts',
+        'services/security/**/*.ts',
+        'services/backupService.ts',
+        'services/terminationWorkflowPolicy.ts',
+        'services/preventionWorkflowPolicy.ts',
+        'services/retentionPolicy.ts',
+      ]),
+    });
+    expect(coverage?.include).not.toContain('services/**/*.ts');
+    expect(coverage?.include).not.toContain('services/caseService.ts');
   });
 });

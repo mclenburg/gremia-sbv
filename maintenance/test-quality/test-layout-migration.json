@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "movedTests": 237,
+  "movedTests": 235,
   "entries": [
     {
       "from": "tests/accessibilityKnowledgeSelectP15o.test.ts",
@@ -783,10 +783,6 @@
       "to": "tests/architecture/serviceCoverageConfig.test.ts"
     },
     {
-      "from": "tests/serviceCoverageScope0813m.test.ts",
-      "to": "tests/architecture/serviceCoverageScope.test.ts"
-    },
-    {
       "from": "tests/sessionLockViewPersistence095z.test.ts",
       "to": "tests/security/vault/sessionLockViewPersistence.test.ts"
     },
@@ -929,10 +925,6 @@
     {
       "from": "tests/unifiedActivityReportCleanup095.test.ts",
       "to": "tests/features/reports/unifiedActivityReportCleanup.test.ts"
-    },
-    {
-      "from": "tests/unitCoverageGate0813d.test.ts",
-      "to": "tests/architecture/unitCoverageGate.test.ts"
     },
     {
       "from": "tests/unlockDelay089.test.ts",
