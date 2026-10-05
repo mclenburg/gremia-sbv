@@ -1,0 +1,51 @@
+import { test, expect } from './support/isolatedTest';
+
+test('behält fehlerhafte Recovery-Entwürfe und entsperrt erst nach erfolgreichem Zurücksetzen', async ({ page }) => {
+  await page.goto('/?auth=recovery-required');
+  await expect(page.getByRole('heading', { name: 'Wiederherstellung erforderlich', exact: true })).toBeVisible();
+  const key = page.getByLabel('Recovery-Key', { exact: true });
+  const password = page.getByLabel('Neues Passwort', { exact: true });
+  const repeat = page.getByLabel('Wiederholung neues Passwort', { exact: true });
+  await key.fill('falscher-synthetischer-key');
+  await password.fill('zu-kurz');
+  await repeat.fill('zu-kurz');
+  await repeat.press('Enter');
+  await expect(page.getByRole('alert')).toContainText('mindestens 12 Zeichen');
+  await password.fill('neues-langes-passwort');
+  await repeat.fill('anderes-lang-passwort');
+  await repeat.press('Enter');
+  await expect(page.getByRole('alert')).toContainText('stimmen nicht überein');
+  await repeat.fill('neues-langes-passwort');
+  await repeat.press('Enter');
+  await expect(page.getByRole('alert')).toContainText('Recovery-Key ist ungültig');
+  await expect(key).toHaveValue('falscher-synthetischer-key');
+  await expect(password).toHaveValue('neues-langes-passwort');
+  await expect(repeat).toHaveValue('neues-langes-passwort');
+  await expect(page.getByRole('navigation', { name: 'Hauptnavigation' })).toHaveCount(0);
+  await key.fill('ABCD-EFGH-IJKL-MNOP');
+  await repeat.press('Enter');
+  await expect(page.getByRole('navigation', { name: 'Hauptnavigation' })).toBeVisible();
+  await expect(key).toHaveCount(0);
+});
+
+test('erfordert geöffneten Löschbereich und ausdrückliche Bestätigung vor neuer Einrichtung', async ({ page }) => {
+  await page.goto('/?auth=recovery-required');
+  const destroy = page.getByRole('button', { name: 'Lokalen Datenbestand unwiderruflich löschen', exact: true });
+  const confirmation = page.getByLabel('Bestätigung Datenbestand löschen', { exact: true });
+  await expect(destroy).toHaveCount(0);
+  await expect(confirmation).toHaveCount(0);
+  const open = page.getByRole('button', { name: 'Löschbereich bewusst öffnen', exact: true });
+  await open.focus();
+  await open.press('Enter');
+  await expect(confirmation).toBeVisible();
+  await destroy.focus();
+  await destroy.press('Enter');
+  await expect(page.getByRole('alert')).toContainText('Bestätigung fehlt');
+  await expect(page.getByLabel('Initialpasswort', { exact: true })).toHaveCount(0);
+  await confirmation.fill('DATENBESTAND LÖSCHEN');
+  await destroy.focus();
+  await destroy.press('Enter');
+  await expect(page.getByLabel('Initialpasswort', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Initialpasswort wiederholen', { exact: true })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Hauptnavigation' })).toHaveCount(0);
+});

@@ -1,4 +1,4 @@
-import { recordRendererDiagnostic, waitForBridge } from "../../core/bridge/waitForBridge";
+import { runAuthSecurityOperation } from "./authSecurityOperation";
 import { validateAppPassword } from "../../../domain/security/passwordPolicy";
 
 interface LoginPasswordSubmission {
@@ -26,17 +26,9 @@ export async function submitLoginPassword({
     return;
   }
 
-  try {
-    const bridge = await waitForBridge();
-    if (!bridge?.security) {
-      setError(
-        "Die interne Sicherheitsbrücke ist nicht geladen. Bitte Anwendung neu starten.",
-      );
-      return;
-    }
-
+  await runAuthSecurityOperation(setError, "Sicherheitsoperation konnte nicht verarbeitet werden.", async (security) => {
     if (isSetup) {
-      const result = await bridge.security.setupInitialPassword(password);
+      const result = await security.setupInitialPassword(password);
       if (!result.ok) {
         setError(
           result.error ??
@@ -52,16 +44,11 @@ export async function submitLoginPassword({
       return;
     }
 
-    const result = await bridge.security.unlock(password);
+    const result = await security.unlock(password);
     if (!result.ok || !result.unlocked) {
       setError(result.error ?? "Entsperren fehlgeschlagen.");
       return;
     }
     onUnlock(result.warning);
-  } catch (error) {
-    recordRendererDiagnostic("error", "Sicherheitsoperation konnte nicht verarbeitet werden.", error);
-    setError(
-      "Der Sicherheitsdienst konnte die Anfrage nicht verarbeiten. Bitte Anwendung neu starten.",
-    );
-  }
+  });
 }
