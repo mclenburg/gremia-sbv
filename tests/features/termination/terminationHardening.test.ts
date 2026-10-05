@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { TerminationProcessDetail } from '../../../src/app/features/termination/TerminationProcessDetail';
 import type { TerminationHearingRecord } from '../../../src/domain/models/termination.model';
 import { evaluateTerminationWarnings, suggestedStatementDueAt } from '../../../services/terminationWorkflowPolicy';
@@ -20,6 +20,37 @@ function process(overrides: Partial<TerminationHearingRecord> = {}): Termination
 }
 
 describe('0.7.2 Kündigungsanhörung fachliche Härtung', () => {
+  it.each([
+    { receivedAt: undefined },
+    { receivedAt: 'ungueltig' },
+    { sbvStatementDueAt: '2031-05-12T08:00:00.000Z' },
+  ])('bietet ohne gültigen Eingang oder bei gespeicherter Frist keine neue Frist an: %j', (overrides) => {
+    const onUpdate = vi.fn(async () => undefined);
+    const { markup } = renderComponent(TerminationProcessDetail, { process: process(overrides), onUpdate });
+    expect(visibleText(markup)).not.toContain('Frist vorschlagen:');
+    expect(onUpdate).not.toHaveBeenCalled();
+  });
+
+  it('zeigt gespeicherte Stellungnahmedaten mit eindeutig verbundenen Eingabelabels ohne Änderung', () => {
+    const onUpdate = vi.fn(async () => undefined);
+    const { markup, tree } = renderComponent(TerminationProcessDetail, {
+      process: process({ employerReason: 'Synthetischer Vortrag', missingInformation: 'Synthetische Nachforderung',
+        sbvAssessment: 'Synthetische Bewertung', statement: 'Synthetische Stellungnahme', integrationOfficeDecision: 'Synthetische Entscheidung' }),
+      onUpdate,
+    });
+    const nodes = descendants(tree);
+    const fields = nodes.filter((node) => node.tag === 'textarea');
+    expect(fields).toHaveLength(5);
+    for (const field of fields) {
+      expect(field.attrs.id).toBeTruthy();
+      expect(nodes.filter((node) => node.tag === 'label' && node.attrs.for === field.attrs.id)).toHaveLength(1);
+    }
+    for (const value of ['Synthetischer Vortrag', 'Synthetische Nachforderung', 'Synthetische Bewertung', 'Synthetische Stellungnahme', 'Synthetische Entscheidung']) {
+      expect(visibleText(markup)).toContain(value);
+    }
+    expect(onUpdate).not.toHaveBeenCalled();
+  });
+
   it('berechnet Fristvorschläge fachlich nach Kündigungsart', () => {
     expect(suggestedStatementDueAt('2026-05-01T08:00:00.000Z', 'ordentlich')).toBe('2026-05-08T08:00:00.000Z');
     expect(suggestedStatementDueAt('2026-05-01T08:00:00.000Z', 'ausserordentlich')).toBe('2026-05-04T08:00:00.000Z');
