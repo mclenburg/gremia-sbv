@@ -14,7 +14,7 @@
   },
   "summary": {
     "filesScanned": 786,
-    "debtFiles": 24
+    "debtFiles": 23
   },
   "debt": {
     "src/app/features/activity-journal/hooks/useActivityJournal.ts": {
@@ -106,12 +106,6 @@
       "codeLines": 175,
       "maxFunctionLines": 152,
       "imports": 6
-    },
-    "src/app/features/persons/PersonLifecycleReviewDialog.tsx": {
-      "physicalLines": 213,
-      "codeLines": 208,
-      "maxFunctionLines": 161,
-      "imports": 5
     },
     "src/app/features/prevention/PreventionProcessDetail.tsx": {
       "physicalLines": 308,

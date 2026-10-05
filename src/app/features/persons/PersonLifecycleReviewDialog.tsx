@@ -23,6 +23,8 @@ const priorityLabels: Record<string, string> = {
   low: 'niedrig'
 };
 
+const reviewDescription = 'Entscheiden Sie pro Fallakte, ob der Status aktualisiert, die Fortspeicherung begründet, anonymisiert, gelöscht oder später erneut geprüft wird.';
+
 function InlineAnonymizationHelp() {
   return (
     <IndustrialHelpButton
@@ -30,6 +32,97 @@ function InlineAnonymizationHelp() {
       label="Hilfe zur Anonymisierung vormerkter Freitexte öffnen"
       compact
     />
+  );
+}
+
+type ReviewAction = 'retention' | 'later' | 'clear' | 'anonymize_marked' | 'anonymize_all' | 'delete';
+
+function PersonStatusContext({ person }: { person: ProtectedPersonRecord }) {
+  return (
+    <dl className="person-detail-grid privacy-context-grid">
+      <div><dt>Personenstatus</dt><dd>{protectionStatusLabels[person.protectionStatus]}</dd></div>
+      <div><dt>Status gültig bis</dt><dd>{person.statusValidUntil ?? '—'}</dd></div>
+      <div><dt>Beschäftigung</dt><dd>{employmentStateLabels[person.employmentState]}</dd></div>
+      <div><dt>Beschäftigungsende</dt><dd>{person.leftCompanyAt ?? '—'}</dd></div>
+    </dl>
+  );
+}
+
+function ReviewCaseContext({ review }: { review: PrivacyReviewItemRecord }) {
+  return (
+    <dl className="person-detail-grid privacy-context-grid">
+      <div><dt>Fallstatus</dt><dd>{review.context.caseFile?.status ?? '—'}</dd></div>
+      <div><dt>Offene Fristen</dt><dd>{review.context.openDeadlineCount}</dd></div>
+      <div><dt>Laufende Maßnahmen</dt><dd>{review.context.runningMeasureCount}</dd></div>
+      <div><dt>Letzte Aktivität</dt><dd>{review.context.lastActivityAt ?? '—'}</dd></div>
+      <div><dt>Dokumente</dt><dd>{review.context.linkedDocumentCount}</dd></div>
+      <div><dt>Freitextprüfung</dt><dd>{review.freeTextReviewRequired ? 'erforderlich' : 'nicht markiert'}</dd></div>
+    </dl>
+  );
+}
+
+function ReviewCaseSelector({ reviews, selectedCaseId, onSelectCase }: {
+  reviews: PrivacyReviewItemRecord[];
+  selectedCaseId: string;
+  onSelectCase: (caseId: string) => void;
+}) {
+  return (
+    <SelectInput
+      label="Prüfpflichtige Fallakte"
+      value={selectedCaseId}
+      onValueChange={onSelectCase}
+      options={reviews.map((review) => ({
+        value: review.caseId,
+        label: `${review.context.caseFile?.caseNumber ?? review.caseId} · ${reasonLabels[review.reason] ?? review.reason} · Priorität ${priorityLabels[review.priority] ?? review.priority}`,
+      }))}
+      required
+    />
+  );
+}
+
+function ReviewActionInputs({ action, onActionChange, reason, onReasonChange, reviewAt, onReviewAtChange, confirmation, onConfirmationChange, formErrorId, hasError }: {
+  action: ReviewAction;
+  onActionChange: (action: ReviewAction) => void;
+  reason: string;
+  onReasonChange: (reason: string) => void;
+  reviewAt: string;
+  onReviewAtChange: (reviewAt: string) => void;
+  confirmation: string;
+  onConfirmationChange: (confirmation: string) => void;
+  formErrorId: string;
+  hasError: boolean;
+}) {
+  const destructive = action === 'anonymize_marked' || action === 'anonymize_all' || action === 'delete';
+  return (
+    <>
+      <SelectInput
+        label="Aktion"
+        value={action}
+        onValueChange={(value) => onActionChange(value as ReviewAction)}
+        options={[
+          { value: 'retention', label: 'Fortspeicherung begründen' },
+          { value: 'later', label: 'später erneut prüfen' },
+          { value: 'clear', label: 'Prüfung abschließen / Status aktualisiert' },
+          { value: 'anonymize_marked', label: 'Fallakte anonymisieren · nur vorgemerkte Freitexte' },
+          { value: 'anonymize_all', label: 'Fallakte anonymisieren · alle Freitexte ersetzen' },
+          { value: 'delete', label: 'Fallakte löschen' },
+        ]}
+        required
+      />
+      <TextareaInput label="Grund / Prüfbemerkung" value={reason} onValueChange={onReasonChange} aria-describedby={hasError ? formErrorId : undefined} required />
+      {(action === 'retention' || action === 'later') && (
+        <DateInput label="Erneut prüfen am" value={reviewAt} onValueChange={onReviewAtChange} aria-describedby={hasError ? formErrorId : undefined} required />
+      )}
+      {action === 'anonymize_marked' ? <p className="industrial-message industrial-message-warning" role="note">Nicht vorgemerkte personenbezogene Angaben in Freitexten bleiben erhalten und müssen anschließend manuell geprüft werden. Beteiligtenfelder und Personen-/Kontaktverknüpfungen werden immer entfernt.</p> : null}
+      {destructive && (
+        <>
+          <p className="industrial-message industrial-message-info" data-e2e="audit-log-retention-notice">
+            {AUDIT_LOG_RETENTION_NOTICE}
+          </p>
+          <TextInput label="Bestätigung" value={confirmation} onValueChange={onConfirmationChange} placeholder={action === 'delete' ? 'FALL LÖSCHEN' : 'FALL ANONYMISIEREN'} aria-describedby={hasError ? formErrorId : undefined} required />
+        </>
+      )}
+    </>
   );
 }
 
@@ -65,7 +158,7 @@ export function PersonLifecycleReviewDialog({
   onError
 }: PersonLifecycleReviewDialogProps) {
   const [selectedCaseId, setSelectedCaseId] = useState('');
-  const [action, setAction] = useState<'retention' | 'later' | 'clear' | 'anonymize_marked' | 'anonymize_all' | 'delete'>('retention');
+  const [action, setAction] = useState<ReviewAction>('retention');
   const [reason, setReason] = useState('');
   const [reviewAt, setReviewAt] = useState('');
   const [confirmation, setConfirmation] = useState('');
@@ -129,75 +222,29 @@ export function PersonLifecycleReviewDialog({
         <IndustrialModal
           title="Prüfung bei Zweckfortfall"
           kicker="Datenschutz-Lifecycle"
-          description="Entscheiden Sie pro Fallakte, ob der Status aktualisiert, die Fortspeicherung begründet, anonymisiert, gelöscht oder später erneut geprüft wird."
+          description={reviewDescription}
           className="person-privacy-review-dialog"
           onClose={onClose}
           dataE2e="privacy-review-dialog"
           actions={<IndustrialButton type="button" variant="secondary" onClick={onClose}>Schließen</IndustrialButton>}
         >
             <div className="industrial-muted person-lifecycle-review-summary">
-              <p>Entscheiden Sie pro Fallakte, ob der Status aktualisiert, die Fortspeicherung begründet, anonymisiert, gelöscht oder später erneut geprüft wird.</p>
+              <p>{reviewDescription}</p>
               <InlineAnonymizationHelp />
             </div>
 
-            <dl className="person-detail-grid privacy-context-grid">
-              <div><dt>Personenstatus</dt><dd>{protectionStatusLabels[person.protectionStatus]}</dd></div>
-              <div><dt>Status gültig bis</dt><dd>{person.statusValidUntil ?? '—'}</dd></div>
-              <div><dt>Beschäftigung</dt><dd>{employmentStateLabels[person.employmentState]}</dd></div>
-              <div><dt>Beschäftigungsende</dt><dd>{person.leftCompanyAt ?? '—'}</dd></div>
-            </dl>
+            <PersonStatusContext person={person} />
 
             {loading && <p className="industrial-muted">Datenschutzprüfungen werden geladen …</p>}
             {!loading && !reviews.length && <p className="industrial-message">Aktuell liegen keine offenen Datenschutzprüfungen zu dieser Person vor.</p>}
 
             {!!reviews.length && (
               <form className="privacy-review-form" onSubmit={submitAction}>
-                <SelectInput
-                  label="Prüfpflichtige Fallakte"
-                  value={selectedReview?.caseId ?? ''}
-                  onValueChange={setSelectedCaseId}
-                  options={reviews.map((review) => ({
-                    value: review.caseId,
-                    label: `${review.context.caseFile?.caseNumber ?? review.caseId} · ${reasonLabels[review.reason] ?? review.reason} · Priorität ${priorityLabels[review.priority] ?? review.priority}`,
-                  }))}
-                  required
-                />
+                <ReviewCaseSelector reviews={reviews} selectedCaseId={selectedReview?.caseId ?? ''} onSelectCase={setSelectedCaseId} />
 
-                {selectedReview && (
-                  <dl className="person-detail-grid privacy-context-grid">
-                    <div><dt>Fallstatus</dt><dd>{selectedReview.context.caseFile?.status ?? '—'}</dd></div>
-                    <div><dt>Offene Fristen</dt><dd>{selectedReview.context.openDeadlineCount}</dd></div>
-                    <div><dt>Laufende Maßnahmen</dt><dd>{selectedReview.context.runningMeasureCount}</dd></div>
-                    <div><dt>Letzte Aktivität</dt><dd>{selectedReview.context.lastActivityAt ?? '—'}</dd></div>
-                    <div><dt>Dokumente</dt><dd>{selectedReview.context.linkedDocumentCount}</dd></div>
-                    <div><dt>Freitextprüfung</dt><dd>{selectedReview.freeTextReviewRequired ? 'erforderlich' : 'nicht markiert'}</dd></div>
-                  </dl>
-                )}
+                {selectedReview && <ReviewCaseContext review={selectedReview} />}
 
-                <label>
-                  <span>Aktion</span>
-                  <select className="industrial-select" value={action} onChange={(event) => setAction(event.target.value as typeof action)} required>
-                    <option value="retention">Fortspeicherung begründen</option>
-                    <option value="later">später erneut prüfen</option>
-                    <option value="clear">Prüfung abschließen / Status aktualisiert</option>
-                    <option value="anonymize_marked">Fallakte anonymisieren · nur vorgemerkte Freitexte</option>
-                    <option value="anonymize_all">Fallakte anonymisieren · alle Freitexte ersetzen</option>
-                    <option value="delete">Fallakte löschen</option>
-                  </select>
-                </label>
-                <TextareaInput label="Grund / Prüfbemerkung" value={reason} onValueChange={setReason} aria-describedby={formError ? formErrorId : undefined} required />
-                {(action === 'retention' || action === 'later') && (
-                  <DateInput label="Erneut prüfen am" value={reviewAt} onValueChange={setReviewAt} aria-describedby={formError ? formErrorId : undefined} required />
-                )}
-                {action === 'anonymize_marked' ? <p className="industrial-message industrial-message-warning" role="note">Nicht vorgemerkte personenbezogene Angaben in Freitexten bleiben erhalten und müssen anschließend manuell geprüft werden. Beteiligtenfelder und Personen-/Kontaktverknüpfungen werden immer entfernt.</p> : null}
-                {(action === 'anonymize_marked' || action === 'anonymize_all' || action === 'delete') && (
-                  <>
-                    <p className="industrial-message industrial-message-info" data-e2e="audit-log-retention-notice">
-                      {AUDIT_LOG_RETENTION_NOTICE}
-                    </p>
-                    <TextInput label="Bestätigung" value={confirmation} onValueChange={setConfirmation} placeholder={action === 'anonymize_marked' || action === 'anonymize_all' ? 'FALL ANONYMISIEREN' : 'FALL LÖSCHEN'} aria-describedby={formError ? formErrorId : undefined} required />
-                  </>
-                )}
+                <ReviewActionInputs action={action} onActionChange={setAction} reason={reason} onReasonChange={setReason} reviewAt={reviewAt} onReviewAtChange={setReviewAt} confirmation={confirmation} onConfirmationChange={setConfirmation} formErrorId={formErrorId} hasError={!!formError} />
                 {formError && <p id={formErrorId} className="industrial-message industrial-message-warning" role="alert">{formError}</p>}
                 <FormActions align="start" className="person-toolbar compact">
                   <IndustrialButton type="submit">Aktion dokumentieren</IndustrialButton>
