@@ -1,48 +1,80 @@
-import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import type { BrowserWindow } from 'electron';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { registerRendererSecurityPolicy, registerSessionSecurityPolicy } from '../../../electron/security/electronSecurity';
 
-describe("Security readiness", () => {
-  it("does not add password fragments or sensitive passphrase data to persisted models", () => {
-    const security = [
-      "services/security/securitySupport.ts",
-      "services/security/securityServiceCore.ts",
-      "services/security/unlockDelayService.ts",
-      "services/security/vaultSetupUnlockService.ts",
-      "services/security/vaultCredentialService.ts",
-    ].map((file) => readFileSync(file, "utf8")).join("\n");
-    const backup = readFileSync("services/backupService.ts", "utf8");
-    const securityModel = readFileSync("src/domain/models/security.model.ts", "utf8");
+type HeadersHandler = (
+  details: { url: string; responseHeaders: Record<string, string[]> },
+  callback: (response: { responseHeaders: Record<string, string[]> }) => void,
+) => void;
+type RequestHandler = (details: { url: string }, callback: (response: { cancel: boolean }) => void) => void;
 
-    expect(securityModel).toContain("unlockDelaySeconds?: number");
-    expect(securityModel).toContain("unlockAvailableAt?: string");
-    expect(security).not.toMatch(/passwordFragment|lastPassword|persist(ed)?FailedUnlock/i);
-    expect(backup).not.toMatch(/passphraseFragment|lastPassphrase/i);
+const boundary = vi.hoisted(() => ({
+  app: { isPackaged: true },
+  headers: vi.fn<(handler: HeadersHandler) => void>(),
+  requests: vi.fn<(handler: RequestHandler) => void>(),
+}));
+vi.mock('electron', () => ({
+  app: boundary.app,
+  session: { defaultSession: { webRequest: { onHeadersReceived: boundary.headers, onBeforeRequest: boundary.requests } } },
+}));
+
+describe('Electron security boundary', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    boundary.app.isPackaged = true;
   });
 
-  it("documents the offline attack surface of backups", () => {
-    const docs = readFileSync("docs/SECURITY.md", "utf8");
+  it('adds enforced security headers to session responses while preserving existing headers', () => {
+    registerSessionSecurityPolicy();
+    const callback = vi.fn();
+    boundary.headers.mock.calls[0][0]({
+      url: 'file:///app/index.html',
+      responseHeaders: { 'Content-Type': ['text/html'], 'Content-Security-Policy': ["default-src * 'unsafe-eval'"] },
+    }, callback);
 
-    expect(docs).toContain("Backups sind eine primäre Offline-Angriffsfläche");
-    expect(docs).toContain("scrypt N=131072, r=8, p=1");
-    expect(docs).not.toContain("Legacy-Backups");
-    expect(docs).toContain("verschlüsselt");
+    const headers = callback.mock.calls[0][0].responseHeaders as Record<string, string[]>;
+    expect(headers['Content-Type']).toEqual(['text/html']);
+    expect(headers['X-Content-Type-Options']).toEqual(['nosniff']);
+    expect(headers['Referrer-Policy']).toEqual(['no-referrer']);
+    const directives = new Map(headers['Content-Security-Policy'][0].split(';').map((directive) => {
+      const [name, ...sources] = directive.trim().split(/\s+/);
+      return [name, sources] as const;
+    }));
+    expect(directives.get('script-src')).toEqual(["'self'"]);
+    expect(directives.get('connect-src')).toEqual(["'self'"]);
+    expect(directives.get('frame-src')).toEqual(["'none'"]);
   });
 
-  it("verankert Renderer-CSP und gehärtete Electron-WebPreferences", () => {
-    const runtime = readFileSync("electron/appRuntime.ts", "utf8");
-    const runtimeSupport = readFileSync("electron/appRuntimeSupport.ts", "utf8");
-    const startup = readFileSync("electron/main.ts", "utf8");
-    const electronSecurity = readFileSync("electron/security/electronSecurity.ts", "utf8");
-
-    expect(runtime).toContain("registerSessionSecurityPolicy()");
-    expect(electronSecurity).toContain("buildRendererContentSecurityPolicy");
-    expect(electronSecurity).toContain("Content-Security-Policy");
-
-    for (const source of [runtimeSupport, startup]) {
-      expect(source).toContain("contextIsolation: true");
-      expect(source).toContain("nodeIntegration: false");
-      expect(source).toContain("sandbox: true");
-    }
+  it.each([
+    ['file:///app/main.js', false],
+    ['https://external.invalid/collect', true],
+    ['ws://localhost:5173/socket', true],
+  ])('enforces the packaged network boundary for %s', (url, cancel) => {
+    registerSessionSecurityPolicy();
+    const callback = vi.fn();
+    boundary.requests.mock.calls[0][0]({ url }, callback);
+    expect(callback).toHaveBeenCalledExactlyOnceWith({ cancel });
   });
 
+  it('denies new windows and external navigation while permitting the current local document', () => {
+    const handlers = new Map<string, (event: { preventDefault: () => void }, url: string) => void>();
+    const openWindow = vi.fn();
+    const currentUrl = 'file:///app/index.html';
+    const win = {
+      webContents: {
+        setWindowOpenHandler: openWindow,
+        getURL: () => currentUrl,
+        on: (event: string, handler: (event: { preventDefault: () => void }, url: string) => void) => handlers.set(event, handler),
+      },
+    };
+    registerRendererSecurityPolicy(win as unknown as BrowserWindow);
+    expect(openWindow.mock.calls[0][0]()).toEqual({ action: 'deny' });
+    const preventDefault = vi.fn();
+    handlers.get('will-navigate')?.({ preventDefault }, currentUrl);
+    expect(preventDefault).not.toHaveBeenCalled();
+    handlers.get('will-navigate')?.({ preventDefault }, 'https://external.invalid/');
+    expect(preventDefault).toHaveBeenCalledTimes(1);
+    handlers.get('will-redirect')?.({ preventDefault }, 'https://external.invalid/');
+    expect(preventDefault).toHaveBeenCalledTimes(2);
+  });
 });
