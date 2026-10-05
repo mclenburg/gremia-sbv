@@ -57,19 +57,6 @@ export function resolveContextualTemplateAction(candidate: ContextualTemplateCan
   return null;
 }
 
-export function mergeContextValues(...parts: Array<Record<string, string | undefined> | undefined>): Record<string, string> {
-  const merged: Record<string, string> = {};
-  for (const part of parts) {
-    if (!part) continue;
-    for (const [key, value] of Object.entries(part)) {
-      if (value !== undefined && value !== null && String(value).trim() !== '') {
-        merged[key] = String(value);
-      }
-    }
-  }
-  return merged;
-}
-
 export function missingPlaceholderWarning(placeholders: string[]): string {
   if (!placeholders.length) return '';
   return `Nicht alle Platzhalter konnten automatisch befüllt werden: ${placeholders.join(', ')}.`;

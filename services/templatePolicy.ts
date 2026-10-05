@@ -2,14 +2,6 @@ export type TemplateContext = Record<string, string | undefined | null>;
 
 const PLACEHOLDER_PATTERN = /\{\{\s*([a-zA-Z0-9_.-]+)\s*\}\}/g;
 
-export function extractPlaceholders(text: string): string[] {
-  const found = new Set<string>();
-  for (const match of text.matchAll(PLACEHOLDER_PATTERN)) {
-    found.add(match[1]);
-  }
-  return [...found].sort((a, b) => a.localeCompare(b));
-}
-
 export function renderTemplateText(text: string, context: TemplateContext): { text: string; unresolvedPlaceholders: string[] } {
   const unresolved = new Set<string>();
   const rendered = text.replace(PLACEHOLDER_PATTERN, (full, key: string) => {
