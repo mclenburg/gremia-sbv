@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { IndustrialHelpButton } from "../help/IndustrialHelp";
 import type { HelpRegistryId } from "../help/helpRegistry";
 import { ModuleFrame } from "./ModuleFrame";
 export type WorkbenchStatItem = { label: string; value: string | number; tone?: "default" | "warning" | "danger" | "success"; };
@@ -34,35 +33,6 @@ export function WorkbenchPage({
         {children}
       </div>
     </ModuleFrame>
-  );
-}
-export function WorkbenchHeader({
-  title,
-  kicker,
-  description,
-  actions,
-  visuallyHiddenTitle = false,
-  helpId,
-}: {
-  title: string;
-  kicker?: string;
-  description?: string;
-  actions?: ReactNode;
-  visuallyHiddenTitle?: boolean;
-  helpId?: HelpRegistryId;
-}) {
-  return (
-    <header className="workbench-header">
-      <div>
-        {kicker ? <p className="industrial-kicker">{kicker}</p> : null}
-        <div className="workbench-header-title-row">
-          <h2 className={visuallyHiddenTitle ? "industrial-sr-only" : undefined}>{title}</h2>
-          {helpId ? <IndustrialHelpButton helpId={helpId} label="Bereichshilfe öffnen" /> : null}
-        </div>
-        {description ? <p>{description}</p> : null}
-      </div>
-      {actions ? <WorkbenchToolbar>{actions}</WorkbenchToolbar> : null}
-    </header>
   );
 }
 export function WorkbenchSidebar({
@@ -166,27 +136,6 @@ export function WorkbenchDetailPanel({
     </section>
   );
 }
-export function WorkbenchCreatePanel({
-  children,
-  title,
-  description,
-}: {
-  children: ReactNode;
-  title?: string;
-  description?: string;
-}) {
-  return (
-    <div className="workbench-create-panel">
-      {title || description ? (
-        <div className="workbench-panel-head">
-          {title ? <h2>{title}</h2> : null}
-          {description ? <p>{description}</p> : null}
-        </div>
-      ) : null}
-      {children}
-    </div>
-  );
-}
 export function IndustrialField({
   children,
   label,
@@ -217,9 +166,6 @@ export function IndustrialFormGrid({
       {children}
     </div>
   );
-}
-export function IndustrialCheckboxRow({ children }: { children: ReactNode }) {
-  return <div className="industrial-checkbox-row">{children}</div>;
 }
 export function IndustrialActionRow({ children }: { children: ReactNode }) {
   return <div className="industrial-action-row">{children}</div>;

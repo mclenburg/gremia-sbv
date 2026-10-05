@@ -456,8 +456,7 @@ a.industrial-card:hover,
 .industrial-record-card,
 .industrial-selection-card,
 .industrial-status-card,
-.industrial-warning-panel,
-.industrial-danger-panel {
+.industrial-warning-panel {
   border-radius: var(--control-radius);
 }
 
@@ -526,8 +525,7 @@ a.industrial-card:hover,
   box-shadow: inset 3px 0 0 var(--industrial-accent);
 }
 
-.industrial-warning-panel,
-.industrial-danger-panel {
+.industrial-warning-panel {
   display: grid;
   gap: .35rem;
   padding: var(--space-3) var(--space-3);
@@ -538,10 +536,6 @@ a.industrial-card:hover,
 
 .industrial-warning-panel {
   border-color: color-mix(in srgb, var(--industrial-warning) 68%, var(--industrial-border));
-}
-
-.industrial-danger-panel {
-  border-color: color-mix(in srgb, var(--industrial-danger) 62%, var(--industrial-border));
 }
 
 .module-feedback {
@@ -1011,7 +1005,6 @@ a.industrial-card:hover,
 .industrial-dashboard-card,
 .industrial-message,
 .industrial-warning-panel,
-.industrial-danger-panel,
 .industrial-empty-state,
 .industrial-data-table-shell,
 .workbench-summary-card,
@@ -2016,12 +2009,6 @@ html[data-theme='light'] .industrial-warning-panel {
   color: var(--industrial-accent);
 }
 
-html[data-theme='light'] .industrial-danger-panel {
-  border-color: color-mix(in srgb, var(--industrial-danger-strong) 68%, var(--industrial-border));
-  background: linear-gradient(135deg, rgba(254, 226, 226, 0.86), rgba(232, 211, 205, 0.95));
-  color: var(--industrial-danger-text-strong);
-}
-
 html[data-theme='light'] .industrial-tag,
 html[data-theme='light'] .industrial-search-count {
   background: var(--industrial-light-panel-muted);
@@ -2220,13 +2207,11 @@ html[data-theme='light'] .text-command-help-item span {
 }
 
 .industrial-section-title-row,
-.workbench-header-title-row,
 .industrial-field-label {
   gap: 0.45rem;
 }
 
-.industrial-section-title-row,
-.workbench-header-title-row {
+.industrial-section-title-row {
   display: inline-flex;
   align-items: center;
 }

@@ -213,10 +213,6 @@
     grid-template-columns: 1fr;
   }
 
-  .workbench-header {
-    display: grid;
-  }
-
   .workbench-toolbar {
     justify-content: stretch;
   }

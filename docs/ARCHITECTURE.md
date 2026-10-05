@@ -84,8 +84,8 @@ Für UI-Arbeit gilt: Fachmodule bauen keine Standard-Shells, Panels, Buttons, Fo
 
 Verbindliche Bausteine:
 
-- `WorkbenchPage`, `WorkbenchWorkspace`, `WorkbenchHeader`, `WorkbenchToolbar`, `WorkbenchSidebar`, `WorkbenchContent`
-- `IndustrialPanel`, `IndustrialRecordCard`, `IndustrialSelectionCard`, `IndustrialStatusCard`, `IndustrialWarningPanel`, `IndustrialDangerPanel`
+- `WorkbenchPage`, `WorkbenchWorkspace`, `WorkbenchToolbar`, `WorkbenchSidebar`, `WorkbenchContent`
+- `IndustrialPanel`, `IndustrialRecordCard`, `IndustrialSelectionCard`, `IndustrialStatusCard`, `IndustrialWarningPanel`
 - `IndustrialButton`, `ToolbarButton`, `DangerButton`, `GhostButton`, `IconButton`, `ButtonGroup`
 - `FormSection`, `FormField`, `TextInput`, `TextareaInput`, `SelectInput`, `DateInput`, `DateTimeInput`, `PasswordInput`, `CheckboxField`, `FormActions`
 - `StatusBadge`, `RiskBadge`, `DeadlineBadge`, `ComplianceBadge`, `ProcessStatusBadge`
