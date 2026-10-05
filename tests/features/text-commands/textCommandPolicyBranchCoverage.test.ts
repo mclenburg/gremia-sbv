@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
   applyPendingAnonymizationMarkers,
-  classifyAnonymizationTarget,
   findFirstTextCommand,
   formatAnonymizationMarkerText,
   formatBemMarkerText,
@@ -20,8 +19,6 @@ import {
   getTextCommandArgument,
   getTextCommandRangeLength,
   isTextCommandAt,
-  isTextCommandKind,
-  primaryTokenForTextCommandKind,
   removeCommandMarker,
   replaceCommandMarker,
   tokensForTextCommandKind,
@@ -76,15 +73,7 @@ describe('text command policy branch coverage 0.9.2', () => {
     expect(formatTerminationMarkerText('')).toContain('Kündigungsanhörung prüfen');
   });
 
-  it('klassifiziert Anonymisierungsziele und wendet vorgemerkte Marker an', () => {
-    expect(classifyAnonymizationTarget('')).toBe('text_segment');
-    expect(classifyAnonymizationTarget('person@example.test')).toBe('email');
-    expect(classifyAnonymizationTarget('Personalnummer PNR 12345')).toBe('personnel_number');
-    expect(classifyAnonymizationTarget('Diagnose Depression')).toBe('health_detail');
-    expect(classifyAnonymizationTarget('Team Support')).toBe('organizational_unit');
-    expect(classifyAnonymizationTarget('Fallakte Beteiligung')).toBe('case_reference');
-    expect(classifyAnonymizationTarget('Ada Lovelace')).toBe('name');
-    expect(classifyAnonymizationTarget('beliebige Textstelle')).toBe('text_segment');
+  it('wendet vorgemerkte Anonymisierungsmarker an und erhält leere Werte', () => {
     expect(applyPendingAnonymizationMarkers(null)).toBeNull();
     expect(applyPendingAnonymizationMarkers(undefined)).toBeUndefined();
     expect(applyPendingAnonymizationMarkers('A [Anonymisierung vormerken: Name] B')).toBe('A [anonymisiert] B');
@@ -92,8 +81,6 @@ describe('text command policy branch coverage 0.9.2', () => {
 
   it('liefert Token-Informationen und Kontakttexte in allen Fallback-Varianten', () => {
     expect(tokensForTextCommandKind('deadline')).toContain('/frist');
-    expect(primaryTokenForTextCommandKind('template')).toBe('/vl');
-    expect(isTextCommandKind('/frist', 'deadline')).toBe(true);
     expect(formatContactReferenceText({ firstName: 'Ada', lastName: 'Lovelace', organization: 'Agentur', role: 'Beratung', email: 'ada@example.test' })).toBe('Ada Lovelace – Agentur · Beratung <ada@example.test>');
     expect(formatContactReferenceText({ organization: 'Inklusionsamt' })).toBe('Kontakt – Inklusionsamt');
     expect(formatContactReferenceText({})).toBe('Kontakt');

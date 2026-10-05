@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { TEXT_COMMAND_REGISTRY, applyPendingAnonymizationMarkers, classifyAnonymizationTarget, findFirstTextCommand, formatAnonymizationMarkerText, formatCaseReferenceText, formatLegalNormText, formatOpenTaskText, formatRiskText, getTextCommandArgument, getTextCommandKind, getTextCommandRangeLength, replaceCommandMarker } from '../../../services/textCommandPolicy';
+import { TEXT_COMMAND_REGISTRY, applyPendingAnonymizationMarkers, findFirstTextCommand, formatAnonymizationMarkerText, formatCaseReferenceText, formatLegalNormText, formatOpenTaskText, formatRiskText, getTextCommandArgument, getTextCommandKind, getTextCommandRangeLength, replaceCommandMarker } from '../../../services/textCommandPolicy';
 import { buildGlobalDeadlineInput } from '../../../src/app/shared/textCommands/globalTextCommandActions';
 
 describe('textCommandPolicy', () => {
@@ -46,7 +46,6 @@ describe('textCommandPolicy', () => {
 
     expect(argument).toBe('Max Mustermann');
     expect(getTextCommandRangeLength(text, index, '~~')).toBe('~~ Max Mustermann'.length);
-    expect(classifyAnonymizationTarget(argument)).toBe('name');
     expect(formatAnonymizationMarkerText(argument)).toBe('[Anonymisierung vormerken: Max Mustermann]');
     expect(replaceCommandMarker(text, index, '~~', formatAnonymizationMarkerText(argument), getTextCommandRangeLength(text, index, '~~'))).toBe('Gespräch mit [Anonymisierung vormerken: Max Mustermann]\nNächste Zeile bleibt');
   });
@@ -69,11 +68,7 @@ describe('textCommandPolicy', () => {
     expect(applyPendingAnonymizationMarkers(null)).toBeNull();
   });
 
-  it('klassifiziert typische zu anonymisierende Textarten als Zusatzinformation ohne Sofort-Anonymisierung', () => {
-    expect(classifyAnonymizationTarget('max.mustermann@example.test')).toBe('email');
-    expect(classifyAnonymizationTarget('Personalnummer P-12345')).toBe('personnel_number');
-    expect(classifyAnonymizationTarget('Diagnose Depression')).toBe('health_detail');
-    expect(classifyAnonymizationTarget('Team Personalservice')).toBe('organizational_unit');
+  it('merkt sensible Freitexte ohne sofortige Anonymisierung vor', () => {
     expect(formatAnonymizationMarkerText('max.mustermann@example.test')).toBe('[Anonymisierung vormerken: max.mustermann@example.test]');
     expect(formatAnonymizationMarkerText('Diagnose Depression')).toBe('[Anonymisierung vormerken: Diagnose Depression]');
   });

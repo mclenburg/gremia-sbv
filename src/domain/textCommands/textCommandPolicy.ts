@@ -127,16 +127,8 @@ export function getTextCommandKind(token: TextCommandToken): TextCommandKind {
   return TOKEN_TO_KIND[token];
 }
 
-export function isTextCommandKind(token: TextCommandToken, kind: TextCommandKind): boolean {
-  return getTextCommandKind(token) === kind;
-}
-
 export function tokensForTextCommandKind(kind: TextCommandKind): TextCommandToken[] {
   return TEXT_COMMAND_REGISTRY.find((definition) => definition.kind === kind)?.tokens ?? [];
-}
-
-export function primaryTokenForTextCommandKind(kind: TextCommandKind): TextCommandToken {
-  return tokensForTextCommandKind(kind)[0];
 }
 
 export const LEGAL_NORM_SUGGESTIONS: LegalNormSuggestion[] = [
@@ -238,21 +230,6 @@ export function formatConfidentialityText(level: ConfidentialCommandLevel): stri
   return `[Vertraulichkeit: ${label}]`;
 }
 
-
-export type AnonymizationTargetKind = 'name' | 'email' | 'personnel_number' | 'organizational_unit' | 'health_detail' | 'case_reference' | 'text_segment';
-
-export function classifyAnonymizationTarget(value: string): AnonymizationTargetKind {
-  const text = value.trim();
-  const normalized = text.toLowerCase();
-  if (!text) return 'text_segment';
-  if (/\b[\w.%+-]+@[\w.-]+\.[a-z]{2,}\b/i.test(text) || normalized.includes('e-mail') || normalized.includes('email') || normalized.includes('mailadresse')) return 'email';
-  if (/\b(pers(?:onal)?\.?\s*nr|personalnummer|pnr|mitarbeiter(?:nummer)?|ma-?nr)\b/i.test(text) || /\b[A-Z]{0,3}-?\d{3,}\b/.test(text)) return 'personnel_number';
-  if (/\b(gdb|diagnose|krank|erkrank|behinderung|depression|ptbs|adhs|autismus|krebs|tumor|sucht|therapie|medikation|reha)\b/i.test(text)) return 'health_detail';
-  if (/\b(team|bereich|abteilung|referat|dezernat|standort|organisationseinheit|org[-\s]?einheit)\b/i.test(text)) return 'organizational_unit';
-  if (/\b(fall|fallakte|fallakten|akte|aktenzeichen|az|sbv-\d|bem-\d)\b/i.test(text)) return 'case_reference';
-  if (/^[A-ZÄÖÜ][a-zäöüß]+(?:[-\s][A-ZÄÖÜ][a-zäöüß]+)+$/.test(text)) return 'name';
-  return 'text_segment';
-}
 
 export function formatAnonymizationMarkerText(label: string): string {
   const value = label.trim();
