@@ -263,10 +263,6 @@ export function existingColumns(db: DatabaseAdapter, table: string): Set<string>
   }
 }
 
-export function caseWhereSql(entity: CasePrivacyEntityDefinition): string {
-  return `WHERE ${entity.caseColumn} = ?`;
-}
-
 export function resolveAnonymizationValue(value: PrivacyAnonymizationValue, stamp: string): unknown {
   if (value === 'anonymizationStamp') return stamp;
   if (value === 'null') return null;
