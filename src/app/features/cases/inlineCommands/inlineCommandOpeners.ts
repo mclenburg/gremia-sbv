@@ -154,14 +154,30 @@ export function openInlineCommandDraft({
     return;
   }
 
+  if (kind === "template") {
+    openers.setInlineTemplateDraft({ target, markerIndex, token, query: "" });
+    return;
+  }
+  if (kind === "activity_journal_time") return;
   const commandText = getCommandText(target, markerIndex, token, commandValue);
+  openInlineMeasureDraft({ kind, target, markerIndex, token, commandText, selectedCase, openers });
+}
+
+function openInlineMeasureDraft({ kind, target, markerIndex, token, commandText, selectedCase, openers }: {
+  kind: ReturnType<typeof getTextCommandKind>;
+  target: ProtocolTextTarget;
+  markerIndex: number;
+  token: TextCommandToken;
+  commandText: string;
+  selectedCase?: CaseRecord;
+  openers: InlineCommandOpeners;
+}) {
+  const context = { target, markerIndex, token, commandText };
+  const prefillContext = { selectedCase, commandText, createdFrom: "inline_command" as const };
   if (kind === "bem_measure") {
-    const prefill = buildBemPrefill({ selectedCase, commandText, createdFrom: "inline_command" });
+    const prefill = buildBemPrefill(prefillContext);
     openers.setInlineBemDraft({
-      target,
-      markerIndex,
-      token,
-      commandText,
+      ...context,
       prefilledFields: ["title", "triggerDescription", "triggerType", "nextStep"],
       title: prefill.title.value,
       triggerDescription: prefill.triggerDescription.value,
@@ -172,12 +188,9 @@ export function openInlineCommandDraft({
     return;
   }
   if (kind === "prevention_measure") {
-    const prefill = buildPreventionPrefill({ selectedCase, commandText, createdFrom: "inline_command" });
+    const prefill = buildPreventionPrefill(prefillContext);
     openers.setInlinePreventionDraft({
-      target,
-      markerIndex,
-      token,
-      commandText,
+      ...context,
       prefilledFields: ["title", "hazardDescription", "difficultyType", "riskType", "nextStep"],
       title: prefill.title.value,
       hazardDescription: prefill.hazardDescription.value,
@@ -189,12 +202,9 @@ export function openInlineCommandDraft({
     return;
   }
   if (kind === "equalization_measure") {
-    const prefill = buildEqualizationPrefill({ selectedCase, commandText, createdFrom: "inline_command" });
+    const prefill = buildEqualizationPrefill(prefillContext);
     openers.setInlineEqualizationDraft({
-      target,
-      markerIndex,
-      token,
-      commandText,
+      ...context,
       prefilledFields: ["title", "status", "note", "nextStep"],
       title: prefill.title.value,
       status: prefill.status.value as InlineEqualizationDraft["status"],
@@ -205,12 +215,9 @@ export function openInlineCommandDraft({
     return;
   }
   if (kind === "termination_measure") {
-    const prefill = buildTerminationPrefill({ selectedCase, commandText, createdFrom: "inline_command" });
+    const prefill = buildTerminationPrefill(prefillContext);
     openers.setInlineTerminationDraft({
-      target,
-      markerIndex,
-      token,
-      commandText,
+      ...context,
       prefilledFields: ["title", "terminationType", "protectionStatus", "receivedAt", "employerReason", "nextStep"],
       title: prefill.title.value,
       terminationType: prefill.terminationType.value as InlineTerminationDraft["terminationType"],
@@ -223,12 +230,9 @@ export function openInlineCommandDraft({
     return;
   }
   if (kind === "participation") {
-    const prefill = buildParticipationPrefill({ selectedCase, commandText, createdFrom: "inline_command" });
+    const prefill = buildParticipationPrefill(prefillContext);
     openers.setInlineParticipationDraft({
-      target,
-      markerIndex,
-      token,
-      commandText,
+      ...context,
       prefilledFields: ["title", "employerMeasure", "riskLevel", "nextStep"],
       title: prefill.title.value,
       employerMeasure: prefill.employerMeasure.value,
@@ -239,12 +243,9 @@ export function openInlineCommandDraft({
     return;
   }
   if (kind === "workplace_accommodation") {
-    const prefill = buildWorkplaceAccommodationPrefill({ selectedCase, commandText, createdFrom: "inline_command" });
+    const prefill = buildWorkplaceAccommodationPrefill(prefillContext);
     openers.setInlineWorkplaceAccommodationDraft({
-      target,
-      markerIndex,
-      token,
-      commandText,
+      ...context,
       prefilledFields: ["title", "requestedAdjustment", "category", "riskLevel", "nextStep"],
       title: prefill.title.value,
       requestedAdjustment: prefill.requestedAdjustment.value,
@@ -254,8 +255,5 @@ export function openInlineCommandDraft({
       nextStep: prefill.nextStep.value,
     });
     return;
-  }
-  if (kind === "template") {
-    openers.setInlineTemplateDraft({ target, markerIndex, token, query: "" });
   }
 }
