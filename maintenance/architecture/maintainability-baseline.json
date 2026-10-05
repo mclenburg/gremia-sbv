@@ -13,20 +13,14 @@
     "imports": 35
   },
   "summary": {
-    "filesScanned": 807,
-    "debtFiles": 5
+    "filesScanned": 809,
+    "debtFiles": 4
   },
   "debt": {
     "src/app/features/dashboard/DashboardFocusOverview.tsx": {
       "physicalLines": 335,
       "codeLines": 314,
       "maxFunctionLines": 224,
-      "imports": 11
-    },
-    "src/app/features/equalization/EqualizationProcessDetail.tsx": {
-      "physicalLines": 261,
-      "codeLines": 248,
-      "maxFunctionLines": 223,
       "imports": 11
     },
     "src/app/features/recruiting/RecruitingParticipationsView.tsx": {

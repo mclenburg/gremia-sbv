@@ -96,9 +96,10 @@ export function useCaseProcessUpdates(deps: UseCaseProcessUpdatesDeps) {
     process: EqualizationProcessRecord,
     content: string,
   ) {
-    if (!selectedCase) return;
+    if (!selectedCase) return false;
     setNoteError("");
     setNoteInfo("");
+    let saved = false;
     try {
       const bridge = await waitForBridge();
       if (!bridge?.cases) throw new Error("Falldienst ist nicht erreichbar.");
@@ -115,16 +116,19 @@ export function useCaseProcessUpdates(deps: UseCaseProcessUpdatesDeps) {
         containsHealthData: true,
         confidentialLevel: "hoch_sensibel",
       });
+      saved = true;
       await reloadSelectedCaseChildren();
       setNoteInfo(
         "Gleichstellungs-/GdB-Notiz wurde als verschlüsselte Fallnotiz gespeichert.",
       );
+      return true;
     } catch (error) {
       setNoteError(
         error instanceof Error
           ? error.message
           : "Gleichstellungsnotiz konnte nicht gespeichert werden.",
       );
+      return saved;
     }
   }
 
