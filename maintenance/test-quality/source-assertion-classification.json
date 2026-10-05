@@ -13,12 +13,6 @@
       "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
     },
     {
-      "file": "tests/architecture/migrations/schemaMigrationConsolidation.test.ts",
-      "category": "B",
-      "sourceAssertions": 3,
-      "rationale": "Statische Architekturregel: Der versionierte Migrationshook darf keine Fachservices als zweite Schemaquelle instanziieren und Runtime-Fassaden dürfen keine zweite strukturelle Schemaquelle enthalten."
-    },
-    {
       "file": "tests/ui/review5UserGuidance.test.ts",
       "category": "A",
       "sourceAssertions": 2,
