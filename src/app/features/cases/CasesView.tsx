@@ -8,7 +8,7 @@ import { useCaseNoteEditor } from "./useCaseNoteEditor";
 import { useCaseProcessUpdates } from "./useCaseProcessUpdates";
 import { useProcessTemplateActions } from "./useProcessTemplateActions";
 import { createCaseProcessActions } from "./caseProcessActions";
-import { useCaseCrudActions } from "./useCaseCrudActions";
+import { createCaseCrudActions } from "./caseCrudActions";
 import { useLegacyCaseBindingHandlers } from "./useLegacyCaseBindingHandlers";
 import { CasesViewRender } from "./CasesViewRender";
 import { CaseHandoverTransferDialogs } from "./CaseHandoverTransferDialogs";
@@ -161,7 +161,7 @@ export function CasesView(props: CasesViewProps) {
   const processCreation = createCaseProcessActions({ selectedCase: workbench.selectedCase, selectedCaseId: workbench.selectedCaseId,
     caseProcessDraft: form.caseProcessDraft, setCaseProcessDraft: form.setCaseProcessDraft, setSelection: workbench.setSelection,
     setNoteError: noteEditor.setNoteError, setNoteInfo: noteEditor.setNoteInfo, reloadSelectedCaseChildren: workbench.reloadSelectedCaseChildren, onCasesChanged });
-  const crud = useCaseCrudActions({ setError: form.setError, setIsCaseCreateModalOpen: form.setIsCaseCreateModalOpen, caseNumber: form.caseNumber,
+  const crud = createCaseCrudActions({ setError: form.setError, setIsCaseCreateModalOpen: form.setIsCaseCreateModalOpen, caseNumber: form.caseNumber,
     displayName: form.displayName, category: form.category, summary: form.summary, selectedProtectedPersonId: form.selectedProtectedPersonId,
     protectedPersons, onCreateCase, onCasesChanged, setCaseNumber: form.setCaseNumber, setDisplayName: form.setDisplayName, setSummary: form.setSummary,
     setSelectedProtectedPersonId: form.setSelectedProtectedPersonId, setNoteError: noteEditor.setNoteError, editingNote: noteEditor.editingNote, noteEditor,

@@ -13,8 +13,8 @@
     "imports": 35
   },
   "summary": {
-    "filesScanned": 787,
-    "debtFiles": 20
+    "filesScanned": 788,
+    "debtFiles": 19
   },
   "debt": {
     "src/app/features/activity-journal/hooks/useActivityJournal.ts": {
@@ -34,12 +34,6 @@
       "codeLines": 195,
       "maxFunctionLines": 203,
       "imports": 10
-    },
-    "src/app/features/cases/useCaseCrudActions.ts": {
-      "physicalLines": 225,
-      "codeLines": 214,
-      "maxFunctionLines": 181,
-      "imports": 13
     },
     "src/app/features/cases/useCaseNoteEditor.ts": {
       "physicalLines": 200,
