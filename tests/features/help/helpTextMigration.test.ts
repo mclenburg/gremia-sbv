@@ -28,7 +28,7 @@ function visibleTextProps(fileSource: string): string[] {
 function renderedViolationDraft(overrides: Partial<ComponentProps<typeof ViolationDraftForm>['state']> = {}): string {
   const noop = () => undefined;
   const state = {
-    form: createInitialViolationForm([]), contextNotice: null, fieldErrors: {}, caseOptions: [], measureOptions: [],
+    form: createInitialViolationForm(), contextNotice: null, fieldErrors: {}, caseOptions: [], measureOptions: [],
     busy: false, updateSourceContextType: noop, updateForm: noop, updateCaseContext: noop,
     updateMeasureContext: noop, createViolation: async () => undefined,
     ...overrides,
@@ -85,7 +85,7 @@ describe('0.9.5-j Hilfetext-Migration Arbeitsmasken', () => {
   });
 
   it('zeigt Verstoßwarnungen ohne abweichende Schmuck-Icons im Formularinhalt', () => {
-    const form = { ...createInitialViolationForm([]), stage: 'abmahnung' as const };
+    const form = { ...createInitialViolationForm(), stage: 'abmahnung' as const };
     const markup = renderedViolationDraft({
       form,
       contextNotice: {

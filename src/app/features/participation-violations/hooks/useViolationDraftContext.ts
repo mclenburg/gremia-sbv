@@ -22,7 +22,7 @@ export type ViolationDraftContextInput = {
 type ContextNotice = Pick<SbvParticipationViolationPrefill, 'sourceLabel' | 'privacyNotice'>;
 
 export function useViolationDraftContext({ cases, measures }: ViolationDraftContextInput) {
-  const [form, setForm] = useState<CreateSbvParticipationViolationInput>(() => createInitialViolationForm(cases));
+  const [form, setForm] = useState<CreateSbvParticipationViolationInput>(() => createInitialViolationForm());
   const [contextNotice, setContextNotice] = useState<ContextNotice | null>(null);
   const [validationAttempted, setValidationAttempted] = useState(false);
   const caseOptions = useMemo(() => buildViolationCaseOptions(cases), [cases]);
@@ -76,10 +76,10 @@ export function useViolationDraftContext({ cases, measures }: ViolationDraftCont
   }, []);
 
   const reset = useCallback(() => {
-    setForm(createInitialViolationForm(cases));
+    setForm(createInitialViolationForm());
     setContextNotice(null);
     setValidationAttempted(false);
-  }, [cases]);
+  }, []);
 
   return {
     form, contextNotice, validationAttempted, validationIssues, fieldErrors, caseOptions, measureOptions,

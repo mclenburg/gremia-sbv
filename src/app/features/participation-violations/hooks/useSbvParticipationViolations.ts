@@ -1,37 +1,21 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAnnouncer } from '../../../shared/a11y/LiveRegionProvider';
 import type { ActivityJournalPrefill } from '../../../../domain/models/activity-journal.model';
-import type {
-  ParticipationViolationStatus,
-  SbvParticipationViolationRecord,
-} from '../../../../domain/models/sbv-participation-violation.model';
+import type { SbvParticipationViolationRecord } from '../../../../domain/models/sbv-participation-violation.model';
 import {
   buildViolationSummaryItems,
-  documentGenerationOptions,
-  documentSuccessMessage,
   summarizeViolationDraftValidation,
   validateViolationDraft,
   type SbvParticipationViolationPrefill,
 } from '../sbvParticipationViolationViewLogic';
 import { useViolationDraftContext, type ViolationDraftContextInput } from './useViolationDraftContext';
-
-type ParticipationViolationBridge = NonNullable<Window['gremiaSbv']>['sbvParticipationViolations'];
+import { createParticipationViolationRecordActions, requireBridge, toErrorMessage } from '../participationViolationRecordActions';
 
 type UseSbvParticipationViolationsInput = ViolationDraftContextInput & {
   pendingPrefill?: SbvParticipationViolationPrefill | null;
   onPrefillConsumed?: () => void;
   onOpenJournalPrefill?: (prefill: ActivityJournalPrefill) => void;
 };
-
-function requireBridge(): ParticipationViolationBridge {
-  const bridge = window.gremiaSbv?.sbvParticipationViolations;
-  if (!bridge) throw new Error('Beteiligungsverstoßdienst ist nicht erreichbar.');
-  return bridge;
-}
-
-function toErrorMessage(err: unknown, fallback: string): string {
-  return err instanceof Error ? err.message : fallback;
-}
 
 export function useSbvParticipationViolations({ cases, measures, pendingPrefill, onPrefillConsumed, onOpenJournalPrefill }: UseSbvParticipationViolationsInput) {
   const [items, setItems] = useState<SbvParticipationViolationRecord[]>([]);
@@ -98,75 +82,9 @@ export function useSbvParticipationViolations({ cases, measures, pendingPrefill,
     }
   }, [announce, context, reload]);
 
-  const changeStatus = useCallback(async (record: SbvParticipationViolationRecord, status: ParticipationViolationStatus) => {
-    setBusy(true);
-    setError('');
-    try {
-      await requireBridge().changeStatus(record.id, { status, note: 'Status über Verstoßprotokoll aktualisiert.' });
-      const successMessage = 'Status des Beteiligungsverstoßes wurde aktualisiert.';
-      setMessage(successMessage);
-      announce(successMessage);
-      await reload();
-    } catch (err) {
-      const errorMessage = toErrorMessage(err, 'Status konnte nicht geändert werden.');
-      setError(errorMessage);
-      announce(errorMessage, 'assertive');
-    } finally {
-      setBusy(false);
-    }
-  }, [announce, reload]);
-
-  const generateDocument = useCallback(async (record: SbvParticipationViolationRecord) => {
-    setDocumentBusyId(record.id);
-    setError('');
-    setMessage('');
-    try {
-      const result = await requireBridge().generateDocument(record.id, documentGenerationOptions(record));
-      const successMessage = documentSuccessMessage(result);
-      setMessage(successMessage);
-      if (result.previewStatus === 'unavailable' && result.previewMessage) setError(result.previewMessage);
-      announce(successMessage);
-      await reload();
-    } catch (err) {
-      const errorMessage = toErrorMessage(err, 'Dokument konnte nicht erzeugt werden.');
-      setError(errorMessage);
-      announce(errorMessage, 'assertive');
-    } finally {
-      setDocumentBusyId(null);
-    }
-  }, [announce, reload]);
-
-  const createFollowUp = useCallback(async (record: SbvParticipationViolationRecord) => {
-    setFollowUpBusyId(record.id);
-    setError('');
-    setMessage('');
-    try {
-      const result = await requireBridge().createFollowUp(record.id);
-      const successMessage = `Wiedervorlage angelegt: ${new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' }).format(new Date(result.dueAt))}`;
-      setMessage(successMessage);
-      announce(successMessage);
-      await reload();
-    } catch (err) {
-      const errorMessage = toErrorMessage(err, 'Wiedervorlage konnte nicht angelegt werden.');
-      setError(errorMessage);
-      announce(errorMessage, 'assertive');
-    } finally {
-      setFollowUpBusyId(null);
-    }
-  }, [announce, reload]);
-
-  const openJournalPrefill = useCallback(async (record: SbvParticipationViolationRecord) => {
-    setError('');
-    try {
-      const prefill = await requireBridge().buildJournalPrefill(record.id);
-      onOpenJournalPrefill?.(prefill);
-      announce('Journal-Vorlage aus Beteiligungsverstoß wurde geöffnet.');
-    } catch (err) {
-      const errorMessage = toErrorMessage(err, 'Journal-Vorlage konnte nicht erzeugt werden.');
-      setError(errorMessage);
-      announce(errorMessage, 'assertive');
-    }
-  }, [announce, onOpenJournalPrefill]);
+  const recordActions = useMemo(() => createParticipationViolationRecordActions({
+    reload, announce, setBusy, setMessage, setError, setDocumentBusyId, setFollowUpBusyId, onOpenJournalPrefill,
+  }), [announce, reload, onOpenJournalPrefill]);
 
   return {
     items,
@@ -179,9 +97,6 @@ export function useSbvParticipationViolations({ cases, measures, pendingPrefill,
     summaryItems: buildViolationSummaryItems(items),
     loadInitial,
     createViolation,
-    changeStatus,
-    generateDocument,
-    createFollowUp,
-    openJournalPrefill,
+    ...recordActions,
   };
 }

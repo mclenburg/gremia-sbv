@@ -13,8 +13,8 @@
     "imports": 35
   },
   "summary": {
-    "filesScanned": 793,
-    "debtFiles": 14
+    "filesScanned": 794,
+    "debtFiles": 13
   },
   "debt": {
     "src/app/features/auth/AuthRecoveryViews.tsx": {
@@ -52,12 +52,6 @@
       "codeLines": 214,
       "maxFunctionLines": 206,
       "imports": 11
-    },
-    "src/app/features/participation-violations/hooks/useSbvParticipationViolations.ts": {
-      "physicalLines": 188,
-      "codeLines": 175,
-      "maxFunctionLines": 152,
-      "imports": 6
     },
     "src/app/features/prevention/PreventionProcessDetail.tsx": {
       "physicalLines": 308,
