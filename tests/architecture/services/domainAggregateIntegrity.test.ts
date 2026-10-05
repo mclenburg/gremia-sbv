@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DomainAggregateIntegrityError, DomainAggregateIntegrityService } from '../../../services/domainAggregateIntegrityService.js';
 
-type Row = { count: number };
 class IntegrityDb {
   constructor(private readonly counts: number[]) {}
   prepare<T>(_sql: string) {

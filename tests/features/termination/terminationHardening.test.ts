@@ -35,7 +35,6 @@ describe('0.7.2 Kündigungsanhörung fachliche Härtung', () => {
   });
 
   it('zeigt eine Due-Date-Arbeitshilfe und die Kündigungsführung im Detailformular', () => {
-    const suggestedDue = suggestedStatementDueAt('2026-05-01T08:00:00.000Z', 'ordentlich');
     const { markup, tree } = renderComponent(TerminationProcessDetail, {
       process: process({ sbvStatementDueAt: undefined }),
       onUpdate: async () => undefined,

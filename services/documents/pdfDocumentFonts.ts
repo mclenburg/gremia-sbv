@@ -1,6 +1,5 @@
 import { createRequire } from 'node:module';
 import path from 'node:path';
-import type PDFKit from 'pdfkit';
 import { ApplicationError } from '../../src/domain/models/application-error.model.js';
 
 export const PDF_FONT_REGULAR = 'DejaVuSans';

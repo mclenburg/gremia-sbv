@@ -1,8 +1,6 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import type { IndustrialFieldOption } from '../../src/app/shared/components/IndustrialForm';
-type UiFoundationBestPracticeSubject = IndustrialFieldOption;
 
 function source(path: string): string {
   return readFileSync(path, 'utf8');

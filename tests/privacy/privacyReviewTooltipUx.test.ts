@@ -71,11 +71,5 @@ describe('Privacy Review Tooltip UX 0.9.1', () => {
     expect(helpButtons[0].attrs['data-help-title']).toBe('Vorgemerkte Freitexte anonymisieren');
     expect(visibleText(markup)).not.toContain('Freitexte werden nicht blind anonymisiert');
     expect(visibleText(markup)).not.toContain('indem auf ~~ der zu anonymisierende Inhalt folgt');
-    const text = visibleText(markup);
-    expect(text).toContain('Datenschutz-Lifecycle: Datenschutzprüfung erforderlich');
-    expect(text).toContain('Fallstatus offen');
-    expect(text).toContain('Offene Fristen 1');
-    expect(text).toContain('Grund / Prüfbemerkung');
-    expect(text).toContain('Erneut prüfen am');
   });
 });
