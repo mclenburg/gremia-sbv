@@ -13,8 +13,8 @@
     "imports": 35
   },
   "summary": {
-    "filesScanned": 790,
-    "debtFiles": 16
+    "filesScanned": 791,
+    "debtFiles": 15
   },
   "debt": {
     "src/app/features/activity-journal/hooks/useActivityJournal.ts": {
@@ -40,12 +40,6 @@
       "codeLines": 264,
       "maxFunctionLines": 211,
       "imports": 9
-    },
-    "src/app/features/compliance/useComplianceCenter.ts": {
-      "physicalLines": 186,
-      "codeLines": 180,
-      "maxFunctionLines": 160,
-      "imports": 7
     },
     "src/app/features/dashboard/DashboardFocusOverview.tsx": {
       "physicalLines": 335,
