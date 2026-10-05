@@ -13,8 +13,8 @@
     "imports": 35
   },
   "summary": {
-    "filesScanned": 798,
-    "debtFiles": 10
+    "filesScanned": 799,
+    "debtFiles": 9
   },
   "debt": {
     "src/app/features/auth/AuthRecoveryViews.tsx": {
@@ -58,12 +58,6 @@
       "codeLines": 297,
       "maxFunctionLines": 293,
       "imports": 15
-    },
-    "src/app/features/settings/GremiaBrSettingsPanel.tsx": {
-      "physicalLines": 276,
-      "codeLines": 267,
-      "maxFunctionLines": 245,
-      "imports": 5
     },
     "src/app/features/termination/TerminationProcessDetail.tsx": {
       "physicalLines": 341,

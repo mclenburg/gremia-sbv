@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import type {
   GremiaBrPublicSettings,
   GremiaBrRelevanceKeywordGroup,
-  GremiaBrSettingsInput,
   GremiaBrWorkspaceBody,
 } from '../../../domain/models/gremia-br.model';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
@@ -20,13 +19,10 @@ import {
 import {
   EMPTY_GREMIA_BR_CACHE,
   EMPTY_GREMIA_BR_SETTINGS,
-  gremiaBrStatusText,
-  loadGremiaBrSettingsSnapshot,
-  notifyGremiaBrSettingsChanged,
   useInitialGremiaBrSettingsLoad,
-  waitForBridge,
   type GremiaBrSettingsSetters,
 } from './gremiaBrSettingsState';
+import { createGremiaBrSettingsActions } from './gremiaBrSettingsActions';
 
 export function GremiaBrSettingsPanel() {
   const announce = useAnnouncer();
@@ -65,154 +61,14 @@ export function GremiaBrSettingsPanel() {
 
   useInitialGremiaBrSettingsLoad(setters, announce);
 
-  function currentSettingsInput(): GremiaBrSettingsInput {
-    const input: GremiaBrSettingsInput = {
-      enabled,
-      autoRefreshOnStartup,
-      serverUrl,
-      username,
-      selectedBodyId,
-      selectedBodyName,
-      selectedOrganizationId,
-      selectedSecurityDomain,
+  const { save, clearCredentials, testConnection, refreshCache, loadWorkspaceBodies, selectWorkspaceBody } = createGremiaBrSettingsActions({
+    input: {
+      enabled, autoRefreshOnStartup, serverUrl, username,
+      selectedBodyId, selectedBodyName, selectedOrganizationId, selectedSecurityDomain,
       relevanceSettings: { groups: relevanceGroups },
-    };
-    if (password.trim()) input.password = password;
-    return input;
-  }
-
-  async function persistSettings(): Promise<GremiaBrPublicSettings> {
-    const bridge = await waitForBridge();
-    if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Einstellungsdienst ist nicht erreichbar.');
-    const next = await bridge.gremiaBr.saveSettings(currentSettingsInput());
-    setSettings(next);
-    setPassword('');
-    notifyGremiaBrSettingsChanged();
-    return next;
-  }
-
-  async function save() {
-    setBusy(true);
-    setError('');
-    setStatus('');
-    try {
-      await persistSettings();
-      setStatus('Gremia.BR-Einstellungen wurden im verschlüsselten Vault gespeichert.');
-      announce('Gremia.BR-Einstellungen wurden gespeichert.', 'polite');
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Gremia.BR-Einstellungen konnten nicht gespeichert werden.';
-      setError(message);
-      announce(message, 'assertive');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function clearCredentials() {
-    setBusy(true);
-    setError('');
-    setStatus('');
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Einstellungsdienst ist nicht erreichbar.');
-      const next = await bridge.gremiaBr.clearCredentials();
-      setSettings(next);
-      setEnabled(next.enabled);
-      setAutoRefreshOnStartup(next.autoRefreshOnStartup);
-      setSelectedBodyId('');
-      setSelectedBodyName('');
-      setSelectedOrganizationId('');
-      setSelectedSecurityDomain('');
-      setWorkspaceBodies([]);
-      setPassword('');
-      notifyGremiaBrSettingsChanged();
-      setStatus('Gremia.BR-Zugangsdaten wurden gelöscht.');
-      announce('Gremia.BR-Zugangsdaten wurden gelöscht.', 'polite');
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Gremia.BR-Zugangsdaten konnten nicht gelöscht werden.';
-      setError(message);
-      announce(message, 'assertive');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function testConnection() {
-    setBusy(true);
-    setError('');
-    setStatus('');
-    try {
-      await persistSettings();
-      const bridge = await waitForBridge();
-      if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Einstellungsdienst ist nicht erreichbar.');
-      const result = await bridge.gremiaBr.testConnection();
-      const message = gremiaBrStatusText(result);
-      setStatus(message);
-      announce(message, result.status === 'ok' ? 'polite' : 'assertive');
-      await loadGremiaBrSettingsSnapshot(setters);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Gremia.BR-Verbindung konnte nicht geprüft werden.';
-      setError(message);
-      announce(message, 'assertive');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function refreshCache() {
-    setBusy(true);
-    setError('');
-    setStatus('');
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Einstellungsdienst ist nicht erreichbar.');
-      const result = await bridge.gremiaBr.refreshCache();
-      setCache(result.cached);
-      setStatus(result.message);
-      announce(result.message, 'polite');
-      await loadGremiaBrSettingsSnapshot(setters);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Gremia.BR-Lesecache konnte nicht aktualisiert werden.';
-      setError(message);
-      announce(message, 'assertive');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function loadWorkspaceBodies() {
-    setBusy(true);
-    setError('');
-    setStatus('');
-    try {
-      await persistSettings();
-      const bridge = await waitForBridge();
-      if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Einstellungsdienst ist nicht erreichbar.');
-      const bodies = await bridge.gremiaBr.listWorkspaceBodies();
-      setWorkspaceBodies(bodies);
-      const message = bodies.length
-        ? `${bodies.length} berechtigte SBV-Gremien aus Gremia.BR geladen.`
-        : 'Gremia.BR meldet für dieses Konto kein aktuell berechtigtes SBV-Gremium.';
-      setStatus(message);
-      announce(message, bodies.length ? 'polite' : 'assertive');
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Gremia.BR-Gremien konnten nicht geladen werden.';
-      setError(message);
-      announce(message, 'assertive');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  function selectWorkspaceBody(body: GremiaBrWorkspaceBody) {
-    setSelectedBodyId(body.bodyId);
-    setSelectedBodyName(body.bodyName);
-    setSelectedOrganizationId(body.organizationId);
-    setSelectedSecurityDomain(body.securityDomain ?? '');
-    const message = `${body.bodyName} ist für den Gremia.BR-Arbeitsbereich vorgemerkt. Bitte Einstellungen speichern.`;
-    setStatus(message);
-    announce(message, 'polite');
-  }
+    },
+    password, setters, setBusy, setStatus, setWorkspaceBodies, announce,
+  });
 
   function updateRelevanceGroupKeywords(groupId: string, value: string) {
     const keywords = value.split(',').map((item) => item.trim()).filter(Boolean);
