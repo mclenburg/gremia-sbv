@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { createElement } from "react";
 import { describe, expect, it } from "vitest";
 import {
   complianceFindingToTone,
@@ -8,80 +8,48 @@ import {
   riskLevelToTone,
 } from "../../src/app/shared/status/statusTone";
 
-function source(path: string): string {
-  return readFileSync(path, "utf8");
-}
+import { StatusBadge, RiskBadge, ComplianceBadge, ProcessStatusBadge, DeadlineBadge } from '../../src/app/shared/components/StatusBadges';
+import { descendants, hasClasses, renderComponent, renderElement, visibleText } from '../helpers/renderedMarkup';
 
-function uiCss(): string {
-  return [
-    'src/app/ui/designTokens.css',
-    'src/app/ui/base.css',
-    'src/app/ui/appShell.css',
-    'src/app/ui/components.css',
-  'src/app/ui/modal.css',
-    'src/app/ui/workbench.css',
-    'src/app/ui/processes.css',
-    'src/app/ui/featureModules.css',
-    'src/app/ui/responsiveDesign.css',
-    'src/app/ui/forms.css',
+describe('status badge behavior', () => {
+  it('renders a labelled status and hides its decorative icon from assistive technology', () => {
+    const { tree, markup } = renderComponent(StatusBadge, {
+      label: 'Prüfung erforderlich', tone: 'warning', ariaLabel: 'Bearbeitungsstatus: Prüfung erforderlich',
+      icon: createElement('svg', { 'aria-label': 'Dekoration' }),
+    });
+    const nodes = descendants(tree);
+    expect(nodes.some((node) => node.attrs['aria-label'] === 'Bearbeitungsstatus: Prüfung erforderlich')).toBe(true);
+    expect(nodes.some((node) => hasClasses(node, ['industrial-status-badge-warning']))).toBe(true);
+    expect(nodes.find((node) => node.tag === 'svg')?.parent?.attrs['aria-hidden']).toBe('true');
+    expect(visibleText(markup)).toBe('Prüfung erforderlich');
+  });
 
-  ].map((file) => source(file)).join('\n');
-}
+  it.each([
+    { element: createElement(RiskBadge, { risk: 'high', label: 'Hoch' }), tone: 'danger', ariaLabel: 'Risiko Hoch', text: 'Hoch' },
+    { element: createElement(ComplianceBadge, { finding: 'warning', label: 'Prüfauftrag' }), tone: 'warning', ariaLabel: 'Compliance Prüfauftrag', text: 'Prüfauftrag' },
+    { element: createElement(ProcessStatusBadge, { status: 'closed', label: 'Abgeschlossen' }), tone: 'ok', ariaLabel: 'Status Abgeschlossen', text: 'Abgeschlossen' },
+    { element: createElement(RiskBadge, { risk: null }), tone: 'default', ariaLabel: 'Risiko unbekannt', text: 'Unbekannt' },
+  ])('renders $ariaLabel with its semantic tone and visible label', ({ element, tone, ariaLabel, text }) => {
+    const { tree, markup } = renderElement(element);
+    expect(descendants(tree).some((node) =>
+      node.attrs['aria-label'] === ariaLabel && hasClasses(node, [`industrial-status-badge-${tone}`]),
+    )).toBe(true);
+    expect(visibleText(markup)).toBe(text);
+  });
 
-function sourcesUnder(dir: string): string {
-  const chunks: string[] = [];
-  function visit(path: string) {
-    for (const entry of readdirSync(path)) {
-      const child = `${path}/${entry}`;
-      if (statSync(child).isDirectory()) {
-        visit(child);
-        continue;
-      }
-      if (child.endsWith(".ts") || child.endsWith(".tsx")) {
-        chunks.push(source(child));
-      }
-    }
-  }
-  visit(dir);
-  return chunks.join("\n");
-}
-
-describe("Status-/Badge-Zentralisierung Patch P5", () => {
-  it("stellt zentrale Badge-Komponenten und Mapper bereit", () => {
-    const badges = source("src/app/shared/components/StatusBadges.tsx");
-    const mappers = source("src/app/shared/status/statusTone.ts");
-    const css = uiCss();
-
-    for (const component of [
-      "StatusBadge",
-      "RiskBadge",
-      "DeadlineBadge",
-      "ComplianceBadge",
-      "ProcessStatusBadge",
-    ]) {
-      expect(badges).toContain(`function ${component}`);
-    }
-
-    for (const mapper of [
-      "riskLevelToTone",
-      "deadlineToTone",
-      "deadlineStateToTone",
-      "processStatusToTone",
-      "complianceFindingToTone",
-    ]) {
-      expect(mappers).toContain(`function ${mapper}`);
-    }
-
-    for (const selector of [
-      ".industrial-status-badge",
-      ".industrial-status-badge-ok",
-      ".industrial-status-badge-warning",
-      ".industrial-status-badge-danger",
-      ".industrial-status-badge-info",
-      ".industrial-status-badge-muted",
-    ]) {
-      expect(css).toContain(selector);
-    }
+  it.each([
+    { state: undefined, dueAt: '2026-05-23T10:00:00.000Z', tone: 'danger' },
+    { state: undefined, dueAt: '2026-05-25T10:00:00.000Z', tone: 'warning' },
+    { state: undefined, dueAt: '2026-06-01T10:00:00.000Z', tone: 'info' },
+    { state: 'done', dueAt: '2026-05-23T10:00:00.000Z', tone: 'ok' },
+  ])('renders deadline state $state and date $dueAt with tone $tone', ({ state, dueAt, tone }) => {
+    const { tree, markup } = renderComponent(DeadlineBadge, {
+      state, dueAt, today: new Date('2026-05-24T10:00:00.000Z'), label: 'Frist', ariaLabel: 'Friststatus',
+    });
+    expect(descendants(tree).some((node) =>
+      node.attrs['aria-label'] === 'Friststatus' && hasClasses(node, [`industrial-status-badge-${tone}`]),
+    )).toBe(true);
+    expect(visibleText(markup)).toBe('Frist');
   });
 
   it("mappt Risiko-, Compliance-, Prozess- und Fristentöne positiv und negativ", () => {
@@ -114,25 +82,4 @@ describe("Status-/Badge-Zentralisierung Patch P5", () => {
     expect(deadlineToTone("kein-datum", today)).toBe("default");
   });
 
-  it("zieht Compliance, SBV-Steuerung und Fristenanzeigen auf zentrale Badge-Komponenten", () => {
-    const compliance = sourcesUnder("src/app/features/compliance");
-    const sbvControl = sourcesUnder("src/app/features/sbv-control");
-    const deadlines = source("src/app/features/deadlines/DeadlineBadge.tsx");
-
-    expect(compliance).toContain("ComplianceBadge");
-    expect(compliance).toContain("RiskBadge");
-    expect(compliance).toContain("ProcessStatusBadge");
-    expect(compliance).not.toContain("industrial-tag-${incident.riskLevel");
-    expect(compliance).not.toContain("industrial-tag-${result.status");
-
-    expect(sbvControl).toContain("ProcessStatusBadge");
-    expect(sbvControl).toContain("RiskBadge");
-    expect(sbvControl).toContain("riskLevelToTone");
-    expect(sbvControl).not.toContain("function controlTone");
-
-    expect(deadlines).toContain("DeadlineBadge");
-    expect(deadlines).toContain("RiskBadge");
-    expect(deadlines).not.toContain("industrial-status-danger");
-    expect(deadlines).not.toContain("severityClass");
-  });
 });

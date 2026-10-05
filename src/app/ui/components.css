@@ -1361,8 +1361,6 @@ html[data-theme='light'] .industrial-action-note {
 .sbv-control-row p,
 .sbv-control-table-row span,
 .sbv-control-table-row p,
-.sbv-control-mini-card span,
-.sbv-control-mini-card p,
 .sbv-control-checklist span {
   color: var(--industrial-text-muted);
   font-size: var(--font-size-base);
@@ -1409,7 +1407,6 @@ html[data-theme='light'] .industrial-action-note {
 }
 
 .sbv-control-compact-list,
-.sbv-control-card-grid,
 .sbv-control-checklist,
 .sbv-control-table,
 .sbv-control-metric-grid {
@@ -1417,16 +1414,11 @@ html[data-theme='light'] .industrial-action-note {
   gap: .65rem;
 }
 
-.sbv-control-card-grid {
-  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
-}
-
 .sbv-control-metric-grid {
   grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
 }
 
 .sbv-control-row,
-.sbv-control-mini-card,
 .sbv-control-checklist article,
 .sbv-control-metric-grid article,
 .sbv-control-table-row,
@@ -1437,7 +1429,6 @@ html[data-theme='light'] .industrial-action-note {
 }
 
 .sbv-control-row,
-.sbv-control-mini-card,
 .sbv-control-checklist article,
 .sbv-control-metric-grid article {
   display: grid;
@@ -1474,8 +1465,7 @@ html[data-theme='light'] .industrial-action-note {
   min-width: 0;
 }
 
-.sbv-control-table-row em,
-.sbv-control-mini-card em {
+.sbv-control-table-row em {
   color: var(--industrial-text);
   font-style: normal;
   font-size: var(--font-size-sm);
