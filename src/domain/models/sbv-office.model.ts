@@ -1,13 +1,3 @@
-export const MEETING_TYPES = [
-  'works_council',
-  'council_committee',
-  'health_safety',
-  'employer_council_meeting',
-  'works_assembly',
-  'other',
-] as const;
-export type MeetingType = (typeof MEETING_TYPES)[number];
-
 export const OBLIGATION_STATUSES = [
   'not_due',
   'due',

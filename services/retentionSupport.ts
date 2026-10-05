@@ -2,7 +2,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { DatabaseAdapter } from './databaseService.js';
 import type { ReportableMeasureType } from '../src/domain/models/measure-lifecycle.model.js';
-export const CASE_ANONYMIZE_CONFIRMATION = 'FALL ANONYMISIEREN';
 export const CASE_DELETE_CONFIRMATION = 'FALL LÖSCHEN';
 
 /** SQLite row at the persistence boundary. Values remain scalar and must be

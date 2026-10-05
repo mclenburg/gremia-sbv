@@ -1,5 +1,4 @@
 export type KnowledgeSource = 'SGB IX' | 'BetrVG' | 'AGG' | 'KSchG' | 'ArbSchG' | 'DSGVO' | 'BDSG' | 'Sonstiges';
-export type KnowledgeChecklistStatus = 'offen' | 'erledigt' | 'nicht_relevant';
 
 export interface LegalNormRecord {
   id: string;

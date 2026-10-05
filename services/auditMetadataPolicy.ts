@@ -260,10 +260,6 @@ export const AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE = {
 
 export type AuditMetadataPolicySubjectType = keyof typeof AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE;
 
-export const AUDIT_METADATA_POLICY_SUBJECT_TYPES = Object.keys(
-  AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE,
-).sort() as AuditMetadataPolicySubjectType[];
-
 function fieldsForSubjectType(subjectType?: string): readonly string[] {
   if (!subjectType) {
     return Array.from(new Set([

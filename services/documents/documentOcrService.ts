@@ -13,7 +13,6 @@ const OCR_ERROR_LIMIT = 1_000;
 const OCR_TEXT_LIMIT = 300_000;
 
 export type DocumentOcrStatus = 'not_required' | 'queued' | 'processing' | 'completed' | 'unsupported' | 'failed';
-export type DocumentOcrJobStatus = Exclude<DocumentOcrStatus, 'not_required'>;
 
 export interface DocumentOcrResult {
   status: Extract<DocumentOcrStatus, 'completed' | 'unsupported' | 'failed'>;

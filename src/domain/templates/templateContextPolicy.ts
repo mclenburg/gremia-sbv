@@ -1,11 +1,5 @@
 import type { ContextualTemplateAction, TemplateSourceType } from '../models/template.model.js';
 
-export interface PreventionStepLike {
-  key?: string;
-  title: string;
-  objective?: string;
-}
-
 export interface ContextualTemplateCandidate {
   sourceType: TemplateSourceType;
   key?: string;

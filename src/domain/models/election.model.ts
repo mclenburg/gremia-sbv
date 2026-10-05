@@ -57,16 +57,6 @@ export const ELECTION_DOCUMENT_CLASSES = [
 ] as const;
 export type ElectionDocumentClass = (typeof ELECTION_DOCUMENT_CLASSES)[number];
 
-export const ELECTION_TRANSFER_STATUSES = [
-  'prepared',
-  'exported',
-  'inspected',
-  'imported',
-  'rejected',
-  'superseded',
-] as const;
-export type ElectionTransferStatus = (typeof ELECTION_TRANSFER_STATUSES)[number];
-
 export const ELECTION_LEGAL_RULE_VERSION = 'SGBIX-2026-01-16|SchwbVWO-2022-03-18' as const;
 
 export interface MinimumThresholdAssessment {
@@ -131,15 +121,6 @@ export const ELECTION_DEADLINE_RULE_KEYS = [
   'election.records.retain',
 ] as const;
 export type ElectionDeadlineRuleKey = (typeof ELECTION_DEADLINE_RULE_KEYS)[number];
-
-export interface LegalDeadlineSnapshot {
-  ruleKey: ElectionDeadlineRuleKey;
-  sourceDate: string;
-  dueAt: string;
-  legalReference: string;
-  legalRuleVersion: typeof ELECTION_LEGAL_RULE_VERSION;
-  calculationBasis: string;
-}
 
 export interface ElectionDeadlineRuleSnapshot {
   ruleKey: ElectionDeadlineRuleKey;
