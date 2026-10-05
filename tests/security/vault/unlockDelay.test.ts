@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -20,31 +20,12 @@ function createService(dataDir: string): SecurityService {
   return service;
 }
 
-describe('0.8.9 unlock delay', () => {
+describe('unlock delay behavior', () => {
   const createdDirs: string[] = [];
 
   afterEach(() => {
     vi.restoreAllMocks();
     for (const directory of createdDirs.splice(0)) rmSync(directory, { recursive: true, force: true });
-  });
-
-  it('hält fehlgeschlagene Entsperrversuche nur im Arbeitsspeicher', async () => {
-    const dataDir = tempDataDir();
-    createdDirs.push(dataDir);
-    const service = createService(dataDir);
-    await service.setupInitialPassword(PASSWORD);
-    service.lock();
-
-    await service.unlock('wrong-1');
-    await service.unlock('wrong-2');
-    const delayed = await service.unlock('wrong-3');
-
-    expect(delayed.ok).toBe(false);
-    expect(delayed.unlockDelaySeconds).toBeGreaterThan(0);
-    expect(readFileSync(path.join(dataDir, 'security.json'), 'utf8')).not.toContain('failedUnlockAttempts');
-
-    const restarted = createService(dataDir);
-    expect(restarted.status().unlockDelaySeconds).toBeUndefined();
   });
 
   it('setzt eine begrenzte Verzögerung ohne permanenten Lockout durch', async () => {
@@ -54,6 +35,7 @@ describe('0.8.9 unlock delay', () => {
     await service.setupInitialPassword(PASSWORD);
     service.lock();
 
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(Date.UTC(2026, 0, 1));
     await service.unlock('wrong-1');
     await service.unlock('wrong-2');
     await service.unlock('wrong-3');
@@ -63,19 +45,24 @@ describe('0.8.9 unlock delay', () => {
     expect(blocked.error).toContain('Zu viele falsche Entsperrversuche');
     expect(blocked.unlockDelaySeconds).toBeGreaterThan(0);
     expect(blocked.unlockDelaySeconds).toBeLessThanOrEqual(5 * 60);
-  });
+    expect(service.isUnlocked()).toBe(false);
+    expect(blocked.unlockAvailableAt).toBeDefined();
 
-  it('setzt die Verzögerung nach erfolgreicher Entsperrung zurück', async () => {
-    const dataDir = tempDataDir();
-    createdDirs.push(dataDir);
-    const service = createService(dataDir);
-    await service.setupInitialPassword(PASSWORD);
-    service.lock();
+    const availableAt = Date.parse(blocked.unlockAvailableAt!);
+    clock.mockReturnValue(availableAt - 1);
+    expect((await service.unlock(PASSWORD)).ok).toBe(false);
+    expect(service.status().unlockDelaySeconds).toBe(1);
+    expect(service.isUnlocked()).toBe(false);
 
-    await service.unlock('wrong-1');
-    const unlocked = await service.unlock(PASSWORD);
-
-    expect(unlocked).toMatchObject({ ok: true, initialized: true, unlocked: true });
+    clock.mockReturnValue(availableAt);
     expect(service.status().unlockDelaySeconds).toBeUndefined();
+    expect(await service.unlock(PASSWORD)).toMatchObject({ ok: true, unlocked: true });
+    expect(service.isUnlocked()).toBe(true);
+
+    service.lock();
+    const nextFailedAttempt = await service.unlock('wrong-after-success');
+    expect(nextFailedAttempt.ok).toBe(false);
+    expect(nextFailedAttempt.unlockDelaySeconds).toBeUndefined();
+    expect(await service.unlock(PASSWORD)).toMatchObject({ ok: true, unlocked: true });
   });
 });

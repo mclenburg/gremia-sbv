@@ -129,6 +129,7 @@ describe('backup service behavior', () => {
 
     expect(result.ok).toBe(true);
     expect(envelope.kdfParams).toEqual(CURRENT_BACKUP_SCRYPT_PARAMS);
+    expect(envelope.kdfParams.N).toBeGreaterThanOrEqual(131072);
     const inspected = new BackupService(createSecurityStub(dataDir) as never).inspectBackup(target, PASSPHRASE);
     expect(inspected.ok).toBe(true);
     expect(inspected.files?.map((file) => file.relativePath)).toEqual(expect.arrayContaining([
@@ -147,6 +148,10 @@ describe('backup service behavior', () => {
     const outDir = tempDir('gremia-sbv-backup-domain-out-');
     createdDirs.push(dataDir, outDir);
     writeVaultWithJournalAndViolationSentinel(dataDir);
+    const vaultPath = path.join(dataDir, 'gremia-sbv.vault.sqlite');
+    const documentPath = path.join(dataDir, 'documents', 'generated', 'violation.gsbvdoc');
+    const originalVault = readFileSync(vaultPath);
+    const originalDocument = readFileSync(documentPath);
 
     const target = path.join(outDir, 'domain.gsbvbackup');
     const service = new BackupService(createSecurityStub(dataDir) as never);
@@ -156,11 +161,8 @@ describe('backup service behavior', () => {
     rmSync(path.join(dataDir, 'documents'), { recursive: true, force: true });
     expect(service.restoreBackup(target, PASSPHRASE, 'BACKUP WIEDERHERSTELLEN').ok).toBe(true);
 
-    const restoredVault = readFileSync(path.join(dataDir, 'gremia-sbv.vault.sqlite'), 'utf8');
-    for (const tableName of ['activity_journal_entries', 'activity_journal_links', 'sbv_participation_violations', 'sbv_participation_violation_events', 'sbv_participation_violation_documents', 'generated_documents']) {
-      expect(restoredVault).toContain(tableName);
-    }
-    expect(readFileSync(path.join(dataDir, 'documents', 'generated', 'violation.gsbvdoc'), 'utf8')).toBe('encrypted-violation-document');
+    expect(readFileSync(vaultPath)).toEqual(originalVault);
+    expect(readFileSync(documentPath)).toEqual(originalDocument);
   });
 
   it('restores legacy backups that do not contain explicit kdfParams', () => {
