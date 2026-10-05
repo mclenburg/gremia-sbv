@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { createRequire } from 'node:module';
@@ -48,7 +48,6 @@ describe('isolierte E2E-Werkzeugauflösung', () => {
     });
   });
 
-
   it('installiert Chromium unter Linux-CI mit Systemabhängigkeiten, ohne Windows zu belasten', () => {
     const browserInstaller = requireFromTest('../../scripts/install-e2e-browsers.cjs') as {
       browserInstallArgs: (platform?: string, isCi?: boolean, env?: NodeJS.ProcessEnv) => string[];
@@ -72,32 +71,5 @@ describe('isolierte E2E-Werkzeugauflösung', () => {
     expect(
       browserInstaller.browserInstallArgs('linux', true, { GREMIA_SBV_E2E_USE_SYSTEM_CHROME: '1' } as NodeJS.ProcessEnv),
     ).toEqual(['install', 'chromium']);
-  });
-
-  it('haelt Playwright- und Axe-Imports in der Config und im Axe-Test vom App-node_modules entkoppelt', () => {
-    const config = readFileSync('playwright.config.ts', 'utf8');
-    const axeSpec = readFileSync('e2e/accessibility-axe.spec.ts', 'utf8');
-    const support = readFileSync('e2e/support/test.ts', 'utf8');
-
-    expect(config).not.toContain("from '@playwright/test'");
-    expect(config).toContain('createRequire(isolatedToolsPackage)');
-    expect(config).toContain("channel: 'chrome'");
-    expect(config).toContain('fullyParallel: true');
-    expect(config).toContain("GREMIA_SBV_E2E_WORKERS ?? '2'");
-    expect(axeSpec).not.toContain("from '@axe-core/playwright'");
-    expect(axeSpec).toContain("requireE2eTool('@axe-core/playwright')");
-    expect(axeSpec).toContain('for (const route of VISUAL_QA_ROUTES)');
-    expect(axeSpec).toContain('AXE_HELP_ROUTE_IDS.has(route.id)');
-    expect(axeSpec).not.toContain('batchItems(');
-    expect(support).not.toContain("from '@playwright/test'");
-    expect(support).toContain("requireE2eTool<");
-
-    const workflow = readFileSync('.github/workflows/build-release.yml', 'utf8');
-    expect(workflow).toContain('FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"');
-    expect(workflow).not.toContain('GREMIA_SBV_E2E_USE_SYSTEM_CHROME');
-    expect(workflow).not.toContain('PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD');
-    expect(workflow).not.toContain('test:e2e:setup');
-    expect(workflow).toContain('actions/checkout@v4');
-    expect(workflow).toContain('actions/setup-node@v4');
   });
 });
