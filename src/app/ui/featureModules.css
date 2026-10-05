@@ -49,13 +49,6 @@
   overflow-x: clip;
 }
 
-.case-workbench-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  justify-content: flex-end;
-}
-
 .case-create-modal-responsive {
   width: min(58rem, calc(100vw - 1.5rem));
 }
