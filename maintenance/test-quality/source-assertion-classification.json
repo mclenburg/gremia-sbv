@@ -37,18 +37,6 @@
       "rationale": "Statische Architekturregel: Der versionierte Migrationshook darf keine Fachservices als zweite Schemaquelle instanziieren und Runtime-Fassaden dürfen keine zweite strukturelle Schemaquelle enthalten."
     },
     {
-      "file": "tests/features/participation/recruitingParticipationIntegration.test.ts",
-      "category": "A",
-      "sourceAssertions": 3,
-      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
-    },
-    {
-      "file": "tests/features/participation/recruitingParticipationSchema.test.ts",
-      "category": "A",
-      "sourceAssertions": 9,
-      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
-    },
-    {
       "file": "tests/ui/review5UserGuidance.test.ts",
       "category": "A",
       "sourceAssertions": 2,
