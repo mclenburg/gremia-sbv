@@ -1,6 +1,6 @@
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
@@ -56,15 +56,19 @@ describe('E2E runner Playwright instance resolution', () => {
   });
 });
 
-function invokeRunner(root: string, args: string[]) {
+function invokeRunner(
+  root: string,
+  args: string[],
+  options: { cliSource?: string; env?: NodeJS.ProcessEnv } = {},
+) {
   const packageRoot = join(root, 'node_modules', '@playwright', 'test');
   mkdirSync(packageRoot, { recursive: true });
   writeFileSync(join(packageRoot, 'package.json'), '{"name":"@playwright/test"}\n');
-  writeFileSync(join(packageRoot, 'cli.js'), 'console.log(JSON.stringify(process.argv.slice(2)));\n');
+  writeFileSync(join(packageRoot, 'cli.js'), options.cliSource ?? 'console.log(JSON.stringify(process.argv.slice(2)));\n');
   return spawnSync(process.execPath, [resolve('scripts/run-e2e.cjs'), ...args], {
     cwd: root,
     encoding: 'utf8',
-    env: { ...process.env, GREMIA_SBV_E2E_DATA_DIR: '' },
+    env: { ...process.env, GREMIA_SBV_E2E_DATA_DIR: '', ...options.env },
   });
 }
 
@@ -118,4 +122,49 @@ describe('explicit E2E spec selection', () => {
     });
   });
 
+});
+
+describe('E2E child process data isolation', () => {
+  it.each([0, 7])('isolates data and removes temporary files after child exit %i', (exitCode) => {
+    withTempProject((root) => {
+      const userDataDir = join(root, 'user-data');
+      mkdirSync(userDataDir);
+      const markerPath = join(userDataDir, 'vault-marker');
+      const originalMarker = Buffer.from([0, 1, 255, 42]);
+      writeFileSync(markerPath, originalMarker);
+      const result = invokeRunner(root, [], {
+        env: { GREMIA_SBV_DATA_DIR: userDataDir },
+        cliSource: `
+          const { existsSync, writeFileSync } = require('node:fs');
+          const { join } = require('node:path');
+          const dataDir = process.env.GREMIA_SBV_DATA_DIR;
+          console.log(JSON.stringify({
+            dataDir,
+            e2eDataDir: process.env.GREMIA_SBV_E2E_DATA_DIR,
+            exists: existsSync(dataDir),
+            e2e: process.env.GREMIA_SBV_E2E,
+            reportDir: process.env.PLAYWRIGHT_HTML_REPORT,
+            outputDir: process.env.PLAYWRIGHT_TEST_OUTPUT_DIR,
+          }));
+          writeFileSync(join(dataDir, 'child-marker'), 'test data');
+          process.exit(${exitCode});
+        `,
+      });
+
+      expect(result.error).toBeUndefined();
+      expect(result.status).toBe(exitCode);
+      const observed = JSON.parse(result.stdout.trim().split('\n').at(-1) ?? '{}');
+      expect(observed.exists).toBe(true);
+      expect(observed.e2e).toBe('1');
+      expect(observed.dataDir).toBe(observed.e2eDataDir);
+      expect(observed.dataDir).not.toBe(userDataDir);
+      expect(dirname(observed.dataDir)).toBe(resolve(tmpdir()));
+      expect(basename(observed.dataDir).startsWith('gremia-sbv-e2e-')).toBe(true);
+      expect(dirname(observed.reportDir)).toBe(observed.dataDir);
+      expect(dirname(observed.outputDir)).toBe(observed.dataDir);
+      expect(existsSync(observed.dataDir)).toBe(false);
+      expect(readFileSync(markerPath)).toEqual(originalMarker);
+      expect(existsSync(join(userDataDir, 'child-marker'))).toBe(false);
+    });
+  });
 });

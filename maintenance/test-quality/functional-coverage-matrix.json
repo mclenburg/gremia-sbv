@@ -48,7 +48,7 @@
         "privacy": [
           {
             "file": "tests/security/vault/securityPrivacyReadiness.test.ts",
-            "name": "keeps E2E runs isolated and audit metadata datensparsam"
+            "name": "preserves technical references while excluding personal content and unrelated targets"
           }
         ],
         "integration": [
@@ -112,7 +112,7 @@
         "privacy": [
           {
             "file": "tests/security/vault/securityPrivacyReadiness.test.ts",
-            "name": "keeps E2E runs isolated and audit metadata datensparsam"
+            "name": "preserves technical references while excluding personal content and unrelated targets"
           }
         ],
         "integration": [
@@ -569,7 +569,7 @@
         "privacy": [
           {
             "file": "tests/security/vault/securityPrivacyReadiness.test.ts",
-            "name": "keeps E2E runs isolated and audit metadata datensparsam"
+            "name": "preserves technical references while excluding personal content and unrelated targets"
           }
         ],
         "integration": [

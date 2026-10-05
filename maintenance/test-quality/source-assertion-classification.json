@@ -37,12 +37,6 @@
       "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
     },
     {
-      "file": "tests/security/vault/securityPrivacyReadiness.test.ts",
-      "category": "A",
-      "sourceAssertions": 9,
-      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
-    },
-    {
       "file": "tests/architecture/testQualityMetrics.test.ts",
       "category": "A",
       "sourceAssertions": 3,
