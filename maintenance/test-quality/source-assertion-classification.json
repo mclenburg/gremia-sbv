@@ -121,27 +121,9 @@
       "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
     },
     {
-      "file": "tests/architecture/serviceCoverageConfig.test.ts",
-      "category": "A",
-      "sourceAssertions": 10,
-      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
-    },
-    {
-      "file": "tests/architecture/serviceCoverageScope.test.ts",
-      "category": "A",
-      "sourceAssertions": 19,
-      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
-    },
-    {
       "file": "tests/architecture/testQualityMetrics.test.ts",
       "category": "A",
       "sourceAssertions": 3,
-      "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
-    },
-    {
-      "file": "tests/architecture/unitCoverageGate.test.ts",
-      "category": "A",
-      "sourceAssertions": 8,
       "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
     },
     {
