@@ -13,8 +13,8 @@
     "imports": 35
   },
   "summary": {
-    "filesScanned": 797,
-    "debtFiles": 11
+    "filesScanned": 798,
+    "debtFiles": 10
   },
   "debt": {
     "src/app/features/auth/AuthRecoveryViews.tsx": {
@@ -64,12 +64,6 @@
       "codeLines": 267,
       "maxFunctionLines": 245,
       "imports": 5
-    },
-    "src/app/features/templates/TemplatesView.tsx": {
-      "physicalLines": 234,
-      "codeLines": 231,
-      "maxFunctionLines": 195,
-      "imports": 12
     },
     "src/app/features/termination/TerminationProcessDetail.tsx": {
       "physicalLines": 341,
