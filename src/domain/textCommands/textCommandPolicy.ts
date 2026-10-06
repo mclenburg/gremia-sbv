@@ -127,10 +127,6 @@ export function getTextCommandKind(token: TextCommandToken): TextCommandKind {
   return TOKEN_TO_KIND[token];
 }
 
-export function tokensForTextCommandKind(kind: TextCommandKind): TextCommandToken[] {
-  return TEXT_COMMAND_REGISTRY.find((definition) => definition.kind === kind)?.tokens ?? [];
-}
-
 export const LEGAL_NORM_SUGGESTIONS: LegalNormSuggestion[] = [
   { id: 'sgb-ix-167-1', source: 'SGB IX', paragraph: '§ 167 Abs. 1 SGB IX', title: 'Präventionsverfahren', shortText: 'Arbeitgeber muss bei Gefährdung frühzeitig SBV, Interessenvertretung und Inklusionsamt einschalten.' },
   { id: 'sgb-ix-167-2', source: 'SGB IX', paragraph: '§ 167 Abs. 2 SGB IX', title: 'Betriebliches Eingliederungsmanagement', shortText: 'BEM nach mehr als sechs Wochen Arbeitsunfähigkeit innerhalb von zwölf Monaten.' },

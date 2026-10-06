@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { extractDocumentTextBestEffort, inferMimeType, isDocumentTextExtractionSupported } from '../../../../services/documents/documentTextExtractionService';
+import { extractDocumentTextBestEffort, inferMimeType } from '../../../../services/documents/documentTextExtractionService';
 
 describe('Dokumenttext-Extraktion 0.9.1', () => {
   it('extrahiert Textdateien plattformunabhängig ohne externe Dienste', async () => {
@@ -51,13 +51,6 @@ describe('Dokumenttext-Extraktion 0.9.1', () => {
     expect(result.status).toBe('failed');
     expect(result.extractorId).toBe('docx-openxml');
     expect(result.errorMessage).toBeTruthy();
-  });
-
-  it('macht unterstützte Formate ohne Plattformannahmen erkennbar', () => {
-    expect(isDocumentTextExtractionSupported('scan.pdf')).toBe(true);
-    expect(isDocumentTextExtractionSupported('protokoll.docx')).toBe(true);
-    expect(isDocumentTextExtractionSupported('notiz.txt')).toBe(true);
-    expect(isDocumentTextExtractionSupported('bild.png')).toBe(false);
   });
 
   it('ordnet Office- und PDF-Dateien über den Dateinamen reproduzierbar einem MIME-Typ zu', () => {

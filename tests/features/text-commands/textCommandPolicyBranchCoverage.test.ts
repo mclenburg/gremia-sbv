@@ -21,7 +21,6 @@ import {
   isTextCommandAt,
   removeCommandMarker,
   replaceCommandMarker,
-  tokensForTextCommandKind,
 } from '../../../services/textCommandPolicy';
 
 const nl = String.fromCharCode(10);
@@ -79,8 +78,7 @@ describe('text command policy branch coverage 0.9.2', () => {
     expect(applyPendingAnonymizationMarkers('A [Anonymisierung vormerken: Name] B')).toBe('A [anonymisiert] B');
   });
 
-  it('liefert Token-Informationen und Kontakttexte in allen Fallback-Varianten', () => {
-    expect(tokensForTextCommandKind('deadline')).toContain('/frist');
+  it('formatiert Kontakttexte in allen Fallback-Varianten', () => {
     expect(formatContactReferenceText({ firstName: 'Ada', lastName: 'Lovelace', organization: 'Agentur', role: 'Beratung', email: 'ada@example.test' })).toBe('Ada Lovelace – Agentur · Beratung <ada@example.test>');
     expect(formatContactReferenceText({ organization: 'Inklusionsamt' })).toBe('Kontakt – Inklusionsamt');
     expect(formatContactReferenceText({})).toBe('Kontakt');
