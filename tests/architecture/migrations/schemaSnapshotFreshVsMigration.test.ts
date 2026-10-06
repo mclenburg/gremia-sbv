@@ -1,7 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { DatabaseSync } from 'node:sqlite';
 import { ACTIVITY_JOURNAL_CATEGORY_PREFERENCES_REQUIRED_COLUMNS, ACTIVITY_JOURNAL_ENTRIES_REQUIRED_COLUMNS, ACTIVITY_JOURNAL_LINKS_REQUIRED_COLUMNS, CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS, COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS, GREMIA_BR_CACHE_REQUIRED_COLUMNS, GREMIA_BR_CASE_CREATIONS_REQUIRED_COLUMNS, GREMIA_BR_SETTINGS_REQUIRED_COLUMNS, GREMIA_BR_WORKSPACE_ACTIONS_REQUIRED_COLUMNS, MOBILE_COMPANION_CHANGE_IMPORTS_REQUIRED_COLUMNS, MOBILE_COMPANION_DEVICES_REQUIRED_COLUMNS, SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS, TRANSFER_RECIPIENT_PROFILES_REQUIRED_COLUMNS } from '../../../services/appSchema';
 import { compareIndexSnapshot, compareTableSnapshot, createSqlSchemaSnapshot } from '../../../services/schemaSnapshotPolicy';
+
+function tableColumns(db: DatabaseSync, table: string): string[] {
+  return db.prepare(`PRAGMA table_info(${table})`).all().map((row) => String(row.name));
+}
+
+function runMigration(db: DatabaseSync, file: string): void {
+  db.exec(readFileSync(`database/migrations/${file}`, 'utf8'));
+}
 
 describe('Schema-Snapshot Fresh Install vs. Legacy-Migration 0.9.1', () => {
   it('hält case_measure_notes in Basisschema und Migration 0026 strukturgleich', () => {
@@ -197,15 +206,23 @@ describe('Schema-Snapshot Fresh Install vs. Legacy-Migration 0.9.1', () => {
 
 
   it('hält SBV-Steuerungsprotokolle im Basisschema auf Migration 0040 und dokumentiert die Nachrüstung', () => {
-    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
-    const initialMigration = readFileSync('database/migrations/0039_sbv_control_protocols.sql', 'utf8');
-    const deadlineMigration = readFileSync('database/migrations/0040_sbv_control_protocol_deadlines.sql', 'utf8');
+    const fresh = new DatabaseSync(':memory:');
+    const migrated = new DatabaseSync(':memory:');
+    try {
+      fresh.exec(readFileSync('database/schema.sql', 'utf8'));
+      runMigration(migrated, '0039_sbv_control_protocols.sql');
+      runMigration(migrated, '0040_sbv_control_protocol_deadlines.sql');
 
-    expect(initialMigration).toContain('CREATE TABLE IF NOT EXISTS sbv_control_protocols');
-    expect(deadlineMigration).toContain('ALTER TABLE sbv_control_protocols ADD COLUMN follow_up_due_at TEXT');
-    expect(deadlineMigration).toContain('idx_sbv_control_protocols_follow_up');
-    expect(fresh.tables.sbv_control_protocols.columns).toEqual(expect.arrayContaining([...SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS]));
-    expect(fresh.indexes.idx_sbv_control_protocols_follow_up).toBeDefined();
+      expect(tableColumns(migrated, 'sbv_control_protocols').sort()).toEqual(tableColumns(fresh, 'sbv_control_protocols').sort());
+      expect(tableColumns(fresh, 'sbv_control_protocols')).toEqual(expect.arrayContaining([...SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS]));
+      for (const db of [fresh, migrated]) {
+        expect(db.prepare('PRAGMA index_info(idx_sbv_control_protocols_follow_up)').all())
+          .toEqual(expect.arrayContaining([expect.objectContaining({ name: 'follow_up_due_at' })]));
+      }
+    } finally {
+      fresh.close();
+      migrated.close();
+    }
   });
 
 
@@ -231,7 +248,6 @@ describe('Schema-Snapshot Fresh Install vs. Legacy-Migration 0.9.1', () => {
   it('hält Beteiligungsverstöße in Basisschema, Migration 0042 und Nachrüstung 0044 nachvollziehbar', () => {
     const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
     const baseMigration = createSqlSchemaSnapshot(readFileSync('database/migrations/0042_sbv_participation_violations.sql', 'utf8'));
-    const measureContextMigration = readFileSync('database/migrations/0044_participation_violation_measure_context.sql', 'utf8');
 
     const problems = [
       ...compareTableSnapshot(fresh, baseMigration, 'sbv_participation_violation_events'),
@@ -242,8 +258,27 @@ describe('Schema-Snapshot Fresh Install vs. Legacy-Migration 0.9.1', () => {
     ];
 
     expect(problems).toEqual([]);
-    expect(measureContextMigration).toContain('related_case_measure_id TEXT REFERENCES case_measures(id) ON DELETE SET NULL');
-    expect(measureContextMigration).toContain("'case_measure_participation'");
+    const legacyDb = new DatabaseSync(':memory:');
+    try {
+      for (const table of ['generated_documents', 'deadlines', 'cases', 'case_measures', 'sbv_participations', 'termination_hearings']) {
+        legacyDb.exec(`CREATE TABLE ${table} (id TEXT PRIMARY KEY)`);
+      }
+      for (const file of ['0039_sbv_control_protocols.sql', '0041_activity_journal.sql', '0042_sbv_participation_violations.sql', '0044_participation_violation_measure_context.sql']) {
+        runMigration(legacyDb, file);
+      }
+      expect(tableColumns(legacyDb, 'sbv_participation_violations')).toContain('related_case_measure_id');
+      expect(legacyDb.prepare('PRAGMA foreign_key_list(sbv_participation_violations)').all())
+        .toEqual(expect.arrayContaining([expect.objectContaining({ from: 'related_case_measure_id', table: 'case_measures', on_delete: 'SET NULL' })]));
+      legacyDb.exec(`INSERT INTO sbv_participation_violations
+        (id, stage, status, violation_type, source_context_type, source_context_id, subject,
+         measure_description, wrong_behavior, required_behavior, created_at, updated_at)
+        VALUES ('violation-1', 'request', 'draft', 'not_informed', 'case_measure_participation',
+          'measure-1', 'Betreff', 'Maßnahme', 'Verhalten', 'Erwartung', '2026-01-01', '2026-01-01')`);
+      expect(legacyDb.prepare('SELECT source_context_type FROM sbv_participation_violations WHERE id = ?').get('violation-1'))
+        .toEqual({ source_context_type: 'case_measure_participation' });
+    } finally {
+      legacyDb.close();
+    }
     expect(fresh.tables.sbv_participation_violations.columns).toEqual(expect.arrayContaining([...SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS]));
     expect(fresh.tables.sbv_participation_violation_events.columns).toEqual(expect.arrayContaining([...SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS]));
     expect(fresh.tables.sbv_participation_violation_documents.columns).toEqual(expect.arrayContaining([...SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS]));
