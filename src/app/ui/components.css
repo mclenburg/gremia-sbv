@@ -1230,10 +1230,7 @@ html[data-theme='light'] .industrial-action-note {
 
 /* App-weite Steuerungs- und Nachweis-Workbench-Regeln. */
 .sbv-control-row span,
-.sbv-control-row p,
-.sbv-control-table-row span,
-.sbv-control-table-row p,
-.sbv-control-checklist span {
+.sbv-control-row p {
   color: var(--industrial-text-muted);
   font-size: var(--font-size-base);
   line-height: 1.45;
@@ -1254,8 +1251,6 @@ html[data-theme='light'] .industrial-action-note {
 }
 
 .sbv-control-compact-list,
-.sbv-control-checklist,
-.sbv-control-table,
 .sbv-control-metric-grid {
   display: grid;
   gap: .65rem;
@@ -1266,17 +1261,13 @@ html[data-theme='light'] .industrial-action-note {
 }
 
 .sbv-control-row,
-.sbv-control-checklist article,
-.sbv-control-metric-grid article,
-.sbv-control-table-row,
-.sbv-control-empty {
+.sbv-control-metric-grid article {
   border: 1px solid var(--industrial-border);
   background: var(--industrial-bg);
   padding: var(--space-3) var(--space-3);
 }
 
 .sbv-control-row,
-.sbv-control-checklist article,
 .sbv-control-metric-grid article {
   display: grid;
   gap: .3rem;
@@ -1287,48 +1278,8 @@ html[data-theme='light'] .industrial-action-note {
   align-items: start;
 }
 
-.sbv-control-row.level-critical {
-  border-color: color-mix(in srgb, var(--industrial-danger) 62%, var(--industrial-border));
-}
-
-.sbv-control-row.level-warning,
-.sbv-control-table-row.risk-warning {
-  border-color: color-mix(in srgb, var(--industrial-warning) 68%, var(--industrial-border));
-}
-
-.sbv-control-table-row.risk-critical {
-  border-color: color-mix(in srgb, var(--industrial-danger) 62%, var(--industrial-border));
-}
-
-.sbv-control-table-row {
-  display: grid;
-  grid-template-columns: minmax(11rem, 1fr) minmax(13rem, 1.2fr) minmax(14rem, 1.35fr);
-  gap: .9rem;
-}
-
-.sbv-control-table-row div {
-  display: grid;
-  gap: .25rem;
-  min-width: 0;
-}
-
-.sbv-control-table-row em {
-  color: var(--industrial-text);
-  font-style: normal;
-  font-size: var(--font-size-sm);
-}
-
 .sbv-control-metric-grid article strong {
   font-size: var(--font-size-2xl);
-}
-
-.sbv-control-checklist article strong::before {
-  content: '□ ';
-  color: var(--industrial-accent);
-}
-
-.sbv-control-empty {
-  color: var(--industrial-text-muted);
 }
 
 .sbv-resource-workbench {
