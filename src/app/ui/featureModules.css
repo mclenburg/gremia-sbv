@@ -1028,14 +1028,12 @@ html[data-theme='light'] .case-search-result:focus {
 }
 
 .template-filter-form label,
-.template-detail-fields label,
 .template-create-form label {
   display: grid;
   gap: .35rem;
 }
 
 .template-filter-form label span,
-.template-detail-fields label span,
 .template-create-form label span {
   display: block;
   color: var(--industrial-text-muted);
@@ -1043,12 +1041,6 @@ html[data-theme='light'] .case-search-result:focus {
   font-weight: 700;
   letter-spacing: .12em;
   text-transform: uppercase;
-}
-
-.template-detail-fields {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-  gap: .85rem;
 }
 
 .template-create-modal {
@@ -1073,63 +1065,6 @@ html[data-theme='light'] .case-search-result:focus {
   border: 1px dashed var(--industrial-border);
   color: var(--industrial-text-muted);
   background: color-mix(in srgb, var(--industrial-panel) 92%, black 8%);
-}
-
-.template-help-modal {
-  width: min(72rem, calc(100vw - 2rem));
-  max-height: min(88vh, 58rem);
-  overflow: auto;
-}
-
-.template-placeholder-help {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
-  gap: 1rem;
-}
-
-.template-placeholder-help section {
-  display: grid;
-  align-content: start;
-  gap: .45rem;
-  padding: var(--space-3);
-  border: 1px solid var(--industrial-border);
-  background: color-mix(in srgb, var(--industrial-panel) 94%, black 6%);
-}
-
-.template-placeholder-help h3,
-.template-help-example h3 {
-  margin: 0 0 .25rem;
-  font-size: var(--font-size-base);
-}
-
-.template-placeholder-help code {
-  display: inline-flex;
-  width: fit-content;
-  max-width: 100%;
-  padding: var(--space-1) var(--space-1);
-  border: 1px solid var(--industrial-border);
-  color: var(--industrial-accent);
-  background: var(--industrial-bg);
-  overflow-wrap: anywhere;
-}
-
-.template-placeholder-help p {
-  margin: 0 0 .35rem;
-  color: var(--industrial-text-muted);
-  line-height: 1.45;
-}
-
-.template-help-example {
-  margin-top: 1rem;
-  padding: var(--space-3);
-  border: 1px dashed var(--industrial-border);
-  background: var(--industrial-bg);
-}
-
-.template-help-example pre {
-  margin: .5rem 0 0;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
 }
 
 /* Gremia.SBV 0.4.30 – Vorlagenverwaltung: Bearbeiten und Löschen. */
@@ -2449,8 +2384,6 @@ button.dashboard-focus-card:hover {
 
 .template-filter-form input,
 .template-filter-form select,
-.template-detail-fields input,
-.template-detail-fields select,
 .template-create-form input,
 .template-create-form select,
 .template-create-form textarea {
