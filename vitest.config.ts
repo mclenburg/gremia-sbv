@@ -34,8 +34,7 @@ const rcCriticalServiceCoverage = [
   'services/recruitingParticipationValidation.ts',
   'services/personCaseLinkService.ts',
   'services/tempFileService.ts',
-  'services/demoMode.ts',
-  'services/portableProfileService.ts'
+  'services/demoMode.ts'
 ];
 
 const coverageReportsDirectory = process.env.GREMIA_SBV_COVERAGE_DIR || './coverage';

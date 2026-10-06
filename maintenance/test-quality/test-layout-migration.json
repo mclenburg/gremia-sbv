@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "movedTests": 233,
+  "movedTests": 232,
   "entries": [
     {
       "from": "tests/accessibilityKnowledgeSelectP15o.test.ts",
@@ -577,10 +577,6 @@
     {
       "from": "tests/platformIndependentTestSuite092.test.ts",
       "to": "tests/platform/electron/platformIndependentTestSuite.test.ts"
-    },
-    {
-      "from": "tests/portableProfileServiceBehavior096r.test.ts",
-      "to": "tests/platform/electron/portableProfileServiceBehavior.test.ts"
     },
     {
       "from": "tests/pre1ReleaseHardening092as.test.ts",
