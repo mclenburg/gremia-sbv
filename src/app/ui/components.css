@@ -825,10 +825,6 @@ a.industrial-card:hover,
   line-height: 1;
 }
 
-.metric-default {
-  border-color: var(--industrial-border-strong);
-}
-
 .industrial-deadline-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1585,8 +1581,7 @@ html[data-theme='light'] .industrial-action-note {
   color: var(--industrial-accent);
 }
 
-.industrial-status-badge-danger,
-.industrial-status-badge-problem {
+.industrial-status-badge-danger {
   border-color: color-mix(in srgb, var(--industrial-danger) 58%, var(--industrial-border));
   color: color-mix(in srgb, var(--industrial-danger) 72%, white 28%);
 }
