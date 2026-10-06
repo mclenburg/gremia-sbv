@@ -2571,10 +2571,6 @@ html[data-theme='light'] .knowledge-search-bar input::placeholder {
   color: var(--industrial-text-muted);
 }
 
-.report-result-panel {
-  border-left: 4px solid var(--industrial-accent);
-}
-
 .industrial-danger-zone {
   border-color: rgba(248, 113, 113, 0.55);
 }
@@ -2683,10 +2679,6 @@ html[data-theme='light'] .knowledge-search-bar input::placeholder {
   color: var(--industrial-text-muted);
 }
 
-.process-overview-topline-actions {
-  justify-content: flex-end;
-}
-
 html[data-theme='light'] .case-note-next {
   background: color-mix(in srgb, var(--industrial-accent) 10%, transparent);
 }
@@ -2713,24 +2705,6 @@ html[data-theme='light'] .person-lifecycle-badge.muted {
   border-color: rgba(71, 85, 105, 0.34);
   background: rgba(226, 232, 240, 0.86);
   color: var(--industrial-info);
-}
-
-.reports-data-source-note,
-.reports-result-warnings {
-  margin-top: 1rem;
-  padding: var(--space-4);
-  border: 1px solid currentColor;
-  border-radius: var(--control-radius);
-}
-
-.reports-data-source-note h3,
-.reports-result-warnings h3 {
-  margin-top: 0;
-}
-
-.reports-result-warnings ul {
-  margin-bottom: 0;
-  padding-inline-start: 1.25rem;
 }
 
 .case-tree-process-row {
