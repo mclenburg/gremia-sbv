@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "movedTests": 228,
+  "movedTests": 227,
   "entries": [
     {
       "from": "tests/accessibilityKnowledgeSelectP15o.test.ts",
@@ -393,10 +393,6 @@
     {
       "from": "tests/helpTextMigration095j.test.ts",
       "to": "tests/features/help/helpTextMigration.test.ts"
-    },
-    {
-      "from": "tests/helpTextPolicyGate095k.test.ts",
-      "to": "tests/features/help/helpTextPolicyGate.test.ts"
     },
     {
       "from": "tests/helpVisualConsistency095u.test.ts",

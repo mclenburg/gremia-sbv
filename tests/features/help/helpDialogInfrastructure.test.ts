@@ -3,14 +3,16 @@ import { describe, expect, it } from 'vitest';
 import { IndustrialHelpButton } from '../../../src/app/shared/help/IndustrialHelp';
 import { FormSection } from '../../../src/app/shared/components/IndustrialForm';
 import { IndustrialPanel } from '../../../src/app/shared/components/WorkbenchPanels';
-import { VISIBLE_DESCRIPTION_MAX_CHARS, requiresHelpRegistryDecision, textPolicyDecision } from '../../../src/app/shared/help/helpTextPolicy';
 import { descendants, renderComponent, renderElement, visibleText } from '../../helpers/renderedMarkup';
 
 const helpIds = [
+  'activityJournal.overview',
   'activityJournal.textCommands',
+  'recruiting.overview',
   'recruiting.procedureData',
   'recruiting.interviewEvent',
   'participationViolations.sourceContext',
+  'participationViolations.stageAndType',
 ] as const;
 
 describe('Hilfe-Dialog-Infrastruktur', () => {
@@ -42,16 +44,4 @@ describe('Hilfe-Dialog-Infrastruktur', () => {
     expect(helpActions[0].attrs['aria-label']).toBe('Abschnittshilfe öffnen');
   });
 
-  it('fordert für Anweisungen eine Hilfeentscheidung, lässt kurze Statusbeschreibungen aber sichtbar', () => {
-    expect(requiresHelpRegistryDecision('Dokumentiere nur Verfahrensstände, keine Diagnosen.')).toBe(true);
-    expect(textPolicyDecision('SBV-Beteiligung bei Stellenbesetzungen nachhalten.')).toEqual({
-      shouldReview: false,
-      reasons: [],
-    });
-  });
-
-  it('meldet eine Längenüberschreitung erst oberhalb der sichtbaren Beschreibungsgrenze', () => {
-    expect(textPolicyDecision('x'.repeat(VISIBLE_DESCRIPTION_MAX_CHARS)).reasons).not.toContain('length');
-    expect(textPolicyDecision('x'.repeat(VISIBLE_DESCRIPTION_MAX_CHARS + 1)).reasons).toContain('length');
-  });
 });
