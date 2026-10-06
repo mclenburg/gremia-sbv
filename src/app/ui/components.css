@@ -598,31 +598,6 @@ a.industrial-card:hover,
   border-color: color-mix(in srgb, var(--industrial-accent) 45%, transparent);
 }
 
-.industrial-status-muted {
-  border-color: var(--industrial-neutral-600);
-  background: var(--industrial-neutral-800);
-  color: var(--industrial-neutral-300);
-}
-
-.industrial-status-neutral {
-  border-color: rgba(161,161,170,0.5);
-  background: rgba(63,63,70,0.45);
-  color: var(--industrial-text);
-}
-
-.industrial-status-danger {
-  border-color: rgba(239,68,68,0.64);
-  background: rgba(127,29,29,0.36);
-  color: var(--industrial-danger-text);
-}
-
-.industrial-status-fatal {
-  border-color: rgba(248,113,113,0.85);
-  background: linear-gradient(90deg, rgba(127,29,29,0.62), rgba(24,24,27,0.96));
-  color: var(--industrial-danger-text-strong);
-  box-shadow: inset 3px 0 0 var(--industrial-danger);
-}
-
 .industrial-empty {
   display: flex;
   align-items: center;
@@ -1132,39 +1107,6 @@ html[data-theme='light'] .industrial-action-note {
 .industrial-status-card-header .industrial-status-badge {
   flex: 0 0 auto;
 }
-
-.industrial-tag {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--industrial-border);
-  border-radius: var(--control-radius);
-  background: color-mix(in srgb, var(--industrial-panel) 90%, black 10%);
-  color: var(--industrial-text-muted);
-  padding: var(--space-1) var(--space-2);
-  font-size: var(--font-size-xs);
-  font-weight: 850;
-  line-height: 1.15;
-  white-space: nowrap;
-}
-
-.industrial-tag-ok,
-.industrial-status-ok .industrial-tag { border-color: color-mix(in srgb, var(--industrial-ok) 55%, var(--industrial-border)); color: color-mix(in srgb, var(--industrial-ok) 84%, white 16%); }
-
-.industrial-tag-warning,
-.industrial-status-warning .industrial-tag { border-color: color-mix(in srgb, var(--industrial-accent) 60%, var(--industrial-border)); color: var(--industrial-accent); }
-
-.industrial-tag-problem,
-.industrial-status-problem .industrial-tag,
-.industrial-tag-danger { border-color: color-mix(in srgb, var(--industrial-danger) 58%, var(--industrial-border)); color: color-mix(in srgb, var(--industrial-danger) 72%, white 28%); }
-
-.industrial-status-ok { border-color: color-mix(in srgb, var(--industrial-ok) 36%, var(--industrial-border)); }
-
-.industrial-status-warning { border-color: color-mix(in srgb, var(--industrial-accent) 42%, var(--industrial-border)); }
-
-.industrial-status-problem { border-color: color-mix(in srgb, var(--industrial-danger) 44%, var(--industrial-border)); }
-
-.industrial-status-info { border-color: var(--industrial-border); }
 
 .industrial-record-meta {
   display: grid;

@@ -37,7 +37,6 @@ const centralWorkbenchSelectors = [
   "industrial-record-card",
   "industrial-selection-card",
   "industrial-empty-state",
-  "industrial-tag",
   "workbench-page",
   "workbench-header",
   "workbench-sidebar",
