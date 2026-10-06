@@ -192,15 +192,6 @@
   .case-workbench {
     grid-template-columns: 1fr !important;
   }
-
-  .case-search-bar {
-    grid-template-columns: 1fr !important;
-  }
-
-  .case-search-bar > * {
-    min-width: 0;
-    max-width: 100%;
-  }
 }
 
 @media (max-width: 980px) {
@@ -342,10 +333,6 @@
 @media (max-width: 900px) {
   .case-detail-search-bar {
     grid-template-columns: 1fr;
-  }
-
-  .case-detail-search-bar > .h-4 {
-    display: none;
   }
 
   .case-detail-search-bar .industrial-checkbox-row.compact,

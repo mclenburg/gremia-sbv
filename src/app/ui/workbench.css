@@ -306,7 +306,6 @@ html[data-theme='light'] .industrial-panel {
 .case-tree-panel,
 .case-detail-panel,
 .case-detail-content,
-.case-search-bar,
 .case-pagination {
   min-width: 0;
   max-width: 100%;
@@ -461,11 +460,6 @@ html[data-theme='light'] .industrial-panel {
   box-shadow: none;
 }
 
-.case-workbench-footer-button .h-4 {
-  margin-top: 0.1rem;
-  flex: 0 0 auto;
-}
-
 .case-workbench-footer-button-secondary {
   background: rgba(9, 9, 11, 0.58);
 }
@@ -525,10 +519,6 @@ html[data-theme='light'] .industrial-panel {
 
 .case-workbench-footer-actions-secondary .case-workbench-footer-action-label small {
   font-size: var(--font-size-2xs);
-}
-
-.case-workbench-footer-actions-secondary .case-workbench-footer-button .h-4 {
-  opacity: 0.82;
 }
 
 .industrial-subpanel {
