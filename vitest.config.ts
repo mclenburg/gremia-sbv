@@ -18,7 +18,6 @@ const rcCriticalServiceCoverage = [
   'services/templatePolicy.ts',
   'services/templateContextPolicy.ts',
   'services/knowledgePolicy.ts',
-  'services/caseProcessPolicy.ts',
   'services/equalizationWorkflowPolicy.ts',
   'services/equalizationGuidancePolicy.ts',
   'services/terminationPrivacyPolicy.ts',

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "movedTests": 232,
+  "movedTests": 231,
   "entries": [
     {
       "from": "tests/accessibilityKnowledgeSelectP15o.test.ts",
@@ -181,10 +181,6 @@
     {
       "from": "tests/caseNoteEntityLinkBehavior0813e.test.ts",
       "to": "tests/features/cases/notes/caseNoteEntityLinkBehavior.test.ts"
-    },
-    {
-      "from": "tests/caseProcessPolicyBehavior0813m.test.ts",
-      "to": "tests/features/cases/caseProcessPolicyBehavior.test.ts"
     },
     {
       "from": "tests/caseSearchProviders091h.test.ts",
