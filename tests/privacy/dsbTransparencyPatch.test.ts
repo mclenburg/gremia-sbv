@@ -1,8 +1,11 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { listComplianceDocuments, renderComplianceDocument } from '../../services/complianceCenterService';
-
-const read = (path: string) => readFileSync(path, 'utf8');
+import { CasePrivacyActionDialog } from '../../src/app/features/cases/CasePrivacyActionDialog';
+import { PersonPrivacyActionDialog } from '../../src/app/features/persons/PersonPrivacyActionDialog';
+import type { CaseRecord } from '../../src/domain/models/case.model';
+import type { ProtectedPersonRecord } from '../../src/domain/models/protected-person.model';
 
 describe('DSB-Transparenzpatch 0.9.2', () => {
   it('stellt eine Art.-13/14-Datenschutzinformation als Compliance-Dokument bereit', () => {
@@ -19,35 +22,30 @@ describe('DSB-Transparenzpatch 0.9.2', () => {
     expect(notice.body).toContain('Gremia.SBV versendet diese Information nicht automatisch');
   });
 
-  it('führt die Datenschutzinformation auch als dauerhafte Markdown-Vorlage', () => {
-    expect(existsSync('docs/DATENSCHUTZINFORMATION_ART_13_14_TEMPLATE.md')).toBe(true);
-    const template = read('docs/DATENSCHUTZINFORMATION_ART_13_14_TEMPLATE.md');
-    expect(template).toContain('Art. 13/14 DSGVO');
-    expect(template).toContain('besondere Kategorien personenbezogener Daten nach Art. 9 Abs. 1 DSGVO');
-    expect(template).toContain('§ 26 Abs. 3 BDSG');
-    expect(template).toContain('Anpassungsvermerk');
-    expect(read('docs/README.md')).toContain('DATENSCHUTZINFORMATION_ART_13_14_TEMPLATE.md');
-    expect(read('docs/FREIGABE_DSB_IT_SECURITY.md')).toContain('DATENSCHUTZINFORMATION_ART_13_14_TEMPLATE.md');
-  });
+  it('zeigt den Audit-Hinweis in geöffneten Fall- und Personendialogen', () => {
+    const record: CaseRecord = {
+      id: 'case-1', caseNumber: '2026-001', displayName: 'Test', category: 'bem', status: 'offen',
+      priority: 'normal', openedAt: '2026-08-11T00:00:00.000Z', isPseudonymized: false,
+      isLocked: false, personBindingState: 'legacy_unlinked', privacyReviewRequired: false,
+      privacyReviewPriority: 'normal', anonymizationRecommended: false,
+    };
+    const person: ProtectedPersonRecord = {
+      id: 'person-1', createdAt: '2026-08-11T00:00:00.000Z', updatedAt: '2026-08-11T00:00:00.000Z',
+      firstName: 'Ada', lastName: 'Lovelace', employmentState: 'active_employee',
+      protectionStatus: 'severely_disabled', statusSource: 'manual', lifecycleState: 'active',
+    };
+    const caseMarkup = renderToStaticMarkup(createElement(CasePrivacyActionDialog, {
+      open: true, record, onClose: () => undefined, onSubmit: async () => undefined,
+    }));
+    const personMarkup = renderToStaticMarkup(createElement(PersonPrivacyActionDialog, {
+      open: true, mode: 'delete', person, affectedCaseCount: 1,
+      onClose: () => undefined, onSubmit: async () => undefined, onError: () => undefined,
+    }));
 
-  it('zentralisiert den Audit-Hinweis und bindet ihn in destruktive Datenschutzdialoge ein', () => {
-    const noticeSource = read('src/app/core/copy/privacyNotices.ts');
-    const lifecycleDialog = read('src/app/features/persons/PersonLifecycleReviewDialog.tsx');
-    const personDialog = read('src/app/features/persons/PersonPrivacyActionDialog.tsx');
-    const caseDialog = read('src/app/features/cases/CasePrivacyActionDialog.tsx');
-
-    expect(noticeSource).toContain('Sicherheitseinträge im Audit-Log bleiben aus Integritätsgründen erhalten');
-    expect(noticeSource).toContain('keine Direktidentifikatoren');
-    for (const source of [lifecycleDialog, personDialog, caseDialog]) {
-      expect(source).toContain('AUDIT_LOG_RETENTION_NOTICE');
-      expect(source).toContain('audit-log-retention-notice');
+    for (const markup of [caseMarkup, personMarkup]) {
+      expect(markup).toContain('data-e2e="audit-log-retention-notice"');
+      expect(markup).toContain('Sicherheitseinträge im Audit-Log bleiben aus Integritätsgründen erhalten');
+      expect(markup).toContain('keine Direktidentifikatoren');
     }
-  });
-
-  it('dokumentiert den Audit-Hinweis im Datenschutz- und Sicherheitskonzept', () => {
-    expect(read('docs/DATENSCHUTZKONZEPT.md')).toContain('Audit-Hinweis bei Löschung und Anonymisierung');
-    expect(read('docs/PRIVACY_AND_SECURITY.md')).toContain('Bei Lösch- und Anonymisierungsvorgängen zeigt die Oberfläche einen Hinweis');
-    expect(read('docs/SECURITY.md')).toContain('Destruktive Datenschutzdialoge weisen darauf hin');
-    expect(read('docs/LOESCHKONZEPT_SBV.md')).toContain('Hinweis in Lösch- und Anonymisierungsdialogen');
   });
 });

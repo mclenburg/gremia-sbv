@@ -79,6 +79,7 @@ for (const scenario of [
     await expect(action).toHaveValue(scenario.optionName);
     await expect(action).toHaveAttribute('aria-expanded', 'false');
     await expect(dialog.getByLabel('Bestätigung')).toHaveValue('');
+    await expect(dialog.locator('[data-e2e="audit-log-retention-notice"]')).toContainText('Sicherheitseinträge im Audit-Log bleiben aus Integritätsgründen erhalten');
     if ('warning' in scenario) await expect(dialog.getByText(scenario.warning)).toBeVisible();
 
     await dialog.getByLabel('Grund / Prüfbemerkung').fill('Anonymisierung im E2E-Vertrag.');
