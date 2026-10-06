@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "movedTests": 226,
+  "movedTests": 224,
   "entries": [
     {
       "from": "tests/accessibilityKnowledgeSelectP15o.test.ts",
@@ -495,10 +495,6 @@
       "to": "tests/ui/moduleFeedbackBehavior.test.tsx"
     },
     {
-      "from": "tests/nativeDependencyPostinstallContract.test.ts",
-      "to": "tests/architecture/nativeDependencyPostinstallContract.test.ts"
-    },
-    {
       "from": "tests/navigationAndPanelCleanup092.test.ts",
       "to": "tests/ui/navigationAndPanelCleanup.test.ts"
     },
@@ -513,10 +509,6 @@
     {
       "from": "tests/openTaskDashboardPolicy.test.ts",
       "to": "tests/features/dashboard/openTaskDashboardPolicy.test.ts"
-    },
-    {
-      "from": "tests/packagePostinstall059.test.ts",
-      "to": "tests/architecture/packagePostinstall.test.ts"
     },
     {
       "from": "tests/participationLegacyMigration092z.test.ts",
