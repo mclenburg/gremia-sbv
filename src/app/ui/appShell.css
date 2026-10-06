@@ -410,7 +410,6 @@ html[data-theme='light'] .industrial-sidebar::-webkit-scrollbar-thumb {
 }
 
 .industrial-topbar h2,
-.industrial-title,
 .module-frame h1,
 .industrial-panel-header h2,
 .industrial-modal-header h2 {
@@ -515,15 +514,6 @@ html[data-theme='light'] .industrial-sidebar::-webkit-scrollbar-thumb {
   font-size: var(--font-size-2xs);
   font-weight: 800;
   letter-spacing: 0.32em;
-  text-transform: uppercase;
-}
-
-.industrial-title {
-  margin: 0;
-  font-size: var(--font-size-display);
-  font-weight: 950;
-  letter-spacing: -0.07em;
-  line-height: 0.95;
   text-transform: uppercase;
 }
 

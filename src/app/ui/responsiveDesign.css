@@ -109,10 +109,6 @@
     padding: var(--space-4);
   }
 
-  .industrial-title {
-    font-size: var(--font-size-display);
-  }
-
   .industrial-card,
   .industrial-deadline-card {
     min-height: auto;

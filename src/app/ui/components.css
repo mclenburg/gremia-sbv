@@ -440,16 +440,6 @@ a.industrial-card:hover,
   line-height: 1.55;
 }
 
-.industrial-card-link {
-  margin-top: auto;
-  color: var(--industrial-accent);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: var(--font-size-2xs);
-  font-weight: 900;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-}
-
 /* Zentralisiertes Panel-/Card-System fuer Patch P2. */
 .industrial-panel,
 .industrial-record-card,
