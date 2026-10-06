@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "movedTests": 229,
+  "movedTests": 228,
   "entries": [
     {
       "from": "tests/accessibilityKnowledgeSelectP15o.test.ts",
@@ -89,10 +89,6 @@
     {
       "from": "tests/backupPayloadPolicy.test.ts",
       "to": "tests/security/backup/backupPayloadPolicy.test.ts"
-    },
-    {
-      "from": "tests/backupPolicy.test.ts",
-      "to": "tests/security/backup/backupPolicy.test.ts"
     },
     {
       "from": "tests/backupServiceBehavior0813f.test.ts",

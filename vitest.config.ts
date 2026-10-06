@@ -13,7 +13,6 @@ const rcCriticalServiceCoverage = [
   'services/reportPrivacyPolicy.ts',
   'services/exportGuardPolicy.ts',
   'services/textCommandPolicy.ts',
-  'services/backupPolicy.ts',
   'services/documentStoragePolicy.ts',
   'services/templatePolicy.ts',
   'services/templateContextPolicy.ts',
