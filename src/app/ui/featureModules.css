@@ -367,8 +367,7 @@ html[data-theme='light'] .case-tree-node.active {
 .person-list-panel,
 .person-detail,
 .person-detail-empty,
-.person-expiry-card,
-.person-form {
+.person-expiry-card {
   min-width: 0;
 }
 
@@ -489,20 +488,6 @@ html[data-theme='light'] .case-tree-node.active {
   margin: 1rem 0;
 }
 
-.person-form .span-2 {
-  grid-column: 1 / -1;
-}
-
-.person-import-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 80;
-  display: grid;
-  place-items: center;
-  padding: var(--layout-page-padding);
-  background: rgba(0, 0, 0, 0.72);
-}
-
 .person-import-dialog {
   width: min(72rem, calc(100vw - 2rem));
   max-height: min(48rem, calc(100vh - 2rem));
@@ -513,7 +498,6 @@ html[data-theme='light'] .case-tree-node.active {
   padding: var(--layout-page-padding);
 }
 
-.person-import-header,
 .person-import-footer {
   display: flex;
   align-items: center;
@@ -745,14 +729,6 @@ html[data-theme='light'] .case-tree-node.active {
 .person-list-delete:focus {
   background: rgba(160, 0, 0, 0.22);
   color: var(--industrial-danger-text);
-}
-
-.person-detail-heading-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
 }
 
 .person-detail-actions {

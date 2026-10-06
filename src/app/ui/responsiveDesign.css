@@ -300,7 +300,6 @@
 }
 
 @media (max-width: 760px) {
-  .person-detail-heading-row,
   .person-detail-actions {
     display: grid;
     grid-template-columns: 1fr;
