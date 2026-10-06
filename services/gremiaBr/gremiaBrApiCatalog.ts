@@ -56,9 +56,6 @@ export const GREMIA_BR_API_CATALOG: readonly GremiaBrEndpointDefinition[] = [
   { method: 'POST', template: '/api/v1/procedures/{procedureId}/tasks', auth: 'bearer', category: 'workspace_action', purpose: 'Eigene Aufgabe im ausdrücklich verknüpften Verfahren anlegen' },
 ] as const;
 
-export const GREMIA_BR_READ_API_CATALOG = GREMIA_BR_API_CATALOG
-  .filter((endpoint) => endpoint.category !== 'workspace_action');
-
 function normalizePath(path: string): string {
   return path.replace(/\/+/g, '/').replace(/\?.*$/, '');
 }
