@@ -21,6 +21,16 @@ export function buildRendererConsoleDiagnostic(level: number, message: string, l
 
 export type RendererConsoleDiagnosticSink = Pick<Console, "error" | "info" | "warn">;
 
+export function registerRendererConsoleDiagnostics(
+  register: (listener: (level: number, message: string, line: number) => void) => void,
+  sink: RendererConsoleDiagnosticSink,
+  isPackaged: boolean,
+  enabled: string | undefined,
+): void {
+  if (!shouldForwardRendererConsoleDiagnostics(isPackaged, enabled)) return;
+  register((level, message, line) => emitRendererConsoleDiagnostic(sink, level, message, line));
+}
+
 export function emitRendererConsoleDiagnostic(
   sink: RendererConsoleDiagnosticSink,
   level: number,

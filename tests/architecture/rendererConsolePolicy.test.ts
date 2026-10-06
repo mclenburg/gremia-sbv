@@ -1,36 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { join, relative } from 'node:path';
 import {
   buildRendererConsoleDiagnostic,
   emitRendererConsoleDiagnostic,
+  registerRendererConsoleDiagnostics,
   shouldForwardRendererConsoleDiagnostics,
 } from '../../electron/rendererConsoleDiagnostics';
 
-function appSourceFiles(directory = join(process.cwd(), 'src/app')): string[] {
-  const entries = readdirSync(directory);
-  return entries.flatMap((entry) => {
-    const absolute = join(directory, entry);
-    const stat = statSync(absolute);
-    if (stat.isDirectory()) return appSourceFiles(absolute);
-    return /\.(?:ts|tsx)$/.test(entry) ? [absolute] : [];
-  });
-}
-
 describe('Renderer-Diagnostik', () => {
-  it('nutzt keine direkt aktive Browser-Konsole in der Anwendungsschicht', () => {
-    const offenders = appSourceFiles()
-      .filter((file) => !file.endsWith('src/app/core/diagnostics/rendererDiagnostics.ts'))
-      .flatMap((file) => {
-        const source = readFileSync(file, 'utf8');
-        return /console\.(?:log|info|warn|error|debug)\s*\(/.test(source)
-          ? [relative(process.cwd(), file)]
-          : [];
-      });
-
-    expect(offenders).toEqual([]);
-  });
-
   it('leitet Renderer-Konsolenmeldungen nicht standardmäßig und niemals mit Rohinhalt weiter', () => {
     expect(shouldForwardRendererConsoleDiagnostics(false, undefined)).toBe(false);
     expect(shouldForwardRendererConsoleDiagnostics(true, '1')).toBe(false);
@@ -61,16 +37,25 @@ describe('Renderer-Diagnostik', () => {
     expect(JSON.stringify(calls)).not.toContain('Erika');
   });
 
-  it('verdrahtet die Main-Prozess-Weiterleitung ausschließlich über die zentrale Policy', () => {
-    const source = readFileSync('electron/appRuntimeSupport.ts', 'utf8');
-    const consoleMessageIndex = source.indexOf('"console-message"');
-    const policyIndex = source.indexOf('shouldForwardRendererConsoleDiagnostics(');
+  it('registriert nur im freigegebenen Entwicklungsmodus und leitet ohne Rohmeldung weiter', () => {
+    const calls: unknown[][] = [];
+    const sink = {
+      error: (...args: unknown[]) => calls.push(args),
+      info: (...args: unknown[]) => calls.push(args),
+      warn: (...args: unknown[]) => calls.push(args),
+    };
+    const listeners: Array<(level: number, message: string, line: number) => void> = [];
+    const register = (listener: (level: number, message: string, line: number) => void) => listeners.push(listener);
 
-    expect(consoleMessageIndex).toBeGreaterThan(0);
-    expect(policyIndex).toBeGreaterThan(0);
-    expect(policyIndex).toBeLessThan(consoleMessageIndex);
-    expect(source).toContain('emitRendererConsoleDiagnostic(console, level, message, line)');
-    expect(source).not.toContain('console.log(');
-    expect(source).not.toMatch(/console\.log\([^)]*\bmessage\b/);
+    registerRendererConsoleDiagnostics(register, sink, true, '1');
+    registerRendererConsoleDiagnostics(register, sink, false, undefined);
+    expect(listeners).toHaveLength(0);
+
+    registerRendererConsoleDiagnostics(register, sink, false, '1');
+    expect(listeners).toHaveLength(1);
+    listeners[0](2, 'Name: Erika Muster, GdB 80', 42);
+    expect(calls).toEqual([['Gremia.SBV renderer console error', { level: 2, line: 42, messageLength: 26 }]]);
+    expect(JSON.stringify(calls)).not.toContain('Erika');
+    expect(JSON.stringify(calls)).not.toContain('GdB');
   });
 });

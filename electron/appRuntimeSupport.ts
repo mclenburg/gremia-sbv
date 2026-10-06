@@ -6,8 +6,7 @@ import { registerRendererSecurityPolicy } from "./security/electronSecurity.js";
 import { buildStartupSplashHtml, buildStartupStatusScript, type StartupPhaseId } from "./startupStatus.js";
 import { logStartupTimeline, markStartupPhase } from "./startupPerformance.js";
 import {
-  emitRendererConsoleDiagnostic,
-  shouldForwardRendererConsoleDiagnostics,
+  registerRendererConsoleDiagnostics,
 } from "./rendererConsoleDiagnostics.js";
 app.setName("Gremia.SBV");
 app.setAppUserModelId("de.gremia.sbv");
@@ -208,14 +207,14 @@ export function registerDiagnostics(win: BrowserWindow): void {
     console.info("Gremia.SBV renderer loaded.");
   });
 
-  if (shouldForwardRendererConsoleDiagnostics(app.isPackaged, process.env.GREMIA_SBV_RENDERER_CONSOLE)) {
+  registerRendererConsoleDiagnostics((listener) => {
     win.webContents.on(
       "console-message",
       (_event, level, message, line) => {
-        emitRendererConsoleDiagnostic(console, level, message, line);
+        listener(level, message, line);
       },
     );
-  }
+  }, console, app.isPackaged, process.env.GREMIA_SBV_RENDERER_CONSOLE);
 
   win.webContents.on("render-process-gone", (_event, details) => {
     console.error("Gremia.SBV renderer process gone", details);
