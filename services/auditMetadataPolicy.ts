@@ -258,7 +258,7 @@ export const AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE = {
   case_external_reference: [] as const,
 } as const satisfies Record<string, readonly string[]>;
 
-export type AuditMetadataPolicySubjectType = keyof typeof AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE;
+type AuditMetadataPolicySubjectType = keyof typeof AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE;
 
 function fieldsForSubjectType(subjectType?: string): readonly string[] {
   if (!subjectType) {
@@ -270,21 +270,6 @@ function fieldsForSubjectType(subjectType?: string): readonly string[] {
   return AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE[subjectType as AuditMetadataPolicySubjectType] ?? [];
 }
 
-export function hasAuditMetadataPolicy(subjectType: string): subjectType is AuditMetadataPolicySubjectType {
-  return Object.prototype.hasOwnProperty.call(AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE, subjectType);
-}
-
 export function allowedAuditMetadataFields(subjectType?: string): Set<string> {
   return new Set([...AUDIT_CORE_METADATA_FIELDS, ...fieldsForSubjectType(subjectType)]);
-}
-
-export function auditMetadataPolicyReport(subjectTypes: readonly string[]): {
-  covered: string[];
-  missing: string[];
-} {
-  const uniqueSubjectTypes = Array.from(new Set(subjectTypes)).sort();
-  return {
-    covered: uniqueSubjectTypes.filter(hasAuditMetadataPolicy),
-    missing: uniqueSubjectTypes.filter((subjectType) => !hasAuditMetadataPolicy(subjectType)),
-  };
 }
