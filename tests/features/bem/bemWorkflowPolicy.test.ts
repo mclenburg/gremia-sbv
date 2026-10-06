@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BEM_STATUS_ORDER, bemStatusLabel, defaultBemResponseDueAt, evaluateBemWarnings } from "../../../services/bemWorkflowPolicy";
+import { bemStatusLabel, defaultBemResponseDueAt, evaluateBemWarnings } from "../../../services/bemWorkflowPolicy";
 import type { BemProcessRecord } from "../../../src/domain/models/bem.model";
 
 function baseBemProcess(patch: Partial<BemProcessRecord> = {}): BemProcessRecord {
@@ -18,11 +18,7 @@ function baseBemProcess(patch: Partial<BemProcessRecord> = {}): BemProcessRecord
 }
 
 describe("0.5.0 BEM workflow policy", () => {
-  it("defines the expected BEM status order", () => {
-    expect(BEM_STATUS_ORDER).toContain("angebot_versendet");
-    expect(BEM_STATUS_ORDER).toContain("reaktion_abwarten");
-    expect(BEM_STATUS_ORDER).toContain("massnahmen_vereinbart");
-    expect(BEM_STATUS_ORDER).toContain("wirksamkeit_pruefen");
+  it("labels the completed BEM status for display", () => {
     expect(bemStatusLabel("abgeschlossen")).toBe("abgeschlossen");
   });
 

@@ -43,21 +43,6 @@ export const BEM_STEPS: BemStepDefinition[] = [
   }
 ];
 
-export const BEM_STATUS_ORDER: BemStatus[] = [
-  'zu_pruefen',
-  'angebot_vorzubereiten',
-  'angebot_versendet',
-  'reaktion_abwarten',
-  'angenommen',
-  'gespraech_geplant',
-  'massnahmen_in_klaerung',
-  'massnahmen_vereinbart',
-  'wirksamkeit_pruefen',
-  'abgelehnt',
-  'abgebrochen',
-  'abgeschlossen'
-];
-
 export function defaultBemResponseDueAt(offeredAt: string, days = 14): string {
   const date = new Date(offeredAt);
   if (Number.isNaN(date.getTime())) throw new Error('Ungültiges Angebotsdatum.');

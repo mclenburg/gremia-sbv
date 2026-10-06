@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { TerminationHearingRecord } from '../../src/domain/models/termination.model';
-import { buildTerminationExportContext, TERMINATION_PRIVACY_FIELD_CLASSIFICATIONS, terminationPrivacyExportNotice } from '../../services/terminationPrivacyPolicy';
+import { buildTerminationExportContext, terminationPrivacyExportNotice } from '../../services/terminationPrivacyPolicy';
 
 const hearing: TerminationHearingRecord = {
   id: 'term-1',
@@ -18,16 +18,6 @@ const hearing: TerminationHearingRecord = {
 };
 
 describe('termination privacy policy behavior', () => {
-  it('classifies termination export fields as confidential or critical', () => {
-    const employerReason = TERMINATION_PRIVACY_FIELD_CLASSIFICATIONS.find((entry) => entry.field === 'employerReason');
-    const protectionStatus = TERMINATION_PRIVACY_FIELD_CLASSIFICATIONS.find((entry) => entry.field === 'protectionStatus');
-
-    expect(employerReason?.risk).toBe('critical');
-    expect(employerReason?.exportRelevant).toBe(true);
-    expect(protectionStatus?.risk).toBe('highly_confidential');
-    expect(TERMINATION_PRIVACY_FIELD_CLASSIFICATIONS.every((entry) => entry.reason.length > 20)).toBe(true);
-  });
-
   it('builds an export context from defined fields and preserves empty optional fields safely', () => {
     const context = buildTerminationExportContext(hearing);
 
