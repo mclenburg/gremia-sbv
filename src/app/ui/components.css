@@ -936,26 +936,17 @@ a.industrial-card:hover,
   line-height: 1.55;
 }
 
-.dashboard-next-action,
-.dashboard-module-group,
 .person-lifecycle-card,
 .case-next-action {
   gap: var(--industrial-space-3);
 }
 
-.dashboard-next-action-danger,
 .case-next-action-danger {
   border-color: rgba(239, 68, 68, 0.45);
 }
 
-.dashboard-next-action-warning,
 .case-next-action-warning {
   border-color: rgba(245, 158, 11, 0.45);
-}
-
-.dashboard-module-groups {
-  display: grid;
-  gap: var(--industrial-space-4);
 }
 
 .case-overview-heading,
@@ -1006,8 +997,6 @@ a.industrial-card:hover,
 .industrial-empty-state,
 .industrial-data-table-shell,
 .workbench-summary-card,
-.dashboard-next-action,
-.dashboard-module-group,
 .person-lifecycle-panel {
   border-radius: var(--industrial-corner-radius);
 }

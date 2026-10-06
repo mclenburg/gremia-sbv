@@ -212,11 +212,6 @@ html[data-theme='light'] .industrial-shell {
   padding: var(--space-4);
 }
 
-.login-shell .auth-field-label {
-  margin-bottom: 0.75rem;
-  line-height: 1.4;
-}
-
 .login-shell .auth-form .industrial-input,
 .login-shell .auth-form .industrial-button {
   min-height: 3rem;
