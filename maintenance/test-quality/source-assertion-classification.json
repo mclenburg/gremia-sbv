@@ -13,12 +13,6 @@
       "rationale": "Das geprüfte Quell-, Schema-, Konfigurations-, Migrations-, Sicherheits- oder Releaseartefakt ist selbst Bestandteil des stabilen Vertrags."
     },
     {
-      "file": "tests/architecture/migrations/schema0051SbvOfficeElection.behavior.test.ts",
-      "category": "A",
-      "sourceAssertions": 2,
-      "rationale": "Das Datenbankschema und die Upgrade-Migration 0051 sind selbst der persistente Vertrag; der Test vergleicht ihre Struktur und schützt zusätzlich die Negativanforderung gegen Individualstimmen."
-    },
-    {
       "file": "tests/architecture/rc.test.ts",
       "category": "A",
       "sourceAssertions": 7,
