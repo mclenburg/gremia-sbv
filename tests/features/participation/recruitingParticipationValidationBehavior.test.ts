@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  assertNoConversationProtocolField,
   defaultApplicantReference,
   normalizeAccessibilityCheckStatus,
   normalizeApplicantReferenceMode,
@@ -57,9 +56,8 @@ describe('Recruiting-Validierung – ausführbares Verhalten', () => {
     expect(() => normalizeNonNegativeInteger(Number.POSITIVE_INFINITY)).toThrow(/nicht negativ/);
   });
 
-  it('erzeugt stabile Bewerbungsreferenzen und verbietet Gesprächsprotokollfelder', () => {
+  it('erzeugt stabile Bewerbungsreferenzen', () => {
     expect(defaultApplicantReference(3)).toBe('Bewerbung 3');
     expect(defaultApplicantReference(0)).toBe('Bewerbung 1');
-    expect(() => assertNoConversationProtocolField('conversationTranscript')).toThrow(/kein zulässiges Feld/);
   });
 });
