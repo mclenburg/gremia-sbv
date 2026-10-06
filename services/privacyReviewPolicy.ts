@@ -76,8 +76,3 @@ export function decideLegacyBulkPrivacyReview(context: LegacyBulkReviewCandidate
   }
   return { eligible: true, reason: 'closed_legacy_no_open_deadlines', priority: 'low', anonymizationRecommended: true };
 }
-
-export function assertDestructivePrivacyConfirmation(action: 'anonymize' | 'delete', confirmation: string | undefined): void {
-  const expected = action === 'anonymize' ? 'FALL ANONYMISIEREN' : 'FALL LÖSCHEN';
-  if (confirmation !== expected) throw new Error(`Bitte exakt „${expected}“ eingeben.`);
-}

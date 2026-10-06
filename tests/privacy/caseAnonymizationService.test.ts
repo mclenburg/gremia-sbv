@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { CaseAnonymizationService } from '../../services/caseAnonymizationService';
+import { RetentionService } from '../../services/retentionService';
 import { DocumentContainerService } from '../../services/documentContainerService';
 import { PersonalDataAuditLogService } from '../../services/auditLogService';
 import { PrivacyReviewService } from '../../services/privacyReviewService';
@@ -160,6 +161,29 @@ async function seedExtendedCaseData(db: DatabaseAdapter, dataDir: string): Promi
 }
 
 describe('CaseAnonymizationService', () => {
+  it('leaves case data intact when anonymization or deletion confirmation is wrong', async () => {
+    const db = await openTestDatabase();
+    const dataDir = tempDir();
+    try {
+      await seedCase(db, dataDir, 'Vertrauliche Fallnotiz');
+      const beforeCase = db.prepare<Record<string, unknown>>('SELECT * FROM cases WHERE id = ?').get('case-1');
+      const beforeDocuments = db.prepare<Record<string, unknown>>('SELECT * FROM case_documents WHERE case_id = ? ORDER BY id').all('case-1');
+
+      const anonymization = await new CaseAnonymizationService(db, () => dataDir).anonymizeCase('case-1', 'Testgrund', 'falsch', 'marked_free_text');
+      const deletion = await new RetentionService(db, () => dataDir).deleteCase('case-1', 'Testgrund', 'falsch');
+
+      expect(anonymization).toMatchObject({ ok: false, action: 'none' });
+      expect(deletion).toMatchObject({ ok: false, action: 'none' });
+      expect(db.prepare<Record<string, unknown>>('SELECT * FROM cases WHERE id = ?').get('case-1')).toEqual(beforeCase);
+      expect(db.prepare<Record<string, unknown>>('SELECT * FROM case_documents WHERE case_id = ? ORDER BY id').all('case-1')).toEqual(beforeDocuments);
+      for (const document of beforeDocuments) {
+        expect(fs.existsSync(path.resolve(dataDir, String(document.storage_path)))).toBe(true);
+      }
+    } finally {
+      db.close();
+    }
+  });
+
   it('uses marked-only mode, always removes participants and identity/contact links, replaces uploads with one neutral evidence document and only appends the hash chain', async () => {
     const db = await openTestDatabase();
     const dataDir = tempDir();

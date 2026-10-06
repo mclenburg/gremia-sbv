@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { normalizeAuditMetadata, sanitizeAuditActor, sanitizeAuditPurpose } from '../../services/auditHashChain';
-import { assertDestructivePrivacyConfirmation, assertRetentionDecision, decideLegacyBulkPrivacyReview, decidePrivacyReviewForContext } from '../../services/privacyReviewPolicy';
+import { assertRetentionDecision, decideLegacyBulkPrivacyReview, decidePrivacyReviewForContext } from '../../services/privacyReviewPolicy';
 
 describe('0.9.1 Datenschutz-Lifecycle und Audit-Härtung', () => {
   it('markiert Statusablauf und Beschäftigungsende als Datenschutzprüfung', () => {
@@ -34,14 +34,6 @@ describe('0.9.1 Datenschutz-Lifecycle und Audit-Härtung', () => {
     expect(decideLegacyBulkPrivacyReview({ status: 'offen', personBindingState: 'legacy_unlinked', hasOpenDeadlines: false })).toMatchObject({ eligible: false, priority: 'normal' });
     expect(decideLegacyBulkPrivacyReview({ status: 'abgeschlossen', personBindingState: 'active', hasOpenDeadlines: false })).toMatchObject({ eligible: false, priority: 'normal' });
   });
-
-  it('erzwingt Sicherheitsbestätigung für Anonymisierung und Löschung', () => {
-    expect(() => assertDestructivePrivacyConfirmation('anonymize', 'FALL ANONYMISIEREN')).not.toThrow();
-    expect(() => assertDestructivePrivacyConfirmation('delete', 'FALL LÖSCHEN')).not.toThrow();
-    expect(() => assertDestructivePrivacyConfirmation('anonymize', 'löschen')).toThrow(/FALL ANONYMISIEREN/);
-    expect(() => assertDestructivePrivacyConfirmation('delete', 'FALL ANONYMISIEREN')).toThrow(/FALL LÖSCHEN/);
-  });
-
 
   it('schützt Audit-Purpose und Actor vor direkten Identifikatoren', () => {
     expect(sanitizeAuditPurpose('Fall max.mustermann@example.invalid gelöscht')).toBe('SBV-Datenschutzereignis');
