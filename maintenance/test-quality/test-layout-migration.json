@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "movedTests": 230,
+  "movedTests": 229,
   "entries": [
     {
       "from": "tests/accessibilityKnowledgeSelectP15o.test.ts",
@@ -85,10 +85,6 @@
     {
       "from": "tests/auditMetadataPolicy094c.test.ts",
       "to": "tests/privacy/auditMetadataPolicy.test.ts"
-    },
-    {
-      "from": "tests/auditService.test.ts",
-      "to": "tests/privacy/auditService.test.ts"
     },
     {
       "from": "tests/backupPayloadPolicy.test.ts",
