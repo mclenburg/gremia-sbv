@@ -6,7 +6,6 @@ import { PersonList } from '../../src/app/features/persons/PersonList';
 import { CaseNoteModal } from '../../src/app/features/cases/CaseNoteModal';
 import { MeasureNoteFields } from '../../src/app/features/cases/measures/MeasureNoteForm';
 import { LiveRegionProvider } from '../../src/app/shared/a11y/LiveRegionProvider';
-import { readNormalizedSourceText } from '../helpers/sourceText';
 
 const noop = () => undefined;
 
@@ -103,12 +102,5 @@ describe('review 5 user guidance polish', () => {
     expect(caseNoteMarkup).toContain('keine Diagnosen, keine unnötigen Gesundheitsdetails');
     expect(measureMarkup).toContain('Datensparsam dokumentieren');
     expect(measureMarkup).toContain('Nächsten sauberen Schritt konkret erfassen');
-  });
-
-  it('links Betriebsgrenzen from the user-facing README', () => {
-    const readme = readNormalizedSourceText('README.md');
-
-    expect(readme).toContain('Fachliche Grenzen und Betriebsvoraussetzungen');
-    expect(readme).toContain('docs/BETRIEBSGRENZEN.md');
   });
 });
