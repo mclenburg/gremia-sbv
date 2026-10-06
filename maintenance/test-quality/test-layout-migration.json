@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "movedTests": 227,
+  "movedTests": 226,
   "entries": [
     {
       "from": "tests/accessibilityKnowledgeSelectP15o.test.ts",
@@ -769,10 +769,6 @@
     {
       "from": "tests/signpathCodeSigning092u.test.ts",
       "to": "tests/architecture/signpathCodeSigning.test.ts"
-    },
-    {
-      "from": "tests/sourceAssertionClassificationPatch7.test.ts",
-      "to": "tests/architecture/sourceAssertionClassification.test.ts"
     },
     {
       "from": "tests/sourceCleanupBuildContract096k.test.ts",
