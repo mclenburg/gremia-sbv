@@ -1229,54 +1229,6 @@ html[data-theme='light'] .industrial-action-note {
 }
 
 /* App-weite Steuerungs- und Nachweis-Workbench-Regeln. */
-.sbv-control-shell {
-  display: grid;
-  grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr);
-  gap: 1rem;
-  align-items: start;
-}
-
-.sbv-control-tabs {
-  display: grid;
-  gap: .45rem;
-}
-
-.sbv-control-tabs button {
-  display: grid;
-  gap: .2rem;
-  width: 100%;
-  padding: var(--space-3) var(--space-3);
-  border: 1px solid var(--industrial-border);
-  background: var(--industrial-panel);
-  color: var(--industrial-text);
-  text-align: left;
-  cursor: pointer;
-}
-
-.sbv-control-tabs button:hover {
-  border-color: var(--industrial-accent);
-}
-
-.sbv-control-tabs button:focus {
-  border-color: var(--industrial-accent);
-  outline: 2px solid var(--industrial-accent);
-  outline-offset: 3px;
-}
-
-.sbv-control-tabs button.is-active {
-  border-color: var(--industrial-accent);
-  background: color-mix(in srgb, var(--industrial-panel) 84%, var(--industrial-accent) 16%);
-  box-shadow: inset 3px 0 0 var(--industrial-accent);
-}
-
-.sbv-control-tabs strong {
-  font-size: var(--font-size-base);
-  text-transform: uppercase;
-  letter-spacing: .06em;
-}
-
-.sbv-control-tabs span,
-.sbv-control-lede,
 .sbv-control-row span,
 .sbv-control-row p,
 .sbv-control-table-row span,
@@ -1287,10 +1239,6 @@ html[data-theme='light'] .industrial-action-note {
   line-height: 1.45;
 }
 
-.sbv-control-stage {
-  min-width: 0;
-}
-
 .sbv-control-panel {
   display: grid;
   gap: 1rem;
@@ -1298,27 +1246,6 @@ html[data-theme='light'] .industrial-action-note {
   padding: var(--space-4);
   border: 1px solid var(--industrial-border);
   background: color-mix(in srgb, var(--industrial-panel) 96%, black 4%);
-}
-
-.sbv-control-panel-head {
-  display: flex;
-  gap: 1rem;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding-bottom: .75rem;
-  border-bottom: 1px solid var(--industrial-border);
-}
-
-.sbv-control-panel-title {
-  display: flex;
-  gap: .75rem;
-  align-items: flex-start;
-  min-width: 0;
-}
-
-.sbv-control-panel-title h2 {
-  margin: .1rem 0 0;
-  font-size: var(--font-size-lg);
 }
 
 .sbv-control-panel p,

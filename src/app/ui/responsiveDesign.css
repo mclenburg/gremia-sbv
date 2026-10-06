@@ -225,14 +225,9 @@
 }
 
 @media (max-width: 980px) {
-  .sbv-control-shell,
   .sbv-control-row,
   .sbv-control-table-row {
     grid-template-columns: 1fr;
-  }
-
-  .sbv-control-panel-head {
-    display: grid;
   }
 }
 
