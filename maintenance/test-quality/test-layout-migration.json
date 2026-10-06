@@ -492,7 +492,7 @@
     },
     {
       "from": "tests/moduleFeedbackArchitecture091.test.ts",
-      "to": "tests/architecture/moduleFeedbackArchitecture.test.ts"
+      "to": "tests/ui/moduleFeedbackBehavior.test.tsx"
     },
     {
       "from": "tests/nativeDependencyPostinstallContract.test.ts",
