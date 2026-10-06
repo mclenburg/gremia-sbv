@@ -334,8 +334,3 @@ export function auditGremiaBrWorkspaceAction(args: GremiaBrWorkspaceActionAuditA
     }),
   };
 }
-
-export function auditMetadataContainsNoDirectIdentifiers(metadata: Record<string, unknown>): boolean {
-  const serialized = JSON.stringify(metadata);
-  return !/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}|\b(?:P|PNR|Personalnummer)[-\s]*\d{2,}\b|\b[A-ZÄÖÜ][a-zäöüß]+(?:[-\s]+[A-ZÄÖÜ][a-zäöüß]+){1,3}\b/iu.test(serialized);
-}
