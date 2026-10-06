@@ -5,7 +5,6 @@ import { applyPendingAnonymizationMarkers } from './textCommandPolicy.js';
 import { DocumentContainerService } from './documentContainerService.js';
 import { SearchIndexService } from './search/searchIndexService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
-import { existingColumns } from './privacyEntityRegistry.js';
 import { CASE_ANONYMIZATION_MATRIX, type CaseAnonymizationMatrixEntry } from './caseAnonymizationMatrix.js';
 import { CASE_ANONYMIZATION_CONFIRMATION, REMOVED_PARTICIPANTS_TEXT, replaceFreeTextPreservingLength, type CaseAnonymizationMode } from './caseAnonymizationPolicy.js';
 import { safeRun, tableExists } from './retentionSupport.js';
@@ -16,6 +15,18 @@ import { ensureRetentionRuntimeSchema } from './runtimeSchemaCompatibility.js';
 
 type DatabaseRow = Record<string, string | number | null | undefined>;
 interface CaseDocumentRow { id: string; storage_path?: string | null; }
+
+function existingColumns(db: DatabaseAdapter, table: string): Set<string> {
+  try {
+    return new Set(
+      db.prepare<{ name: string }>(`PRAGMA table_info(${table})`).all()
+        .map((row) => row.name)
+        .filter(Boolean),
+    );
+  } catch {
+    return new Set();
+  }
+}
 
 function nowIso(): string { return new Date().toISOString(); }
 

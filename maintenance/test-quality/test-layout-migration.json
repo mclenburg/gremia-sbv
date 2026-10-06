@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "movedTests": 231,
+  "movedTests": 230,
   "entries": [
     {
       "from": "tests/accessibilityKnowledgeSelectP15o.test.ts",
@@ -581,10 +581,6 @@
     {
       "from": "tests/preventionWorkflowPolicy.test.ts",
       "to": "tests/features/prevention/preventionWorkflowPolicy.test.ts"
-    },
-    {
-      "from": "tests/privacyEntityRegistry091f.test.ts",
-      "to": "tests/privacy/privacyEntityRegistry.test.ts"
     },
     {
       "from": "tests/privacyLifecycleAudit091.test.ts",

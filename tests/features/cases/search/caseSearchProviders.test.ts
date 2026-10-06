@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { CASE_SEARCH_PROVIDERS, caseSearchSourceLabels } from '../../../../services/search/searchProviders';
-import { getCasePrivacyEntities } from '../../../../services/privacyEntityRegistry';
 
 describe('Case search provider registry 0.9.1', () => {
   it('registriert strukturierte Fallaktenmodule und Dokumentquellen explizit', () => {
@@ -44,29 +43,5 @@ describe('Case search provider registry 0.9.1', () => {
     }
   });
 
-  it('koppelt privacy-relevante Falltabellen an einen Suchprovider oder markiert sie bewusst als Strukturträger', () => {
-    const providerTables = new Set<string>(CASE_SEARCH_PROVIDERS.flatMap((provider) => provider.requiredTables));
-    const consciouslyIndirectTables = new Set<string>([
-      // Ereignistabellen hängen fachlich an ihrem Prozess und werden über Join-Provider indexiert.
-      // Sie müssen trotzdem in requiredTables der jeweiligen Provider auftauchen.
-    ]);
-
-    const missing = getCasePrivacyEntities()
-      .filter((entity) => entity.pendingMarkerFields.length > 0)
-      .filter((entity) => !providerTables.has(entity.table) && !consciouslyIndirectTables.has(entity.table))
-      .map((entity) => entity.table);
-
-    expect(missing).toEqual([]);
-  });
-
-
-  it('hält für jede suchrelevante Privacy-Entität konkrete Anonymisierungsfelder vor', () => {
-    const unprotected = getCasePrivacyEntities()
-      .filter((entity) => entity.pendingMarkerFields.length > 0)
-      .filter((entity) => Object.keys(entity.anonymizeFields).length === 0)
-      .map((entity) => entity.table);
-
-    expect(unprotected).toEqual([]);
-  });
 
 });

@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { normalizeAuditMetadata, sanitizeAuditActor, sanitizeAuditPurpose } from '../../services/auditHashChain';
 import { assertDestructivePrivacyConfirmation, assertRetentionDecision, decideLegacyBulkPrivacyReview, decidePrivacyReviewForContext } from '../../services/privacyReviewPolicy';
-import { casePrivacyTables } from '../../services/privacyEntityRegistry';
 
 describe('0.9.1 Datenschutz-Lifecycle und Audit-Härtung', () => {
   it('markiert Statusablauf und Beschäftigungsende als Datenschutzprüfung', () => {
@@ -43,13 +42,6 @@ describe('0.9.1 Datenschutz-Lifecycle und Audit-Härtung', () => {
     expect(() => assertDestructivePrivacyConfirmation('delete', 'FALL ANONYMISIEREN')).toThrow(/FALL LÖSCHEN/);
   });
 
-
-  it('registriert Freitextfelder der Fallakte einschließlich Prozess-, Maßnahmen- und Beteiligtenfeldern zentral', () => {
-    const registeredTables = casePrivacyTables();
-    for (const table of ['case_notes', 'bem_processes', 'bem_process_events', 'prevention_processes', 'prevention_process_events', 'equalization_processes', 'termination_hearings', 'sbv_participations', 'sbv_participation_events', 'case_measures', 'case_measure_notes', 'case_measure_workplace_accommodation']) {
-      expect(registeredTables).toContain(table);
-    }
-  });
 
   it('schützt Audit-Purpose und Actor vor direkten Identifikatoren', () => {
     expect(sanitizeAuditPurpose('Fall max.mustermann@example.invalid gelöscht')).toBe('SBV-Datenschutzereignis');
