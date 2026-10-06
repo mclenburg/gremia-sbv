@@ -135,35 +135,6 @@ export function removeCaseDocumentFiles(dataDir: string, caseId: string, documen
   return { affectedFiles, errors };
 }
 
-export function listCleartextFiles(dataDir: string): string[] {
-  const suspicious: string[] = [];
-  const roots = ['documents', 'exports'];
-  const allowed = new Set(['.gsbvdoc', '.gsbvpdf']);
-
-  const walk = (dir: string) => {
-    if (!fs.existsSync(dir)) return;
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const absolute = path.join(dir, entry.name);
-      const relative = path.relative(dataDir, absolute).split(path.sep).join('/');
-      if (entry.isSymbolicLink()) {
-        suspicious.push(relative);
-        continue;
-      }
-      if (entry.isDirectory()) {
-        walk(absolute);
-        continue;
-      }
-      if (!entry.isFile()) continue;
-      if (!allowed.has(path.extname(entry.name).toLowerCase())) {
-        suspicious.push(relative);
-      }
-    }
-  };
-
-  for (const root of roots) walk(path.join(dataDir, root));
-  return suspicious.sort((a, b) => a.localeCompare(b, 'de-DE'));
-}
-
 export interface RetentionLifecycleRow {
   id: string;
   caseId?: string;
