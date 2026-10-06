@@ -892,21 +892,6 @@ html[data-theme='light'] .case-search-result:focus {
   color: var(--industrial-danger-text);
 }
 
-.case-handover-actions {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  align-items: flex-start;
-  margin: 1rem 0;
-  padding: var(--space-4);
-  border-radius: 0;
-}
-
-.case-handover-actions p {
-  margin: 0.25rem 0 0;
-  color: var(--industrial-text-muted);
-}
-
 .case-handover-validity {
   margin-top: 0.45rem !important;
   font-size: var(--font-size-sm);
@@ -939,30 +924,6 @@ html[data-theme='light'] .case-search-result:focus {
 
 .handover-import-inspect-actions {
   justify-content: flex-start;
-}
-
-.case-handover-import-preview {
-  display: grid;
-  gap: 0.75rem;
-}
-
-.case-handover-import-options {
-  display: grid;
-  gap: 0.65rem;
-  margin: 0;
-  padding: var(--space-3);
-  border: 1px solid rgba(148, 163, 184, 0.26);
-  border-radius: 0;
-}
-
-.case-handover-import-options legend {
-  padding: var(--space-0) var(--space-1);
-  color: var(--industrial-accent);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: var(--font-size-xs);
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
 }
 
 .case-detail-search-bar {
@@ -1905,13 +1866,6 @@ button.dashboard-focus-card:hover {
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
 }
 
-.gremia-br-toggle-row {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  color: rgb(212, 212, 216);
-}
-
 .gremia-br-relevance-grid {
   display: grid;
   gap: 0.85rem;
@@ -2422,7 +2376,6 @@ button.dashboard-focus-card:hover {
   box-shadow: 0 0 0 1px rgba(255, 213, 0, .35), 0 0 1.25rem rgba(255, 213, 0, .12);
 }
 
-.gremia-br-toggle-row input[type='checkbox'],
 .gremia-br-relevance-group input[type='checkbox'] {
   width: 1rem;
   height: 1rem;
