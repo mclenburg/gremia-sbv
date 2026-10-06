@@ -2375,9 +2375,7 @@ html[data-theme='light'] .industrial-selection-card p,
 html[data-theme='light'] .industrial-status-card h3,
 html[data-theme='light'] .industrial-status-card p,
 html[data-theme='light'] .industrial-status-card small,
-html[data-theme='light'] .industrial-data-table td,
-html[data-theme='light'] .industrial-data-table-cell p,
-html[data-theme='light'] .industrial-data-table-cell span {
+html[data-theme='light'] .industrial-data-table td {
   color: var(--industrial-text);
 }
 

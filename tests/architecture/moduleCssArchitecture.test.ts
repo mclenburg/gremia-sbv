@@ -84,7 +84,6 @@ const centralWorkbenchSelectors = [
   "industrial-record-list-item",
   "industrial-data-table-shell",
   "industrial-data-table",
-  "industrial-data-table-cell",
   "industrial-export-action",
   "industrial-file-location-notice",
   "industrial-import-package-review",

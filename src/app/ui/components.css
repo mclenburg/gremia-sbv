@@ -397,8 +397,7 @@ html[data-theme='light'] .industrial-lock-button {
 
 button.industrial-card,
 a.industrial-card,
-.industrial-card[role='button'],
-.industrial-card.clickable {
+.industrial-card[role='button'] {
   cursor: pointer;
 }
 
@@ -416,8 +415,7 @@ a.industrial-card,
 
 button.industrial-card:hover:not(:disabled),
 a.industrial-card:hover,
-.industrial-card[role='button']:hover,
-.industrial-card.clickable:hover {
+.industrial-card[role='button']:hover {
   transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--industrial-accent) 72%, transparent);
   background: linear-gradient(145deg, rgba(39,39,42,0.98), rgba(9,9,11,1));
@@ -827,23 +825,8 @@ a.industrial-card:hover,
   line-height: 1;
 }
 
-.metric-warning {
-  border-color: color-mix(in srgb, var(--industrial-accent) 55%, transparent);
-  box-shadow: inset 3px 0 0 var(--industrial-accent);
-}
-
 .metric-default {
   border-color: var(--industrial-border-strong);
-}
-
-.metric-warning strong,
-.metric-danger strong {
-  color: var(--industrial-accent);
-}
-
-.metric-danger {
-  border-color: rgba(239,68,68,0.65);
-  box-shadow: inset 3px 0 0 var(--industrial-danger);
 }
 
 .industrial-deadline-grid {
@@ -961,8 +944,7 @@ a.industrial-card:hover,
 .industrial-warning-panel,
 .industrial-empty-state,
 .industrial-data-table-shell,
-.workbench-summary-card,
-.person-lifecycle-panel {
+.workbench-summary-card {
   border-radius: var(--industrial-corner-radius);
 }
 
@@ -1045,8 +1027,7 @@ html[data-theme='dark'] .industrial-status-card {
 
 html[data-theme='light'] button.industrial-card:hover:not(:disabled),
 html[data-theme='light'] a.industrial-card:hover,
-html[data-theme='light'] .industrial-card[role='button']:hover,
-html[data-theme='light'] .industrial-card.clickable:hover {
+html[data-theme='light'] .industrial-card[role='button']:hover {
   background: linear-gradient(145deg, rgba(250,250,245,0.98), rgba(218,218,211,1));
   box-shadow: 0 0 0 1px rgba(196,138,0,0.18), 0 14px 24px rgba(0,0,0,0.12);
 }
@@ -1215,17 +1196,6 @@ html[data-theme='light'] .industrial-action-note {
 
 .industrial-data-table tr:last-child td {
   border-bottom: 0;
-}
-
-.industrial-data-table-cell {
-  display: grid;
-  gap: 0.25rem;
-}
-
-.industrial-data-table-cell p,
-.industrial-data-table-cell span {
-  margin: 0;
-  color: var(--industrial-text-muted);
 }
 
 /* App-weite Steuerungs- und Nachweis-Workbench-Regeln. */
@@ -1676,7 +1646,6 @@ html[data-theme='light'] .industrial-warning-panel {
   color: var(--industrial-accent);
 }
 
-html[data-theme='light'] .industrial-tag,
 html[data-theme='light'] .industrial-search-count {
   background: var(--industrial-light-panel-muted);
   border-color: var(--industrial-border);
