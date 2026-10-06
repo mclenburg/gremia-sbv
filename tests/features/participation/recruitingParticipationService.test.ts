@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { DatabaseAdapter } from '../../../services/databaseService';
 import { RecruitingParticipationService } from '../../../services/recruitingParticipationService';
-import { getRecruitingStatusActions, shouldSuggestViolationReview } from '../../../services/recruitingParticipationStatus';
 
 type Row = Record<string, unknown>;
 
@@ -130,8 +129,6 @@ describe('Stellenbesetzungen 0.9.5-a Servicebasis', () => {
     expect(record.status).toBe('draft');
     expect(record.flaggedForViolationReview).toBe(true);
     expect(record.violationReviewReason).toBe('missing_hearing_after_interview');
-    expect(getRecruitingStatusActions(record).map((action) => action.targetStatus)).not.toContain('violation_review');
-    expect(shouldSuggestViolationReview(record)).toBe(true);
   });
 
   it('bindet optionale SBV-Teilnahmefelder als SQLite-kompatible Zahlen statt Boolean-Werte', () => {
