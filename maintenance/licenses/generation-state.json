@@ -1,9 +1,9 @@
 {
   "schemaVersion": 3,
-  "lockSha256": "796ffcdfdbc17083ceae396586085bdd0fc0828db18f6ec594ef81b8428d6fd7",
-  "packageCount": 614,
-  "inventorySha256": "784bc87805ed28d626b78fae333b8c1bd0364f5ae0fe987fd707cb54b7e8e324",
-  "noticesSha256": "76dcf4b29981e4bbf32ddb9facd6daff5dd1f7e048bec4512cbc029433cab760",
+  "lockSha256": "4470d820c04670bff6a5dbb2d718f4ae36f2eb4aeb7e8a6384f337c5daecbcc9",
+  "packageCount": 557,
+  "inventorySha256": "f200c5d272ce452e99dfd82bdf0357b63db120cbe19565515f79a0daaee79808",
+  "noticesSha256": "6c9a09cf48f120a1e7b0661c4cd3b5302c4fe7cfb957909544604c75afeb6530",
   "licenseFiles": [
     {
       "name": "0BSD.txt",
