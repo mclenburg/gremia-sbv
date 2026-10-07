@@ -20,7 +20,6 @@
 .industrial-ghost-button:focus,
 .industrial-icon-button:focus,
 .industrial-card:focus,
-.industrial-dashboard-card:focus,
 .industrial-list-item:focus,
 .industrial-table-actions button:focus {
   outline: 2px solid var(--industrial-accent);
@@ -398,8 +397,7 @@ html[data-theme='light'] .industrial-lock-button {
 
 button.industrial-card,
 a.industrial-card,
-.industrial-card[role='button'],
-.industrial-card.clickable {
+.industrial-card[role='button'] {
   cursor: pointer;
 }
 
@@ -417,8 +415,7 @@ a.industrial-card,
 
 button.industrial-card:hover:not(:disabled),
 a.industrial-card:hover,
-.industrial-card[role='button']:hover,
-.industrial-card.clickable:hover {
+.industrial-card[role='button']:hover {
   transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--industrial-accent) 72%, transparent);
   background: linear-gradient(145deg, rgba(39,39,42,0.98), rgba(9,9,11,1));
@@ -441,23 +438,12 @@ a.industrial-card:hover,
   line-height: 1.55;
 }
 
-.industrial-card-link {
-  margin-top: auto;
-  color: var(--industrial-accent);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: var(--font-size-2xs);
-  font-weight: 900;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-}
-
 /* Zentralisiertes Panel-/Card-System fuer Patch P2. */
 .industrial-panel,
 .industrial-record-card,
 .industrial-selection-card,
 .industrial-status-card,
-.industrial-warning-panel,
-.industrial-danger-panel {
+.industrial-warning-panel {
   border-radius: var(--control-radius);
 }
 
@@ -526,8 +512,7 @@ a.industrial-card:hover,
   box-shadow: inset 3px 0 0 var(--industrial-accent);
 }
 
-.industrial-warning-panel,
-.industrial-danger-panel {
+.industrial-warning-panel {
   display: grid;
   gap: .35rem;
   padding: var(--space-3) var(--space-3);
@@ -538,10 +523,6 @@ a.industrial-card:hover,
 
 .industrial-warning-panel {
   border-color: color-mix(in srgb, var(--industrial-warning) 68%, var(--industrial-border));
-}
-
-.industrial-danger-panel {
-  border-color: color-mix(in srgb, var(--industrial-danger) 62%, var(--industrial-border));
 }
 
 .module-feedback {
@@ -613,31 +594,6 @@ a.industrial-card:hover,
 
 .industrial-chip-warning {
   border-color: color-mix(in srgb, var(--industrial-accent) 45%, transparent);
-}
-
-.industrial-status-muted {
-  border-color: var(--industrial-neutral-600);
-  background: var(--industrial-neutral-800);
-  color: var(--industrial-neutral-300);
-}
-
-.industrial-status-neutral {
-  border-color: rgba(161,161,170,0.5);
-  background: rgba(63,63,70,0.45);
-  color: var(--industrial-text);
-}
-
-.industrial-status-danger {
-  border-color: rgba(239,68,68,0.64);
-  background: rgba(127,29,29,0.36);
-  color: var(--industrial-danger-text);
-}
-
-.industrial-status-fatal {
-  border-color: rgba(248,113,113,0.85);
-  background: linear-gradient(90deg, rgba(127,29,29,0.62), rgba(24,24,27,0.96));
-  color: var(--industrial-danger-text-strong);
-  box-shadow: inset 3px 0 0 var(--industrial-danger);
 }
 
 .industrial-empty {
@@ -869,25 +825,6 @@ a.industrial-card:hover,
   line-height: 1;
 }
 
-.metric-warning {
-  border-color: color-mix(in srgb, var(--industrial-accent) 55%, transparent);
-  box-shadow: inset 3px 0 0 var(--industrial-accent);
-}
-
-.metric-default {
-  border-color: var(--industrial-border-strong);
-}
-
-.metric-warning strong,
-.metric-danger strong {
-  color: var(--industrial-accent);
-}
-
-.metric-danger {
-  border-color: rgba(239,68,68,0.65);
-  box-shadow: inset 3px 0 0 var(--industrial-danger);
-}
-
 .industrial-deadline-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -943,26 +880,17 @@ a.industrial-card:hover,
   line-height: 1.55;
 }
 
-.dashboard-next-action,
-.dashboard-module-group,
 .person-lifecycle-card,
 .case-next-action {
   gap: var(--industrial-space-3);
 }
 
-.dashboard-next-action-danger,
 .case-next-action-danger {
   border-color: rgba(239, 68, 68, 0.45);
 }
 
-.dashboard-next-action-warning,
 .case-next-action-warning {
   border-color: rgba(245, 158, 11, 0.45);
-}
-
-.dashboard-module-groups {
-  display: grid;
-  gap: var(--industrial-space-4);
 }
 
 .case-overview-heading,
@@ -1008,16 +936,11 @@ a.industrial-card:hover,
 .industrial-record-card,
 .industrial-selection-card,
 .industrial-status-card,
-.industrial-dashboard-card,
 .industrial-message,
 .industrial-warning-panel,
-.industrial-danger-panel,
 .industrial-empty-state,
 .industrial-data-table-shell,
-.workbench-summary-card,
-.dashboard-next-action,
-.dashboard-module-group,
-.person-lifecycle-panel {
+.workbench-summary-card {
   border-radius: var(--industrial-corner-radius);
 }
 
@@ -1078,60 +1001,6 @@ html[data-theme='light'] .industrial-panel-header p {
   min-width: 0;
 }
 
-.industrial-dashboard-card {
-  display: flex;
-  min-height: 160px;
-  flex-direction: column;
-  gap: var(--space-3, 0.75rem);
-  width: 100%;
-  border: 1px solid var(--panel-border, rgba(250, 204, 21, 0.28));
-  border-radius: var(--industrial-corner-radius);
-  background: linear-gradient(145deg, rgba(24, 24, 27, 0.92), rgba(9, 9, 11, 0.96));
-  color: inherit;
-  padding: var(--space-4, 1rem);
-  text-align: left;
-  transition:
-    border-color 160ms ease,
-    transform 160ms ease,
-    opacity 160ms ease;
-}
-
-.industrial-dashboard-card:not(.is-disabled):hover,
-.industrial-dashboard-card:not(.is-disabled):focus {
-  border-color: var(--industrial-accent);
-  transform: translateY(-1px);
-}
-
-.industrial-dashboard-card.is-disabled {
-  cursor: not-allowed;
-  opacity: 0.58;
-}
-
-.industrial-dashboard-card-icon {
-  width: 1.8rem;
-  height: 1.8rem;
-  color: var(--industrial-accent);
-}
-
-.industrial-dashboard-card-title {
-  font-weight: 800;
-  letter-spacing: 0.02em;
-}
-
-.industrial-dashboard-card-text,
-.industrial-dashboard-card-status {
-  color: var(--industrial-text-muted);
-  font-size: var(--font-size-base);
-  line-height: 1.45;
-}
-
-.industrial-dashboard-card-status {
-  margin-top: auto;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-}
-
 .industrial-card.no-card-hover {
   cursor: default;
 }
@@ -1154,8 +1023,7 @@ html[data-theme='dark'] .industrial-status-card {
 
 html[data-theme='light'] button.industrial-card:hover:not(:disabled),
 html[data-theme='light'] a.industrial-card:hover,
-html[data-theme='light'] .industrial-card[role='button']:hover,
-html[data-theme='light'] .industrial-card.clickable:hover {
+html[data-theme='light'] .industrial-card[role='button']:hover {
   background: linear-gradient(145deg, rgba(250,250,245,0.98), rgba(218,218,211,1));
   box-shadow: 0 0 0 1px rgba(196,138,0,0.18), 0 14px 24px rgba(0,0,0,0.12);
 }
@@ -1217,39 +1085,6 @@ html[data-theme='light'] .industrial-action-note {
   flex: 0 0 auto;
 }
 
-.industrial-tag {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--industrial-border);
-  border-radius: var(--control-radius);
-  background: color-mix(in srgb, var(--industrial-panel) 90%, black 10%);
-  color: var(--industrial-text-muted);
-  padding: var(--space-1) var(--space-2);
-  font-size: var(--font-size-xs);
-  font-weight: 850;
-  line-height: 1.15;
-  white-space: nowrap;
-}
-
-.industrial-tag-ok,
-.industrial-status-ok .industrial-tag { border-color: color-mix(in srgb, var(--industrial-ok) 55%, var(--industrial-border)); color: color-mix(in srgb, var(--industrial-ok) 84%, white 16%); }
-
-.industrial-tag-warning,
-.industrial-status-warning .industrial-tag { border-color: color-mix(in srgb, var(--industrial-accent) 60%, var(--industrial-border)); color: var(--industrial-accent); }
-
-.industrial-tag-problem,
-.industrial-status-problem .industrial-tag,
-.industrial-tag-danger { border-color: color-mix(in srgb, var(--industrial-danger) 58%, var(--industrial-border)); color: color-mix(in srgb, var(--industrial-danger) 72%, white 28%); }
-
-.industrial-status-ok { border-color: color-mix(in srgb, var(--industrial-ok) 36%, var(--industrial-border)); }
-
-.industrial-status-warning { border-color: color-mix(in srgb, var(--industrial-accent) 42%, var(--industrial-border)); }
-
-.industrial-status-problem { border-color: color-mix(in srgb, var(--industrial-danger) 44%, var(--industrial-border)); }
-
-.industrial-status-info { border-color: var(--industrial-border); }
-
 .industrial-record-meta {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
@@ -1278,8 +1113,7 @@ html[data-theme='light'] .industrial-action-note {
   margin-top: 0.35rem;
 }
 
-.industrial-search-toolbar,
-.industrial-filter-bar {
+.industrial-search-toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: end;
@@ -1360,80 +1194,12 @@ html[data-theme='light'] .industrial-action-note {
   border-bottom: 0;
 }
 
-.industrial-data-table-cell {
-  display: grid;
-  gap: 0.25rem;
-}
-
-.industrial-data-table-cell p,
-.industrial-data-table-cell span {
-  margin: 0;
-  color: var(--industrial-text-muted);
-}
-
 /* App-weite Steuerungs- und Nachweis-Workbench-Regeln. */
-.sbv-control-shell {
-  display: grid;
-  grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr);
-  gap: 1rem;
-  align-items: start;
-}
-
-.sbv-control-tabs {
-  display: grid;
-  gap: .45rem;
-}
-
-.sbv-control-tabs button {
-  display: grid;
-  gap: .2rem;
-  width: 100%;
-  padding: var(--space-3) var(--space-3);
-  border: 1px solid var(--industrial-border);
-  background: var(--industrial-panel);
-  color: var(--industrial-text);
-  text-align: left;
-  cursor: pointer;
-}
-
-.sbv-control-tabs button:hover {
-  border-color: var(--industrial-accent);
-}
-
-.sbv-control-tabs button:focus {
-  border-color: var(--industrial-accent);
-  outline: 2px solid var(--industrial-accent);
-  outline-offset: 3px;
-}
-
-.sbv-control-tabs button.is-active {
-  border-color: var(--industrial-accent);
-  background: color-mix(in srgb, var(--industrial-panel) 84%, var(--industrial-accent) 16%);
-  box-shadow: inset 3px 0 0 var(--industrial-accent);
-}
-
-.sbv-control-tabs strong {
-  font-size: var(--font-size-base);
-  text-transform: uppercase;
-  letter-spacing: .06em;
-}
-
-.sbv-control-tabs span,
-.sbv-control-lede,
 .sbv-control-row span,
-.sbv-control-row p,
-.sbv-control-table-row span,
-.sbv-control-table-row p,
-.sbv-control-mini-card span,
-.sbv-control-mini-card p,
-.sbv-control-checklist span {
+.sbv-control-row p {
   color: var(--industrial-text-muted);
   font-size: var(--font-size-base);
   line-height: 1.45;
-}
-
-.sbv-control-stage {
-  min-width: 0;
 }
 
 .sbv-control-panel {
@@ -1445,43 +1211,15 @@ html[data-theme='light'] .industrial-action-note {
   background: color-mix(in srgb, var(--industrial-panel) 96%, black 4%);
 }
 
-.sbv-control-panel-head {
-  display: flex;
-  gap: 1rem;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding-bottom: .75rem;
-  border-bottom: 1px solid var(--industrial-border);
-}
-
-.sbv-control-panel-title {
-  display: flex;
-  gap: .75rem;
-  align-items: flex-start;
-  min-width: 0;
-}
-
-.sbv-control-panel-title h2 {
-  margin: .1rem 0 0;
-  font-size: var(--font-size-lg);
-}
-
 .sbv-control-panel p,
 .sbv-control-panel em {
   margin: 0;
 }
 
 .sbv-control-compact-list,
-.sbv-control-card-grid,
-.sbv-control-checklist,
-.sbv-control-table,
 .sbv-control-metric-grid {
   display: grid;
   gap: .65rem;
-}
-
-.sbv-control-card-grid {
-  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
 }
 
 .sbv-control-metric-grid {
@@ -1489,19 +1227,13 @@ html[data-theme='light'] .industrial-action-note {
 }
 
 .sbv-control-row,
-.sbv-control-mini-card,
-.sbv-control-checklist article,
-.sbv-control-metric-grid article,
-.sbv-control-table-row,
-.sbv-control-empty {
+.sbv-control-metric-grid article {
   border: 1px solid var(--industrial-border);
   background: var(--industrial-bg);
   padding: var(--space-3) var(--space-3);
 }
 
 .sbv-control-row,
-.sbv-control-mini-card,
-.sbv-control-checklist article,
 .sbv-control-metric-grid article {
   display: grid;
   gap: .3rem;
@@ -1512,49 +1244,8 @@ html[data-theme='light'] .industrial-action-note {
   align-items: start;
 }
 
-.sbv-control-row.level-critical {
-  border-color: color-mix(in srgb, var(--industrial-danger) 62%, var(--industrial-border));
-}
-
-.sbv-control-row.level-warning,
-.sbv-control-table-row.risk-warning {
-  border-color: color-mix(in srgb, var(--industrial-warning) 68%, var(--industrial-border));
-}
-
-.sbv-control-table-row.risk-critical {
-  border-color: color-mix(in srgb, var(--industrial-danger) 62%, var(--industrial-border));
-}
-
-.sbv-control-table-row {
-  display: grid;
-  grid-template-columns: minmax(11rem, 1fr) minmax(13rem, 1.2fr) minmax(14rem, 1.35fr);
-  gap: .9rem;
-}
-
-.sbv-control-table-row div {
-  display: grid;
-  gap: .25rem;
-  min-width: 0;
-}
-
-.sbv-control-table-row em,
-.sbv-control-mini-card em {
-  color: var(--industrial-text);
-  font-style: normal;
-  font-size: var(--font-size-sm);
-}
-
 .sbv-control-metric-grid article strong {
   font-size: var(--font-size-2xl);
-}
-
-.sbv-control-checklist article strong::before {
-  content: '□ ';
-  color: var(--industrial-accent);
-}
-
-.sbv-control-empty {
-  color: var(--industrial-text-muted);
 }
 
 .sbv-resource-workbench {
@@ -1739,32 +1430,6 @@ html[data-theme='light'] .industrial-action-note {
   gap: 1rem;
 }
 
-.process-overview-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
-  gap: .75rem;
-}
-
-.process-overview-stat {
-  display: grid;
-  gap: .25rem;
-  padding: var(--space-3) var(--space-3);
-  border: 1px solid var(--industrial-border);
-  background: color-mix(in srgb, var(--industrial-panel) 94%, black 6%);
-}
-
-.process-overview-stat span {
-  color: var(--industrial-text-muted);
-  font-size: var(--font-size-2xs);
-  font-weight: 800;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-}
-
-.process-overview-stat strong {
-  font-size: var(--font-size-xl);
-}
-
 .process-overview-groups {
   display: grid;
   gap: .85rem;
@@ -1851,45 +1516,6 @@ html[data-theme='light'] .industrial-action-note {
   text-align: right;
 }
 
-.process-overview-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--space-1) var(--space-1);
-  border: 1px solid var(--industrial-border);
-  background: color-mix(in srgb, var(--industrial-accent) 12%, var(--industrial-panel));
-  color: var(--industrial-text);
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-}
-
-.process-overview-badge.muted {
-  background: color-mix(in srgb, var(--industrial-panel) 94%, black 6%);
-  color: var(--industrial-text-muted);
-}
-
-.process-overview-badge.warning {
-  border-color: color-mix(in srgb, var(--industrial-warning) 65%, var(--industrial-border));
-  background: color-mix(in srgb, var(--industrial-warning) 18%, var(--industrial-panel));
-  color: var(--industrial-text);
-}
-
-/* Gremia.SBV 0.5.2 – kompakter BEM-/Maßnahmenleitstand. */
-.process-overview-topline {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 1rem;
-  align-items: start;
-}
-
-.process-overview-topline h2 {
-  margin: .2rem 0 .35rem;
-}
-
-.process-overview-topline p {
-  margin: 0;
-  color: var(--industrial-text-muted);
-}
-
 .process-overview-group.is-empty {
   opacity: .72;
 }
@@ -1955,8 +1581,7 @@ html[data-theme='light'] .industrial-action-note {
   color: var(--industrial-accent);
 }
 
-.industrial-status-badge-danger,
-.industrial-status-badge-problem {
+.industrial-status-badge-danger {
   border-color: color-mix(in srgb, var(--industrial-danger) 58%, var(--industrial-border));
   color: color-mix(in srgb, var(--industrial-danger) 72%, white 28%);
 }
@@ -2016,13 +1641,6 @@ html[data-theme='light'] .industrial-warning-panel {
   color: var(--industrial-accent);
 }
 
-html[data-theme='light'] .industrial-danger-panel {
-  border-color: color-mix(in srgb, var(--industrial-danger-strong) 68%, var(--industrial-border));
-  background: linear-gradient(135deg, rgba(254, 226, 226, 0.86), rgba(232, 211, 205, 0.95));
-  color: var(--industrial-danger-text-strong);
-}
-
-html[data-theme='light'] .industrial-tag,
 html[data-theme='light'] .industrial-search-count {
   background: var(--industrial-light-panel-muted);
   border-color: var(--industrial-border);
@@ -2220,13 +1838,11 @@ html[data-theme='light'] .text-command-help-item span {
 }
 
 .industrial-section-title-row,
-.workbench-header-title-row,
 .industrial-field-label {
   gap: 0.45rem;
 }
 
-.industrial-section-title-row,
-.workbench-header-title-row {
+.industrial-section-title-row {
   display: inline-flex;
   align-items: center;
 }
@@ -2279,12 +1895,6 @@ html[data-theme='light'] .text-command-help-item span {
 .industrial-help-button.is-compact .industrial-help-button-text,
 .industrial-field-label-row .industrial-help-button .industrial-help-button-text {
   display: none;
-}
-
-.industrial-help-inline {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
 }
 
 .industrial-help-dialog-body {

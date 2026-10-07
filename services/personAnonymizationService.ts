@@ -2,6 +2,8 @@ import type { DatabaseAdapter } from './databaseService.js';
 import { ProtectedPersonService } from './protectedPersonService.js';
 import { PrivacyReviewService } from './privacyReviewService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
+import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
+import { TextEntityReferenceService } from './textEntityReferenceService.js';
 import { assertPersonPrivacyReason, decidePersonDeletion } from './personAnonymizationPolicy.js';
 import type { PersonAnonymizationResult } from '../src/domain/models/protected-person.model.js';
 
@@ -11,6 +13,7 @@ export class PersonAnonymizationService {
   constructor(private readonly database: DatabaseAdapter) {}
 
   anonymizeStructuredPersonData(id: string, reason: string): PersonAnonymizationResult {
+    return new DatabaseUnitOfWork(this.database).run(() => {
     const normalizedReason = assertPersonPrivacyReason(reason);
     const service = new ProtectedPersonService(this.database);
     const linksBefore = service.listCaseLinks(id).filter((link) => link.linkState === 'active');
@@ -24,12 +27,15 @@ export class PersonAnonymizationService {
       affectedCaseIds: Array.from(new Set([...linksBefore.map((link) => link.caseFileId), ...directlyLinkedRows.map((row) => row.id)])),
       anonymizedLinks: linksBefore.length
     };
+    });
   }
 
   deleteStructuredPersonData(id: string, reason: string): { ok: true; affectedCaseIds: string[]; deletedPersonId: string } {
-    const normalizedReason = assertPersonPrivacyReason(reason);
+    return new DatabaseUnitOfWork(this.database).run(() => {
+    assertPersonPrivacyReason(reason);
     const person = new ProtectedPersonService(this.database).get(id);
     if (!person) throw new Error(`Person nicht gefunden: ${id}`);
+    new TextEntityReferenceService(this.database).redact('person', id);
     const decision = decidePersonDeletion();
     const timestamp = nowIso();
     const linkedCases = this.database.prepare<{ id: string }>('SELECT id FROM cases WHERE protected_person_id = ?').all(id);
@@ -47,5 +53,6 @@ export class PersonAnonymizationService {
     this.database.prepare('DELETE FROM protected_persons WHERE id = ?').run(id);
     new PersonalDataAuditLogService(this.database).append({ action: 'delete', subjectType: 'protected_person', subjectId: id, purpose: 'Personenverzeichnis: Person gelöscht', metadata: { subjectId: id, timestamp, reasonCode: 'person_deleted' } });
     return { ok: true, affectedCaseIds: linkedCases.map((row) => row.id), deletedPersonId: id };
+    });
   }
 }

@@ -7,7 +7,11 @@ import type {
 } from "../../../domain/models/gremia-br.model";
 import { waitForBridge } from "../../core/bridge/waitForBridge";
 
-export { waitForBridge };
+export async function requireGremiaBrSettingsService(): Promise<NonNullable<Window['gremiaSbv']>['gremiaBr']> {
+  const bridge = await waitForBridge();
+  if (!bridge?.gremiaBr) throw new Error("Gremia.BR-Einstellungsdienst ist nicht erreichbar.");
+  return bridge.gremiaBr;
+}
 
 type Announce = (message: string, politeness?: "polite" | "assertive") => void;
 
@@ -32,10 +36,6 @@ export const EMPTY_GREMIA_BR_CACHE: GremiaBrCachedOverview = {
   meetingAgendas: {},
   overdueDecisions: [],
 };
-
-export function gremiaBrStatusText(result?: { message: string }): string {
-  return result?.message ?? "";
-}
 
 export const GREMIA_BR_SETTINGS_CHANGED_EVENT = "gremia-sbv:gremia-br-settings-changed";
 
@@ -79,11 +79,10 @@ export function applyGremiaBrSettingsSnapshot(
 }
 
 export async function loadGremiaBrSettingsSnapshot(setters: GremiaBrSettingsSetters): Promise<void> {
-  const bridge = await waitForBridge();
-  if (!bridge?.gremiaBr) throw new Error("Gremia.BR-Einstellungsdienst ist nicht erreichbar.");
+  const service = await requireGremiaBrSettingsService();
   applyGremiaBrSettingsSnapshot(
-    await bridge.gremiaBr.getSettings(),
-    await bridge.gremiaBr.getCachedOverview(),
+    await service.getSettings(),
+    await service.getCachedOverview(),
     setters,
   );
 }

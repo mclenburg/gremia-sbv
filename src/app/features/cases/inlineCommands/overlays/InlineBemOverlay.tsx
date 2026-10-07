@@ -1,109 +1,17 @@
-import {
-  AlertTriangle,
-  BadgeCheck,
-  CalendarPlus,
-  CheckCircle2,
-  ClipboardCheck,
-  FileText,
-  HeartPulse,
-  Wrench,
-  FolderKanban,
-  Lock,
-  Scale,
-  ShieldAlert,
-  Siren,
-  Users,
-} from "lucide-react";
-import type { LegalNormSuggestion } from "@/domain/textCommands/textCommandPolicy";
-import {
-  LEGAL_NORM_SUGGESTIONS,
-  formatAnonymizationMarkerText,
-  formatBemMarkerText,
-  formatConfidentialityText,
-  formatLegalNormText,
-  formatOpenTaskText,
-  formatPreventionMarkerText,
-  formatEqualizationMarkerText,
-  formatTerminationMarkerText,
-  formatRiskText,
-  formatTemplateMarkerText,
-} from "@/domain/textCommands/textCommandPolicy";
-import type { ContactCategory } from "../../../../../domain/models/contact.model";
-import type { DeadlineSeverity } from "../../../../../domain/models/deadline.model";
-import type { ConfidentialCommandLevel, RiskLevelCommand } from "@/domain/textCommands/textCommandPolicy";
-import { filterContactsForQuery, formatContactReference } from "../../../contacts/contactDisplay";
-import { filterCasesForInlineCommand, filterNormsForInlineCommand } from "../inlineCommandSearch";
+import { HeartPulse } from "lucide-react";
 import type { InlineCommandOverlaysProps } from "../InlineCommandOverlays";
-import type { InlineBemDraft } from "../inlineCommandTypes";
-import { FieldCaption, IndustrialModalSurface } from "./inlineCommandOverlayShared";
+import { IndustrialModalSurface } from "./inlineCommandOverlayShared";
+import { InlineBemFields } from "./InlineBemFields";
 
-export function InlineBemOverlay({ props }: { props: InlineCommandOverlaysProps }) {
+type OverlayProps = Pick<InlineCommandOverlaysProps,
+  "inlineBemDraft" | "setInlineBemDraft" | "createBemFromProtocol" | "cancelInlineBemDraft">;
+
+export function InlineBemOverlay({ props }: { props: OverlayProps }) {
   const {
-    inlineCaseLinkDraft,
-    setInlineCaseLinkDraft,
-    cases,
-    insertCaseReferenceFromProtocol,
-    cancelInlineCaseLinkDraft,
-    inlineLegalNormDraft,
-    setInlineLegalNormDraft,
-    insertLegalNormFromProtocol,
-    cancelInlineLegalNormDraft,
-    inlineRiskDraft,
-    setInlineRiskDraft,
-    insertRiskFromProtocol,
-    cancelInlineRiskDraft,
-    inlineOpenTaskDraft,
-    setInlineOpenTaskDraft,
-    createOpenTaskFromProtocol,
-    cancelInlineOpenTaskDraft,
-    inlineConfidentialityDraft,
-    setInlineConfidentialityDraft,
-    applyConfidentialityFromProtocol,
-    cancelInlineConfidentialityDraft,
-    inlineAnonymizationDraft,
-    setInlineAnonymizationDraft,
-    applyAnonymizationMarkerFromProtocol,
-    cancelInlineAnonymizationDraft,
-    inlineContactDraft,
-    setInlineContactDraft,
-    contacts,
-    insertExistingContactFromProtocol,
-    createAndInsertContactFromProtocol,
-    cancelInlineContactDraft,
     inlineBemDraft,
     setInlineBemDraft,
     createBemFromProtocol,
     cancelInlineBemDraft,
-    inlinePreventionDraft,
-    setInlinePreventionDraft,
-    createPreventionFromProtocol,
-    cancelInlinePreventionDraft,
-    inlineEqualizationDraft,
-    setInlineEqualizationDraft,
-    createEqualizationFromProtocol,
-    cancelInlineEqualizationDraft,
-    inlineTerminationDraft,
-    setInlineTerminationDraft,
-    createTerminationFromProtocol,
-    cancelInlineTerminationDraft,
-    inlineParticipationDraft,
-    setInlineParticipationDraft,
-    createParticipationFromProtocol,
-    cancelInlineParticipationDraft,
-    inlineWorkplaceAccommodationDraft,
-    setInlineWorkplaceAccommodationDraft,
-    createWorkplaceAccommodationFromProtocol,
-    cancelInlineWorkplaceAccommodationDraft,
-    inlineTemplateDraft,
-    setInlineTemplateDraft,
-    applyTemplateMarkerFromProtocol,
-    cancelInlineTemplateDraft,
-    inlineDeadlineDraft,
-    setInlineDeadlineDraft,
-    selectedCase,
-    buildInlineDeadlineText,
-    createInlineDeadlineFromProtocol,
-    cancelInlineDeadlineDraft,
   } = props;
 
   return inlineBemDraft ? (
@@ -124,91 +32,8 @@ export function InlineBemOverlay({ props }: { props: InlineCommandOverlaysProps 
             </p>
           </div>
         </div>
-        <div className="industrial-modal-grid">
-          <label className="industrial-modal-wide">
-            <FieldCaption draft={inlineBemDraft} field="title">
-              Titel
-            </FieldCaption>
-            <input
-              value={inlineBemDraft.title}
-              onChange={(event) =>
-                setInlineBemDraft((current) =>
-                  current
-                    ? { ...current, title: event.target.value }
-                    : current,
-                )
-              }
-              placeholder="z. B. BEM wegen wiederholter Arbeitsunfähigkeit" className="industrial-input" />
-          </label>
-          <label className="industrial-modal-wide">
-            <FieldCaption draft={inlineBemDraft} field="triggerDescription">
-              Anlass / Kurznotiz
-            </FieldCaption>
-            <input
-              value={inlineBemDraft.triggerDescription}
-              onChange={(event) =>
-                setInlineBemDraft((current) =>
-                  current
-                    ? { ...current, triggerDescription: event.target.value }
-                    : current,
-                )
-              }
-              placeholder="z. B. Rückkehr nach längerer AU, Beschäftigte wünscht Begleitung" className="industrial-input" />
-          </label>
-          <label>
-            <FieldCaption draft={inlineBemDraft} field="triggerType">
-              Auslöser
-            </FieldCaption>
-            <select className="industrial-select"
-              value={inlineBemDraft.triggerType}
-              onChange={(event) =>
-                setInlineBemDraft((current) =>
-                  current
-                    ? {
-                        ...current,
-                        triggerType: event.target
-                          .value as InlineBemDraft["triggerType"],
-                      }
-                    : current,
-                )
-              }
-            >
-              <option value="sechs_wochen_au">mehr als 6 Wochen AU</option>
-              <option value="wiederholt_au">wiederholte AU</option>
-              <option value="praeventiv">präventiv</option>
-              <option value="arbeitgeberangebot">Arbeitgeberangebot</option>
-              <option value="sbv_anregung">SBV-Anregung</option>
-              <option value="sonstiges">Sonstiges</option>
-            </select>
-          </label>
-          <label>
-            <span>Rückmeldefrist optional</span>
-            <input
-              type="datetime-local"
-              value={inlineBemDraft.responseDueAt}
-              onChange={(event) =>
-                setInlineBemDraft((current) =>
-                  current
-                    ? { ...current, responseDueAt: event.target.value }
-                    : current,
-                )
-              } className="industrial-input" />
-          </label>
-          <label className="industrial-modal-wide">
-            <FieldCaption draft={inlineBemDraft} field="nextStep">
-              Nächster Schritt
-            </FieldCaption>
-            <input
-              value={inlineBemDraft.nextStep}
-              onChange={(event) =>
-                setInlineBemDraft((current) =>
-                  current
-                    ? { ...current, nextStep: event.target.value }
-                    : current,
-                )
-              } className="industrial-input" />
-          </label>
-        </div>
+        <InlineBemFields inlineBemDraft={inlineBemDraft} setInlineBemDraft={setInlineBemDraft} />
+
         <div className="industrial-modal-preview">
           <HeartPulse className="industrial-icon" /> Wird mit dem Speichern der Notiz als Fallaktenvorgang angelegt:{" "}
           <strong>{inlineBemDraft.title.trim() || "BEM-Vorgang"}</strong>

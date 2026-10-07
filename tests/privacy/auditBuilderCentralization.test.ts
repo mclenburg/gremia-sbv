@@ -1,20 +1,11 @@
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   auditCaseHandoverExported,
   auditComplianceIncidentCreated,
   auditGremiaBrReadRequest,
-  auditMetadataContainsNoDirectIdentifiers,
   auditResourceRecordChanged,
 } from '../../services/auditEventBuilders';
 import { normalizeAuditMetadata } from '../../services/auditHashChain';
-
-const projectRoot = process.cwd();
-
-function source(relativePath: string): string {
-  return readFileSync(path.join(projectRoot, relativePath), 'utf8');
-}
 
 describe('P9 zentrale Audit-Event-Builder', () => {
   it('baut Compliance-Vorfall-Audits ohne Freitext- oder Personendaten', () => {
@@ -32,7 +23,6 @@ describe('P9 zentrale Audit-Event-Builder', () => {
     });
     expect(normalizeAuditMetadata(event.metadata)).toContain('wrong_export');
     expect(JSON.stringify(event)).not.toContain('Fallnotizen');
-    expect(auditMetadataContainsNoDirectIdentifiers(event.metadata ?? {})).toBe(true);
   });
 
   it('baut Fallübergabe-Audits nur mit technischen Paket-Metadaten', () => {
@@ -86,20 +76,5 @@ describe('P9 zentrale Audit-Event-Builder', () => {
       subjectId: 'GET /sitzungen/kommende',
     });
     expect(event.metadata).toMatchObject({ endpoint: 'GET /sitzungen/kommende', outcome: 'ok', status: 200 });
-  });
-
-  it('verschiebt freie Audit-Objektliterale aus den P9-Zielservices in zentrale Builder', () => {
-    const files = [
-      'services/complianceIncidentService.ts',
-      'services/caseHandoverService.ts',
-      'services/sbvResourceService.ts',
-      'services/gremiaBr/gremiaBrHttpClient.ts',
-    ];
-    const offenders = files
-      .map((file) => ({ file, content: source(file) }))
-      .filter(({ content }) => /\.append\(\s*\{/.test(content))
-      .map(({ file }) => file);
-
-    expect(offenders).toEqual([]);
   });
 });

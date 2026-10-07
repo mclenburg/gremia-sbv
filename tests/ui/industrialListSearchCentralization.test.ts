@@ -1,78 +1,67 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { createElement } from 'react';
 import { describe, expect, it } from 'vitest';
-import { recordMatchesQuery } from '../../src/app/shared/components/WorkbenchLayout';
-function source(path: string): string {
-  return readFileSync(path, 'utf8');
-}
+import { DataTable, EmptyState, RecordList, SearchToolbar, recordMatchesQuery } from '../../src/app/shared/components/WorkbenchLayout';
+import { descendants, renderComponent, renderElement, visibleText } from '../helpers/renderedMarkup';
 
-function uiCss(): string {
-  return [
-    'src/app/ui/designTokens.css',
-    'src/app/ui/base.css',
-    'src/app/ui/appShell.css',
-    'src/app/ui/components.css',
-  'src/app/ui/modal.css',
-    'src/app/ui/workbench.css',
-    'src/app/ui/processes.css',
-    'src/app/ui/featureModules.css',
-    'src/app/ui/responsiveDesign.css',
-    'src/app/ui/forms.css',
-
-  ].map((file) => source(file)).join('\n');
-}
-
-function featureSources(dir: string): string {
-  const chunks: string[] = [];
-  function visit(path: string) {
-    for (const entry of readdirSync(path)) {
-      const child = `${path}/${entry}`;
-      if (statSync(child).isDirectory()) {
-        visit(child);
-      } else if (child.endsWith('.ts') || child.endsWith('.tsx')) {
-        chunks.push(source(child));
-      }
-    }
-  }
-  visit(dir);
-  return chunks.join('\n');
-}
-
-describe('Listen-, Such- und Tabellenzentralisierung Patch P7', () => {
-  it('stellt Suchleiste, Filterbar, RecordList, DataTable und EmptyState zentral bereit', () => {
-    const layout = source('src/app/shared/components/WorkbenchData.tsx');
-    const css = uiCss();
-
-    for (const component of ['SearchToolbar', 'FilterBar', 'RecordList', 'DataTable', 'EmptyState']) {
-      expect(layout).toContain(`function ${component}`);
-    }
-
-    for (const selector of ['.industrial-search-toolbar', '.industrial-filter-bar', '.industrial-record-list-item', '.industrial-data-table', '.industrial-empty-state']) {
-      expect(css).toContain(selector);
-    }
+describe('shared search, list and table behavior', () => {
+  it('provides a labelled search input and announces the result count', () => {
+    const { tree, markup } = renderComponent(SearchToolbar, {
+      searchLabel: 'Nachweise durchsuchen', searchValue: 'Schulung', resultCount: 2,
+      onSearchChange: () => undefined,
+    });
+    const nodes = descendants(tree);
+    const input = nodes.find((node) => node.tag === 'input');
+    const label = nodes.find((node) => node.tag === 'label');
+    expect(input?.attrs.type).toBe('search');
+    expect(input?.attrs.value).toBe('Schulung');
+    expect(input?.attrs.id).toBeTruthy();
+    expect(label?.attrs.for).toBe(input?.attrs.id);
+    expect(nodes.some((node) => node.attrs.role === 'search')).toBe(true);
+    expect(nodes.some((node) => node.attrs['aria-live'] === 'polite')).toBe(true);
+    expect(visibleText(markup)).toContain('Nachweise durchsuchen');
+    expect(visibleText(markup)).toContain('2 Treffer');
   });
 
-  it('filtert zentrale RecordLists positiv und negativ über normalisierte Suchwerte', () => {
+  it('filters records using normalized search values', () => {
     expect(recordMatchesQuery(['SBV-Schulung', '§ 179 Abs. 4 SGB IX'], 'schulung')).toBe(true);
     expect(recordMatchesQuery(['Datenschutzvorfall', 'reported', 'high'], 'REPORT')).toBe(true);
     expect(recordMatchesQuery(['Datenschutzvorfall', 'closed', 'low'], 'mittel')).toBe(false);
     expect(recordMatchesQuery(['Nachweis'], '   ')).toBe(true);
+    expect(recordMatchesQuery([null, undefined, 2026], '2026')).toBe(true);
   });
 
-  it('zieht Compliance und SBV-Steuerung auf zentrale Such-, Listen- und Tabellenbausteine', () => {
-    const compliance = featureSources('src/app/features/compliance');
-    const sbvControl = featureSources('src/app/features/sbv-control');
+  it.each([false, true])('renders list contents or the accessible empty state (populated: %s)', (populated) => {
+    const { tree, markup } = renderElement(createElement(RecordList<{ id: string; title: string }>, {
+      items: populated ? [{ id: 'record-1', title: 'Schulung' }] : [],
+      getKey: (item) => item.id,
+      renderItem: (item) => createElement('button', { type: 'button' }, item.title),
+      ariaLabel: 'Nachweise',
+      empty: createElement(EmptyState, { text: 'Keine Nachweise vorhanden.' }),
+    }));
+    const nodes = descendants(tree);
+    expect(nodes.some((node) => node.attrs['aria-label'] === 'Nachweise')).toBe(true);
+    expect(nodes.filter((node) => node.tag === 'button')).toHaveLength(populated ? 1 : 0);
+    expect(nodes.filter((node) => node.attrs.role === 'status')).toHaveLength(populated ? 0 : 1);
+    expect(visibleText(markup)).toContain(populated ? 'Schulung' : 'Keine Nachweise vorhanden.');
+    expect(visibleText(markup)).not.toContain(populated ? 'Keine Nachweise vorhanden.' : 'Schulung');
+  });
 
-    expect(compliance).toContain('SearchToolbar');
-    expect(compliance).toContain('RecordList');
-    expect(compliance).toContain('recordMatchesQuery');
-    expect(compliance).not.toContain('className="industrial-empty-state"');
-
-    expect(sbvControl).toContain('SearchToolbar');
-    expect(sbvControl).toContain('RecordList');
-    expect(sbvControl).toContain('DataTable');
-    expect(sbvControl).toContain('recordMatchesQuery');
-    expect(sbvControl).not.toContain('function EmptyState({ text }');
-    expect(sbvControl).not.toContain('className="sbv-control-table"');
-    expect(sbvControl).not.toContain('sbv-control-empty');
+  it.each([false, true])('renders a labelled semantic table or the empty state (populated: %s)', (populated) => {
+    const { tree, markup } = renderComponent(DataTable, {
+      headers: ['Pflicht', 'Nachweis'], ariaLabel: 'Arbeitgeberpflichten',
+      rows: populated ? [{ id: 'obligation-1', cells: ['Anzeige', 'Eingang dokumentiert'] }] : [],
+      empty: createElement(EmptyState, { text: 'Keine Prüfvorgänge vorhanden.' }),
+    });
+    const nodes = descendants(tree);
+    expect(nodes.filter((node) => node.tag === 'table')).toHaveLength(populated ? 1 : 0);
+    expect(nodes.filter((node) => node.attrs.role === 'status')).toHaveLength(populated ? 0 : 1);
+    if (populated) {
+      expect(nodes.find((node) => node.tag === 'table')?.attrs['aria-label']).toBe('Arbeitgeberpflichten');
+      expect(nodes.filter((node) => node.tag === 'th').map((node) => node.attrs.scope)).toEqual(['col', 'col']);
+      expect(nodes.filter((node) => node.tag === 'td')).toHaveLength(2);
+      expect(visibleText(markup)).toContain('Pflicht Nachweis Anzeige Eingang dokumentiert');
+    } else {
+      expect(visibleText(markup)).toContain('Keine Prüfvorgänge vorhanden.');
+    }
   });
 });

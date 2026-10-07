@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { WorkbenchContent, WorkbenchSidebar } from "./WorkbenchStructure";
-import type { IndustrialPanelTone } from "./WorkbenchPanels";
 
 export function recordMatchesQuery(
   values: Array<string | number | null | undefined>,
@@ -13,10 +12,6 @@ export function recordMatchesQuery(
     .join(" ")
     .toLowerCase()
     .includes(normalizedQuery);
-}
-
-function industrialToneClass(tone: IndustrialPanelTone = "default"): string {
-  return `industrial-tone-${tone}`;
 }
 
 function joinClassNames(
@@ -79,19 +74,6 @@ export function SearchToolbar({
         </span>
       ) : null}
       {children ? <div className="industrial-search-actions">{children}</div> : null}
-    </div>
-  );
-}
-export function FilterBar({
-  children,
-  ariaLabel = "Filter",
-}: {
-  children: ReactNode;
-  ariaLabel?: string;
-}) {
-  return (
-    <div className="industrial-filter-bar" aria-label={ariaLabel}>
-      {children}
     </div>
   );
 }

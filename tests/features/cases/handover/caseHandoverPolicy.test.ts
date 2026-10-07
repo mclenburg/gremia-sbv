@@ -1,10 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  assertAuditMetadataContainsNoPersonalData,
   buildCandidateMatches,
   buildCaseHandoverImportPlan,
-  canImportPackage,
-  handoverExpiryState,
   isExpired,
   safeAuditMetadata,
 } from '../../../../services/caseHandoverPolicy';
@@ -116,17 +113,12 @@ describe('case handover policy 0.9.2', () => {
     const metadata = safeAuditMetadata({ packageId: 'handover_123', caseCount: 1, measureCount: 2, documentCount: 3, deadlineCount: 4, hasExpiry: true, expiresAt: '2026-07-31T23:59:59.000Z', mode: 'create_new', result: 'success' });
     expect(metadata).toMatchObject({ packageId: 'handover_123', caseCount: 1, measureCount: 2, result: 'success' });
     expect(JSON.stringify(metadata)).not.toMatch(/Muster|Maya|Diagnose|Personalnummer|Notiz/i);
-    expect(assertAuditMetadataContainsNoPersonalData(metadata)).toBe(true);
   });
 
   it('unterscheidet Importgültigkeit und späteren Ablauf bereits importierter Übergabedaten', () => {
     const now = new Date('2026-05-23T10:00:00.000Z');
     expect(isExpired('2026-05-22T23:59:59.000Z', now)).toBe(true);
-    expect(canImportPackage('2026-05-22T23:59:59.000Z', now)).toBe(false);
-    expect(canImportPackage('2026-05-24T23:59:59.000Z', now)).toBe(true);
-    expect(canImportPackage(undefined, now)).toBe(true);
-    expect(handoverExpiryState('2026-05-22T23:59:59.000Z', now)).toBe('expired');
-    expect(handoverExpiryState('2026-05-24T23:59:59.000Z', now)).toBe('valid');
-    expect(handoverExpiryState(undefined, now)).toBe('no_expiry');
+    expect(isExpired('2026-05-24T23:59:59.000Z', now)).toBe(false);
+    expect(isExpired(undefined, now)).toBe(false);
   });
 });

@@ -1,17 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useState, type SetStateAction } from 'react';
 import type { CaseRecord } from '../../../domain/models/case.model';
-import type { CaseDocumentRecord } from '../../../domain/models/case-document.model';
-import type { CaseNoteRecord } from '../../../domain/models/case-note.model';
-import type { CaseLegalReferenceRecord } from '../../../domain/models/knowledge.model';
-import type { PreventionProcessRecord } from '../../../domain/models/prevention.model';
-import type { BemProcessRecord } from '../../../domain/models/bem.model';
-import type { EqualizationProcessRecord } from '../../../domain/models/equalization.model';
-import type { TerminationHearingRecord } from '../../../domain/models/termination.model';
-import type { ParticipationRecord } from '../../../domain/models/participation.model';
-import type { WorkplaceAccommodationRecord } from '../../../domain/models/workplace-accommodation.model';
 import type { CaseNodeTarget } from '../../core/navigation/caseNodeTarget';
 import type { CaseExplorerSelection } from './caseWorkbenchTypes';
-import { waitForBridge } from '../../core/bridge/waitForBridge';
+import { caseChildrenReducer, emptyCaseChildren, loadCaseChildren, type CaseChildren } from './caseChildrenData';
 import { selectionForCaseNodeTarget, shouldAutoSelectFirstCase } from './caseNodeTargetSelection';
 
 export function useCaseWorkbenchData({
@@ -26,15 +17,7 @@ export function useCaseWorkbenchData({
   onError?: (message: string) => void;
 }) {
   const [selectedCaseId, setSelectedCaseId] = useState('');
-  const [notes, setNotes] = useState<CaseNoteRecord[]>([]);
-  const [documents, setDocuments] = useState<CaseDocumentRecord[]>([]);
-  const [caseLegalReferences, setCaseLegalReferences] = useState<CaseLegalReferenceRecord[]>([]);
-  const [casePreventionProcesses, setCasePreventionProcesses] = useState<PreventionProcessRecord[]>([]);
-  const [caseBemProcesses, setCaseBemProcesses] = useState<BemProcessRecord[]>([]);
-  const [caseEqualizationProcesses, setCaseEqualizationProcesses] = useState<EqualizationProcessRecord[]>([]);
-  const [caseTerminationProcesses, setCaseTerminationProcesses] = useState<TerminationHearingRecord[]>([]);
-  const [caseParticipationProcesses, setCaseParticipationProcesses] = useState<ParticipationRecord[]>([]);
-  const [caseWorkplaceAccommodationProcesses, setCaseWorkplaceAccommodationProcesses] = useState<WorkplaceAccommodationRecord[]>([]);
+  const [children, dispatchChildren] = useReducer(caseChildrenReducer, undefined, emptyCaseChildren);
   const [selection, setSelection] = useState<CaseExplorerSelection>({ type: 'overview' });
   const [pendingCaseNodeTarget, setPendingCaseNodeTarget] = useState<CaseNodeTarget | null>(null);
   const [isCaseChildrenLoading, setIsCaseChildrenLoading] = useState(false);
@@ -58,33 +41,13 @@ export function useCaseWorkbenchData({
     }
   }, [cases, selectedCaseId, target, pendingCaseNodeTarget]);
 
-  const clearChildren = useCallback(function clearChildren() {
-    setNotes([]);
-    setDocuments([]);
-    setCaseLegalReferences([]);
-    setCasePreventionProcesses([]);
-    setCaseBemProcesses([]);
-    setCaseEqualizationProcesses([]);
-    setCaseTerminationProcesses([]);
-    setCaseParticipationProcesses([]);
-    setCaseWorkplaceAccommodationProcesses([]);
+  const clearChildren = useCallback(() => {
+    dispatchChildren({ type: 'clear' });
   }, []);
 
-  async function loadChildren(caseId: string) {
-    const bridge = await waitForBridge();
-    if (!bridge?.cases) throw new Error('Falldienst ist nicht erreichbar.');
-    return Promise.all([
-      bridge.cases.listNotes(caseId),
-      bridge.cases.listDocuments(caseId),
-      bridge.knowledge?.listCaseReferences(caseId) ?? Promise.resolve([]),
-      bridge.prevention?.list(caseId) ?? Promise.resolve([]),
-      bridge.bem?.list(caseId) ?? Promise.resolve([]),
-      bridge.equalization?.list(caseId) ?? Promise.resolve([]),
-      bridge.termination?.list(caseId) ?? Promise.resolve([]),
-      bridge.participation?.list(caseId) ?? Promise.resolve([]),
-      bridge.workplaceAccommodation?.list(caseId) ?? Promise.resolve([])
-    ]);
-  }
+  const setCaseLegalReferences = useCallback((update: SetStateAction<CaseChildren['caseLegalReferences']>) => {
+    dispatchChildren({ type: 'legalReferences', update });
+  }, []);
 
   function applySelectionTarget(targetToApply: CaseNodeTarget | null, caseId: string) {
     const nextSelection = selectionForCaseNodeTarget(targetToApply, caseId);
@@ -116,19 +79,11 @@ export function useCaseWorkbenchData({
       setSelection({ type: 'overview' });
     }
 
-    async function loadCaseChildren() {
+    async function loadSelectedCaseChildren() {
       try {
-        const [noteRows, docRows, legalRefRows, preventionRows, bemRows, equalizationRows, terminationRows, participationRows, workplaceAccommodationRows] = await loadChildren(selectedCaseId);
+        const rows = await loadCaseChildren(selectedCaseId);
         if (!active) return;
-        setNotes(noteRows);
-        setDocuments(docRows);
-        setCaseLegalReferences(legalRefRows);
-        setCasePreventionProcesses(preventionRows);
-        setCaseBemProcesses(bemRows);
-        setCaseEqualizationProcesses(equalizationRows);
-        setCaseTerminationProcesses(terminationRows);
-        setCaseParticipationProcesses(participationRows);
-        setCaseWorkplaceAccommodationProcesses(workplaceAccommodationRows);
+        dispatchChildren({ type: 'loaded', children: rows });
         applySelectionTarget(pendingCaseNodeTarget, selectedCaseId);
       } catch (error) {
         if (active) onError?.(error instanceof Error ? error.message : 'Fallakte konnte nicht geladen werden.');
@@ -137,7 +92,7 @@ export function useCaseWorkbenchData({
       }
     }
 
-    void loadCaseChildren();
+    void loadSelectedCaseChildren();
     return () => { active = false; };
     // selectedCaseId intentionally remains the only reload trigger. Consuming pending target must not reset selection.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -147,16 +102,7 @@ export function useCaseWorkbenchData({
     if (!selectedCaseId) return;
     setIsCaseChildrenLoading(true);
     try {
-      const [noteRows, docRows, legalRefRows, preventionRows, bemRows, equalizationRows, terminationRows, participationRows, workplaceAccommodationRows] = await loadChildren(selectedCaseId);
-      setNotes(noteRows);
-    setDocuments(docRows);
-    setCaseLegalReferences(legalRefRows);
-    setCasePreventionProcesses(preventionRows);
-    setCaseBemProcesses(bemRows);
-    setCaseEqualizationProcesses(equalizationRows);
-      setCaseTerminationProcesses(terminationRows);
-      setCaseParticipationProcesses(participationRows);
-      setCaseWorkplaceAccommodationProcesses(workplaceAccommodationRows);
+      dispatchChildren({ type: 'loaded', children: await loadCaseChildren(selectedCaseId) });
     } finally {
       setIsCaseChildrenLoading(false);
     }
@@ -166,20 +112,9 @@ export function useCaseWorkbenchData({
     selectedCaseId,
     setSelectedCaseId,
     selectedCase,
-    notes,
-    setNotes,
-    documents,
-    setDocuments,
-    caseLegalReferences,
+    ...children,
     setCaseLegalReferences,
-    casePreventionProcesses,
-    caseBemProcesses,
-    caseEqualizationProcesses,
-    caseTerminationProcesses,
-    caseParticipationProcesses,
-    caseWorkplaceAccommodationProcesses,
     isCaseChildrenLoading,
-    setCasePreventionProcesses,
     selection,
     setSelection,
     reloadSelectedCaseChildren

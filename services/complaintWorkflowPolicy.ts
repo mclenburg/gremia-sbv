@@ -9,6 +9,5 @@ const templates: Record<QuickCaseTemplateKey, QuickCaseTemplate> = {
  assistive_device:{key:'assistive_device',title:'Hilfsmittel',legalBasis:'§ 164 Abs. 4 Satz 1 Nr. 5 SGB IX',checklist:['Arbeitsbezogenen Bedarf beschreiben','Geeignetes Hilfsmittel benennen','Förderträger und Antrag prüfen','Beschaffung und Wirksamkeit nachhalten']},
 };
 export const QUICK_CASE_TEMPLATES: readonly QuickCaseTemplate[] = Object.values(templates);
-export function getQuickCaseTemplate(key:QuickCaseTemplateKey):QuickCaseTemplate { return templates[key]; }
 export function listQuickCaseTemplates():QuickCaseTemplate[] { return [...QUICK_CASE_TEMPLATES]; }
 export function complaintCanClose(input:{resultSummary?:string; personInformedAt?:string}):boolean { return Boolean(input.resultSummary?.trim() && input.personInformedAt); }

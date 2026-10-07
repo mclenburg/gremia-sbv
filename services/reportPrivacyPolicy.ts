@@ -40,7 +40,3 @@ export function scanReportTextForPrivacyRisks(text: string, options: { minimumGr
   findings.forEach((finding) => unique.set(`${finding.type}:${finding.value}`, finding));
   return [...unique.values()];
 }
-
-export function reportPdfTheme(): 'light-industrial-print' {
-  return 'light-industrial-print';
-}

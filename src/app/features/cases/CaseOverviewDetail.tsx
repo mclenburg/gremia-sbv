@@ -12,7 +12,7 @@ export type CaseNextAction = {
 };
 
 function OverviewMetric({ label, value }: { label: string; value: string }) {
-  return <div className="metric metric-default"><span>{label}</span><strong>{value}</strong></div>;
+  return <div className="metric"><span>{label}</span><strong>{value}</strong></div>;
 }
 
 function formatGermanDate(value?: string): string {

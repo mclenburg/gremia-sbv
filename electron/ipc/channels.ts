@@ -137,6 +137,7 @@ export const IPC_CHANNELS = Object.freeze({
   knowledgeCaselawCreate: "knowledge:caselaw:create",
   knowledgeCaselawList: "knowledge:caselaw:list",
   knowledgeCasesLink: "knowledge:cases:link",
+  textEntityReferenceCreate: "text-entity-reference:create",
   knowledgeCasesList: "knowledge:cases:list",
   knowledgeCasesUnlink: "knowledge:cases:unlink",
   knowledgeChecklistCreate: "knowledge:checklist:create",

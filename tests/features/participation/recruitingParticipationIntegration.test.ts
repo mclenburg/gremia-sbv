@@ -1,7 +1,6 @@
 import { readFileSync } from 'node:fs';
+import { DatabaseSync } from 'node:sqlite';
 import { describe, expect, it } from 'vitest';
-import { APP_SCHEMA_VERSION, SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS } from '../../../services/appSchema';
-import { PARTICIPATION_VIOLATION_SOURCE_CONTEXT_TYPES } from '../../../src/domain/models/sbv-participation-violation.model';
 import { buildParticipationViolationPrefillFromRecruiting } from '../../../src/app/features/participation-violations/sbvParticipationViolationViewLogic';
 import type { RecruitingParticipationRecord } from '../../../src/domain/models/recruiting-participation.model';
 
@@ -25,17 +24,36 @@ function recruitingRecord(overrides: Partial<RecruitingParticipationRecord> = {}
   };
 }
 
-describe('Stellenbesetzungen 0.9.5-c Integration', () => {
-  it('führt Schema 0047 und den Recruiting-Kontext für Beteiligungsverstöße ein', () => {
-    const migration = readFileSync('database/migrations/0047_participation_violation_recruiting_context.sql', 'utf8');
-    const schema = readFileSync('database/schema.sql', 'utf8');
+describe('Stellenbesetzungen und Beteiligungsverstöße', () => {
+  it('speichert den Recruiting-Bezug und erhält den Verstoß beim Löschen der Stellenbesetzung', () => {
+    const db = new DatabaseSync(':memory:');
+    try {
+      db.exec('PRAGMA foreign_keys = ON');
+      db.exec(readFileSync('database/schema.sql', 'utf8'));
+      const timestamp = '2026-07-01T08:00:00.000Z';
+      db.prepare(`INSERT INTO recruiting_participations (id, vacancy_title, created_at, updated_at)
+        VALUES ('recruiting-1', 'IT Service Desk', ?, ?)`).run(timestamp, timestamp);
+      db.prepare(`INSERT INTO sbv_participation_violations
+        (id, stage, status, violation_type, source_context_type, source_context_id,
+         related_recruiting_participation_id, subject, measure_description, wrong_behavior,
+         required_behavior, created_at, updated_at)
+        VALUES ('violation-1', 'request', 'draft', 'not_heard', 'recruiting_participation',
+          'recruiting-1', 'recruiting-1', 'SBV-Anhörung fehlt', 'Stellenbesetzung',
+          'Entscheidung ohne Anhörung', 'Anhörung durchführen', ?, ?)`).run(timestamp, timestamp);
 
-    expect(Number(APP_SCHEMA_VERSION)).toBeGreaterThanOrEqual(47);
-    expect(PARTICIPATION_VIOLATION_SOURCE_CONTEXT_TYPES).toContain('recruiting_participation');
-    expect(SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS).toContain('related_recruiting_participation_id');
-    expect(migration).toContain('related_recruiting_participation_id');
-    expect(migration).toContain('recruiting_participation');
-    expect(schema).toContain('related_recruiting_participation_id');
+      const record = db.prepare(`SELECT source_context_type, related_recruiting_participation_id, subject
+        FROM sbv_participation_violations WHERE id = 'violation-1'`);
+      expect(record.get()).toEqual({
+        source_context_type: 'recruiting_participation', related_recruiting_participation_id: 'recruiting-1', subject: 'SBV-Anhörung fehlt',
+      });
+      db.prepare('DELETE FROM recruiting_participations WHERE id = ?').run('recruiting-1');
+      expect(record.get()).toEqual({
+        source_context_type: 'recruiting_participation', related_recruiting_participation_id: null, subject: 'SBV-Anhörung fehlt',
+      });
+      expect(db.prepare('PRAGMA foreign_key_check').all()).toEqual([]);
+    } finally {
+      db.close();
+    }
   });
 
   it('erstellt einen datensparsamen Beteiligungsverstoß-Entwurf aus der Stellenbesetzung', () => {

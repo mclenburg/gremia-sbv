@@ -1,101 +1,115 @@
-import { readFileSync } from 'node:fs';
-import { createElement, type ComponentProps } from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
+import { createElement, type ComponentProps, type ReactElement } from 'react';
 import { describe, expect, it } from 'vitest';
-import { HELP_REGISTRY } from '../../../src/app/shared/help/helpRegistry';
-import { requiresHelpRegistryDecision } from '../../../src/app/shared/help/helpTextPolicy';
+import { HELP_REGISTRY, type HelpRegistryId } from '../../../src/app/shared/help/helpRegistry';
+import { LiveRegionProvider } from '../../../src/app/shared/a11y/LiveRegionProvider';
+import { ConfirmDialogProvider } from '../../../src/app/shared/dialogs/ConfirmDialogProvider';
+import { RecruitingParticipationsView } from '../../../src/app/features/recruiting/RecruitingParticipationsView';
+import { RecruitingProcedureForm } from '../../../src/app/features/recruiting/RecruitingProcedureForm';
+import { RecruitingInterviewForm } from '../../../src/app/features/recruiting/RecruitingInterviewForm';
+import { RecruitingFollowUpSection } from '../../../src/app/features/recruiting/RecruitingFollowUpSection';
+import { emptyInterviewForm, emptyParticipationForm } from '../../../src/app/features/recruiting/recruitingParticipationViewSupport';
+import { SbvParticipationViolationsView } from '../../../src/app/features/participation-violations/SbvParticipationViolationsView';
 import { ViolationDraftForm } from '../../../src/app/features/participation-violations/ViolationDraftForm';
 import { createInitialViolationForm } from '../../../src/app/features/participation-violations/sbvParticipationViolationViewLogic';
+import { ActivityJournalView } from '../../../src/app/features/activity-journal/ActivityJournalView';
+import { buildFromContext } from '../../../services/activityJournalPrefill';
+import { descendants, renderElement, visibleText } from '../../helpers/renderedMarkup';
 
-const MIGRATED_FEATURE_FILES = [
-  'src/app/features/recruiting/RecruitingParticipationsView.tsx',
-  'src/app/features/recruiting/RecruitingProcedureForm.tsx',
-  'src/app/features/participation-violations/SbvParticipationViolationsView.tsx',
-  'src/app/features/participation-violations/ViolationDraftForm.tsx',
-  'src/app/features/activity-journal/ActivityJournalView.tsx',
-  'src/app/features/activity-journal/ActivityJournalCreateDialog.tsx',
-] as const;
-
-function source(path: string): string {
-  return readFileSync(path, 'utf8');
-}
-
-function visibleTextProps(fileSource: string): string[] {
-  const matches = fileSource.matchAll(/(?:description|helpText)=\"([^\"]+)\"/g);
-  return Array.from(matches, (match) => match[1]);
-}
-
-function renderedViolationDraft(overrides: Partial<ComponentProps<typeof ViolationDraftForm>['state']> = {}): string {
-  const noop = () => undefined;
+const noop = () => undefined;
+function violationDraft(overrides: Partial<ComponentProps<typeof ViolationDraftForm>['state']> = {}): ReactElement {
   const state = {
-    form: createInitialViolationForm([]), contextNotice: null, fieldErrors: {}, caseOptions: [], measureOptions: [],
+    form: createInitialViolationForm(), contextNotice: null, fieldErrors: {}, caseOptions: [], measureOptions: [],
     busy: false, updateSourceContextType: noop, updateForm: noop, updateCaseContext: noop,
     updateMeasureContext: noop, createViolation: async () => undefined,
     ...overrides,
   } as unknown as ComponentProps<typeof ViolationDraftForm>['state'];
-  return renderToStaticMarkup(createElement(ViolationDraftForm, { state }));
+  return createElement(ViolationDraftForm, { state });
 }
 
-describe('0.9.5-j Hilfetext-Migration Arbeitsmasken', () => {
-  it('verschiebt belehrende Langtexte der priorisierten Arbeitsmasken hinter helpIds', () => {
-    const recruiting = [
-      source('src/app/features/recruiting/RecruitingParticipationsView.tsx'),
-      source('src/app/features/recruiting/RecruitingProcedureForm.tsx'),
-    ].join('\n');
-    const violations = source('src/app/features/participation-violations/SbvParticipationViolationsView.tsx');
-    const violationDraft = renderedViolationDraft();
-    const journal = [
-      source('src/app/features/activity-journal/ActivityJournalView.tsx'),
-      source('src/app/features/activity-journal/ActivityJournalCreateDialog.tsx'),
-    ].join('\n');
+function renderWithProviders(element: ReactElement) {
+  return renderElement(createElement(LiveRegionProvider, {
+    children: createElement(ConfirmDialogProvider, { children: element }),
+  }));
+}
 
-    expect(recruiting).toContain('helpId="recruiting.overview"');
-    expect(recruiting).toContain('helpId="recruiting.procedureData"');
-    expect(recruiting).toContain('helpId="recruiting.interviewEvent"');
-    expect(recruiting).toContain('helpId="recruiting.deadlineFollowUp"');
-    expect(violations).toContain('helpId="participationViolations.sourceContext"');
-    expect(violationDraft).toContain(`data-help-title="${HELP_REGISTRY['participationViolations.stageAndType'].title}"`);
-    expect(violations).toContain('helpId="participationViolations.tracking"');
-    expect(journal).toContain('helpId="activityJournal.overview"');
-    expect(journal).toContain('helpId="activityJournal.textCommands"');
+const helpScenarios: Array<{ name: string; element: () => ReactElement; helpIds: HelpRegistryId[] }> = [
+  {
+    name: 'Stellenbesetzungsübersicht',
+    element: () => createElement(RecruitingParticipationsView, { onCreateDeadline: async () => undefined }),
+    helpIds: ['recruiting.overview'],
+  },
+  {
+    name: 'Verfahrensdaten',
+    element: () => createElement(RecruitingProcedureForm, {
+      form: emptyParticipationForm(), selected: null, saving: false, creating: false,
+      onFormChange: noop, onCreate: noop, onUpdate: noop, onClose: noop,
+    }),
+    helpIds: ['recruiting.procedureData', 'recruiting.proceduralNote'],
+  },
+  {
+    name: 'Vorstellungsgespräch',
+    element: () => createElement(RecruitingInterviewForm, {
+      interviewForm: emptyInterviewForm(), saving: false, updateInterviewForm: noop, onAdd: noop,
+    }),
+    helpIds: ['recruiting.interviewEvent', 'recruiting.applicantReference', 'recruiting.proceduralNote'],
+  },
+  {
+    name: 'Wiedervorlage',
+    element: () => createElement(RecruitingFollowUpSection, {
+      dueAt: '', saving: false, onDueAtChange: noop, onFollowUp: noop, onViolationReview: noop,
+    }),
+    helpIds: ['recruiting.deadlineFollowUp'],
+  },
+  {
+    name: 'Beteiligungsverstoßübersicht',
+    element: () => createElement(SbvParticipationViolationsView, { cases: [], measures: [] }),
+    helpIds: ['participationViolations.sourceContext', 'participationViolations.tracking'],
+  },
+  {
+    name: 'Verstoßentwurf',
+    element: () => violationDraft(),
+    helpIds: ['participationViolations.sourceContext', 'participationViolations.stageAndType'],
+  },
+  {
+    name: 'Tätigkeitsjournal mit Erfassung',
+    element: () => createElement(ActivityJournalView, {
+      pendingPrefill: buildFromContext({ contextType: 'fallfrei', title: 'Synthetische Tätigkeit' }),
+    }),
+    helpIds: ['activityJournal.overview', 'activityJournal.textCommands'],
+  },
+];
+
+describe('Hilfe in Arbeitsmasken', () => {
+  it.each(helpScenarios)('bietet die Hilfe in $name als benannte Dialogaktion an', ({ element, helpIds }) => {
+    const { markup, tree } = renderWithProviders(element());
+    const buttons = descendants(tree).filter((node) => node.tag === 'button');
+    for (const helpId of helpIds) {
+      const entry = HELP_REGISTRY[helpId];
+      const matching = buttons.filter((button) => button.attrs['data-help-title'] === entry.title);
+      expect(matching.length).toBeGreaterThan(0);
+      for (const button of matching) {
+        expect(button.attrs['aria-label']).toMatch(/hilfe öffnen/u);
+        expect(button.attrs['aria-haspopup']).toBe('dialog');
+      }
+      // Explanations belong to the explicitly opened help, rather than the initial form.
+      for (const block of entry.blocks) {
+        const explanations = block.type === 'list' ? block.items : [block.text];
+        for (const explanation of explanations) {
+          expect(visibleText(markup)).not.toContain(explanation);
+        }
+      }
+    }
   });
 
-  it('lässt in den migrierten Masken keine sichtbaren description/helpText-Strings mit Reviewpflicht zurück', () => {
-    const reviewRequired = MIGRATED_FEATURE_FILES.flatMap((file) =>
-      visibleTextProps(source(file))
-        .filter((text) => requiresHelpRegistryDecision(text))
-        .map((text) => `${file}: ${text}`),
-    );
-
-    expect(reviewRequired).toEqual([]);
-  });
-
-  it('registriert die neu genutzten Hilfeeinträge zentral', () => {
-    expect(Object.keys(HELP_REGISTRY)).toEqual(
-      expect.arrayContaining([
-        'recruiting.overview',
-        'recruiting.deadlineFollowUp',
-        'recruiting.applicantReference',
-        'recruiting.proceduralNote',
-        'participationViolations.stageAndType',
-        'participationViolations.tracking',
-        'activityJournal.overview',
-      ]),
-    );
-  });
-
-  it('zeigt Verstoßwarnungen ohne abweichende Schmuck-Icons im Formularinhalt', () => {
-    const form = { ...createInitialViolationForm([]), stage: 'abmahnung' as const };
-    const markup = renderedViolationDraft({
-      form,
-      contextNotice: {
-        sourceLabel: 'Allgemeiner Arbeitgeberverstoß',
-        privacyNotice: 'Keine Personendaten erforderlich.',
-      },
-    });
-
-    expect(markup).toContain('Allgemeiner Arbeitgeberverstoß');
-    expect(markup).toContain('Scharfe Eskalationsstufe');
-    expect(markup).not.toContain('mt-1 h-5 w-5 text-yellow-300');
+  it('hält die fachliche Eskalationswarnung im Formular sichtbar', () => {
+    const { markup } = renderWithProviders(violationDraft({
+      form: { ...createInitialViolationForm(), stage: 'abmahnung' },
+      contextNotice: { sourceLabel: 'Allgemeiner Arbeitgeberverstoß', privacyNotice: 'Keine Personendaten erforderlich.' },
+    }));
+    const text = visibleText(markup);
+    expect(text).toContain('Allgemeiner Arbeitgeberverstoß');
+    expect(text).toContain('Keine Personendaten erforderlich.');
+    expect(text).toContain('Scharfe Eskalationsstufe');
+    expect(text).toContain('anwaltlich abgestimmt');
   });
 });

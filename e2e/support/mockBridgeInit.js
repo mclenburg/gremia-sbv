@@ -1206,6 +1206,16 @@
     },
     caseMeasures: { list: async () => measures, create: createRecord, update: createRecord, listNotes: async () => [], createNote: createRecord, updateNote: createRecord, deleteNote: async () => ({ deleted: true }) },
     knowledge: {
+      createTextEntityReference: async (kind, id) => {
+        if (kind === 'person') {
+          const person = persons.find((item) => item.id === id);
+          if (!person || person.lifecycleState === 'anonymized') throw new Error('Person ist nicht mehr verknüpfbar.');
+          return `[[Person: ${[person.firstName, person.lastName].filter(Boolean).join(' ') || person.pseudonymLabel}]]`;
+        }
+        const caseFile = cases.find((item) => item.id === id);
+        if (!caseFile) throw new Error('Fall ist nicht mehr verknüpfbar.');
+        return `[[Fall: ${caseFile.caseNumber}]]`;
+      },
       listNorms: async (input) => {
         const query = String(input?.query || '').toLowerCase();
         const source = String(input?.source || '');

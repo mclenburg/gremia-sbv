@@ -1,10 +1,10 @@
 import { useState } from "react";
-import type { FormEvent } from "react";
 import { AlertTriangle, LockKeyhole, ShieldAlert } from "lucide-react";
 import { IndustrialButton } from "../../shared/components/IndustrialButton";
-import { FormActions, TextInput } from "../../shared/components/IndustrialForm";
-import { recordRendererDiagnostic, waitForBridge } from "../../core/bridge/waitForBridge";
-import { validateAppPassword } from "../../../domain/security/passwordPolicy";
+import { TextInput } from "../../shared/components/IndustrialForm";
+import { createRecoveryActions } from "./recoveryActions";
+import { RecoveryPasswordForm } from "./RecoveryPasswordForm";
+
 export function SecurityUnavailable() {
   return (
     <main className="industrial-shell login-shell">
@@ -97,84 +97,7 @@ export function RecoveryGate({
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
-  async function resetPassword(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError("");
-    setMessage("");
-
-    const validationError = validateAppPassword(newPassword);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    if (newPassword !== repeatPassword) {
-      setError("Die neuen Passwörter stimmen nicht überein.");
-      return;
-    }
-
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.security) {
-        setError(
-          "Die interne Sicherheitsbrücke ist nicht geladen. Bitte Anwendung neu starten.",
-        );
-        return;
-      }
-
-      const result = await bridge.security.resetPasswordWithRecoveryKey(
-        recoveryKey,
-        newPassword,
-      );
-      if (!result.ok || !result.unlocked) {
-        setError(
-          result.error ?? "Das Passwort konnte nicht zurückgesetzt werden.",
-        );
-        return;
-      }
-
-      onUnlock(result.warning);
-    } catch (error) {
-      recordRendererDiagnostic("error", "Wiederherstellungsoperation konnte nicht verarbeitet werden.", error);
-      setError(
-        "Der Sicherheitsdienst konnte die Anfrage nicht verarbeiten. Bitte Anwendung neu starten.",
-      );
-    }
-  }
-
-  async function destroyVault() {
-    setError("");
-    setMessage("");
-
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.security) {
-        setError(
-          "Die interne Sicherheitsbrücke ist nicht geladen. Bitte Anwendung neu starten.",
-        );
-        return;
-      }
-
-      const result = await bridge.security.destroyLocalVault(confirmation);
-      if (!result.ok) {
-        setError(
-          result.error ??
-            "Der lokale Datenbestand konnte nicht verworfen werden.",
-        );
-        return;
-      }
-
-      setMessage(
-        "Der lokale Datenbestand wurde verworfen. Es kann ein neuer leerer Datenbestand eingerichtet werden.",
-      );
-      onResetToSetup();
-    } catch (error) {
-      recordRendererDiagnostic("error", "Lokaler Datenbestand konnte nicht verworfen werden.", error);
-      setError(
-        "Der Sicherheitsdienst konnte die Anfrage nicht verarbeiten. Bitte Anwendung neu starten.",
-      );
-    }
-  }
+  const actions = createRecoveryActions({ setError, setMessage, onUnlock, onResetToSetup });
 
   return (
     <main className="industrial-shell login-shell">
@@ -195,54 +118,20 @@ export function RecoveryGate({
         </div>
 
         <div className="auth-recovery-grid">
-          <form onSubmit={resetPassword} className="auth-body">
-            <h2 className="auth-section-title">
-              Passwort zurücksetzen
-            </h2>
-            <p className="industrial-muted">
-              {triggeredFromLogin
-                ? "Nutze den bei der Ersteinrichtung ausgegebenen Recovery-Key, um ein neues App-Passwort zu setzen."
-                : "Ein vorhandener Datenbestand wurde erkannt. Ein neues Passwort kann nur mit dem Recovery-Key gesetzt werden."}
-            </p>
-            <TextInput
-              label="Recovery-Key"
-              aria-label="Recovery-Key"
-              value={recoveryKey}
-              onValueChange={setRecoveryKey}
-              autoComplete="off"
-            />
-            <TextInput
-              label="Neues Passwort"
-              aria-label="Neues Passwort"
-              type="password"
-              value={newPassword}
-              onValueChange={setNewPassword}
-              autoComplete="new-password"
-            />
-            <TextInput
-              label="Wiederholung"
-              aria-label="Wiederholung neues Passwort"
-              type="password"
-              value={repeatPassword}
-              onValueChange={setRepeatPassword}
-              autoComplete="new-password"
-            />
-            <FormActions align="between" className="auth-form-actions">
-              {onCancel && (
-                <IndustrialButton
-                  type="button"
-                  variant="secondary"
-                  className="auth-form-action"
-                  onClick={onCancel}
-                >
-                  Zurück zum Entsperren
-                </IndustrialButton>
-              )}
-              <IndustrialButton type="submit" className="auth-form-action">
-                Passwort zurücksetzen
-              </IndustrialButton>
-            </FormActions>
-          </form>
+          <RecoveryPasswordForm
+            recoveryKey={recoveryKey}
+            newPassword={newPassword}
+            repeatPassword={repeatPassword}
+            setRecoveryKey={setRecoveryKey}
+            setNewPassword={setNewPassword}
+            setRepeatPassword={setRepeatPassword}
+            triggeredFromLogin={triggeredFromLogin}
+            onCancel={onCancel}
+            onSubmit={(event) => {
+              event.preventDefault();
+              void actions.resetPassword(recoveryKey, newPassword, repeatPassword);
+            }}
+          />
 
           <div className="auth-danger-panel">
             <h2 className="auth-section-title auth-section-title-danger">
@@ -276,7 +165,7 @@ export function RecoveryGate({
                   type="button"
                   variant="danger"
                   wide
-                  onClick={destroyVault}
+                  onClick={() => { void actions.destroyVault(confirmation); }}
                 >
                   Lokalen Datenbestand unwiderruflich löschen
                 </IndustrialButton>

@@ -140,7 +140,6 @@ function collectNonInteractiveCardHoverSelectors(): string[] {
     'a.industrial-card',
     ".industrial-card[role='button']",
     '.industrial-card[role="button"]',
-    '.industrial-card.clickable',
   ];
 
   return appCssFiles().flatMap((file) => {

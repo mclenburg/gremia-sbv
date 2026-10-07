@@ -1,9 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { DatabaseAdapter } from './databaseService.js';
-import { directCasePrivacyEntities, resolveAnonymizationValue } from './privacyEntityRegistry.js';
 import type { ReportableMeasureType } from '../src/domain/models/measure-lifecycle.model.js';
-export const CASE_ANONYMIZE_CONFIRMATION = 'FALL ANONYMISIEREN';
 export const CASE_DELETE_CONFIRMATION = 'FALL LÖSCHEN';
 
 /** SQLite row at the persistence boundary. Values remain scalar and must be
@@ -76,93 +74,6 @@ export function latestActivityExpression(db: DatabaseAdapter): string {
   return `MAX(COALESCE(${casesUpdated}, c.opened_at), COALESCE((SELECT MAX(n.updated_at) FROM case_notes n WHERE n.case_id = c.id), c.opened_at), COALESCE((SELECT MAX(d.created_at) FROM case_documents d WHERE d.case_id = c.id), c.opened_at), ${measureNotesActivity}COALESCE((SELECT MAX(dl.updated_at) FROM deadlines dl WHERE dl.case_id = c.id), c.opened_at))`;
 }
 
-
-
-
-export type IndirectAnonymizationTarget = {
-  table: string;
-  whereSql: string;
-  assignments: ReadonlyArray<readonly [string, unknown]>;
-};
-
-export function anonymizeIndirectCaseSearchSources(db: DatabaseAdapter, caseId: string, stamp: string, timestamp: string): number {
-  const targets: IndirectAnonymizationTarget[] = [
-    {
-      table: 'bem_process_events',
-      whereSql: 'process_id IN (SELECT id FROM bem_processes WHERE case_id = ?)',
-      assignments: [['title', '[BEM-Ereignis anonymisiert]'], ['description', stamp]],
-    },
-    {
-      table: 'prevention_process_events',
-      whereSql: 'process_id IN (SELECT id FROM prevention_processes WHERE case_id = ?)',
-      assignments: [['title', '[Präventionsereignis anonymisiert]'], ['description', stamp]],
-    },
-    {
-      table: 'sbv_participation_events',
-      whereSql: 'participation_id IN (SELECT id FROM sbv_participations WHERE case_id = ?)',
-      assignments: [['title', '[SBV-Beteiligungsereignis anonymisiert]'], ['description', stamp]],
-    },
-    {
-      table: 'case_measure_participation',
-      whereSql: 'measure_id IN (SELECT id FROM case_measures WHERE case_id = ?)',
-      assignments: [['violation_summary', stamp], ['sbv_position', stamp]],
-    },
-    {
-      table: 'case_measure_events',
-      whereSql: 'measure_id IN (SELECT id FROM case_measures WHERE case_id = ?)',
-      assignments: [['title', '[Maßnahmenereignis anonymisiert]'], ['description', stamp]],
-    },
-    {
-      table: 'case_measure_workplace_accommodation',
-      whereSql: 'measure_id IN (SELECT id FROM case_measures WHERE case_id = ?)',
-      assignments: [
-        ['requested_adjustment', stamp],
-        ['barrier_or_limitation', null],
-        ['workplace_context', null],
-        ['proposed_solution', null],
-        ['outcome', stamp],
-      ],
-    },
-  ];
-
-  let affectedRows = 0;
-  for (const target of targets) {
-    if (!tableExists(db, target.table)) continue;
-    const assignments = target.assignments.filter(([column]) => hasColumn(db, target.table, column));
-    if (!assignments.length) continue;
-    const updates = assignments.map(([column]) => `${column} = ?`);
-    const params = assignments.map(([, value]) => value);
-    if (hasColumn(db, target.table, 'updated_at')) {
-      updates.push('updated_at = ?');
-      params.push(timestamp);
-    }
-    params.push(caseId);
-    affectedRows += safeRun(db, `UPDATE ${target.table} SET ${updates.join(', ')} WHERE ${target.whereSql}`, ...params);
-  }
-  return affectedRows;
-}
-
-export function anonymizeRegisteredCasePrivacyEntities(db: DatabaseAdapter, caseId: string, stamp: string, timestamp: string): number {
-  let affectedRows = 0;
-  for (const entity of directCasePrivacyEntities()) {
-    if (entity.table === 'cases' || !tableExists(db, entity.table)) continue;
-    const assignments = Object.entries(entity.anonymizeFields)
-      .filter(([column]) => hasColumn(db, entity.table, column));
-    if (!assignments.length) continue;
-
-    const updates = assignments.map(([column]) => `${column} = ?`);
-    const params = assignments.map(([, value]) => resolveAnonymizationValue(value, stamp));
-    if (hasColumn(db, entity.table, 'updated_at')) {
-      updates.push('updated_at = ?');
-      params.push(timestamp);
-    }
-    params.push(caseId);
-    affectedRows += safeRun(db, `UPDATE ${entity.table} SET ${updates.join(', ')} WHERE ${entity.caseColumn} = ?`, ...params);
-  }
-  return affectedRows;
-}
-
-
 export type CaseDocumentFileRow = {
   id?: string;
   storage_path?: string | null;
@@ -222,35 +133,6 @@ export function removeCaseDocumentFiles(dataDir: string, caseId: string, documen
   }
 
   return { affectedFiles, errors };
-}
-
-export function listCleartextFiles(dataDir: string): string[] {
-  const suspicious: string[] = [];
-  const roots = ['documents', 'exports'];
-  const allowed = new Set(['.gsbvdoc', '.gsbvpdf']);
-
-  const walk = (dir: string) => {
-    if (!fs.existsSync(dir)) return;
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const absolute = path.join(dir, entry.name);
-      const relative = path.relative(dataDir, absolute).split(path.sep).join('/');
-      if (entry.isSymbolicLink()) {
-        suspicious.push(relative);
-        continue;
-      }
-      if (entry.isDirectory()) {
-        walk(absolute);
-        continue;
-      }
-      if (!entry.isFile()) continue;
-      if (!allowed.has(path.extname(entry.name).toLowerCase())) {
-        suspicious.push(relative);
-      }
-    }
-  };
-
-  for (const root of roots) walk(path.join(dataDir, root));
-  return suspicious.sort((a, b) => a.localeCompare(b, 'de-DE'));
 }
 
 export interface RetentionLifecycleRow {

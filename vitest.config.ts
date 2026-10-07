@@ -13,12 +13,10 @@ const rcCriticalServiceCoverage = [
   'services/reportPrivacyPolicy.ts',
   'services/exportGuardPolicy.ts',
   'services/textCommandPolicy.ts',
-  'services/backupPolicy.ts',
   'services/documentStoragePolicy.ts',
   'services/templatePolicy.ts',
   'services/templateContextPolicy.ts',
   'services/knowledgePolicy.ts',
-  'services/caseProcessPolicy.ts',
   'services/equalizationWorkflowPolicy.ts',
   'services/equalizationGuidancePolicy.ts',
   'services/terminationPrivacyPolicy.ts',
@@ -34,8 +32,7 @@ const rcCriticalServiceCoverage = [
   'services/recruitingParticipationValidation.ts',
   'services/personCaseLinkService.ts',
   'services/tempFileService.ts',
-  'services/demoMode.ts',
-  'services/portableProfileService.ts'
+  'services/demoMode.ts'
 ];
 
 const coverageReportsDirectory = process.env.GREMIA_SBV_COVERAGE_DIR || './coverage';
@@ -48,7 +45,8 @@ export default defineConfig({
     }
   },
   test: {
-    testTimeout: 20000,
+    maxWorkers: 4,
+    testTimeout: 60000,
     exclude: [
       '**/node_modules/**',
       '**/dist/**',

@@ -77,7 +77,3 @@ export function normalizeNonNegativeInteger(value: unknown): number | null {
 export function defaultApplicantReference(sequence: number): string {
   return `Bewerbung ${Math.max(1, sequence)}`;
 }
-
-export function assertNoConversationProtocolField(fieldName: string): never {
-  throw new Error(`${fieldName} ist kein zulässiges Feld. Gremia.SBV dokumentiert bei Stellenbesetzungen den Verfahrensstand, kein Gesprächsprotokoll.`);
-}

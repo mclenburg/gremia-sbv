@@ -30,5 +30,3 @@ export function createPreloadApi(invokeIpc: IpcInvoker, loadedAt = new Date().to
     diagnostics: Object.freeze({ bridgeReady: true, preloadLoadedAt: loadedAt }),
   });
 }
-
-export type GremiaSbvPreloadApi = ReturnType<typeof createPreloadApi>;

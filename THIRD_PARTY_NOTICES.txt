@@ -221,15 +221,6 @@ Copyright notices:
 - NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 License text: LICENSES/MIT.txt
 
-@electron/get@3.1.0
-License: MIT
-Repository: https://github.com/electron/get
-Copyright notices:
-- Copyright (c) Contributors to the Electron project
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
 @electron/get@5.1.0
 License: MIT
 Repository: https://github.com/electron/get
@@ -261,7 +252,7 @@ Copyright notices:
 - DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
 License text: LICENSES/BSD-2-Clause.txt
 
-@electron/rebuild@4.0.4
+@electron/rebuild@4.2.1
 License: MIT
 Repository: git+https://github.com/electron/rebuild.git
 Homepage: https://github.com/electron/rebuild
@@ -822,7 +813,6 @@ License text: LICENSES/MIT.txt
 
 @napi-rs/canvas-linux-x64-musl@1.0.8
 License: MIT
-Repository: git+https://github.com/Brooooooklyn/canvas.git
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
@@ -861,16 +851,6 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@noble/hashes@1.4.0
-License: MIT
-Repository: git+https://github.com/paulmillr/noble-hashes.git
-Homepage: https://paulmillr.com/noble/
-Copyright notices:
-- Copyright (c) 2022 Paul Miller (https://paulmillr.com)
-- The above copyright notice and this permission notice shall be included in
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
 @noble/hashes@1.8.0
 License: MIT
 Repository: git+https://github.com/paulmillr/noble-hashes.git
@@ -881,7 +861,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@noble/hashes@2.2.0
+@noble/hashes@2.4.0
 License: MIT
 Repository: git+https://github.com/paulmillr/noble-hashes.git
 Homepage: https://paulmillr.com/noble/
@@ -902,7 +882,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@peculiar/asn1-schema@2.8.0
+@peculiar/asn1-schema@2.10.0
 License: MIT
 Repository: https://github.com/PeculiarVentures/asn1-schema
 Homepage: https://github.com/PeculiarVentures/asn1-schema/tree/master/packages/schema#readme
@@ -1001,8 +981,6 @@ License text: LICENSES/MIT.txt
 
 @rolldown/binding-linux-x64-musl@1.2.9
 License: MIT
-Repository: git+https://github.com/rolldown/rolldown.git
-Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
@@ -1031,14 +1009,6 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@sindresorhus/is@4.6.0
-License: MIT
-Repository: sindresorhus/is
-Copyright notices:
-- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-License text: LICENSES/MIT.txt
-
 @standard-schema/spec@1.1.0
 License: MIT
 Repository: https://github.com/standard-schema/standard-schema
@@ -1065,16 +1035,6 @@ Copyright notices:
 - (c) You must retain, in the Source form of any Derivative Works
 - that You distribute, all copyright, patent, trademark, and
 License text: LICENSES/Apache-2.0.txt
-
-@szmarczak/http-timer@4.0.6
-License: MIT
-Repository: git+https://github.com/szmarczak/http-timer.git
-Homepage: https://github.com/szmarczak/http-timer#readme
-Copyright notices:
-- Copyright (c) 2018 Szymon Marczak
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
 
 @tailwindcss/node@4.3.3
 License: MIT
@@ -1178,16 +1138,6 @@ License: MIT
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@types/cacheable-request@6.0.3
-License: MIT
-Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
-Homepage: https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/cacheable-request
-Copyright notices:
-- Copyright (c) Microsoft Corporation.
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
 @types/chai@5.2.3
 License: MIT
 Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
@@ -1248,30 +1198,10 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@types/http-cache-semantics@4.2.0
-License: MIT
-Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
-Homepage: https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/http-cache-semantics
-Copyright notices:
-- Copyright (c) Microsoft Corporation.
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
 @types/json-schema@7.0.15
 License: MIT
 Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
 Homepage: https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/json-schema
-Copyright notices:
-- Copyright (c) Microsoft Corporation.
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
-@types/keyv@3.1.4
-License: MIT
-Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
-Homepage: https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/keyv
 Copyright notices:
 - Copyright (c) Microsoft Corporation.
 - The above copyright notice and this permission notice shall be included in all
@@ -1332,16 +1262,6 @@ License text: LICENSES/MIT.txt
 License: MIT
 Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
 Homepage: https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/react
-Copyright notices:
-- Copyright (c) Microsoft Corporation.
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
-@types/responselike@1.0.3
-License: MIT
-Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
-Homepage: https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/responselike
 Copyright notices:
 - Copyright (c) Microsoft Corporation.
 - The above copyright notice and this permission notice shall be included in all
@@ -1632,27 +1552,11 @@ Copyright notices:
 - The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
-ansi-regex@6.3.0
-License: MIT
-Repository: chalk/ansi-regex
-Copyright notices:
-- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-License text: LICENSES/MIT.txt
-
 ansi-styles@4.3.0
 License: MIT
 Repository: chalk/ansi-styles
 Copyright notices:
 - Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-License text: LICENSES/MIT.txt
-
-ansi-styles@6.2.3
-License: MIT
-Repository: chalk/ansi-styles
-Copyright notices:
-- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
 - The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
@@ -1858,14 +1762,6 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-boolean@3.2.0
-License: MIT
-Repository: git://github.com/thenativeweb/boolean.git
-Copyright notices:
-- Copyright (c) 2014-2022 the native web.
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-License text: LICENSES/MIT.txt
-
 brace-expansion@1.1.21
 License: MIT
 Repository: git://github.com/juliangruber/brace-expansion.git
@@ -1965,25 +1861,6 @@ Copyright notices:
 - DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
 License text: LICENSES/BSD-3-Clause.txt
 
-cacheable-lookup@5.0.4
-License: MIT
-Repository: git+https://github.com/szmarczak/cacheable-lookup.git
-Homepage: https://github.com/szmarczak/cacheable-lookup#readme
-Copyright notices:
-- Copyright (c) 2019 Szymon Marczak
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
-cacheable-request@7.0.4
-License: MIT
-Repository: lukechilds/cacheable-request
-Copyright notices:
-- Copyright (c) 2017 Luke Childs
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
 cacheable@2.5.0
 License: MIT
 Repository: git+https://github.com/jaredwray/cacheable.git
@@ -2037,14 +1914,6 @@ Copyright notices:
 - The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
-chalk@5.6.2
-License: MIT
-Repository: chalk/chalk
-Copyright notices:
-- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-License text: LICENSES/MIT.txt
-
 chownr@3.0.0
 License: BlueOak-1.0.0
 Repository: git://github.com/isaacs/chownr.git
@@ -2086,23 +1955,6 @@ Copyright notices:
 - Copyright (c) 2015, Contributors
 - that the above copyright notice and this permission notice
 License text: LICENSES/ISC.txt
-
-cliui@9.0.1
-License: ISC
-Repository: yargs/cliui
-Copyright notices:
-- Copyright (c) 2015, Contributors
-- that the above copyright notice and this permission notice
-License text: LICENSES/ISC.txt
-
-clone-response@1.0.3
-License: MIT
-Repository: git+https://github.com/sindresorhus/clone-response.git
-Copyright notices:
-- Copyright (c) 2017 Luke Childs
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
 
 clone@2.1.2
 License: MIT
@@ -2181,7 +2033,7 @@ Copyright notices:
 - COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 License text: LICENSES/MIT.txt
 
-concurrently@10.0.5
+concurrently@9.2.4
 License: MIT
 Repository: https://github.com/open-cli-tools/concurrently.git
 Copyright notices:
@@ -2253,14 +2105,6 @@ Copyright notices:
 - IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
 License text: LICENSES/MIT.txt
 
-decompress-response@6.0.0
-License: MIT
-Repository: sindresorhus/decompress-response
-Copyright notices:
-- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-License text: LICENSES/MIT.txt
-
 deep-is@0.1.4
 License: MIT
 Repository: http://github.com/thlorenz/deep-is.git
@@ -2270,35 +2114,6 @@ Copyright notices:
 - Copyright (c) 2009 Thomas Robinson <280north.com>
 - The above copyright notice and this permission notice shall be included in all
 - COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-License text: LICENSES/MIT.txt
-
-defer-to-connect@2.0.1
-License: MIT
-Repository: git+https://github.com/szmarczak/defer-to-connect.git
-Homepage: https://github.com/szmarczak/defer-to-connect#readme
-Copyright notices:
-- Copyright (c) 2018 Szymon Marczak
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
-define-data-property@1.1.4
-License: MIT
-Repository: git+https://github.com/ljharb/define-data-property.git
-Homepage: https://github.com/ljharb/define-data-property#readme
-Copyright notices:
-- Copyright (c) 2023 Jordan Harband
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
-define-properties@1.2.1
-License: MIT
-Repository: git://github.com/ljharb/define-properties.git
-Copyright notices:
-- Copyright (C) 2015 Jordan Harband
-- The above copyright notice and this permission notice shall be included in
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
 dejavu-fonts-ttf@2.37.3
@@ -2343,16 +2158,6 @@ Copyright notices:
 - (c) You must retain, in the Source form of any Derivative Works
 - that You distribute, all copyright, patent, trademark, and
 License text: LICENSES/Apache-2.0.txt
-
-detect-node@2.1.0
-License: MIT
-Repository: https://github.com/iliakan/detect-node
-Homepage: https://github.com/iliakan/detect-node
-Copyright notices:
-- Copyright (c) 2017 Ilya Kantor
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
 
 dfa@1.2.0
 License: MIT
@@ -2503,28 +2308,11 @@ Copyright notices:
 - NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 License text: LICENSES/MIT.txt
 
-emoji-regex@10.6.0
-License: MIT
-Repository: https://github.com/mathiasbynens/emoji-regex.git
-Homepage: https://mths.be/emoji-regex
-Copyright notices: none detected in package metadata or distributed notice files.
-License text: LICENSES/MIT.txt
-
 emoji-regex@8.0.0
 License: MIT
 Repository: https://github.com/mathiasbynens/emoji-regex.git
 Homepage: https://mths.be/emoji-regex
 Copyright notices: none detected in package metadata or distributed notice files.
-License text: LICENSES/MIT.txt
-
-end-of-stream@1.4.5
-License: MIT
-Repository: git://github.com/mafintosh/end-of-stream.git
-Homepage: https://github.com/mafintosh/end-of-stream
-Copyright notices:
-- Copyright (c) 2014 Mathias Buus
-- The above copyright notice and this permission notice shall be included in
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
 enhanced-resolve@5.24.5
@@ -2604,16 +2392,6 @@ Repository: git+https://github.com/es-shims/es-set-tostringtag.git
 Homepage: https://github.com/es-shims/es-set-tostringtag#readme
 Copyright notices:
 - Copyright (c) 2022 ECMAScript Shims
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
-es6-error@4.1.1
-License: MIT
-Repository: https://github.com/bjyoungblood/es6-error.git
-Homepage: https://github.com/bjyoungblood/es6-error
-Copyright notices:
-- Copyright (c) 2015 Ben Youngblood
 - The above copyright notice and this permission notice shall be included in all
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
@@ -2953,7 +2731,7 @@ Copyright notices:
 - OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 License text: LICENSES/MIT.txt
 
-fs-extra@11.3.5
+fs-extra@11.4.1
 License: MIT
 Repository: git+https://github.com/jprichardson/node-fs-extra.git
 Homepage: https://github.com/jprichardson/node-fs-extra
@@ -2964,16 +2742,6 @@ Copyright notices:
 License text: LICENSES/MIT.txt
 
 fs-extra@7.0.1
-License: MIT
-Repository: https://github.com/jprichardson/node-fs-extra
-Homepage: https://github.com/jprichardson/node-fs-extra
-Copyright notices:
-- Copyright (c) 2011-2017 JP Richardson
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-- OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-License text: LICENSES/MIT.txt
-
-fs-extra@8.1.0
 License: MIT
 Repository: https://github.com/jprichardson/node-fs-extra
 Homepage: https://github.com/jprichardson/node-fs-extra
@@ -3043,14 +2811,6 @@ Copyright notices:
 - Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
 License text: LICENSES/ISC.txt
 
-get-east-asian-width@1.6.0
-License: MIT
-Repository: sindresorhus/get-east-asian-width
-Copyright notices:
-- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-License text: LICENSES/MIT.txt
-
 get-intrinsic@1.3.0
 License: MIT
 Repository: git+https://github.com/ljharb/get-intrinsic.git
@@ -3071,14 +2831,6 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-get-stream@5.2.0
-License: MIT
-Repository: sindresorhus/get-stream
-Copyright notices:
-- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-License text: LICENSES/MIT.txt
-
 glob-parent@6.0.2
 License: ISC
 Repository: gulpjs/glob-parent
@@ -3095,25 +2847,6 @@ Copyright notices:
 - copyright notice and this permission notice appear in all copies.
 License text: LICENSES/ISC.txt
 
-global-agent@3.0.0
-License: BSD-3-Clause
-Repository: https://github.com/gajus/global-agent
-Copyright notices:
-- Copyright (c) 2019, Gajus Kuizinas (http://gajus.com/)
-- * Redistributions of source code must retain the above copyright
-- * Redistributions in binary form must reproduce the above copyright
-- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-License text: LICENSES/BSD-3-Clause.txt
-
-globalthis@1.0.4
-License: MIT
-Repository: git://github.com/ljharb/System.global.git
-Copyright notices:
-- Copyright (c) 2016 Jordan Harband
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
 gopd@1.2.0
 License: MIT
 Repository: git+https://github.com/ljharb/gopd.git
@@ -3122,14 +2855,6 @@ Copyright notices:
 - Copyright (c) 2022 Jordan Harband
 - The above copyright notice and this permission notice shall be included in all
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
-got@11.8.6
-License: MIT
-Repository: sindresorhus/got
-Copyright notices:
-- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
 graceful-fs@4.2.11
@@ -3146,16 +2871,6 @@ Repository: sindresorhus/has-flag
 Copyright notices:
 - Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
 - The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-License text: LICENSES/MIT.txt
-
-has-property-descriptors@1.0.2
-License: MIT
-Repository: git+https://github.com/inspect-js/has-property-descriptors.git
-Homepage: https://github.com/inspect-js/has-property-descriptors#readme
-Copyright notices:
-- Copyright (c) 2022 Inspect JS
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
 has-symbols@1.1.0
@@ -3261,15 +2976,6 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-http-cache-semantics@4.2.0
-License: BSD-2-Clause
-Repository: git+https://github.com/kornelski/http-cache-semantics.git
-Copyright notices:
-- Copyright 2016-2018 Kornel Lesiński
-- 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-- 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-License text: LICENSES/BSD-2-Clause.txt
-
 http-proxy-agent@7.0.2
 License: MIT
 Repository: https://github.com/TooTallNate/proxy-agents.git
@@ -3277,16 +2983,6 @@ Copyright notices:
 - Copyright (c) 2013 Nathan Rajlich <nathan@tootallnate.net>
 - The above copyright notice and this permission notice shall be
 - IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-License text: LICENSES/MIT.txt
-
-http2-wrapper@1.0.3
-License: MIT
-Repository: git+https://github.com/szmarczak/http2-wrapper.git
-Homepage: https://github.com/szmarczak/http2-wrapper#readme
-Copyright notices:
-- Copyright (c) 2018 Szymon Marczak
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
 https-proxy-agent@5.0.1
@@ -3485,7 +3181,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-joi@18.2.8
+joi@18.2.9
 License: BSD-3-Clause
 Repository: git://github.com/hapijs/joi.git
 Copyright notices:
@@ -3549,16 +3245,6 @@ Homepage: https://mths.be/jsesc
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-json-buffer@3.0.1
-License: MIT
-Repository: git://github.com/dominictarr/json-buffer.git
-Homepage: https://github.com/dominictarr/json-buffer
-Copyright notices:
-- Copyright (c) 2013 Dominic Tarr
-- The above copyright notice and this permission notice
-- IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR
-License text: LICENSES/MIT.txt
-
 json-schema-traverse@0.4.1
 License: MIT
 Repository: git+https://github.com/epoberezkin/json-schema-traverse.git
@@ -3587,15 +3273,6 @@ Copyright notices:
 - The above copyright notice and this permission notice shall be included in all
 - COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 License text: LICENSES/MIT.txt
-
-json-stringify-safe@5.0.1
-License: ISC
-Repository: git://github.com/isaacs/json-stringify-safe
-Homepage: https://github.com/isaacs/json-stringify-safe
-Copyright notices:
-- Copyright (c) Isaac Z. Schlueter and Contributors
-- copyright notice and this permission notice appear in all copies.
-License text: LICENSES/ISC.txt
 
 json5@2.2.3
 License: MIT
@@ -3639,13 +3316,6 @@ Copyright notices:
 - in a fashion requiring copyright permission, other than the making of an
 - infringement under applicable copyright law, except executing it on a
 - feature that (1) displays an appropriate copyright notice, and (2)
-License text: LICENSES/MIT.txt
-
-keyv@4.5.4
-License: MIT
-Repository: git+https://github.com/jaredwray/keyv.git
-Homepage: https://github.com/jaredwray/keyv
-Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
 keyv@5.6.0
@@ -3864,14 +3534,6 @@ Copyright notices:
 - Copyright and related rights for sample code are waived via CC0. Sample
 License text: LICENSES/MIT.txt
 
-lowercase-keys@2.0.0
-License: MIT
-Repository: sindresorhus/lowercase-keys
-Copyright notices:
-- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-License text: LICENSES/MIT.txt
-
 lru-cache@5.1.1
 License: ISC
 Repository: git://github.com/isaacs/node-lru-cache.git
@@ -3925,14 +3587,6 @@ Copyright notices:
 - The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
-matcher@3.0.0
-License: MIT
-Repository: sindresorhus/matcher
-Copyright notices:
-- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-License text: LICENSES/MIT.txt
-
 math-intrinsics@1.1.0
 License: MIT
 Repository: git+https://github.com/es-shims/math-intrinsics.git
@@ -3970,22 +3624,6 @@ Copyright notices:
 - Copyright (c) 2010 Benjamin Thomas, Robert Kieffer
 - The above copyright notice and this permission notice shall be included in
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
-mimic-response@1.0.1
-License: MIT
-Repository: sindresorhus/mimic-response
-Copyright notices:
-- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-License text: LICENSES/MIT.txt
-
-mimic-response@3.1.0
-License: MIT
-Repository: sindresorhus/mimic-response
-Copyright notices:
-- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
 minimalistic-assert@1.0.1
@@ -4099,7 +3737,7 @@ Repository: git://github.com/litejs/natural-compare-lite.git
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-node-abi@4.31.0
+node-abi@4.36.0
 License: MIT
 Repository: git+https://github.com/electron/node-abi.git
 Homepage: https://github.com/electron/node-abi#readme
@@ -4159,23 +3797,6 @@ Copyright notices:
 - copyright notice and this permission notice appear in all copies.
 License text: LICENSES/ISC.txt
 
-normalize-url@6.1.0
-License: MIT
-Repository: sindresorhus/normalize-url
-Copyright notices:
-- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-License text: LICENSES/MIT.txt
-
-object-keys@1.1.1
-License: MIT
-Repository: git://github.com/ljharb/object-keys.git
-Copyright notices:
-- Copyright (C) 2013 Jordan Harband
-- The above copyright notice and this permission notice shall be included in
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
 obug@2.1.1
 License: MIT
 Repository: git+https://github.com/sxzz/obug.git
@@ -4204,14 +3825,6 @@ Copyright notices:
 - Copyright (c) George Zahariev
 - The above copyright notice and this permission notice shall be
 - NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-License text: LICENSES/MIT.txt
-
-p-cancelable@2.1.1
-License: MIT
-Repository: sindresorhus/p-cancelable
-Copyright notices:
-- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
 p-limit@3.1.0
@@ -4352,9 +3965,9 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-pkijs@3.4.0
+pkijs@3.4.1
 License: BSD-3-Clause
-Repository: git://github.com/PeculiarVentures/PKI.js.git
+Repository: https://github.com/PeculiarVentures/PKI.js
 Copyright notices:
 - Copyright (c) 2014, GlobalSign
 - Copyright (c) 2015-2019, Peculiar Ventures
@@ -4486,15 +4099,6 @@ Copyright notices:
 - COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 License text: LICENSES/MIT.txt
 
-pump@3.0.4
-License: MIT
-Repository: git://github.com/mafintosh/pump.git
-Copyright notices:
-- Copyright (c) 2014 Mathias Buus
-- The above copyright notice and this permission notice shall be included in
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
 punycode@2.3.1
 License: MIT
 Repository: https://github.com/mathiasbynens/punycode.js.git
@@ -4512,9 +4116,9 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-pvutils@1.1.5
+pvutils@1.2.0
 License: MIT
-Repository: https://github.com/PeculiarVentures/pvutils.git
+Repository: https://github.com/PeculiarVentures/pvutils
 Copyright notices:
 - Copyright (c) 2016-2019, Peculiar Ventures
 - The above copyright notice and this permission notice shall be included in all
@@ -4539,14 +4143,6 @@ Copyright notices:
 - Copyright (c) 2015, Paul O’Shannessy
 - copyright notice and this permission notice appear in all copies.
 License text: LICENSES/ISC.txt
-
-quick-lru@5.1.1
-License: MIT
-Repository: sindresorhus/quick-lru
-Copyright notices:
-- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-License text: LICENSES/MIT.txt
 
 react-dom@19.2.8
 License: MIT
@@ -4614,25 +4210,6 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-resolve-alpn@1.2.1
-License: MIT
-Repository: git+https://github.com/szmarczak/resolve-alpn.git
-Homepage: https://github.com/szmarczak/resolve-alpn#readme
-Copyright notices:
-- Copyright (c) 2018 Szymon Marczak
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
-responselike@2.0.1
-License: MIT
-Repository: https://github.com/sindresorhus/responselike.git
-Copyright notices:
-- Copyright (c) 2017 Luke Childs
-- The above copyright notice and this permission notice shall be included in
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
 restructure@3.0.2
 License: MIT
 Repository: git://github.com/devongovett/restructure.git
@@ -4660,16 +4237,6 @@ Copyright notices:
 - Copyright (c) Isaac Z. Schlueter and Contributors
 - copyright notice and this permission notice appear in all copies.
 License text: LICENSES/ISC.txt
-
-roarr@2.15.4
-License: BSD-3-Clause
-Repository: git@github.com:gajus/roarr.git
-Copyright notices:
-- Copyright (c) 2019, Gajus Kuizinas (http://gajus.com/)
-- * Redistributions of source code must retain the above copyright
-- * Redistributions in binary form must reproduce the above copyright
-- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-License text: LICENSES/BSD-3-Clause.txt
 
 rolldown@1.2.9
 License: MIT
@@ -4734,15 +4301,6 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-semver-compare@1.0.0
-License: MIT
-Repository: git://github.com/substack/semver-compare.git
-Homepage: https://github.com/substack/semver-compare
-Copyright notices:
-- The above copyright notice and this permission notice shall be included in all
-- COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-License text: LICENSES/MIT.txt
-
 semver@5.7.2
 License: ISC
 Repository: https://github.com/npm/node-semver.git
@@ -4766,14 +4324,6 @@ Copyright notices:
 - Copyright (c) Isaac Z. Schlueter and Contributors
 - copyright notice and this permission notice appear in all copies.
 License text: LICENSES/ISC.txt
-
-serialize-error@7.0.1
-License: MIT
-Repository: sindresorhus/serialize-error
-Copyright notices:
-- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-License text: LICENSES/MIT.txt
 
 setimmediate@1.0.5
 License: MIT
@@ -4800,7 +4350,7 @@ Copyright notices:
 - The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
-shell-quote@1.9.0
+shell-quote@1.12.0
 License: MIT
 Repository: http://github.com/ljharb/shell-quote.git
 Homepage: https://github.com/ljharb/shell-quote
@@ -4838,7 +4388,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-source-map-js@1.2.1
+source-map-js@1.2.2
 License: BSD-3-Clause
 Repository: 7rulnik/source-map-js
 Homepage: https://github.com/7rulnik/source-map-js
@@ -4869,17 +4419,6 @@ Copyright notices:
 - * Redistributions in binary form must reproduce the above copyright notice,
 - THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 - DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-License text: LICENSES/BSD-3-Clause.txt
-
-sprintf-js@1.1.3
-License: BSD-3-Clause
-Repository: https://github.com/alexei/sprintf.js.git
-Copyright notices:
-- Copyright (c) 2007-present, Alexandru Mărășteanu <hello@alexei.ro>
-- * Redistributions of source code must retain the above copyright
-- * Redistributions in binary form must reproduce the above copyright
-- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-- DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR
 License text: LICENSES/BSD-3-Clause.txt
 
 stackback@0.0.2
@@ -4926,27 +4465,11 @@ Copyright notices:
 - The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
-string-width@7.2.0
-License: MIT
-Repository: sindresorhus/string-width
-Copyright notices:
-- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-License text: LICENSES/MIT.txt
-
 strip-ansi@6.0.1
 License: MIT
 Repository: chalk/strip-ansi
 Copyright notices:
 - Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-License text: LICENSES/MIT.txt
-
-strip-ansi@7.2.0
-License: MIT
-Repository: chalk/strip-ansi
-Copyright notices:
-- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
 - The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
@@ -4967,19 +4490,19 @@ Copyright notices:
 - that You distribute, all copyright, patent, trademark, and
 License text: LICENSES/Apache-2.0.txt
 
-supports-color@10.2.2
-License: MIT
-Repository: chalk/supports-color
-Copyright notices:
-- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-License text: LICENSES/MIT.txt
-
 supports-color@7.2.0
 License: MIT
 Repository: chalk/supports-color
 Copyright notices:
 - Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
+- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+License text: LICENSES/MIT.txt
+
+supports-color@8.1.1
+License: MIT
+Repository: chalk/supports-color
+Copyright notices:
+- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
 - The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
@@ -5146,14 +4669,6 @@ Copyright notices:
 - Copyright (c) George Zahariev
 - The above copyright notice and this permission notice shall be
 - NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-License text: LICENSES/MIT.txt
-
-type-fest@0.13.1
-License: (MIT OR CC0-1.0); selected: MIT
-Repository: sindresorhus/type-fest
-Copyright notices:
-- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https:/sindresorhus.com)
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
 typescript@6.0.3
@@ -5395,14 +4910,6 @@ Copyright notices:
 - The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
-wrap-ansi@9.0.2
-License: MIT
-Repository: chalk/wrap-ansi
-Copyright notices:
-- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-License text: LICENSES/MIT.txt
-
 wrappy@1.0.2
 License: ISC
 Repository: https://github.com/npm/wrappy
@@ -5483,25 +4990,7 @@ Copyright notices:
 - that the above copyright notice and this permission notice
 License text: LICENSES/ISC.txt
 
-yargs-parser@22.0.0
-License: ISC
-Repository: https://github.com/yargs/yargs-parser.git
-Copyright notices:
-- Copyright (c) 2016, Contributors
-- that the above copyright notice and this permission notice
-License text: LICENSES/ISC.txt
-
 yargs@17.7.2
-License: MIT
-Repository: https://github.com/yargs/yargs.git
-Homepage: https://yargs.js.org/
-Copyright notices:
-- Copyright 2010 James Halliday (mail@substack.net); Modified work Copyright 2014 Contributors (ben@npmjs.com)
-- The above copyright notice and this permission notice shall be included in
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
-yargs@18.0.0
 License: MIT
 Repository: https://github.com/yargs/yargs.git
 Homepage: https://yargs.js.org/

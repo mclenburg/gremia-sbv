@@ -1,0 +1,160 @@
+import { waitForBridge } from "../../core/bridge/waitForBridge";
+import type { TemplateRecord, RenderedTemplateResult } from "../../../domain/models/template.model";
+import type { PreventionProcessRecord } from "../../../domain/models/prevention.model";
+import type { BemProcessRecord } from "../../../domain/models/bem.model";
+import type { EqualizationProcessRecord } from "../../../domain/models/equalization.model";
+import type { TerminationHearingRecord } from "../../../domain/models/termination.model";
+import type { ProcessTemplateModalState } from "./ProcessTemplateDocumentsModal";
+import type { CaseRecord } from "../../../domain/models/case.model";
+import type { ConfirmDialogRequest } from "../../shared/dialogs/ConfirmDialogProvider";
+import { buildExportWarningMessage, scanBemProcessExport, scanSensitiveExportText } from "@/domain/privacy/exportGuardPolicy";
+import { buildTerminationExportContext, terminationPrivacyExportNotice } from "@/domain/termination/terminationPrivacyPolicy";
+import { buildProcessTemplateValues, downloadRenderedTemplate, isBemProcessRecord, isEqualizationProcessRecord, isTemplateConnectedToProcessStatus, isTerminationHearingRecord } from "./casesViewProcessUtils";
+import { loadTemplateDefaultValues } from "../../shared/templates/templateDefaults";
+
+type ProcessTemplateModalSetter = (
+  next:
+    | ProcessTemplateModalState
+    | null
+    | ((current: ProcessTemplateModalState | null) => ProcessTemplateModalState | null),
+) => void;
+
+type ConfirmDialog = (request: ConfirmDialogRequest) => Promise<boolean>;
+
+type ProcessTemplateActionDeps = {
+  processTemplateModal: ProcessTemplateModalState | null;
+  setProcessTemplateModal: ProcessTemplateModalSetter;
+  selectedCase?: CaseRecord;
+  confirmDialog: ConfirmDialog;
+};
+
+function buildExportConfirmation(modal: ProcessTemplateModalState, result: RenderedTemplateResult): ConfirmDialogRequest {
+  let scan: ReturnType<typeof scanSensitiveExportText>;
+  let title = "Dokument exportieren?";
+  if (modal.processType === "bem") {
+    title = "BEM-Dokument exportieren?";
+    scan = scanBemProcessExport({
+      title: result.title,
+      body: result.body,
+      status: modal.process.status,
+      containsConfidentialNotes: Boolean(modal.process.confidentialNotes),
+      unresolvedPlaceholders: result.unresolvedPlaceholders,
+    });
+  } else if (modal.processType === "termination_hearing") {
+    title = "Kündigungsdokument exportieren?";
+    scan = scanSensitiveExportText(
+      `${result.subject}\n\n${result.body}\n\n${buildTerminationExportContext(modal.process)}\n\n${terminationPrivacyExportNotice()}`,
+      { context: "Kündigungsanhörung-Export", target: result.title },
+    );
+  } else {
+    scan = scanSensitiveExportText(result.body, { context: "Dokumentenexport", target: result.title });
+  }
+  return {
+    variant: "warning", title, message: buildExportWarningMessage(scan),
+    confirmLabel: "Export bestätigen", cancelLabel: "Abbrechen",
+  };
+}
+
+export function createProcessTemplateActions(deps: ProcessTemplateActionDeps) {
+  const { processTemplateModal, setProcessTemplateModal, selectedCase, confirmDialog } = deps;
+  async function openProcessTemplateModal(
+    process:
+      | PreventionProcessRecord
+      | BemProcessRecord
+      | EqualizationProcessRecord
+      | TerminationHearingRecord,
+  ) {
+    const modalBase: ProcessTemplateModalState = isBemProcessRecord(process)
+      ? { process, processType: "bem", templates: [], loading: true }
+      : isEqualizationProcessRecord(process)
+        ? { process, processType: "equalization", templates: [], loading: true }
+        : isTerminationHearingRecord(process)
+          ? { process, processType: "termination_hearing", templates: [], loading: true }
+          : { process, processType: "prevention", templates: [], loading: true };
+    const category =
+      modalBase.processType === "bem"
+        ? "bem"
+        : modalBase.processType === "equalization"
+          ? "gleichstellung"
+          : modalBase.processType === "termination_hearing"
+            ? "kuendigung"
+            : "praevention";
+    const status = modalBase.processType === "equalization"
+      ? modalBase.process.applicationStatus
+      : modalBase.process.status;
+    setProcessTemplateModal(modalBase);
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.templates)
+        throw new Error("Vorlagendienst ist nicht erreichbar.");
+      const rows = await bridge.templates.list({ category, limit: 500 });
+      const templates = rows.filter((template: TemplateRecord) =>
+        isTemplateConnectedToProcessStatus(template, modalBase.processType, status),
+      );
+      setProcessTemplateModal({
+        ...modalBase,
+        templates,
+        loading: false,
+      });
+    } catch (error) {
+      setProcessTemplateModal({
+        ...modalBase,
+        templates: [],
+        loading: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Vorlagen konnten nicht geladen werden.",
+      });
+    }
+  }
+
+  async function renderAndDownloadProcessTemplate(template: TemplateRecord) {
+    if (!processTemplateModal) return;
+    try {
+      const bridge = await waitForBridge();
+      if (!bridge?.templates)
+        throw new Error("Vorlagendienst ist nicht erreichbar.");
+      const defaultValues = await loadTemplateDefaultValues();
+      const result = await bridge.templates.render({
+        templateId: template.id,
+        caseId: selectedCase?.id,
+        values: {
+          ...defaultValues,
+          ...buildProcessTemplateValues(
+            selectedCase,
+            processTemplateModal.process,
+          ),
+        },
+        archive: true,
+      });
+      const confirmed = await confirmDialog(buildExportConfirmation(processTemplateModal, result));
+      if (confirmed) downloadRenderedTemplate(result);
+      setProcessTemplateModal((current) =>
+        current
+          ? {
+              ...current,
+              rendered: result,
+              info: confirmed
+                ? "Dokument wurde erzeugt, heruntergeladen und im Vorlagenverlauf archiviert."
+                : "Export wurde abgebrochen. Das Dokument bleibt im Verlauf archiviert.",
+              error: undefined,
+            }
+          : current,
+      );
+    } catch (error) {
+      setProcessTemplateModal((current) =>
+        current
+          ? {
+              ...current,
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "Dokument konnte nicht erzeugt werden.",
+            }
+          : current,
+      );
+    }
+  }
+  return { openProcessTemplateModal, renderAndDownloadProcessTemplate };
+}

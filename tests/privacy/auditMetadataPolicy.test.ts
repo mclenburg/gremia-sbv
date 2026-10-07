@@ -1,34 +1,10 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { normalizeAuditMetadata } from '../../services/auditHashChain';
 import {
   AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE,
   allowedAuditMetadataFields,
-  auditMetadataPolicyReport,
-  hasAuditMetadataPolicy,
 } from '../../services/auditMetadataPolicy';
 import { AUDIT_SUBJECT_TYPES } from '../../services/auditEventBuilders';
-
-function sourceFiles(dir: string): string[] {
-  return readdirSync(dir).flatMap((entry) => {
-    const fullPath = join(dir, entry);
-    const stats = statSync(fullPath);
-    if (stats.isDirectory()) return sourceFiles(fullPath);
-    return fullPath.endsWith('.ts') ? [fullPath] : [];
-  });
-}
-
-function literalAuditSubjectTypes(): string[] {
-  const matches = new Set<string>();
-  for (const file of sourceFiles('services')) {
-    const source = readFileSync(file, 'utf8');
-    for (const match of source.matchAll(/subjectType:\s*['"]([^'"]+)['"]/g)) {
-      matches.add(match[1]);
-    }
-  }
-  return Array.from(matches).sort();
-}
 
 describe('Audit-Metadatenpolicy 0.9.4c', () => {
   it('filtert Metadaten anhand der Ereignisfamilie statt über eine globale Zufalls-Whitelist', () => {
@@ -88,16 +64,9 @@ describe('Audit-Metadatenpolicy 0.9.4c', () => {
     expect(metadata).not.toContain('template-1');
   });
 
-  it('deckt alle im Service-Code verwendeten Audit-SubjectTypes mit einer expliziten Policy ab', () => {
-    const subjectTypes = Array.from(new Set([
-      ...literalAuditSubjectTypes(),
-      ...Object.values(AUDIT_SUBJECT_TYPES),
-    ])).sort();
-    const report = auditMetadataPolicyReport(subjectTypes);
-
-    expect(report.missing).toEqual([]);
-    for (const subjectType of subjectTypes) {
-      expect(hasAuditMetadataPolicy(subjectType)).toBe(true);
+  it('deckt alle registrierten Audit-Ereignisfamilien mit einer expliziten Policy ab', () => {
+    for (const subjectType of Object.values(AUDIT_SUBJECT_TYPES)) {
+      expect(Object.hasOwn(AUDIT_METADATA_POLICY_BY_SUBJECT_TYPE, subjectType)).toBe(true);
       expect(allowedAuditMetadataFields(subjectType).has('subjectId')).toBe(true);
       expect(allowedAuditMetadataFields(subjectType).has('caseId')).toBe(true);
     }

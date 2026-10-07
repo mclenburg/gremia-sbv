@@ -1,14 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, BriefcaseBusiness, CheckCircle2, Clock3, RefreshCw, ShieldCheck, TimerReset } from 'lucide-react';
+import { useMemo } from 'react';
+import { AlertTriangle, BriefcaseBusiness, Clock3, ShieldCheck, TimerReset } from 'lucide-react';
 import type { CaseMeasureRecord, CaseRecord, DeadlineDashboardItem, DeadlineRecord } from '../../appTypes';
-import type { ActivityJournalSummary } from '../../../domain/models/activity-journal.model';
 import { DeadlineDashboardPanel } from '../deadlines/DeadlineDashboardPanel';
-import type { GremiaBrDashboardOverview, GremiaBrRelevanceMatch } from '../../../domain/models/gremia-br.model';
-import { waitForBridge } from '../../core/bridge/waitForBridge';
-import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
-import { buildDashboardFocusSummary, resolveActivityJournalWeekReviewMarker, RetentionDashboardCard, SbvAssemblyDashboardAlert, type DashboardComplianceLike, type ViewId } from './dashboardFocus';
-import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
-import { legalCalendarDate } from '../../../domain/time/legalTime';
+import { buildDashboardFocusSummary, resolveActivityJournalWeekReviewMarker, RetentionDashboardCard, SbvAssemblyDashboardAlert, type ViewId } from './dashboardFocus';
+import { IndustrialButton } from '../../shared/components/IndustrialButton';
+
+import { useDashboardLocalStatus } from './useDashboardLocalStatus';
+import { useGremiaBrDashboard } from './useGremiaBrDashboard';
+import { GremiaBrDashboardTile, GremiaBrMeetingAgenda } from './GremiaBrDashboardPanels';
 
 type DashboardFocusOverviewProps = {
   cases: CaseRecord[]; measures: CaseMeasureRecord[]; deadlines: DeadlineRecord[]; dashboardItems: DeadlineDashboardItem[];
@@ -16,23 +15,6 @@ type DashboardFocusOverviewProps = {
   onEditDeadline: (deadline: DeadlineDashboardItem) => void; onExtendDeadline: (deadline: DeadlineDashboardItem) => void;
   onOpenDeadlineContext: (deadline: DeadlineDashboardItem) => void;
   onCompleteDeadline: (deadline: DeadlineDashboardItem) => void;
-};
-
-const EMPTY_GREMIA_BR_OVERVIEW: GremiaBrDashboardOverview = {
-  accessibleCases: [],
-  ownTasks: [],
-  ownAccessApprovals: [],
-  upcomingMeetings: [],
-  meetingAgendas: {},
-  pendingFollowUps: [],
-  decisions: [],
-  dueDecisions: [],
-  overdueDecisions: [],
-  relevanceSettings: { groups: [] },
-  relevantMeetings: [],
-  openDecisionCount: 0,
-  dueDecisionCount: 0,
-  overdueDecisionCount: 0,
 };
 
 function markerClass(marker: string): string {
@@ -49,184 +31,12 @@ function markerText(marker: string): string {
   return 'Info';
 }
 
-function itemValue(item: unknown, keys: string[]): string | undefined {
-  if (!item || typeof item !== 'object') return undefined;
-  const record = item as Record<string, unknown>;
-  for (const key of keys) {
-    const value = record[key];
-    if (typeof value === 'string' && value.trim()) return value.trim();
-  }
-  return undefined;
-}
-
-function itemTitle(item: unknown, fallback: string): string {
-  return itemValue(item, ['titel', 'title', 'name', 'beschlusstext']) ?? fallback;
-}
-
-function itemDate(item: unknown): string | undefined {
-  return itemValue(item, ['datum', 'date', 'frist', 'startsAt', 'start']);
-}
-
-function agendaItemsForMeeting(overview: GremiaBrDashboardOverview, meeting: unknown): unknown[] {
-  if (!meeting || typeof meeting !== 'object') return [];
-  const record = meeting as Record<string, unknown>;
-  const id = record.id;
-  if (typeof id !== 'string') return [];
-  const agenda = overview.meetingAgendas[id];
-  return Array.isArray(agenda) ? agenda : [];
-}
-
-export function formatGermanDateTime(value?: string): string {
-  if (!value) return 'noch nicht abgerufen';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'noch nicht abgerufen';
-  return new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
-}
-
-export function resolveGremiaBrDashboardTile({ enabled, overview }: { enabled: boolean; overview: GremiaBrDashboardOverview }): { relevantMeetingCount: number; lastFetchedLabel: string } | null {
-  if (!enabled) return null;
-  return {
-    relevantMeetingCount: overview.relevantMeetings.length,
-    lastFetchedLabel: formatGermanDateTime(overview.lastFetchedAt),
-  };
-}
-
-export function resolveNextGremiaBrMeetingAgenda({ enabled, overview }: { enabled: boolean; overview: GremiaBrDashboardOverview }): { meeting: unknown; agenda: unknown[] } | null {
-  if (!enabled) return null;
-  const meeting = overview.nextMeeting ?? overview.upcomingMeetings[0];
-  if (!meeting) return null;
-  return { meeting, agenda: agendaItemsForMeeting(overview, meeting).slice(0, 5) };
-}
-
-function MeetingMatch({ match }: { match: GremiaBrRelevanceMatch }) {
-  return (
-    <li className="dashboard-support-list-item">
-      <strong>{itemTitle(match.item, 'BR-Sitzung')}</strong>
-      {itemDate(match.item) && <span className="industrial-muted"> · {itemDate(match.item)}</span>}
-      <div className="industrial-meta">Treffer: {match.matchedGroups.join(', ')}</div>
-    </li>
-  );
-}
-
 export function DashboardFocusOverview({ cases, measures, deadlines, dashboardItems, onNavigate, onEditDeadline, onExtendDeadline, onOpenDeadlineContext, onCompleteDeadline }: DashboardFocusOverviewProps) {
-  const announce = useAnnouncer();
-  const [compliance, setCompliance] = useState<DashboardComplianceLike | null>(null);
-  const [complianceError, setComplianceError] = useState('');
-  const [gremiaBrOverview, setGremiaBrOverview] = useState<GremiaBrDashboardOverview>(EMPTY_GREMIA_BR_OVERVIEW);
-  const [gremiaBrEnabled, setGremiaBrEnabled] = useState(false);
-  const [gremiaBrBusy, setGremiaBrBusy] = useState(false);
-  const [gremiaBrStatus, setGremiaBrStatus] = useState('');
-  const [gremiaBrError, setGremiaBrError] = useState('');
-  const [journalSummary, setJournalSummary] = useState<ActivityJournalSummary | null>(null);
-  const [journalLastWeekEntryCount, setJournalLastWeekEntryCount] = useState(0);
-  useEffect(() => {
-    let active = true;
-    async function loadComplianceStatus() {
-      try {
-        const bridge = await waitForBridge();
-        if (!active || !bridge?.compliance) return;
-        const [auditStatus, databaseStatus] = await Promise.all([
-          bridge.compliance.auditChainStatus(),
-          bridge.compliance.databaseIntegrityStatus(),
-        ]);
-        if (!active) return;
-        const audit = auditStatus as unknown as Record<string, unknown>;
-        const database = databaseStatus as unknown as Record<string, unknown>;
-        const auditIssues = Number(audit.issueCount ?? audit.warningCount ?? audit.errorCount ?? 0);
-        const databaseIssues = Number(database.issueCount ?? database.warningCount ?? database.errorCount ?? 0);
-        setCompliance({ ok: Boolean(auditStatus.ok && databaseStatus.ok), issueCount: auditIssues + databaseIssues, repairRequired: Boolean(database.repairRequired) });
-        setComplianceError('');
-      } catch (err) {
-        if (!active) return;
-        const message = err instanceof Error ? err.message : 'Compliance-Status konnte nicht geladen werden.';
-        setCompliance({ ok: false, issueCount: 1, repairRequired: false });
-        setComplianceError(message);
-        announce(message, 'assertive');
-      }
-    }
-    void loadComplianceStatus();
-    return () => { active = false; };
-  }, [announce]);
-
-  useEffect(() => {
-    let active = true;
-    async function loadJournalSummary() {
-      try {
-        const bridge = await waitForBridge();
-        if (!active || !bridge?.activityJournal) return;
-        const now = new Date();
-        const lastWeekEnd = new Date(now);
-        const daysSinceMonday = (now.getDay() + 6) % 7;
-        lastWeekEnd.setDate(now.getDate() - daysSinceMonday);
-        lastWeekEnd.setHours(0, 0, 0, 0);
-        const lastWeekStart = new Date(lastWeekEnd);
-        lastWeekStart.setDate(lastWeekEnd.getDate() - 7);
-        const [summary, lastWeekEntries] = await Promise.all([
-          bridge.activityJournal.summary(),
-          bridge.activityJournal.list({
-            from: legalCalendarDate(lastWeekStart),
-            to: legalCalendarDate(lastWeekEnd),
-            limit: 1,
-          }),
-        ]);
-        if (!active) return;
-        setJournalSummary(summary);
-        setJournalLastWeekEntryCount(lastWeekEntries.length);
-      } catch {
-        if (active) setJournalSummary(null);
-      }
-    }
-    void loadJournalSummary();
-    return () => { active = false; };
-  }, []);
-
-  async function loadGremiaBrOverview(active = true) {
-    const bridge = await waitForBridge();
-    if (!bridge?.gremiaBr) return;
-    const settings = await bridge.gremiaBr.getSettings();
-    const overview = await bridge.gremiaBr.getDashboardOverview();
-    if (!active) return;
-    setGremiaBrEnabled(Boolean(settings.enabled));
-    setGremiaBrOverview(overview as GremiaBrDashboardOverview);
-  }
-
-  useEffect(() => {
-    let active = true;
-    loadGremiaBrOverview(active).catch((err) => {
-      if (!active) return;
-      const message = err instanceof Error ? err.message : 'Gremia.BR-Lesecache konnte nicht geladen werden.';
-      setGremiaBrError(message);
-    });
-    return () => { active = false; };
-  }, []);
-
-  async function refreshGremiaBrCache() {
-    setGremiaBrBusy(true);
-    setGremiaBrStatus('');
-    setGremiaBrError('');
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.gremiaBr) throw new Error('Gremia.BR-Dienst ist nicht erreichbar.');
-      const result = await bridge.gremiaBr.refreshCache();
-      setGremiaBrOverview(result.cached as GremiaBrDashboardOverview);
-      setGremiaBrStatus(result.message);
-      announce(result.message, 'polite');
-      await loadGremiaBrOverview();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Gremia.BR-Lesecache konnte nicht aktualisiert werden.';
-      setGremiaBrError(message);
-      announce(message, 'assertive');
-    } finally {
-      setGremiaBrBusy(false);
-    }
-  }
+  const { compliance, complianceError, journalSummary, journalLastWeekEntryCount } = useDashboardLocalStatus();
+  const gremiaBr = useGremiaBrDashboard();
 
   const deadlinesForSummary = dashboardItems.length ? dashboardItems : deadlines;
   const summary = useMemo(() => buildDashboardFocusSummary({ cases, deadlines: deadlinesForSummary, compliance }), [cases, compliance, deadlinesForSummary]);
-  const gremiaBrTile = resolveGremiaBrDashboardTile({ enabled: gremiaBrEnabled, overview: gremiaBrOverview });
-  const nextMeetingAgenda = resolveNextGremiaBrMeetingAgenda({ enabled: gremiaBrEnabled, overview: gremiaBrOverview });
-  const nextMeeting = nextMeetingAgenda?.meeting;
-  const nextAgenda = nextMeetingAgenda?.agenda ?? [];
   const journalWeekReview = resolveActivityJournalWeekReviewMarker({
     hasJournalHistory: Boolean(journalSummary && journalSummary.totalEntries > 0),
     lastWeekEntryCount: journalLastWeekEntryCount,
@@ -275,56 +85,11 @@ export function DashboardFocusOverview({ cases, measures, deadlines, dashboardIt
           </IndustrialButton>
         )}
 
-        {gremiaBrTile && (
-          <div className="industrial-card no-card-hover dashboard-focus-card dashboard-focus-card-static" aria-label="Gremia.BR-Kooperationsbrücke">
-            <span className="dashboard-focus-marker dashboard-focus-marker-attention">Aktiv</span>
-            <CheckCircle2 className="industrial-icon-md" aria-hidden="true" />
-            <strong>Gremia.BR</strong>
-            <span>{gremiaBrTile.relevantMeetingCount} relevante Sitzung(en) im Lesecache.</span>
-            <small>Letzter Datenabruf: {gremiaBrTile.lastFetchedLabel}</small>
-            <ToolbarButton className="dashboard-focus-secondary-action" disabled={gremiaBrBusy} onClick={() => void refreshGremiaBrCache()}>
-              {gremiaBrBusy ? 'Abruf läuft …' : 'Abrufen'}
-            </ToolbarButton>
-          </div>
-        )}
+        <GremiaBrDashboardTile {...gremiaBr} />
       </div>
 
       <div className="dashboard-support-grid">
-        {gremiaBrEnabled && (
-          <section className="industrial-card no-card-hover dashboard-support-card" aria-labelledby="dashboard-next-br-meeting-title">
-            <div className="industrial-card-header compact">
-              <div>
-                <p className="industrial-kicker">Gremia.BR-Lesecache</p>
-                <h4 id="dashboard-next-br-meeting-title">Nächste BR-Sitzung mit Agenda</h4>
-              </div>
-            </div>
-            {gremiaBrError && <div className="industrial-message industrial-message-warning" role="alert">{gremiaBrError}</div>}
-            {gremiaBrStatus && <div className="industrial-message industrial-message-success" role="status">{gremiaBrStatus}</div>}
-            {nextMeeting ? (
-              <>
-                <p className="dashboard-support-headline">{itemTitle(nextMeeting, 'BR-Sitzung')}</p>
-                {itemDate(nextMeeting) && <p className="industrial-meta">{itemDate(nextMeeting)}</p>}
-                {nextAgenda.length ? (
-                  <ul className="dashboard-support-list">
-                    {nextAgenda.map((agenda, index) => <li key={`${itemTitle(agenda, 'TOP')}-${index}`}>{itemTitle(agenda, `TOP ${index + 1}`)}</li>)}
-                  </ul>
-                ) : (
-                  <p className="industrial-muted">Keine Tagesordnung im aktuellen Lesecache.</p>
-                )}
-                {gremiaBrOverview.relevantMeetings.length > 0 && (
-                  <div className="dashboard-support-section">
-                    <h5>SBV-relevante Tagesordnungstreffer</h5>
-                    <ul className="dashboard-support-list">
-                      {gremiaBrOverview.relevantMeetings.slice(0, 3).map((match, index) => <MeetingMatch key={`${itemTitle(match.item, 'meeting')}-${index}`} match={match} />)}
-                    </ul>
-                  </div>
-                )}
-              </>
-            ) : (
-              <p className="industrial-muted">Keine BR-Sitzung im lokalen Lesecache.</p>
-            )}
-          </section>
-        )}
+        <GremiaBrMeetingAgenda {...gremiaBr} />
 
         <DeadlineDashboardPanel items={dashboardItems} cases={cases} measures={measures}
           onEdit={onEditDeadline} onExtend={onExtendDeadline} onOpenContext={onOpenDeadlineContext} onComplete={onCompleteDeadline} />

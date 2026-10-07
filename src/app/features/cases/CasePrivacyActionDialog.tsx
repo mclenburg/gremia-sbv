@@ -6,6 +6,7 @@ import { AUDIT_LOG_RETENTION_NOTICE } from '../../core/copy/privacyNotices';
 import { DangerButton, GhostButton, IndustrialButton } from '../../shared/components/IndustrialButton';
 import { IndustrialModal } from '../../shared/dialogs/IndustrialDialogs';
 import { CaseAnonymizationModeFieldset } from '../../shared/privacy/CaseAnonymizationModeFieldset';
+import { TextCommandTextarea } from '../../shared/textCommands/TextCommandTextarea';
 
 export type CasePrivacyActionMode = 'anonymize' | 'delete';
 
@@ -87,7 +88,7 @@ export function CasePrivacyActionDialog({
       </fieldset>
       {mode === 'anonymize' ? <CaseAnonymizationModeFieldset value={anonymizationMode} onChange={setAnonymizationMode} name="case-anonymization-mode" /> : null}
       <div className="case-privacy-action-fields">
-        <label><span>Grund</span><textarea rows={3} value={reason} onChange={(event) => setReason(event.target.value)} required aria-invalid={Boolean(error && !reason.trim())} aria-describedby={error ? errorId : undefined} className="industrial-textarea-input" /></label>
+        <label><span>Grund</span><TextCommandTextarea fieldId="case-privacy-reason" rows={3} value={reason} onChange={(event) => setReason(event.target.value)} required aria-invalid={Boolean(error && !reason.trim())} aria-describedby={error ? errorId : undefined} className="industrial-textarea-input" /></label>
         <label><span>Bestätigung</span><input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} placeholder={expectedConfirmation} required aria-invalid={Boolean(error && confirmation.trim() !== expectedConfirmation)} aria-describedby={error ? errorId : undefined} className="industrial-input" /><small className="industrial-muted">Zur Sicherheit exakt „{expectedConfirmation}“ eingeben.</small></label>
       </div>
       {error ? <p id={errorId} className="industrial-message industrial-message-warning" role="alert">{error}</p> : null}

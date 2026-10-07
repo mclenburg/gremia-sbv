@@ -77,9 +77,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - @electron/fuses@1.8.0
   License: MIT
   License text: LICENSES/MIT.txt
-- @electron/get@3.1.0
-  License: MIT
-  License text: LICENSES/MIT.txt
 - @electron/get@5.1.0
   License: MIT
   License text: LICENSES/MIT.txt
@@ -89,7 +86,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - @electron/osx-sign@1.3.3
   License: BSD-2-Clause
   License text: LICENSES/BSD-2-Clause.txt
-- @electron/rebuild@4.0.4
+- @electron/rebuild@4.2.1
   License: MIT
   License text: LICENSES/MIT.txt
 - @electron/universal@2.0.3
@@ -311,19 +308,16 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - @noble/ciphers@1.3.0
   License: MIT
   License text: LICENSES/MIT.txt
-- @noble/hashes@1.4.0
-  License: MIT
-  License text: LICENSES/MIT.txt
 - @noble/hashes@1.8.0
   License: MIT
   License text: LICENSES/MIT.txt
-- @noble/hashes@2.2.0
+- @noble/hashes@2.4.0
   License: MIT
   License text: LICENSES/MIT.txt
 - @oxc-project/types@0.150.0
   License: MIT
   License text: LICENSES/MIT.txt
-- @peculiar/asn1-schema@2.8.0
+- @peculiar/asn1-schema@2.10.0
   License: MIT
   License text: LICENSES/MIT.txt
 - @peculiar/json-schema@1.1.12
@@ -383,18 +377,12 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - @rolldown/pluginutils@1.0.1
   License: MIT
   License text: LICENSES/MIT.txt
-- @sindresorhus/is@4.6.0
-  License: MIT
-  License text: LICENSES/MIT.txt
 - @standard-schema/spec@1.1.0
   License: MIT
   License text: LICENSES/MIT.txt
 - @swc/helpers@0.5.23
   License: Apache-2.0
   License text: LICENSES/Apache-2.0.txt
-- @szmarczak/http-timer@4.0.6
-  License: MIT
-  License text: LICENSES/MIT.txt
 - @tailwindcss/node@4.3.3
   License: MIT
   License text: LICENSES/MIT.txt
@@ -443,9 +431,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - @tybys/wasm-util@0.10.2
   License: MIT
   License text: LICENSES/MIT.txt
-- @types/cacheable-request@6.0.3
-  License: MIT
-  License text: LICENSES/MIT.txt
 - @types/chai@5.2.3
   License: MIT
   License text: LICENSES/MIT.txt
@@ -464,13 +449,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - @types/fs-extra@9.0.13
   License: MIT
   License text: LICENSES/MIT.txt
-- @types/http-cache-semantics@4.2.0
-  License: MIT
-  License text: LICENSES/MIT.txt
 - @types/json-schema@7.0.15
-  License: MIT
-  License text: LICENSES/MIT.txt
-- @types/keyv@3.1.4
   License: MIT
   License text: LICENSES/MIT.txt
 - @types/ms@2.1.0
@@ -489,9 +468,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
   License: MIT
   License text: LICENSES/MIT.txt
 - @types/react@19.2.18
-  License: MIT
-  License text: LICENSES/MIT.txt
-- @types/responselike@1.0.3
   License: MIT
   License text: LICENSES/MIT.txt
 - @types/yauzl@2.10.3
@@ -581,13 +557,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - ansi-regex@5.0.1
   License: MIT
   License text: LICENSES/MIT.txt
-- ansi-regex@6.3.0
-  License: MIT
-  License text: LICENSES/MIT.txt
 - ansi-styles@4.3.0
-  License: MIT
-  License text: LICENSES/MIT.txt
-- ansi-styles@6.2.3
   License: MIT
   License text: LICENSES/MIT.txt
 - app-builder-lib@26.15.3
@@ -650,9 +620,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - bluebird@3.7.2
   License: MIT
   License text: LICENSES/MIT.txt
-- boolean@3.2.0
-  License: MIT
-  License text: LICENSES/MIT.txt
 - brace-expansion@1.1.21
   License: MIT
   License text: LICENSES/MIT.txt
@@ -683,12 +650,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - bytestreamjs@2.0.1
   License: BSD-3-Clause
   License text: LICENSES/BSD-3-Clause.txt
-- cacheable-lookup@5.0.4
-  License: MIT
-  License text: LICENSES/MIT.txt
-- cacheable-request@7.0.4
-  License: MIT
-  License text: LICENSES/MIT.txt
 - cacheable@2.5.0
   License: MIT
   License text: LICENSES/MIT.txt
@@ -702,9 +663,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
   License: MIT
   License text: LICENSES/MIT.txt
 - chalk@4.1.2
-  License: MIT
-  License text: LICENSES/MIT.txt
-- chalk@5.6.2
   License: MIT
   License text: LICENSES/MIT.txt
 - chownr@3.0.0
@@ -722,12 +680,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - cliui@8.0.1
   License: ISC
   License text: LICENSES/ISC.txt
-- cliui@9.0.1
-  License: ISC
-  License text: LICENSES/ISC.txt
-- clone-response@1.0.3
-  License: MIT
-  License text: LICENSES/MIT.txt
 - clone@2.1.2
   License: MIT
   License text: LICENSES/MIT.txt
@@ -755,7 +707,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - concat-map@0.0.1
   License: MIT
   License text: LICENSES/MIT.txt
-- concurrently@10.0.5
+- concurrently@9.2.4
   License: MIT
   License text: LICENSES/MIT.txt
 - convert-source-map@2.0.0
@@ -779,19 +731,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - debug@4.4.3
   License: MIT
   License text: LICENSES/MIT.txt
-- decompress-response@6.0.0
-  License: MIT
-  License text: LICENSES/MIT.txt
 - deep-is@0.1.4
-  License: MIT
-  License text: LICENSES/MIT.txt
-- defer-to-connect@2.0.1
-  License: MIT
-  License text: LICENSES/MIT.txt
-- define-data-property@1.1.4
-  License: MIT
-  License text: LICENSES/MIT.txt
-- define-properties@1.2.1
   License: MIT
   License text: LICENSES/MIT.txt
 - dejavu-fonts-ttf@2.37.3
@@ -803,9 +743,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - detect-libc@2.1.2
   License: Apache-2.0
   License text: LICENSES/Apache-2.0.txt
-- detect-node@2.1.0
-  License: MIT
-  License text: LICENSES/MIT.txt
 - dfa@1.2.0
   License: MIT
   License text: LICENSES/MIT.txt
@@ -851,13 +788,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - electron@43.7.3
   License: MIT
   License text: LICENSES/MIT.txt
-- emoji-regex@10.6.0
-  License: MIT
-  License text: LICENSES/MIT.txt
 - emoji-regex@8.0.0
-  License: MIT
-  License text: LICENSES/MIT.txt
-- end-of-stream@1.4.5
   License: MIT
   License text: LICENSES/MIT.txt
 - enhanced-resolve@5.24.5
@@ -885,9 +816,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
   License: MIT
   License text: LICENSES/MIT.txt
 - es-set-tostringtag@2.1.0
-  License: MIT
-  License text: LICENSES/MIT.txt
-- es6-error@4.1.1
   License: MIT
   License text: LICENSES/MIT.txt
 - esbuild@0.28.1
@@ -986,13 +914,10 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - fs-extra@11.3.1
   License: MIT
   License text: LICENSES/MIT.txt
-- fs-extra@11.3.5
+- fs-extra@11.4.1
   License: MIT
   License text: LICENSES/MIT.txt
 - fs-extra@7.0.1
-  License: MIT
-  License text: LICENSES/MIT.txt
-- fs-extra@8.1.0
   License: MIT
   License text: LICENSES/MIT.txt
 - fs-extra@9.1.0
@@ -1013,16 +938,10 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - get-caller-file@2.0.5
   License: ISC
   License text: LICENSES/ISC.txt
-- get-east-asian-width@1.6.0
-  License: MIT
-  License text: LICENSES/MIT.txt
 - get-intrinsic@1.3.0
   License: MIT
   License text: LICENSES/MIT.txt
 - get-proto@1.0.1
-  License: MIT
-  License text: LICENSES/MIT.txt
-- get-stream@5.2.0
   License: MIT
   License text: LICENSES/MIT.txt
 - glob-parent@6.0.2
@@ -1031,25 +950,13 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - glob@7.2.3
   License: ISC
   License text: LICENSES/ISC.txt
-- global-agent@3.0.0
-  License: BSD-3-Clause
-  License text: LICENSES/BSD-3-Clause.txt
-- globalthis@1.0.4
-  License: MIT
-  License text: LICENSES/MIT.txt
 - gopd@1.2.0
-  License: MIT
-  License text: LICENSES/MIT.txt
-- got@11.8.6
   License: MIT
   License text: LICENSES/MIT.txt
 - graceful-fs@4.2.11
   License: ISC
   License text: LICENSES/ISC.txt
 - has-flag@4.0.0
-  License: MIT
-  License text: LICENSES/MIT.txt
-- has-property-descriptors@1.0.2
   License: MIT
   License text: LICENSES/MIT.txt
 - has-symbols@1.1.0
@@ -1085,13 +992,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - html-escaper@2.0.2
   License: MIT
   License text: LICENSES/MIT.txt
-- http-cache-semantics@4.2.0
-  License: BSD-2-Clause
-  License text: LICENSES/BSD-2-Clause.txt
 - http-proxy-agent@7.0.2
-  License: MIT
-  License text: LICENSES/MIT.txt
-- http2-wrapper@1.0.3
   License: MIT
   License text: LICENSES/MIT.txt
 - https-proxy-agent@5.0.1
@@ -1163,7 +1064,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - jiti@2.7.0
   License: MIT
   License text: LICENSES/MIT.txt
-- joi@18.2.8
+- joi@18.2.9
   License: BSD-3-Clause
   License text: LICENSES/BSD-3-Clause.txt
 - js-md5@0.8.3
@@ -1184,9 +1085,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - jsesc@3.1.0
   License: MIT
   License text: LICENSES/MIT.txt
-- json-buffer@3.0.1
-  License: MIT
-  License text: LICENSES/MIT.txt
 - json-schema-traverse@0.4.1
   License: MIT
   License text: LICENSES/MIT.txt
@@ -1196,9 +1094,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - json-stable-stringify-without-jsonify@1.0.1
   License: MIT
   License text: LICENSES/MIT.txt
-- json-stringify-safe@5.0.1
-  License: ISC
-  License text: LICENSES/ISC.txt
 - json5@2.2.3
   License: MIT
   License text: LICENSES/MIT.txt
@@ -1211,9 +1106,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - jszip@3.10.1
   License: (MIT OR GPL-3.0-or-later)
   Selected license for OR expression: MIT
-  License text: LICENSES/MIT.txt
-- keyv@4.5.4
-  License: MIT
   License text: LICENSES/MIT.txt
 - keyv@5.6.0
   License: MIT
@@ -1308,9 +1200,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - lodash@4.18.1
   License: MIT
   License text: LICENSES/MIT.txt
-- lowercase-keys@2.0.0
-  License: MIT
-  License text: LICENSES/MIT.txt
 - lru-cache@5.1.1
   License: ISC
   License text: LICENSES/ISC.txt
@@ -1329,9 +1218,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - make-dir@4.0.0
   License: MIT
   License text: LICENSES/MIT.txt
-- matcher@3.0.0
-  License: MIT
-  License text: LICENSES/MIT.txt
 - math-intrinsics@1.1.0
   License: MIT
   License text: LICENSES/MIT.txt
@@ -1342,12 +1228,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
   License: MIT
   License text: LICENSES/MIT.txt
 - mime@2.6.0
-  License: MIT
-  License text: LICENSES/MIT.txt
-- mimic-response@1.0.1
-  License: MIT
-  License text: LICENSES/MIT.txt
-- mimic-response@3.1.0
   License: MIT
   License text: LICENSES/MIT.txt
 - minimalistic-assert@1.0.1
@@ -1389,7 +1269,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - natural-compare@1.4.0
   License: MIT
   License text: LICENSES/MIT.txt
-- node-abi@4.31.0
+- node-abi@4.36.0
   License: MIT
   License text: LICENSES/MIT.txt
 - node-addon-api@8.9.2
@@ -1410,12 +1290,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - nopt@9.0.0
   License: ISC
   License text: LICENSES/ISC.txt
-- normalize-url@6.1.0
-  License: MIT
-  License text: LICENSES/MIT.txt
-- object-keys@1.1.1
-  License: MIT
-  License text: LICENSES/MIT.txt
 - obug@2.1.1
   License: MIT
   License text: LICENSES/MIT.txt
@@ -1423,9 +1297,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
   License: ISC
   License text: LICENSES/ISC.txt
 - optionator@0.9.4
-  License: MIT
-  License text: LICENSES/MIT.txt
-- p-cancelable@2.1.1
   License: MIT
   License text: LICENSES/MIT.txt
 - p-limit@3.1.0
@@ -1470,7 +1341,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - picomatch@4.0.7
   License: MIT
   License text: LICENSES/MIT.txt
-- pkijs@3.4.0
+- pkijs@3.4.1
   License: BSD-3-Clause
   License text: LICENSES/BSD-3-Clause.txt
 - plist@3.1.0
@@ -1509,16 +1380,13 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - proxy-from-env@2.1.0
   License: MIT
   License text: LICENSES/MIT.txt
-- pump@3.0.4
-  License: MIT
-  License text: LICENSES/MIT.txt
 - punycode@2.3.1
   License: MIT
   License text: LICENSES/MIT.txt
 - pvtsutils@1.3.6
   License: MIT
   License text: LICENSES/MIT.txt
-- pvutils@1.1.5
+- pvutils@1.2.0
   License: MIT
   License text: LICENSES/MIT.txt
 - qified@0.10.1
@@ -1527,9 +1395,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - qrcode.react@4.2.0
   License: ISC
   License text: LICENSES/ISC.txt
-- quick-lru@5.1.1
-  License: MIT
-  License text: LICENSES/MIT.txt
 - react-dom@19.2.8
   License: MIT
   License text: LICENSES/MIT.txt
@@ -1551,12 +1416,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - resedit@1.7.2
   License: MIT
   License text: LICENSES/MIT.txt
-- resolve-alpn@1.2.1
-  License: MIT
-  License text: LICENSES/MIT.txt
-- responselike@2.0.1
-  License: MIT
-  License text: LICENSES/MIT.txt
 - restructure@3.0.2
   License: MIT
   License text: LICENSES/MIT.txt
@@ -1566,9 +1425,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - rimraf@2.6.3
   License: ISC
   License text: LICENSES/ISC.txt
-- roarr@2.15.4
-  License: BSD-3-Clause
-  License text: LICENSES/BSD-3-Clause.txt
 - rolldown@1.2.9
   License: MIT
   License text: LICENSES/MIT.txt
@@ -1588,9 +1444,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - scheduler@0.27.0
   License: MIT
   License text: LICENSES/MIT.txt
-- semver-compare@1.0.0
-  License: MIT
-  License text: LICENSES/MIT.txt
 - semver@5.7.2
   License: ISC
   License text: LICENSES/ISC.txt
@@ -1600,9 +1453,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - semver@7.7.4
   License: ISC
   License text: LICENSES/ISC.txt
-- serialize-error@7.0.1
-  License: MIT
-  License text: LICENSES/MIT.txt
 - setimmediate@1.0.5
   License: MIT
   License text: LICENSES/MIT.txt
@@ -1612,7 +1462,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - shebang-regex@3.0.0
   License: MIT
   License text: LICENSES/MIT.txt
-- shell-quote@1.9.0
+- shell-quote@1.12.0
   License: MIT
   License text: LICENSES/MIT.txt
 - siginfo@2.0.0
@@ -1624,16 +1474,13 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - simple-update-notifier@2.0.0
   License: MIT
   License text: LICENSES/MIT.txt
-- source-map-js@1.2.1
+- source-map-js@1.2.2
   License: BSD-3-Clause
   License text: LICENSES/BSD-3-Clause.txt
 - source-map-support@0.5.21
   License: MIT
   License text: LICENSES/MIT.txt
 - source-map@0.6.1
-  License: BSD-3-Clause
-  License text: LICENSES/BSD-3-Clause.txt
-- sprintf-js@1.1.3
   License: BSD-3-Clause
   License text: LICENSES/BSD-3-Clause.txt
 - stackback@0.0.2
@@ -1651,22 +1498,16 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - string-width@4.2.3
   License: MIT
   License text: LICENSES/MIT.txt
-- string-width@7.2.0
-  License: MIT
-  License text: LICENSES/MIT.txt
 - strip-ansi@6.0.1
-  License: MIT
-  License text: LICENSES/MIT.txt
-- strip-ansi@7.2.0
   License: MIT
   License text: LICENSES/MIT.txt
 - sumchecker@3.0.1
   License: Apache-2.0
   License text: LICENSES/Apache-2.0.txt
-- supports-color@10.2.2
+- supports-color@7.2.0
   License: MIT
   License text: LICENSES/MIT.txt
-- supports-color@7.2.0
+- supports-color@8.1.1
   License: MIT
   License text: LICENSES/MIT.txt
 - tailwindcss@4.3.3
@@ -1725,10 +1566,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
   License text: LICENSES/MIT.txt
 - type-check@0.4.0
   License: MIT
-  License text: LICENSES/MIT.txt
-- type-fest@0.13.1
-  License: (MIT OR CC0-1.0)
-  Selected license for OR expression: MIT
   License text: LICENSES/MIT.txt
 - typescript@6.0.3
   License: Apache-2.0
@@ -1803,9 +1640,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - wrap-ansi@7.0.0
   License: MIT
   License text: LICENSES/MIT.txt
-- wrap-ansi@9.0.2
-  License: MIT
-  License text: LICENSES/MIT.txt
 - wrappy@1.0.2
   License: ISC
   License text: LICENSES/ISC.txt
@@ -1833,13 +1667,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - yargs-parser@21.1.1
   License: ISC
   License text: LICENSES/ISC.txt
-- yargs-parser@22.0.0
-  License: ISC
-  License text: LICENSES/ISC.txt
 - yargs@17.7.2
-  License: MIT
-  License text: LICENSES/MIT.txt
-- yargs@18.0.0
   License: MIT
   License text: LICENSES/MIT.txt
 - yauzl@3.3.2

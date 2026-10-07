@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ShieldAlert, Trash2 } from "lucide-react";
 import type { ProtectedPersonRecord } from "../../../domain/models/protected-person.model";
 import { AUDIT_LOG_RETENTION_NOTICE } from "../../core/copy/privacyNotices";
+import { IndustrialModal } from "../../shared/components/IndustrialControls";
+import { TextCommandTextarea } from "../../shared/textCommands/TextCommandTextarea";
 
 export type PersonPrivacyActionMode = "anonymize" | "delete";
 
@@ -20,6 +22,21 @@ function personLabel(person: ProtectedPersonRecord | null): string {
   if (person.recordKind === "pseudonymous_request")
     return person.pseudonymLabel || "Anonyme Anfrage";
   return `${person.lastName || "ohne Nachname"}, ${person.firstName || "ohne Vorname"}`;
+}
+
+function PrivacyActionContext({ person, affectedCaseCount }: Pick<PersonPrivacyActionDialogProps, 'person' | 'affectedCaseCount'>) {
+  return (
+    <dl className="person-detail-grid privacy-context-grid">
+      <div>
+        <dt>Person</dt>
+        <dd>{personLabel(person)}</dd>
+      </div>
+      <div>
+        <dt>Betroffene Fallakten</dt>
+        <dd>{affectedCaseCount}</dd>
+      </div>
+    </dl>
+  );
 }
 
 const copy = {
@@ -61,8 +78,6 @@ export function PersonPrivacyActionDialog({
   const [confirmation, setConfirmation] = useState("");
   const [formError, setFormError] = useState("");
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
-  const titleId = `person-privacy-action-title-${mode}`;
-  const descriptionId = `person-privacy-action-description-${mode}`;
   const errorId = `person-privacy-action-error-${mode}`;
   const texts = copy[mode];
 
@@ -71,16 +86,7 @@ export function PersonPrivacyActionDialog({
     setReason("");
     setConfirmation("");
     setFormError("");
-    window.setTimeout(() => closeButtonRef.current?.focus(), 0);
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        onClose();
-      }
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, mode, onClose]);
+  }, [open, mode]);
 
   if (!open) return null;
 
@@ -115,48 +121,26 @@ export function PersonPrivacyActionDialog({
   }
 
   return (
-    <div className="industrial-modal-backdrop" role="presentation">
-      <section className="industrial-modal person-privacy-action-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        aria-describedby={descriptionId}
-        data-e2e={`person-${mode}-dialog`}
-      >
-        <div className="industrial-modal-header">
-          <div className="industrial-modal-icon">
-            {mode === "delete" ? (
-              <Trash2 className="industrial-icon-md" aria-hidden="true" />
-            ) : (
-              <ShieldAlert className="industrial-icon-md" aria-hidden="true" />
-            )}
-          </div>
-          <div>
-            <p className="industrial-kicker">{texts.kicker}</p>
-            <h2 id={titleId}>{texts.title}</h2>
-            <p id={descriptionId}>{texts.hint}</p>
-          </div>
-        </div>
-
+    <IndustrialModal
+      title={texts.title}
+      kicker={texts.kicker}
+      description={texts.hint}
+      icon={mode === "delete" ? <Trash2 className="industrial-icon-md" /> : <ShieldAlert className="industrial-icon-md" />}
+      className="person-privacy-action-dialog"
+      initialFocusRef={closeButtonRef}
+      onClose={onClose}
+      dataE2e={`person-${mode}-dialog`}
+    >
         <p className="industrial-message industrial-message-info" data-e2e="audit-log-retention-notice">
           {AUDIT_LOG_RETENTION_NOTICE}
         </p>
 
-        <dl className="person-detail-grid privacy-context-grid">
-          <div>
-            <dt>Person</dt>
-            <dd>{personLabel(person)}</dd>
-          </div>
-          <div>
-            <dt>Betroffene Fallakten</dt>
-            <dd>{affectedCaseCount}</dd>
-          </div>
-        </dl>
+        <PrivacyActionContext person={person} affectedCaseCount={affectedCaseCount} />
 
         <form className="privacy-review-form" onSubmit={submit}>
           <label>
             <span>Grund</span>
-            <textarea
+            <TextCommandTextarea fieldId="person-privacy-reason"
               value={reason}
               onChange={(event) => setReason(event.target.value)}
               aria-describedby={formError ? errorId : undefined}
@@ -192,7 +176,6 @@ export function PersonPrivacyActionDialog({
             </button>
           </div>
         </form>
-      </section>
-    </div>
+    </IndustrialModal>
   );
 }

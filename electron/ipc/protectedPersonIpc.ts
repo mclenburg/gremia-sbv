@@ -12,7 +12,6 @@ import { assertAllowedEnum, assertOptionalObject, assertRecordInput, assertStrin
 export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
   const persons = services.protectedPersons, imports = services.personImport, expiry = services.personStatusExpiry;
   const anonymization = services.personAnonymization, deadlines = services.deadlines, privacyReviews = services.privacyReviews;
-  const retention = () => services.retention();
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.personsList, async (_event, filters?: unknown) =>
     persons().list(assertOptionalObject<ProtectedPersonListFilters>(filters, 'persons:list', 'Filter') ?? {}),
@@ -95,6 +94,18 @@ export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityS
 
 
 
+  registerPrivacyReviewIpc(ipcMain, services);
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.deadlinesIcalExport, async (_event, filters?: unknown, privacyLevel?: unknown) => {
+    const rows = deadlines().list(assertOptionalObject<DeadlineListFilters>(filters, 'deadlines:ical-export', 'Filter') ?? {});
+    return exportDeadlinesToIcal(rows, { privacyLevel: (privacyLevel === 'privacy_first' || privacyLevel === 'process_type' || privacyLevel === 'case_reference' || privacyLevel === 'details' ? privacyLevel : 'process_type') as DeadlineIcalPrivacyLevel });
+  });
+}
+
+function registerPrivacyReviewIpc(ipcMain: IpcMain, services: ApplicationServices): void {
+  const privacyReviews = services.privacyReviews;
+  const retention = () => services.retention();
+
   registerIpcHandler(ipcMain, IPC_CHANNELS.privacyReviewListOpenForPerson, async (_event, protectedPersonId: unknown) =>
     privacyReviews().listOpenForPerson(assertString(protectedPersonId, 'privacy-review:list-open-for-person', 'Person-ID', { minLength: 1, maxLength: 120 })),
   );
@@ -156,8 +167,4 @@ export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityS
     return { ok: true, ...result, message: `${result.marked} abgeschlossene Altakten wurden zur Datenschutzprüfung vorgemerkt.` };
   });
 
-  registerIpcHandler(ipcMain, IPC_CHANNELS.deadlinesIcalExport, async (_event, filters?: unknown, privacyLevel?: unknown) => {
-    const rows = deadlines().list(assertOptionalObject<DeadlineListFilters>(filters, 'deadlines:ical-export', 'Filter') ?? {});
-    return exportDeadlinesToIcal(rows, { privacyLevel: (privacyLevel === 'privacy_first' || privacyLevel === 'process_type' || privacyLevel === 'case_reference' || privacyLevel === 'details' ? privacyLevel : 'process_type') as DeadlineIcalPrivacyLevel });
-  });
 }

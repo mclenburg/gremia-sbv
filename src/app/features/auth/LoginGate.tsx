@@ -1,13 +1,12 @@
 import { useState } from "react";
-import type { FormEvent } from "react";
-import { AlertTriangle, Lock, LockKeyhole } from "lucide-react";
+import { LockKeyhole } from "lucide-react";
 import { IndustrialButton } from "../../shared/components/IndustrialButton";
-import { TextInput } from "../../shared/components/IndustrialForm";
-import { recordRendererDiagnostic, waitForBridge } from "../../core/bridge/waitForBridge";
 import type { AuthMode } from "../../core/auth/authTypes";
-import { validateAppPassword } from "../../../domain/security/passwordPolicy";
 import appIconUrl from "../../../../assets/icons/png/512x512.png";
 import { SecurityUnavailable, RecoveryGate, RecoveryKeyPanel } from './AuthRecoveryViews';
+import { LoginPasswordForm } from "./LoginPasswordForm";
+import { submitLoginPassword } from "./loginPasswordSubmission";
+
 export function LoginGate({
   mode,
   onUnlock,
@@ -53,61 +52,6 @@ export function LoginGate({
     );
   }
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError("");
-
-    const validationError = validateAppPassword(password);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    if (isSetup && password !== passwordRepeat) {
-      setError("Die Passwörter stimmen nicht überein.");
-      return;
-    }
-
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.security) {
-        setError(
-          "Die interne Sicherheitsbrücke ist nicht geladen. Bitte Anwendung neu starten.",
-        );
-        return;
-      }
-
-      if (isSetup) {
-        const result = await bridge.security.setupInitialPassword(password);
-        if (!result.ok) {
-          setError(
-            result.error ??
-              "Das Initialpasswort konnte nicht gespeichert werden.",
-          );
-          return;
-        }
-        if (result.recoveryKey) {
-          setPendingRecoveryKey(result.recoveryKey);
-          return;
-        }
-        onUnlock();
-        return;
-      }
-
-      const result = await bridge.security.unlock(password);
-      if (!result.ok || !result.unlocked) {
-        setError(result.error ?? "Entsperren fehlgeschlagen.");
-        return;
-      }
-      onUnlock(result.warning);
-    } catch (error) {
-      recordRendererDiagnostic("error", "Sicherheitsoperation konnte nicht verarbeitet werden.", error);
-      setError(
-        "Der Sicherheitsdienst konnte die Anfrage nicht verarbeiten. Bitte Anwendung neu starten.",
-      );
-    }
-  }
-
   if (mode === "loading") {
     return (
       <main className="industrial-shell login-shell">
@@ -144,48 +88,18 @@ export function LoginGate({
           </h1>
         </div>
 
-        <form onSubmit={submit} className="auth-form">
-          <TextInput
-            autoFocus
-            type="password"
-            label={isSetup ? "Initialpasswort" : "App-Passwort"}
-            value={password}
-            onValueChange={(value) => {
-              setPassword(value);
-              setError("");
-            }}
-            aria-label={isSetup ? "Initialpasswort" : "App-Passwort"}
-            placeholder={isSetup ? "Initialpasswort festlegen" : "Passwort eingeben"}
-            autoComplete={isSetup ? "new-password" : "current-password"}
-          />
-
-          {isSetup && (
-            <TextInput
-              type="password"
-              label="Wiederholung"
-              value={passwordRepeat}
-              onValueChange={(value) => {
-                setPasswordRepeat(value);
-                setError("");
-              }}
-              aria-label="Initialpasswort wiederholen"
-              placeholder="Initialpasswort wiederholen"
-              autoComplete="new-password"
-            />
-          )}
-
-          {error && (
-            <div className="industrial-message industrial-message-warning auth-inline-alert">
-              <AlertTriangle className="industrial-icon" />
-              <p>{error}</p>
-            </div>
-          )}
-
-          <IndustrialButton type="submit" wide>
-            <Lock className="industrial-icon" />
-            {isSetup ? "Initialpasswort speichern" : "Entsperren"}
-          </IndustrialButton>
-        </form>
+        <LoginPasswordForm
+          isSetup={isSetup}
+          password={password}
+          passwordRepeat={passwordRepeat}
+          error={error}
+          onPasswordChange={(value) => { setPassword(value); setError(""); }}
+          onRepeatChange={(value) => { setPasswordRepeat(value); setError(""); }}
+          onSubmit={(event) => {
+            event.preventDefault();
+            void submitLoginPassword({ password, passwordRepeat, isSetup, setError, setPendingRecoveryKey, onUnlock });
+          }}
+        />
 
         {!isSetup && (
           <div className="auth-recovery-footer">

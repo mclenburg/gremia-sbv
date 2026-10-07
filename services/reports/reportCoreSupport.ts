@@ -1,17 +1,7 @@
-import { randomUUID } from "node:crypto";
-import fs from "node:fs";
-import path from "node:path";
 import type { DatabaseAdapter } from "../databaseService.js";
-import { PersonalDataAuditLogService } from "../auditLogService.js";
-import { ActivityReportProjectionService } from "../activityReportProjectionService.js";
-import { TempFileService } from "../tempFileService.js";
-import { normalizeReportType } from "../../src/domain/models/report.model.js";
 import type {
   GenerateReportInput,
   ReportDescriptor,
-  ReportExportHistoryItem,
-  ReportGenerationResult,
-  ReportType,
 } from "../../src/domain/models/report.model.js";
 
 export const REPORT_DESCRIPTORS: ReportDescriptor[] = [

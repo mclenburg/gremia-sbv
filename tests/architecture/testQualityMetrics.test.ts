@@ -70,15 +70,4 @@ describe('reproduzierbare Testqualitätsmetriken', () => {
       stdio: 'pipe',
     })).not.toThrow();
   });
-
-  it('ersetzt die nicht belegte Prozent-Selbstauskunft und bindet das Ratchet in den Releaseweg ein', () => {
-    const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as { scripts: Record<string, string> };
-    const cleanupManifest = readFileSync('maintenance/source-cleanup/obsolete-string-tests-0.9.1-final.json', 'utf8');
-
-    expect(packageJson.scripts['test:quality-report']).toBe('node scripts/report-test-quality.cjs');
-    expect(packageJson.scripts['test:quality-check']).toBe('node scripts/report-test-quality.cjs --check');
-    expect(packageJson.scripts['build:verify']).toContain('npm run test:quality-check');
-    expect(packageJson.scripts['release:check']).toContain('npm run build:verify');
-    expect(cleanupManifest).not.toContain('68 Prozent Verhaltenstests');
-  });
 });

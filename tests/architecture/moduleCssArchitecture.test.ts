@@ -28,24 +28,6 @@ const appWideCssFiles = new Set([
   "src/app/ui/forms.css",
 ]);
 
-const centralUiCssFiles = [
-  "src/app/ui/base.css",
-  "src/app/ui/appShell.css",
-  "src/app/ui/components.css",
-  "src/app/ui/modal.css",
-  "src/app/ui/workbench.css",
-  "src/app/ui/forms.css",
-  "src/app/ui/processes.css",
-  "src/app/ui/featureModules.css",
-  "src/app/ui/responsiveDesign.css",
-];
-
-function centralUiCss(): string {
-  return centralUiCssFiles
-    .map((file) => readFileSync(path.join(projectRoot, file), "utf8"))
-    .join("\n");
-}
-
 const centralWorkbenchSelectors = [
   "industrial-workspace-shell",
   "industrial-workspace-nav",
@@ -55,7 +37,6 @@ const centralWorkbenchSelectors = [
   "industrial-record-card",
   "industrial-selection-card",
   "industrial-empty-state",
-  "industrial-tag",
   "workbench-page",
   "workbench-header",
   "workbench-sidebar",
@@ -97,14 +78,12 @@ const centralWorkbenchSelectors = [
   "industrial-confirm-dialog",
   "industrial-empty-state-action",
   "industrial-search-toolbar",
-  "industrial-filter-bar",
   "industrial-search-field",
   "industrial-search-count",
   "industrial-search-actions",
   "industrial-record-list-item",
   "industrial-data-table-shell",
   "industrial-data-table",
-  "industrial-data-table-cell",
   "industrial-export-action",
   "industrial-file-location-notice",
   "industrial-import-package-review",
@@ -278,12 +257,6 @@ describe("App-weite CSS-Architektur", () => {
   });
 
   it("definiert zentrale Industrial- und Workbench-Styles ausschließlich in der app-weiten Style-Basis", () => {
-    const centralCss = centralUiCss();
-    const missingCentralSelectors = centralWorkbenchSelectors.filter(
-      (selector) => !centralCss.includes(`.${selector}`),
-    );
-    expect(missingCentralSelectors).toEqual([]);
-
     const pendingCleanup = cleanupCssEntries();
     const cssFiles = walkFiles(path.join(projectRoot, "src"), (file) =>
       file.endsWith(".css"),

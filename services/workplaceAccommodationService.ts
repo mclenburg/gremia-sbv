@@ -208,10 +208,29 @@ export class WorkplaceAccommodationService {
       input.title,
     );
 
+    this.createDefaultDeadlines(input, measure.id, implementationDueAt, effectivenessReviewAt);
+
+    this.audit(
+      "create",
+      measure.id,
+      input.caseId,
+      "Arbeitsplatzgestaltung in Fallakte angelegt",
+    );
+    return this.getById(measure.id)!;
+
+    });
+  }
+
+  private createDefaultDeadlines(
+    input: CreateWorkplaceAccommodationInput,
+    measureId: string,
+    implementationDueAt: string | null,
+    effectivenessReviewAt: string | null,
+  ): void {
     if (input.createDefaultDeadlines !== false && implementationDueAt) {
       this.deadlines.create({
         caseId: input.caseId,
-        processId: measure.id,
+        processId: measureId,
         processType: "custom",
         deadlineType: "workflow_step",
         title: "Umsetzung Arbeitsplatzgestaltung prüfen",
@@ -232,7 +251,7 @@ export class WorkplaceAccommodationService {
     if (input.createDefaultDeadlines !== false && effectivenessReviewAt) {
       this.deadlines.create({
         caseId: input.caseId,
-        processId: measure.id,
+        processId: measureId,
         processType: "custom",
         deadlineType: "follow_up",
         title: "Wirksamkeit Arbeitsplatzgestaltung prüfen",
@@ -250,16 +269,6 @@ export class WorkplaceAccommodationService {
         criticalThresholdHours: 48,
       });
     }
-
-    this.audit(
-      "create",
-      measure.id,
-      input.caseId,
-      "Arbeitsplatzgestaltung in Fallakte angelegt",
-    );
-    return this.getById(measure.id)!;
-  
-    });
   }
 
   update(

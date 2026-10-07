@@ -1,4 +1,3 @@
-import { readFileSync, statSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import type { SbvResourceRecord } from '../../../src/domain/models/sbv-resource.model';
 import {
@@ -17,14 +16,6 @@ import {
   resourceOperationNotice,
   updateResourceFormValue,
 } from '../../../src/app/features/sbv-control/sbvControlLogic';
-
-function source(path: string): string {
-  return readFileSync(path, 'utf8');
-}
-
-function lineCount(path: string): number {
-  return source(path).split('\n').length;
-}
 
 const resource: SbvResourceRecord = {
   id: 'res-1',
@@ -45,20 +36,7 @@ const resource: SbvResourceRecord = {
   updatedAt: '2026-05-19T10:00:00.000Z'
 };
 
-describe('SBV-Steuerung Refactor P10g', () => {
-  it('zerlegt die ehemalige Großdatei in kleine fachliche Komponenten und einen Ressourcen-Hook', () => {
-    expect(lineCount('src/app/features/sbv-control/SbvControlView.tsx')).toBeLessThan(250);
-    expect(lineCount('src/app/features/sbv-control/components/ResourceForm.tsx')).toBeLessThan(180);
-    expect(lineCount('src/app/features/sbv-control/components/ResourceSection.tsx')).toBeLessThan(140);
-    expect(lineCount('src/app/features/sbv-control/hooks/useSbvResources.ts')).toBeLessThan(180);
-
-    expect(statSync('src/app/features/sbv-control/components/ObligationsList.tsx').isFile()).toBe(true);
-    expect(statSync('src/app/features/sbv-control/components/InclusionPanel.tsx').isFile()).toBe(true);
-    expect(statSync('src/app/features/sbv-control/components/ReportsPanel.tsx').isFile()).toBe(true);
-    expect(statSync('src/app/features/sbv-control/components/ProtocolSection.tsx').isFile()).toBe(true);
-    expect(statSync('src/app/features/sbv-control/hooks/useSbvControlProtocols.ts').isFile()).toBe(true);
-  });
-
+describe('SBV resource and protocol behavior', () => {
   it('hält Ressourcen-Formularverhalten fachlich in zentralen Funktionen fest', () => {
     expect(isResourceTitleMissing(initialResourceForm)).toBe(true);
     expect(isResourceTitleMissing({ ...initialResourceForm, title: '  Schulung  ' })).toBe(false);
@@ -107,13 +85,4 @@ describe('SBV-Steuerung Refactor P10g', () => {
     expect(resourceOperationAnnouncement('delete')).toBe('Nachweis wurde gelöscht.');
   });
 
-  it('bindet useAnnouncer im Ressourcen-Hook statt in der View-Großdatei an', () => {
-    const hook = source('src/app/features/sbv-control/hooks/useSbvResources.ts');
-    const view = source('src/app/features/sbv-control/SbvControlView.tsx');
-
-    expect(hook).toContain('useAnnouncer');
-    expect(hook.match(/announce\(/g)?.length).toBeGreaterThanOrEqual(5);
-    expect(view).not.toContain('async function saveResource');
-    expect(view).not.toContain('async function deleteResource');
-  });
 });

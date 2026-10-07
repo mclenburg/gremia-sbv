@@ -150,22 +150,6 @@ export function IndustrialWarningPanel({
     </div>
   );
 }
-export function IndustrialDangerPanel({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <div
-      className={joinClassNames("industrial-danger-panel", className)}
-      role="alert"
-    >
-      {children}
-    </div>
-  );
-}
 export function IndustrialPanelHeader({
   kicker,
   title,

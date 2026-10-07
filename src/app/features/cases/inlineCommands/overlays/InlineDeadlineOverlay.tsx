@@ -1,102 +1,13 @@
-import {
-  AlertTriangle,
-  BadgeCheck,
-  CalendarPlus,
-  CheckCircle2,
-  ClipboardCheck,
-  FileText,
-  HeartPulse,
-  Wrench,
-  FolderKanban,
-  Lock,
-  Scale,
-  ShieldAlert,
-  Siren,
-  Users,
-} from "lucide-react";
-import type { LegalNormSuggestion } from "@/domain/textCommands/textCommandPolicy";
-import {
-  LEGAL_NORM_SUGGESTIONS,
-  formatAnonymizationMarkerText,
-  formatBemMarkerText,
-  formatConfidentialityText,
-  formatLegalNormText,
-  formatOpenTaskText,
-  formatPreventionMarkerText,
-  formatEqualizationMarkerText,
-  formatTerminationMarkerText,
-  formatRiskText,
-  formatTemplateMarkerText,
-} from "@/domain/textCommands/textCommandPolicy";
-import type { ContactCategory } from "../../../../../domain/models/contact.model";
-import type { DeadlineSeverity } from "../../../../../domain/models/deadline.model";
-import type { ConfidentialCommandLevel, RiskLevelCommand } from "@/domain/textCommands/textCommandPolicy";
-import { filterContactsForQuery, formatContactReference } from "../../../contacts/contactDisplay";
-import { filterCasesForInlineCommand, filterNormsForInlineCommand } from "../inlineCommandSearch";
+import { CalendarPlus } from "lucide-react";
 import type { InlineCommandOverlaysProps } from "../InlineCommandOverlays";
-import { FieldCaption, IndustrialModalSurface } from "./inlineCommandOverlayShared";
+import { IndustrialModalSurface } from "./inlineCommandOverlayShared";
+import { InlineDeadlineFields } from "./InlineDeadlineFields";
 
-export function InlineDeadlineOverlay({ props }: { props: InlineCommandOverlaysProps }) {
+type OverlayProps = Pick<InlineCommandOverlaysProps,
+  "inlineDeadlineDraft" | "setInlineDeadlineDraft" | "selectedCase" | "buildInlineDeadlineText" | "createInlineDeadlineFromProtocol" | "cancelInlineDeadlineDraft">;
+
+export function InlineDeadlineOverlay({ props }: { props: OverlayProps }) {
   const {
-    inlineCaseLinkDraft,
-    setInlineCaseLinkDraft,
-    cases,
-    insertCaseReferenceFromProtocol,
-    cancelInlineCaseLinkDraft,
-    inlineLegalNormDraft,
-    setInlineLegalNormDraft,
-    insertLegalNormFromProtocol,
-    cancelInlineLegalNormDraft,
-    inlineRiskDraft,
-    setInlineRiskDraft,
-    insertRiskFromProtocol,
-    cancelInlineRiskDraft,
-    inlineOpenTaskDraft,
-    setInlineOpenTaskDraft,
-    createOpenTaskFromProtocol,
-    cancelInlineOpenTaskDraft,
-    inlineConfidentialityDraft,
-    setInlineConfidentialityDraft,
-    applyConfidentialityFromProtocol,
-    cancelInlineConfidentialityDraft,
-    inlineAnonymizationDraft,
-    setInlineAnonymizationDraft,
-    applyAnonymizationMarkerFromProtocol,
-    cancelInlineAnonymizationDraft,
-    inlineContactDraft,
-    setInlineContactDraft,
-    contacts,
-    insertExistingContactFromProtocol,
-    createAndInsertContactFromProtocol,
-    cancelInlineContactDraft,
-    inlineBemDraft,
-    setInlineBemDraft,
-    createBemFromProtocol,
-    cancelInlineBemDraft,
-    inlinePreventionDraft,
-    setInlinePreventionDraft,
-    createPreventionFromProtocol,
-    cancelInlinePreventionDraft,
-    inlineEqualizationDraft,
-    setInlineEqualizationDraft,
-    createEqualizationFromProtocol,
-    cancelInlineEqualizationDraft,
-    inlineTerminationDraft,
-    setInlineTerminationDraft,
-    createTerminationFromProtocol,
-    cancelInlineTerminationDraft,
-    inlineParticipationDraft,
-    setInlineParticipationDraft,
-    createParticipationFromProtocol,
-    cancelInlineParticipationDraft,
-    inlineWorkplaceAccommodationDraft,
-    setInlineWorkplaceAccommodationDraft,
-    createWorkplaceAccommodationFromProtocol,
-    cancelInlineWorkplaceAccommodationDraft,
-    inlineTemplateDraft,
-    setInlineTemplateDraft,
-    applyTemplateMarkerFromProtocol,
-    cancelInlineTemplateDraft,
     inlineDeadlineDraft,
     setInlineDeadlineDraft,
     selectedCase,
@@ -124,80 +35,7 @@ export function InlineDeadlineOverlay({ props }: { props: InlineCommandOverlaysP
           </div>
         </div>
 
-        <div className="industrial-modal-grid">
-          <label>
-            <span>Fristtitel</span>
-            <input
-              value={inlineDeadlineDraft.title}
-              onChange={(event) =>
-                setInlineDeadlineDraft((current) =>
-                  current
-                    ? { ...current, title: event.target.value }
-                    : current,
-                )
-              }
-              placeholder="z. B. Antwort Arbeitgeber nachhalten" className="industrial-input" />
-          </label>
-          <label>
-            <span>Ablaufdatum</span>
-            <input
-              type="datetime-local"
-              value={inlineDeadlineDraft.dueAt}
-              onChange={(event) =>
-                setInlineDeadlineDraft((current) =>
-                  current
-                    ? { ...current, dueAt: event.target.value }
-                    : current,
-                )
-              } className="industrial-input" />
-          </label>
-          <label>
-            <span>Stufe</span>
-            <select className="industrial-select"
-              value={inlineDeadlineDraft.severity}
-              onChange={(event) =>
-                setInlineDeadlineDraft((current) =>
-                  current
-                    ? {
-                        ...current,
-                        severity: event.target.value as DeadlineSeverity,
-                      }
-                    : current,
-                )
-              }
-            >
-              <option value="normal">normal</option>
-              <option value="important">wichtig</option>
-              <option value="critical">kritisch</option>
-              <option value="fatal">fatal</option>
-            </select>
-          </label>
-          <label>
-            <span>Rechtsbezug</span>
-            <input
-              value={inlineDeadlineDraft.legalBasis}
-              onChange={(event) =>
-                setInlineDeadlineDraft((current) =>
-                  current
-                    ? { ...current, legalBasis: event.target.value }
-                    : current,
-                )
-              }
-              placeholder="optional" className="industrial-input" />
-          </label>
-          <label className="industrial-modal-wide">
-            <span>Notiz zur Frist</span>
-            <input
-              value={inlineDeadlineDraft.description}
-              onChange={(event) =>
-                setInlineDeadlineDraft((current) =>
-                  current
-                    ? { ...current, description: event.target.value }
-                    : current,
-                )
-              } className="industrial-input" />
-          </label>
-        </div>
+        <InlineDeadlineFields inlineDeadlineDraft={inlineDeadlineDraft} setInlineDeadlineDraft={setInlineDeadlineDraft} />
 
         {inlineDeadlineDraft.dueAt && (
           <div className="industrial-modal-preview">

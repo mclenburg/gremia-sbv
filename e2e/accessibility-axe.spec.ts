@@ -78,9 +78,11 @@ const AXE_HELP_ROUTE_IDS = new Set(
   VISUAL_QA_ROUTES.filter((candidate) => isHelpDialogQaRoute(candidate.id)).map((route) => route.id),
 );
 
-// Jede Route bleibt ein eigener Testfall und damit klar unter dem globalen 30-Sekunden-Limit.
+// Jede Route bleibt ein eigener Testfall. Axe-Scans erhalten bei paralleler
+// Ausführung mehr Zeit als die übrigen Browser-Tests.
 // BrowserContext und Page werden über support/test.ts workerweit wiederverwendet; der
 // teure App-Bootstrap findet deshalb nicht pro Route erneut statt.
+test.setTimeout(60_000);
 test.describe.configure({ mode: 'parallel' });
 
 test.describe('P15m Axe accessibility scan', () => {

@@ -22,6 +22,11 @@ export function registerKnowledgeIpc(
   security: SecurityService,
   services: ApplicationServices,
 ): void {
+  registerIpcHandler(ipcMain, IPC_CHANNELS.textEntityReferenceCreate, async (_event, kind: unknown, id: unknown) => {
+    const checkedKind = assertString(kind, 'text-entity-reference:create', 'Art', { minLength: 4, maxLength: 6 });
+    if (checkedKind !== 'person' && checkedKind !== 'case') throw new Error('Ungültige Verknüpfungsart.');
+    return services.textEntityReferences().create(checkedKind, assertString(id, 'text-entity-reference:create', 'Datensatz-ID', { minLength: 1, maxLength: 120 }));
+  });
   registerIpcHandler(ipcMain, IPC_CHANNELS.knowledgeNormsList, async (_event, filters?: unknown) =>
     services.knowledge().listNorms(
       assertOptionalObject<LegalNormSearchInput>(filters, "knowledge:norms:list", "Filter"),

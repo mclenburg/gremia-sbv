@@ -1,5 +1,6 @@
 import { app, BrowserWindow, Menu } from "electron";
 import { markStartupPhase } from "./startupPerformance.js";
+import { bootstrapSplashWindowOptions, startWithVisibleSplash } from "./startupBootstrap.js";
 import {
   buildStartupSplashHtml,
   buildStartupStatusScript,
@@ -39,23 +40,7 @@ async function showStartupSplash(initialPhase: StartupPhaseId = "app"): Promise<
   }
 
   markStartupPhase("splash:create-window");
-  const splash = new BrowserWindow({
-    width: 760,
-    height: 460,
-    minWidth: 640,
-    minHeight: 420,
-    title: "Gremia.SBV wird gestartet",
-    show: true,
-    resizable: false,
-    maximizable: false,
-    fullscreenable: false,
-    backgroundColor: "#050505",
-    webPreferences: {
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: true,
-    },
-  });
+  const splash = new BrowserWindow(bootstrapSplashWindowOptions());
 
   splashWindow = splash;
   markStartupPhase("splash:visible");
@@ -93,11 +78,11 @@ if (!singleInstanceLock) {
       Menu.setApplicationMenu(null);
     }
 
-    const splash = await showStartupSplash("app");
-    markStartupPhase("runtime:import-start");
-    const runtime = await import("./appRuntime.js");
-    markStartupPhase("runtime:import-complete");
-    await runtime.startApplication(splash);
+    await startWithVisibleSplash(
+      () => showStartupSplash("app"),
+      () => import("./appRuntime.js"),
+      markStartupPhase,
+    );
   }).catch((error) => {
     console.error("Gremia.SBV bootstrap startup failed", error instanceof Error ? error.name : "UnknownError");
     if (splashWindow && !splashWindow.isDestroyed()) splashWindow.close();

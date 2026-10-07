@@ -11,8 +11,6 @@ export interface SeedLegalNorm {
   checklist: string[];
 }
 
-export const KNOWLEDGE_SCHEMA_VERSION = '0013';
-
 export const DEFAULT_LEGAL_NORMS: SeedLegalNorm[] = [
   {
     id: 'sgb-ix-167-1',

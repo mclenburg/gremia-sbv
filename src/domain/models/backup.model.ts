@@ -1,18 +1,3 @@
-export interface BackupCreateInput {
-  passphrase: string;
-}
-
-export interface BackupRestoreInput {
-  filePath?: string;
-  passphrase: string;
-  confirmation: string;
-}
-
-export interface BackupVerifyInput {
-  filePath?: string;
-  passphrase: string;
-}
-
 export interface BackupFileSummary {
   relativePath: string;
   sizeBytes: number;

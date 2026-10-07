@@ -7,6 +7,7 @@ import { SearchIndexService } from './search/searchIndexService.js';
 import { MeasureLifecycleAuditService } from './measureLifecycleAuditService.js';
 import { CaseLifecycleAuditService } from './caseLifecycleAuditService.js';
 import { runCaseDeletionTransaction } from './caseDeletionTransaction.js';
+import { TextEntityReferenceService } from './textEntityReferenceService.js';
 import { RetentionOwnerRegistry } from './retentionOwnerRegistry.js';
 import { CASE_DELETE_CONFIRMATION, DatabaseRow, nowIso, bool, readNumberSetting, readTextSetting, writeSetting, safeRun, tableExists, getColumns, latestActivityExpression, CaseDocumentFileRow, removeCaseDocumentFiles, lifecycleRowsForCase } from './retentionSupport.js';
 import { ensureRetentionRuntimeSchema } from './runtimeSchemaCompatibility.js';
@@ -356,6 +357,7 @@ export class RetentionService {
       return { ok: false, action: 'none', error: `Bitte exakt „${CASE_DELETE_CONFIRMATION}“ eingeben.` };
     }
     const db = this.db;
+    const sanitizedReason = new TextEntityReferenceService(db).replaceForTarget('case', caseId, reason);
     const row = db.prepare<DatabaseRow>('SELECT id, case_number FROM cases WHERE id = ?').get(caseId);
     if (!row) return { ok: false, action: 'none', error: 'Fall nicht gefunden.' };
 
@@ -376,6 +378,7 @@ export class RetentionService {
 
     runCaseDeletionTransaction(db, {
       deleteDependentData: () => {
+        affectedRows += new TextEntityReferenceService(db).redact('case', caseId);
         const lifecycle = new MeasureLifecycleAuditService(db);
         for (const measure of lifecycleRows) {
           lifecycle.deleted(measure.measureType, measure.id, measure.caseId, measure.status, 'case_cascade');
@@ -409,7 +412,7 @@ export class RetentionService {
         affectedRows += safeRun(db, `DELETE FROM cases WHERE id = ?`, caseId);
       },
       recordRetentionAction: () => {
-        this.recordAction(db, 'case_deleted', 'case', caseId, row.case_number, reason, affectedRows, affectedFiles);
+        this.recordAction(db, 'case_deleted', 'case', caseId, row.case_number, sanitizedReason, affectedRows, affectedFiles);
       },
     });
     // Der Suchindex ist eine vollständig rekonstruierbare Projektion und gehört nicht zur fachlichen Transaktion.

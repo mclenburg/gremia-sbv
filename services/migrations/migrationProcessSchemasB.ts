@@ -1,10 +1,4 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import type { DatabaseAdapter } from '../databaseService.js';
-import { classifyCaseLegalReferencesColumns } from '../knowledgeMigrationPolicy.js';
-import { APP_VERSION } from '../generated/appMetadata.js';
-import { getSchemaMigrationHook } from '../schemaMigrationHooks.js';
-import { APP_SCHEMA_VERSION, ACTIVITY_JOURNAL_CATEGORY_PREFERENCES_REQUIRED_COLUMNS, ACTIVITY_JOURNAL_ENTRIES_REQUIRED_COLUMNS, ACTIVITY_JOURNAL_LINKS_REQUIRED_COLUMNS, COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS, GENERATED_DOCUMENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS, SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS, SBV_RESOURCE_RECORDS_REQUIRED_COLUMNS, RECRUITING_INTERVIEW_EVENTS_REQUIRED_COLUMNS, RECRUITING_PARTICIPATIONS_REQUIRED_COLUMNS, CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS, CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS, CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS, CASES_REQUIRED_COLUMNS, CASE_MEASURES_REQUIRED_COLUMNS, CASE_MEASURE_PARTICIPATION_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_MEASURE_WORKPLACE_ACCOMMODATION_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS, GREMIA_BR_CACHE_REQUIRED_COLUMNS, GREMIA_BR_SETTINGS_REQUIRED_COLUMNS, PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS, PROTECTED_PERSONS_REQUIRED_COLUMNS, DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY, PERSONAL_DATA_AUDIT_REQUIRED_COLUMNS, SBV_PARTICIPATION_REQUIRED_COLUMNS, TERMINATION_HEARINGS_REQUIRED_COLUMNS } from '../appSchema.js';
+import { CASES_REQUIRED_COLUMNS, PERSON_IMPORT_RUN_ITEMS_REQUIRED_COLUMNS, PROTECTED_PERSONS_REQUIRED_COLUMNS } from '../appSchema.js';
 import { MigrationProcessSchemasA } from './migrationProcessSchemasA.js';
 
 export class MigrationProcessSchemasB extends MigrationProcessSchemasA {
@@ -269,41 +263,6 @@ export class MigrationProcessSchemasB extends MigrationProcessSchemasA {
         );
         CREATE INDEX IF NOT EXISTS idx_case_measure_notes_measure ON case_measure_notes(measure_type, measure_id, note_at DESC);
         CREATE INDEX IF NOT EXISTS idx_case_measure_notes_case ON case_measure_notes(case_id, note_at DESC);
-      `);
-    }
-
-  protected ensureWorkplaceAccommodationSchema(): void {
-      this.db.exec(`
-        CREATE TABLE IF NOT EXISTS case_measure_workplace_accommodation (
-          measure_id TEXT PRIMARY KEY,
-          category TEXT NOT NULL DEFAULT 'sonstiges',
-          accommodation_status TEXT NOT NULL DEFAULT 'entwurf',
-          requested_adjustment TEXT NOT NULL DEFAULT '',
-          legal_basis TEXT NOT NULL DEFAULT '§ 164 Abs. 4 SGB IX',
-          barrier_or_limitation TEXT,
-          workplace_context TEXT,
-          proposed_solution TEXT,
-          technical_aid_needed INTEGER NOT NULL DEFAULT 0,
-          organizational_adjustment_needed INTEGER NOT NULL DEFAULT 0,
-          working_time_adjustment_needed INTEGER NOT NULL DEFAULT 0,
-          qualification_needed INTEGER NOT NULL DEFAULT 0,
-          fixed_workplace_needed INTEGER NOT NULL DEFAULT 0,
-          homeoffice_or_mobile_work_relevant INTEGER NOT NULL DEFAULT 0,
-          inclusion_office_involved INTEGER NOT NULL DEFAULT 0,
-          rehab_carrier_involved INTEGER NOT NULL DEFAULT 0,
-          employer_response_status TEXT NOT NULL DEFAULT 'offen',
-          employer_response_at TEXT,
-          implementation_status TEXT NOT NULL DEFAULT 'nicht_begonnen',
-          implementation_due_at TEXT,
-          effectiveness_review_at TEXT,
-          outcome TEXT,
-          created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL,
-          FOREIGN KEY(measure_id) REFERENCES case_measures(id) ON DELETE CASCADE
-        );
-        CREATE INDEX IF NOT EXISTS idx_case_measure_workplace_status ON case_measure_workplace_accommodation(accommodation_status);
-        CREATE INDEX IF NOT EXISTS idx_case_measure_workplace_category ON case_measure_workplace_accommodation(category);
-        CREATE INDEX IF NOT EXISTS idx_case_measure_workplace_review ON case_measure_workplace_accommodation(effectiveness_review_at);
       `);
     }
 }

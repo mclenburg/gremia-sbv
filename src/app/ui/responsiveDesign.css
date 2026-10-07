@@ -109,13 +109,8 @@
     padding: var(--space-4);
   }
 
-  .industrial-title {
-    font-size: var(--font-size-display);
-  }
-
   .industrial-card,
-  .industrial-deadline-card,
-  .industrial-dashboard-card {
+  .industrial-deadline-card {
     min-height: auto;
   }
 
@@ -197,24 +192,11 @@
   .case-workbench {
     grid-template-columns: 1fr !important;
   }
-
-  .case-search-bar {
-    grid-template-columns: 1fr !important;
-  }
-
-  .case-search-bar > * {
-    min-width: 0;
-    max-width: 100%;
-  }
 }
 
 @media (max-width: 980px) {
   .industrial-workspace-shell {
     grid-template-columns: 1fr;
-  }
-
-  .workbench-header {
-    display: grid;
   }
 
   .workbench-toolbar {
@@ -243,14 +225,8 @@
 }
 
 @media (max-width: 980px) {
-  .sbv-control-shell,
-  .sbv-control-row,
-  .sbv-control-table-row {
+  .sbv-control-row {
     grid-template-columns: 1fr;
-  }
-
-  .sbv-control-panel-head {
-    display: grid;
   }
 }
 
@@ -305,7 +281,6 @@
 }
 
 @media (max-width: 760px) {
-  .person-detail-heading-row,
   .person-detail-actions {
     display: grid;
     grid-template-columns: 1fr;
@@ -352,10 +327,6 @@
 @media (max-width: 900px) {
   .case-detail-search-bar {
     grid-template-columns: 1fr;
-  }
-
-  .case-detail-search-bar > .h-4 {
-    display: none;
   }
 
   .case-detail-search-bar .industrial-checkbox-row.compact,

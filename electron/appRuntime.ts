@@ -38,12 +38,12 @@ let applicationServices: ApplicationServices;
 let demoVaultPreparing = false;
 let demoVaultReady = false;
 
-function scheduleDemoVaultPreparation(dataDirectory: string): void {
+function scheduleDemoVaultPreparation(): void {
   markStartupPhase("runtime:demo-vault-background-scheduled");
-  setTimeout(() => { void prepareDemoVaultInBackground(dataDirectory); }, 500);
+  setTimeout(() => { void prepareDemoVaultInBackground(); }, 500);
 }
 
-async function prepareDemoVaultInBackground(dataDirectory: string): Promise<void> {
+async function prepareDemoVaultInBackground(): Promise<void> {
   try {
     markStartupPhase("runtime:demo-vault-background-start");
     await prepareDemoVault(security);
@@ -160,7 +160,7 @@ export async function startApplication(existingSplashWindow?: BrowserWindow): Pr
   finishPackagedStartupSmoke(dataDirectory, app);
 
   if (demoMode) {
-    scheduleDemoVaultPreparation(dataDirectory);
+    scheduleDemoVaultPreparation();
   }
 }
 

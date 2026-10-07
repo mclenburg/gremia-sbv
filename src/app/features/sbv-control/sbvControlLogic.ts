@@ -11,7 +11,6 @@ import type {
 } from '../../../domain/models/sbv-control-protocol.model';
 import { recordMatchesQuery } from '../../shared/components/WorkbenchLayout';
 import { getParticipationEscalationAdvice } from '../participation/participationPolicy';
-import type { ObligationItem } from './sbvControlTypes';
 import {
   getTextCommandArgument,
   getTextCommandKind,
@@ -71,12 +70,6 @@ export function countCriticalParticipation(records: ParticipationRecord[]) {
 
 export function monthLabel(date = new Date()): string {
   return date.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
-}
-
-export function toneLabel(risk: ObligationItem['risk']) {
-  if (risk === 'critical') return 'kritisch';
-  if (risk === 'warning') return 'prüfen';
-  return 'ok';
 }
 
 export function formatDate(value?: string): string {

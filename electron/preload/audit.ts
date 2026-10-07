@@ -15,13 +15,7 @@ import type {
   CreateActivityJournalEntryInput,
   UpdateActivityJournalEntryInput,
 } from "../../src/domain/models/activity-journal.model.js";
-import type {
-  CreateDeadlineInput,
-  DeadlineDashboardItem,
-  DeadlineListFilters,
-  DeadlineRecord,
-  UpdateDeadlineInput,
-} from "../../src/domain/models/deadline.model.js";
+import type { DeadlineRecord } from "../../src/domain/models/deadline.model.js";
 
 export function createAuditApi(invokeIpc: IpcInvoker) {
   return {

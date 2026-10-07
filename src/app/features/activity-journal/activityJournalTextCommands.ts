@@ -1,4 +1,4 @@
-import type { ActivityJournalFormState } from './hooks/useActivityJournal';
+import type { ActivityJournalFormState } from './activityJournalForm';
 
 export type ActivityJournalCommandApplyResult = {
   form: ActivityJournalFormState;

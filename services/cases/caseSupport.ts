@@ -1,47 +1,18 @@
-import fs from "node:fs";
-import path from "node:path";
-import {
-  createCipheriv,
-  createDecipheriv,
-  createHash,
-  randomBytes,
-  randomUUID,
-} from "node:crypto";
 import type {
-  CaseCategory,
-  CasePriority,
-  CaseRecord,
-  CaseStatus,
-  CreateCaseInput,
-  LegacyCaseBindingInput,
-  LegacyCaseBindingResult,
+CaseCategory,
+CasePriority,
+CaseRecord,
+CaseStatus
 } from "../../src/domain/models/case.model.js";
 import type { CaseDocumentRecord } from "../../src/domain/models/case-document.model.js";
 import type {
-  CaseContentSearchInput,
-  CaseNoteRecord,
-  CaseNoteType,
-  CaseSearchResult,
-  ConfidentialLevel,
-  CreateCaseNoteInput,
-  UpdateCaseNoteInput,
+CaseNoteRecord,
+CaseNoteType,
+ConfidentialLevel
 } from "../../src/domain/models/case-note.model.js";
 import type {
-  CaseNoteLinkRecord,
-  CreateCaseNoteLinkInput,
+CaseNoteLinkRecord
 } from "../../src/domain/models/case-note-link.model.js";
-import type { DatabaseAdapter } from "../databaseService.js";
-import {
-  ensureContactPrivacySchema,
-  scanCaseNoteContactReferences,
-} from "../contactPrivacyService.js";
-import { PersonalDataAuditLogService } from "../auditLogService.js";
-import { TempFileService } from "../tempFileService.js";
-import { PersonCaseBindingService } from "../personCaseBindingService.js";
-import { assertCanCreateRegularCase } from "../personCaseBindingPolicy.js";
-import { SearchIndexService } from "../search/searchIndexService.js";
-import { extractDocumentTextBestEffort, inferMimeType } from "../documents/documentTextExtractionService.js";
-import { DocumentOcrService } from "../documents/documentOcrService.js";
 
 export /** SQLite row at the persistence boundary. Values remain scalar and must be
  * normalized by the service mapper before entering the domain model. */

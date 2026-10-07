@@ -1,252 +1,115 @@
-import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { ACTIVITY_JOURNAL_CATEGORY_PREFERENCES_REQUIRED_COLUMNS, ACTIVITY_JOURNAL_ENTRIES_REQUIRED_COLUMNS, ACTIVITY_JOURNAL_LINKS_REQUIRED_COLUMNS, CASE_DOCUMENTS_REQUIRED_COLUMNS, CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS, CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS, COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS, CASE_MEASURE_NOTES_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_REQUIRED_COLUMNS, CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS, GREMIA_BR_CACHE_REQUIRED_COLUMNS, GREMIA_BR_CASE_CREATIONS_REQUIRED_COLUMNS, GREMIA_BR_SETTINGS_REQUIRED_COLUMNS, GREMIA_BR_WORKSPACE_ACTIONS_REQUIRED_COLUMNS, MOBILE_COMPANION_CHANGE_IMPORTS_REQUIRED_COLUMNS, MOBILE_COMPANION_DEVICES_REQUIRED_COLUMNS, SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS, SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS, TRANSFER_RECIPIENT_PROFILES_REQUIRED_COLUMNS } from '../../../services/appSchema';
-import { compareIndexSnapshot, compareTableSnapshot, createSqlSchemaSnapshot } from '../../../services/schemaSnapshotPolicy';
+import { DatabaseSync } from 'node:sqlite';
+import { describe, expect, it } from 'vitest';
+import * as schema from '../../../services/appSchema';
 
-describe('Schema-Snapshot Fresh Install vs. Legacy-Migration 0.9.1', () => {
-  it('hält case_measure_notes in Basisschema und Migration 0026 strukturgleich', () => {
-    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
-    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0026_case_measure_notes.sql', 'utf8'));
+type MigrationCase = {
+  name: string;
+  files: string[];
+  tables: string[];
+  indexes?: string[];
+  required?: Record<string, readonly string[]>;
+  partialTables?: string[];
+};
 
-    const problems = [
-      ...compareTableSnapshot(fresh, migrated, 'case_measure_notes'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_case_measure_notes_measure'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_case_measure_notes_case'),
-    ];
+function columns(db: DatabaseSync, table: string): string[] {
+  return db.prepare(`PRAGMA table_info(${table})`).all().map((row) => String(row.name));
+}
 
-    expect(problems).toEqual([]);
-    expect(fresh.tables.case_measure_notes.columns).toEqual(expect.arrayContaining([...CASE_MEASURE_NOTES_REQUIRED_COLUMNS]));
+function indexColumns(db: DatabaseSync, index: string): string[] {
+  return db.prepare(`PRAGMA index_info(${index})`).all().map((row) => String(row.name));
+}
+
+function openFresh(): DatabaseSync {
+  const db = new DatabaseSync(':memory:');
+  db.exec(readFileSync('database/schema.sql', 'utf8'));
+  return db;
+}
+
+function openLegacy(files: string[]): DatabaseSync {
+  const db = new DatabaseSync(':memory:');
+  try {
+    db.exec(`
+      CREATE TABLE cases (id TEXT PRIMARY KEY);
+      CREATE TABLE case_measures (id TEXT PRIMARY KEY);
+      CREATE TABLE case_documents (
+        id TEXT PRIMARY KEY, case_id TEXT, imported_at TEXT, created_at TEXT, extracted_text TEXT, mime_type TEXT
+      );
+      CREATE TABLE generated_documents (id TEXT PRIMARY KEY);
+      CREATE TABLE deadlines (id TEXT PRIMARY KEY);
+      CREATE TABLE sbv_participations (id TEXT PRIMARY KEY);
+      CREATE TABLE termination_hearings (id TEXT PRIMARY KEY);
+      CREATE TABLE recruiting_participations (id TEXT PRIMARY KEY);
+      CREATE TABLE schema_migrations (version TEXT PRIMARY KEY, applied_at TEXT);
+    `);
+    for (const file of files) db.exec(readFileSync(`database/migrations/${file}`, 'utf8'));
+    return db;
+  } catch (error) {
+    db.close();
+    throw error;
+  }
+}
+
+const cases: MigrationCase[] = [
+  { name: 'Verknüpfungen in Freitexten', files: ['0064_text_entity_references.sql'], tables: ['text_entity_references'], indexes: ['idx_text_entity_references_entity'], required: { text_entity_references: ['id', 'entity_kind', 'entity_id', 'label', 'marker', 'created_at'] } },
+  { name: 'Fallmaßnahmennotizen', files: ['0026_case_measure_notes.sql'], tables: ['case_measure_notes'], indexes: ['idx_case_measure_notes_measure', 'idx_case_measure_notes_case'], required: { case_measure_notes: schema.CASE_MEASURE_NOTES_REQUIRED_COLUMNS } },
+  { name: 'Fallsuchindex', files: ['0027_case_search_index.sql'], tables: ['case_search_index'], indexes: ['idx_case_search_index_case', 'idx_case_search_index_source', 'idx_case_search_index_navigation'], required: { case_search_index: schema.CASE_SEARCH_INDEX_REQUIRED_COLUMNS } },
+  { name: 'Dokumenttext-Extraktion', files: ['0028_document_text_extraction_metadata.sql'], tables: ['case_documents'], required: { case_documents: ['extraction_quality', 'text_extraction_status', 'text_extracted_at'] }, partialTables: ['case_documents'] },
+  { name: 'Dokumenttext-Diagnostik', files: ['0028_document_text_extraction_metadata.sql', '0030_document_text_extraction_diagnostics.sql'], tables: ['case_documents'], required: { case_documents: ['text_extractor_id', 'text_extraction_error'] }, partialTables: ['case_documents'] },
+  { name: 'OCR-Hintergrundjobs', files: ['0028_document_text_extraction_metadata.sql', '0030_document_text_extraction_diagnostics.sql', '0031_document_ocr_background_jobs.sql'], tables: ['case_documents', 'case_document_ocr_jobs'], required: { case_documents: ['ocr_status', 'ocr_text', 'ocr_engine', 'ocr_started_at', 'ocr_completed_at', 'ocr_error'], case_document_ocr_jobs: schema.CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS }, partialTables: ['case_documents'] },
+  { name: 'Fallsuchindex-Status', files: ['0029_case_search_index_state.sql'], tables: ['case_search_index_state'], required: { case_search_index_state: schema.CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS } },
+  { name: 'Gremia.BR-Einstellungen', files: ['0032_gremia_br_settings.sql', '0034_gremia_br_relevance_settings.sql', '0053_gremia_br_v2_workspace_settings.sql', '0062_gremia_br_startup_refresh.sql'], tables: ['gremia_br_settings'], required: { gremia_br_settings: schema.GREMIA_BR_SETTINGS_REQUIRED_COLUMNS } },
+  { name: 'Gremia.BR-Lesecache', files: ['0033_gremia_br_read_cache.sql'], tables: ['gremia_br_cache_entries'], indexes: ['idx_gremia_br_cache_entries_key', 'idx_gremia_br_cache_entries_fetched'], required: { gremia_br_cache_entries: schema.GREMIA_BR_CACHE_REQUIRED_COLUMNS } },
+  { name: 'Gremia.BR-Arbeitsbereichsaktionen', files: ['0054_gremia_br_workspace_actions.sql'], tables: ['gremia_br_workspace_actions'], indexes: ['idx_gremia_br_workspace_actions_document', 'idx_gremia_br_workspace_actions_case', 'idx_gremia_br_workspace_actions_target'], required: { gremia_br_workspace_actions: schema.GREMIA_BR_WORKSPACE_ACTIONS_REQUIRED_COLUMNS } },
+  { name: 'Gremia.BR-Fallanlagen', files: ['0063_gremia_br_case_creations.sql'], tables: ['gremia_br_case_creations'], required: { gremia_br_case_creations: schema.GREMIA_BR_CASE_CREATIONS_REQUIRED_COLUMNS } },
+  { name: 'Transfer-Empfängerprofile', files: ['0056_transfer_recipient_profiles.sql'], tables: ['transfer_recipient_profiles'], indexes: ['idx_transfer_recipient_profiles_active_label'], required: { transfer_recipient_profiles: schema.TRANSFER_RECIPIENT_PROFILES_REQUIRED_COLUMNS } },
+  { name: 'Mobile Begleitgeräte', files: ['0057_mobile_companion_devices.sql'], tables: ['mobile_companion_devices'], indexes: ['idx_mobile_companion_devices_status_label'], required: { mobile_companion_devices: schema.MOBILE_COMPANION_DEVICES_REQUIRED_COLUMNS } },
+  { name: 'Importnachweise mobiler Änderungen', files: ['0058_mobile_companion_change_imports.sql'], tables: ['mobile_companion_change_imports'], indexes: ['idx_mobile_companion_change_imports_local'], required: { mobile_companion_change_imports: schema.MOBILE_COMPANION_CHANGE_IMPORTS_REQUIRED_COLUMNS } },
+  { name: 'Externe Fallaktenreferenzen', files: ['0035_gremia_br_external_references.sql'], tables: ['case_external_references'], indexes: ['idx_case_external_references_case', 'idx_case_external_references_source'], required: { case_external_references: schema.CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS } },
+  { name: 'Datenschutzvorfälle', files: ['0038_compliance_incidents.sql'], tables: ['compliance_incidents'], indexes: ['idx_compliance_incidents_status', 'idx_compliance_incidents_risk'], required: { compliance_incidents: schema.COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS } },
+  { name: 'SBV-Steuerungsprotokolle', files: ['0039_sbv_control_protocols.sql', '0040_sbv_control_protocol_deadlines.sql'], tables: ['sbv_control_protocols'], indexes: ['idx_sbv_control_protocols_follow_up'], required: { sbv_control_protocols: schema.SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS } },
+  { name: 'Tätigkeitsjournal', files: ['0041_activity_journal.sql'], tables: ['activity_journal_entries', 'activity_journal_links', 'activity_journal_category_preferences'], indexes: ['idx_activity_journal_entries_date', 'idx_activity_journal_links_target'], required: { activity_journal_entries: schema.ACTIVITY_JOURNAL_ENTRIES_REQUIRED_COLUMNS, activity_journal_links: schema.ACTIVITY_JOURNAL_LINKS_REQUIRED_COLUMNS, activity_journal_category_preferences: schema.ACTIVITY_JOURNAL_CATEGORY_PREFERENCES_REQUIRED_COLUMNS } },
+  { name: 'Beteiligungsverstöße', files: ['0039_sbv_control_protocols.sql', '0041_activity_journal.sql', '0042_sbv_participation_violations.sql', '0044_participation_violation_measure_context.sql', '0047_participation_violation_recruiting_context.sql'], tables: ['sbv_participation_violations', 'sbv_participation_violation_events', 'sbv_participation_violation_documents'], indexes: ['idx_sbv_participation_violations_status', 'idx_sbv_participation_violations_source', 'idx_sbv_participation_violation_events_violation'], required: { sbv_participation_violations: schema.SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS, sbv_participation_violation_events: schema.SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS, sbv_participation_violation_documents: schema.SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS } },
+];
+
+describe('Frischinstallation und ausführbare Legacy-Migrationen', () => {
+  it.each(cases)('$name erzeugt das aktuelle Tabellenschema', ({ files, tables, indexes = [], required = {}, partialTables = [] }) => {
+    const fresh = openFresh();
+    const migrated = openLegacy(files);
+    try {
+      for (const table of tables) {
+        const actual = columns(migrated, table);
+        const expected = columns(fresh, table);
+        expect(actual.length, table).toBeGreaterThan(0);
+        if (!partialTables.includes(table)) expect(actual.sort(), table).toEqual(expected.sort());
+        expect(actual, table).toEqual(expect.arrayContaining([...(required[table] ?? [])]));
+        expect(expected, table).toEqual(expect.arrayContaining([...(required[table] ?? [])]));
+      }
+      for (const index of indexes) {
+        const actual = indexColumns(migrated, index);
+        expect(actual.length, index).toBeGreaterThan(0);
+        expect(actual, index).toEqual(indexColumns(fresh, index));
+      }
+    } finally {
+      fresh.close();
+      migrated.close();
+    }
   });
 
-  it('hält case_search_index in Basisschema und Migration 0027 strukturgleich', () => {
-    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
-    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0027_case_search_index.sql', 'utf8'));
-
-    const problems = [
-      ...compareTableSnapshot(fresh, migrated, 'case_search_index'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_case_search_index_case'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_case_search_index_source'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_case_search_index_navigation'),
-    ];
-
-    expect(problems).toEqual([]);
-    expect(fresh.tables.case_search_index.columns).toEqual(expect.arrayContaining([...CASE_SEARCH_INDEX_REQUIRED_COLUMNS]));
+  it('verknüpft Beteiligungsverstöße nach Migration 0044 mit Fallmaßnahmen und erlaubt den neuen Ursprungskontext', () => {
+    const db = openLegacy(['0039_sbv_control_protocols.sql', '0041_activity_journal.sql', '0042_sbv_participation_violations.sql', '0044_participation_violation_measure_context.sql']);
+    try {
+      expect(db.prepare('PRAGMA foreign_key_list(sbv_participation_violations)').all())
+        .toEqual(expect.arrayContaining([expect.objectContaining({ from: 'related_case_measure_id', table: 'case_measures', on_delete: 'SET NULL' })]));
+      db.exec(`INSERT INTO sbv_participation_violations
+        (id, stage, status, violation_type, source_context_type, source_context_id, subject,
+         measure_description, wrong_behavior, required_behavior, created_at, updated_at)
+        VALUES ('violation-1', 'request', 'draft', 'not_informed', 'case_measure_participation',
+          'measure-1', 'Betreff', 'Maßnahme', 'Verhalten', 'Erwartung', '2026-01-01', '2026-01-01')`);
+      expect(db.prepare('SELECT source_context_type FROM sbv_participation_violations WHERE id = ?').get('violation-1'))
+        .toEqual({ source_context_type: 'case_measure_participation' });
+    } finally {
+      db.close();
+    }
   });
-
-
-  it('hält Dokument-Extraktionsmetadaten in Basisschema und Migration 0028 nachvollziehbar', () => {
-    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
-    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0028_document_text_extraction_metadata.sql', 'utf8'));
-
-    const expectedColumns = ['extraction_quality', 'text_extraction_status', 'text_extracted_at'];
-
-    expect(fresh.tables.case_documents.columns).toEqual(expect.arrayContaining([...CASE_DOCUMENTS_REQUIRED_COLUMNS]));
-    expect(migrated.tables.case_documents.columns).toEqual(expect.arrayContaining(expectedColumns));
-  });
-
-
-  it('hält Dokument-Extraktionsdiagnostik in Basisschema und Migration 0030 nachvollziehbar', () => {
-    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
-    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0030_document_text_extraction_diagnostics.sql', 'utf8'));
-
-    const expectedColumns = ['text_extractor_id', 'text_extraction_error'];
-
-    expect(fresh.tables.case_documents.columns).toEqual(expect.arrayContaining([...CASE_DOCUMENTS_REQUIRED_COLUMNS]));
-    expect(migrated.tables.case_documents.columns).toEqual(expect.arrayContaining(expectedColumns));
-  });
-
-
-  it('hält OCR-Hintergrundjob-Struktur in Basisschema und Migration 0031 nachvollziehbar', () => {
-    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
-    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0031_document_ocr_background_jobs.sql', 'utf8'));
-
-    const expectedDocumentColumns = ['ocr_status', 'ocr_text', 'ocr_engine', 'ocr_started_at', 'ocr_completed_at', 'ocr_error'];
-
-    expect(fresh.tables.case_documents.columns).toEqual(expect.arrayContaining([...CASE_DOCUMENTS_REQUIRED_COLUMNS]));
-    expect(migrated.tables.case_documents.columns).toEqual(expect.arrayContaining(expectedDocumentColumns));
-    expect(fresh.tables.case_document_ocr_jobs.columns).toEqual(expect.arrayContaining([...CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS]));
-    expect(migrated.tables.case_document_ocr_jobs.columns).toEqual(expect.arrayContaining([...CASE_DOCUMENT_OCR_JOBS_REQUIRED_COLUMNS]));
-  });
-
-
-  it('hält case_search_index_state in Basisschema und Migration 0029 strukturgleich', () => {
-    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
-    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0029_case_search_index_state.sql', 'utf8'));
-
-    const problems = compareTableSnapshot(fresh, migrated, 'case_search_index_state');
-
-    expect(problems).toEqual([]);
-    expect(fresh.tables.case_search_index_state.columns).toEqual(expect.arrayContaining([...CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS]));
-  });
-
-
-  it('hält Gremia.BR-Einstellungen in Basisschema und allen Erweiterungsmigrationen strukturgleich', () => {
-    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
-    const migrated = createSqlSchemaSnapshot(`${readFileSync('database/migrations/0032_gremia_br_settings.sql', 'utf8')}\n${readFileSync('database/migrations/0034_gremia_br_relevance_settings.sql', 'utf8')}\n${readFileSync('database/migrations/0053_gremia_br_v2_workspace_settings.sql', 'utf8')}\n${readFileSync('database/migrations/0062_gremia_br_startup_refresh.sql', 'utf8')}`);
-
-    const problems = compareTableSnapshot(fresh, migrated, 'gremia_br_settings');
-
-    expect(problems).toEqual([]);
-    expect(fresh.tables.gremia_br_settings.columns).toEqual(expect.arrayContaining([...GREMIA_BR_SETTINGS_REQUIRED_COLUMNS]));
-  });
-
-
-  it('hält Gremia.BR-Lesecache in Basisschema und Migration 0033 strukturgleich', () => {
-    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
-    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0033_gremia_br_read_cache.sql', 'utf8'));
-
-    const problems = [
-      ...compareTableSnapshot(fresh, migrated, 'gremia_br_cache_entries'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_gremia_br_cache_entries_key'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_gremia_br_cache_entries_fetched'),
-    ];
-
-    expect(problems).toEqual([]);
-    expect(fresh.tables.gremia_br_cache_entries.columns).toEqual(expect.arrayContaining([...GREMIA_BR_CACHE_REQUIRED_COLUMNS]));
-  });
-
-  it('hält Gremia.BR-Arbeitsbereichsaktionen in Basisschema und Migration 0054 strukturgleich', () => {
-    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
-    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0054_gremia_br_workspace_actions.sql', 'utf8'));
-
-    const problems = [
-      ...compareTableSnapshot(fresh, migrated, 'gremia_br_workspace_actions'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_gremia_br_workspace_actions_document'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_gremia_br_workspace_actions_case'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_gremia_br_workspace_actions_target'),
-    ];
-
-    expect(problems).toEqual([]);
-    expect(fresh.tables.gremia_br_workspace_actions.columns).toEqual(expect.arrayContaining([...GREMIA_BR_WORKSPACE_ACTIONS_REQUIRED_COLUMNS]));
-  });
-
-  it('hält begonnene Gremia.BR-Fallanlagen in Basisschema und Migration 0063 strukturgleich', () => {
-    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
-    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0063_gremia_br_case_creations.sql', 'utf8'));
-    expect(compareTableSnapshot(fresh, migrated, 'gremia_br_case_creations')).toEqual([]);
-    expect(fresh.tables.gremia_br_case_creations.columns).toEqual(expect.arrayContaining([...GREMIA_BR_CASE_CREATIONS_REQUIRED_COLUMNS]));
-  });
-
-  it('hält öffentliche Transfer-Empfängerprofile in Basisschema und Migration 0056 strukturgleich', () => {
-    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
-    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0056_transfer_recipient_profiles.sql', 'utf8'));
-
-    const problems = [
-      ...compareTableSnapshot(fresh, migrated, 'transfer_recipient_profiles'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_transfer_recipient_profiles_active_label'),
-    ];
-
-    expect(problems).toEqual([]);
-    expect(fresh.tables.transfer_recipient_profiles.columns).toEqual(expect.arrayContaining([...TRANSFER_RECIPIENT_PROFILES_REQUIRED_COLUMNS]));
-  });
-
-  it('hält Mobile-Begleitgeräte in Basisschema und Migration 0057 strukturgleich', () => {
-    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
-    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0057_mobile_companion_devices.sql', 'utf8'));
-
-    const problems = [
-      ...compareTableSnapshot(fresh, migrated, 'mobile_companion_devices'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_mobile_companion_devices_status_label'),
-    ];
-
-    expect(problems).toEqual([]);
-    expect(fresh.tables.mobile_companion_devices.columns).toEqual(expect.arrayContaining([...MOBILE_COMPANION_DEVICES_REQUIRED_COLUMNS]));
-  });
-
-  it('hält die Idempotenznachweise mobiler Änderungen in Basisschema und Migration 0058 strukturgleich', () => {
-    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
-    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0058_mobile_companion_change_imports.sql', 'utf8'));
-    const problems = [
-      ...compareTableSnapshot(fresh, migrated, 'mobile_companion_change_imports'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_mobile_companion_change_imports_local'),
-    ];
-    expect(problems).toEqual([]);
-    expect(fresh.tables.mobile_companion_change_imports.columns)
-      .toEqual(expect.arrayContaining([...MOBILE_COMPANION_CHANGE_IMPORTS_REQUIRED_COLUMNS]));
-  });
-
-
-  it('hält externe Gremia.BR-Fallaktenreferenzen in Basisschema und Migration 0035 strukturgleich', () => {
-    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
-    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0035_gremia_br_external_references.sql', 'utf8'));
-
-    const problems = [
-      ...compareTableSnapshot(fresh, migrated, 'case_external_references'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_case_external_references_case'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_case_external_references_source'),
-    ];
-
-    expect(problems).toEqual([]);
-    expect(fresh.tables.case_external_references.columns).toEqual(expect.arrayContaining([...CASE_EXTERNAL_REFERENCES_REQUIRED_COLUMNS]));
-  });
-
-
-  it('hält Datenschutzvorfälle in Basisschema und Migration 0038 strukturgleich', () => {
-    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
-    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0038_compliance_incidents.sql', 'utf8'));
-
-    const problems = [
-      ...compareTableSnapshot(fresh, migrated, 'compliance_incidents'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_compliance_incidents_status'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_compliance_incidents_risk'),
-    ];
-
-    expect(problems).toEqual([]);
-    expect(fresh.tables.compliance_incidents.columns).toEqual(expect.arrayContaining([...COMPLIANCE_INCIDENTS_REQUIRED_COLUMNS]));
-  });
-
-
-  it('hält SBV-Steuerungsprotokolle im Basisschema auf Migration 0040 und dokumentiert die Nachrüstung', () => {
-    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
-    const initialMigration = readFileSync('database/migrations/0039_sbv_control_protocols.sql', 'utf8');
-    const deadlineMigration = readFileSync('database/migrations/0040_sbv_control_protocol_deadlines.sql', 'utf8');
-
-    expect(initialMigration).toContain('CREATE TABLE IF NOT EXISTS sbv_control_protocols');
-    expect(deadlineMigration).toContain('ALTER TABLE sbv_control_protocols ADD COLUMN follow_up_due_at TEXT');
-    expect(deadlineMigration).toContain('idx_sbv_control_protocols_follow_up');
-    expect(fresh.tables.sbv_control_protocols.columns).toEqual(expect.arrayContaining([...SBV_CONTROL_PROTOCOLS_REQUIRED_COLUMNS]));
-    expect(fresh.indexes.idx_sbv_control_protocols_follow_up).toBeDefined();
-  });
-
-
-  it('hält das Tätigkeitsjournal in Basisschema und Migration 0041 strukturgleich', () => {
-    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
-    const migrated = createSqlSchemaSnapshot(readFileSync('database/migrations/0041_activity_journal.sql', 'utf8'));
-
-    const problems = [
-      ...compareTableSnapshot(fresh, migrated, 'activity_journal_entries'),
-      ...compareTableSnapshot(fresh, migrated, 'activity_journal_links'),
-      ...compareTableSnapshot(fresh, migrated, 'activity_journal_category_preferences'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_activity_journal_entries_date'),
-      ...compareIndexSnapshot(fresh, migrated, 'idx_activity_journal_links_target'),
-    ];
-
-    expect(problems).toEqual([]);
-    expect(fresh.tables.activity_journal_entries.columns).toEqual(expect.arrayContaining([...ACTIVITY_JOURNAL_ENTRIES_REQUIRED_COLUMNS]));
-    expect(fresh.tables.activity_journal_links.columns).toEqual(expect.arrayContaining([...ACTIVITY_JOURNAL_LINKS_REQUIRED_COLUMNS]));
-    expect(fresh.tables.activity_journal_category_preferences.columns).toEqual(expect.arrayContaining([...ACTIVITY_JOURNAL_CATEGORY_PREFERENCES_REQUIRED_COLUMNS]));
-  });
-
-
-  it('hält Beteiligungsverstöße in Basisschema, Migration 0042 und Nachrüstung 0044 nachvollziehbar', () => {
-    const fresh = createSqlSchemaSnapshot(readFileSync('database/schema.sql', 'utf8'));
-    const baseMigration = createSqlSchemaSnapshot(readFileSync('database/migrations/0042_sbv_participation_violations.sql', 'utf8'));
-    const measureContextMigration = readFileSync('database/migrations/0044_participation_violation_measure_context.sql', 'utf8');
-
-    const problems = [
-      ...compareTableSnapshot(fresh, baseMigration, 'sbv_participation_violation_events'),
-      ...compareTableSnapshot(fresh, baseMigration, 'sbv_participation_violation_documents'),
-      ...compareIndexSnapshot(fresh, baseMigration, 'idx_sbv_participation_violations_status'),
-      ...compareIndexSnapshot(fresh, baseMigration, 'idx_sbv_participation_violations_source'),
-      ...compareIndexSnapshot(fresh, baseMigration, 'idx_sbv_participation_violation_events_violation'),
-    ];
-
-    expect(problems).toEqual([]);
-    expect(measureContextMigration).toContain('related_case_measure_id TEXT REFERENCES case_measures(id) ON DELETE SET NULL');
-    expect(measureContextMigration).toContain("'case_measure_participation'");
-    expect(fresh.tables.sbv_participation_violations.columns).toEqual(expect.arrayContaining([...SBV_PARTICIPATION_VIOLATIONS_REQUIRED_COLUMNS]));
-    expect(fresh.tables.sbv_participation_violation_events.columns).toEqual(expect.arrayContaining([...SBV_PARTICIPATION_VIOLATION_EVENTS_REQUIRED_COLUMNS]));
-    expect(fresh.tables.sbv_participation_violation_documents.columns).toEqual(expect.arrayContaining([...SBV_PARTICIPATION_VIOLATION_DOCUMENTS_REQUIRED_COLUMNS]));
-  });
-
 });

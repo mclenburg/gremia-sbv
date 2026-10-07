@@ -75,17 +75,6 @@ export function formatRecruitingDate(iso?: string): string {
   return date.toLocaleDateString('de-DE');
 }
 
-export function isRecruitingOpen(record: Pick<RecruitingParticipationRecord, 'status'>): boolean {
-  return record.status !== 'closed';
-}
-
-export function needsHearingBeforeDecision(record: RecruitingParticipationRecord): boolean {
-  return record.hasSeverelyDisabledApplicants
-    && record.interviewCount > 0
-    && !record.statementSubmittedDate
-    && !record.decisionKnownDate;
-}
-
 export function getRecruitingRiskHints(record: RecruitingParticipationRecord): string[] {
   const hints: string[] = [];
   if (record.hasSeverelyDisabledApplicants && !record.documentsComplete) hints.push('Unterlagen unvollständig');

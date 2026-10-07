@@ -19,6 +19,8 @@ import { IPC_CHANNELS } from "../ipc/channels.js";
 export function createKnowledgeApi(invokeIpc: IpcInvoker) {
   return {
   knowledge: {
+          createTextEntityReference: (kind: 'person' | 'case', id: string): Promise<string> =>
+            invokeIpc(IPC_CHANNELS.textEntityReferenceCreate, kind, id),
           listNorms: (filters?: LegalNormSearchInput): Promise<LegalNormRecord[]> =>
             invokeIpc(IPC_CHANNELS.knowledgeNormsList, filters),
           getNorm: (id: string): Promise<LegalNormRecord | null> =>

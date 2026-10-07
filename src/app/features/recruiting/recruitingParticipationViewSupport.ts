@@ -1,3 +1,4 @@
+import type { CreateDeadlineInput } from '../../../domain/models/deadline.model';
 import type { CreateRecruitingInterviewEventInput, CreateRecruitingParticipationInput, RecruitingAccessibilityCheckStatus, RecruitingApplicantReferenceMode, RecruitingApplicantStatus, RecruitingParticipationRecord, RecruitingParticipationStatus, RecruitingViolationReviewReason, UpdateRecruitingParticipationInput } from '../../../domain/models/recruiting-participation.model';
 import { recruitingAccessibilityStatusLabels, recruitingApplicantReferenceModeLabels, recruitingApplicantStatusLabels, recruitingStatusLabels, recruitingViolationReviewReasonLabels } from './recruitingViewLogic';
 import { legalCalendarDate, legalToday } from '../../../domain/time/legalTime';
@@ -145,6 +146,31 @@ export function emptyInterviewForm(): InterviewFormState {
     accessibilityCheckStatus: 'not_checked',
     followUpNeeded: false,
     proceduralNote: '',
+  };
+}
+
+export function recruitingFollowUpInput(
+  selected: RecruitingParticipationRecord,
+  followUpDueAt: string,
+  kind: 'documents' | 'hearing',
+): CreateDeadlineInput {
+  const title = kind === 'documents'
+    ? `Stellenbesetzung: Unterlagen nachhalten – ${selected.vacancyTitle}`
+    : `Stellenbesetzung: Anhörung vor Auswahlentscheidung – ${selected.vacancyTitle}`;
+  return {
+    processType: 'recruiting_participation',
+    processId: selected.id,
+    deadlineType: 'follow_up',
+    title,
+    confidentialTitle: title,
+    description: kind === 'documents'
+      ? 'Fallaktenunabhängige Wiedervorlage zur Nachforderung oder Prüfung vollständiger Stellenbesetzungsunterlagen.'
+      : 'Fallaktenunabhängige Wiedervorlage zur Anhörung der SBV vor Auswahlentscheidung.',
+    dueAt: fromDateInput(followUpDueAt) ?? new Date().toISOString(),
+    severity: kind === 'hearing' ? 'important' : 'normal',
+    calculationMode: 'manual',
+    isLegalDeadline: false,
+    sourceEvent: `recruiting_participation.${kind}_follow_up`,
   };
 }
 

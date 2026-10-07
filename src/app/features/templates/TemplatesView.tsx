@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { FormEvent } from 'react';
 import { ModuleFrame } from '../../shared/components/ModuleFrame';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
 import { useConfirmDialog } from '../../shared/dialogs/ConfirmDialogProvider';
@@ -7,34 +6,9 @@ import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import type { CreateTemplateInput, TemplateCategory, TemplateRecord } from '../../../domain/models/template.model';
 import { DEFAULT_TEMPLATE_PAGE_SIZE, TEMPLATE_CATEGORY_ORDER, clampTemplatePage, compareTemplatesByTitle, groupTemplates, type TemplateSortMode } from './templateCatalogLogic';
 import type { PreventionStatus } from '../../../domain/models/prevention.model';
-import { waitForBridge } from '../../core/bridge/waitForBridge';
+import { createTemplateCatalogActions, createTemplateEditorActions, EMPTY_TEMPLATE } from './templateManagementActions';
 import { TemplateEditorModal } from './TemplateEditorModal';
 import { TemplateCatalogToolbar, TemplateDetailPanel, TemplateFilterForm, TemplateListPanel } from './TemplateCatalogPanels';
-
-const EMPTY_TEMPLATE: CreateTemplateInput = {
-  title: '',
-  category: 'sonstiges',
-  subject: '',
-  body: '',
-  description: '',
-  legalBasis: [],
-  tags: []
-};
-
-function uniqueCsvValues(values: string[] | undefined): string[] {
-  return (values ?? [])
-    .flatMap((entry) => String(entry).split(','))
-    .map((entry) => entry.trim())
-    .filter(Boolean)
-    .filter((entry, index, all) => all.indexOf(entry) === index);
-}
-
-function preventionTags(category: TemplateCategory, status: PreventionStatus | ''): string[] {
-  return [
-    ...(category === 'praevention' ? ['massnahme:prevention'] : []),
-    ...(category === 'praevention' && status ? [`status:${status}`] : [])
-  ];
-}
 
 export function TemplatesView() {
   const [templates, setTemplates] = useState<TemplateRecord[]>([]);
@@ -55,13 +29,14 @@ export function TemplatesView() {
   const announce = useAnnouncer();
   const categories = TEMPLATE_CATEGORY_ORDER;
 
-  async function loadTemplates(nextQuery = query, nextCategory = category) {
-    const bridge = await waitForBridge();
-    if (!bridge?.templates) throw new Error('Vorlagendienst ist nicht erreichbar.');
-    const rows = await bridge.templates.list({ query: nextQuery, category: nextCategory || undefined, limit: 300 });
-    setTemplates(rows);
-    if (!selectedTemplateId && rows[0]) setSelectedTemplateId(rows[0].id);
-  }
+  const { loadTemplates, applyFilters, deleteTemplate } = createTemplateCatalogActions({
+    query, category, selectedTemplateId, setTemplates, setSelectedTemplateId, setCurrentPage, setInfo, setError, confirmDialog,
+  });
+  const { createOwnTemplate, openEditTemplate, saveEditedTemplate } = createTemplateEditorActions({
+    query, category, newTemplate, newTemplateProcessStatus, editingTemplate, editTemplateProcessStatus,
+    setNewTemplate, setNewTemplateProcessStatus, setIsCreateTemplateModalOpen, setEditingTemplate, setEditTemplateProcessStatus,
+    setSelectedTemplateId, setInfo, setError, loadTemplates,
+  });
 
   useEffect(() => {
     void loadTemplates().catch((loadError) => setError(loadError instanceof Error ? loadError.message : 'Vorlagen konnten nicht geladen werden.'));
@@ -90,105 +65,6 @@ export function TemplatesView() {
       setSelectedTemplateId(pagedTemplates[0].id);
     }
   }, [pagedTemplates, selectedTemplateId]);
-
-  async function applyFilters(event?: FormEvent) {
-    event?.preventDefault();
-    setError('');
-    setInfo('');
-    try {
-      setCurrentPage(1);
-      await loadTemplates(query, category);
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Vorlagen konnten nicht geladen werden.');
-    }
-  }
-
-  async function createOwnTemplate(event: FormEvent) {
-    event.preventDefault();
-    setError('');
-    setInfo('');
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.templates) throw new Error('Vorlagendienst ist nicht erreichbar.');
-      const created = await bridge.templates.create({
-        ...newTemplate,
-        legalBasis: uniqueCsvValues(newTemplate.legalBasis),
-        tags: [...uniqueCsvValues(newTemplate.tags), ...preventionTags(newTemplate.category, newTemplateProcessStatus)]
-          .filter((entry, index, all) => all.indexOf(entry) === index)
-      });
-      setNewTemplate({ ...EMPTY_TEMPLATE });
-      setNewTemplateProcessStatus('');
-      setIsCreateTemplateModalOpen(false);
-      await loadTemplates(query, category);
-      setSelectedTemplateId(created.id);
-      setInfo('Eigene Vorlage wurde gespeichert.');
-    } catch (createError) {
-      setError(createError instanceof Error ? createError.message : 'Vorlage konnte nicht gespeichert werden.');
-    }
-  }
-
-  function openEditTemplate(template: TemplateRecord) {
-    setEditingTemplate({ ...template, legalBasis: [...template.legalBasis], tags: [...template.tags] });
-    const statusTag = template.tags.find((tag) => tag.startsWith('status:'));
-    setEditTemplateProcessStatus(statusTag ? statusTag.replace('status:', '') as PreventionStatus : '');
-    setError('');
-    setInfo('');
-  }
-
-  async function saveEditedTemplate(event: FormEvent) {
-    event.preventDefault();
-    if (!editingTemplate) return;
-    setError('');
-    setInfo('');
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.templates) throw new Error('Vorlagendienst ist nicht erreichbar.');
-      if (!bridge.templates.update) throw new Error('Vorlagenänderung wird von der Datenbrücke noch nicht unterstützt.');
-      const baseTags = uniqueCsvValues(editingTemplate.tags).filter((entry) => !entry.startsWith('status:') && entry !== 'massnahme:prevention');
-      await bridge.templates.update(editingTemplate.id, {
-        title: editingTemplate.title,
-        category: editingTemplate.category,
-        subject: editingTemplate.subject,
-        body: editingTemplate.body,
-        description: editingTemplate.description,
-        legalBasis: uniqueCsvValues(editingTemplate.legalBasis),
-        tags: [...baseTags, ...preventionTags(editingTemplate.category, editTemplateProcessStatus)]
-      });
-      setEditingTemplate(null);
-      await loadTemplates(query, category);
-      setSelectedTemplateId(editingTemplate.id);
-      setInfo('Vorlage wurde aktualisiert.');
-    } catch (updateError) {
-      setError(updateError instanceof Error ? updateError.message : 'Vorlage konnte nicht aktualisiert werden.');
-    }
-  }
-
-  async function deleteTemplate(template: TemplateRecord) {
-    const confirmed = await confirmDialog({
-      variant: 'danger',
-      title: 'Vorlage löschen?',
-      message: `Die Vorlage „${template.title}“ wird dauerhaft gelöscht.`,
-      confirmLabel: 'Vorlage löschen',
-      cancelLabel: 'Abbrechen'
-    });
-    if (!confirmed) return;
-    setError('');
-    setInfo('');
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.templates) throw new Error('Vorlagendienst ist nicht erreichbar.');
-      if (!bridge.templates.delete) throw new Error('Vorlagenlöschung wird von der Datenbrücke noch nicht unterstützt.');
-      await bridge.templates.delete(template.id);
-      if (selectedTemplateId === template.id) setSelectedTemplateId('');
-      await loadTemplates(query, category);
-      setInfo('Vorlage wurde gelöscht.');
-      announce('Vorlage wurde gelöscht.', 'polite');
-    } catch (deleteError) {
-      const errorMessage = deleteError instanceof Error ? deleteError.message : 'Vorlage konnte nicht gelöscht werden.';
-      setError(errorMessage);
-      announce(errorMessage, 'assertive');
-    }
-  }
 
   return (
     <ModuleFrame title="Vorlagen" kicker="Schriftverkehr" description="Standardschreiben mit Platzhaltern. Tonalität: freundlich, rechtlich klar, verbindlich und ohne unnötige Diskussionsöffnung." helpId="templates.overview" actions={<TemplateCatalogToolbar onCreate={() => setIsCreateTemplateModalOpen(true)} />}>

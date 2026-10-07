@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { GREMIA_BR_API_CATALOG, GREMIA_BR_READ_API_CATALOG, findGremiaBrEndpointDefinition, toGremiaBrEndpointLabel } from '../../../services/gremiaBr/gremiaBrApiCatalog';
+import { GREMIA_BR_API_CATALOG, findGremiaBrEndpointDefinition, toGremiaBrEndpointLabel } from '../../../services/gremiaBr/gremiaBrApiCatalog';
 import { checkGremiaBrEndpoint, isGremiaBrReadOnlyEndpoint, isGremiaBrWorkspaceActionEndpoint } from '../../../services/gremiaBr/gremiaBrPolicy';
 
 describe('Gremia.BR API-Katalog 0.9.2-G', () => {
   it('zentralisiert lesende oder technische Auth-Endpunkte ohne Arbeitsbereichsaktionen', () => {
-    expect(GREMIA_BR_READ_API_CATALOG.length).toBeGreaterThan(10);
-    for (const endpoint of GREMIA_BR_READ_API_CATALOG) {
+    const readEndpoints = GREMIA_BR_API_CATALOG.filter((endpoint) => endpoint.category !== 'workspace_action');
+    expect(readEndpoints.length).toBeGreaterThan(10);
+    for (const endpoint of readEndpoints) {
       expect(['GET', 'POST']).toContain(endpoint.method);
       if (endpoint.method === 'POST') {
         expect(['/api/v1/auth/login', '/api/v1/documents/search']).toContain(endpoint.template);

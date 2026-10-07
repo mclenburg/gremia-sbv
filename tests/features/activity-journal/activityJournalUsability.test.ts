@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildTimeSuggestionFromStartTime, applyTimeSuggestion } from '../../../src/app/features/activity-journal/activityJournalTimeSuggestion';
-import { createEmptyActivityJournalForm, formFromActivityJournalPrefill } from '../../../src/app/features/activity-journal/hooks/useActivityJournal';
+import { createEmptyActivityJournalForm, formFromActivityJournalPrefill } from '../../../src/app/features/activity-journal/activityJournalForm';
 import { buildActivitySuggestionLabel, minutesSince, shouldOfferActivitySuggestion } from '../../../src/app/features/activity-journal/hooks/useActivityJournalSessionSuggestion';
 import { resolveActivityJournalWeekReviewMarker } from '../../../src/app/features/dashboard/dashboardFocusPolicy';
 import { buildFromContext } from '../../../services/activityJournalPrefill';

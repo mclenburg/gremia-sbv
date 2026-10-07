@@ -4,10 +4,8 @@ import { ModuleFrame } from '../../shared/components/ModuleFrame';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
 import type { CaseRecord } from '../../../domain/models/case.model';
 import type { CaseLawRecord, CaseLegalReferenceRecord, LegalNormRecord, NormChecklistItemRecord, NormCommentRecord } from '../../../domain/models/knowledge.model';
-import { SBV_ADVISOR_KNOWLEDGE_ENTRIES } from './knowledgeAdvisorData';
-import { filterKnowledgeNorms, mergeKnowledgeNorms } from './knowledgeSearch';
+import { createKnowledgeDataActions, createKnowledgeEditActions } from './knowledgeActions';
 import { KnowledgeDetailPanel, KnowledgeRegisterPanel, KnowledgeSearchPanel } from './KnowledgePanels';
-import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 
 export function KnowledgeView({ cases }: { cases: CaseRecord[] }) {
@@ -42,56 +40,14 @@ export function KnowledgeView({ cases }: { cases: CaseRecord[] }) {
   const selectedNorm = useMemo(() => norms.find((norm) => norm.id === selectedNormId), [norms, selectedNormId]);
   const sources = useMemo(() => [...new Set(allKnowledgeNorms.map((norm) => norm.source))].sort((a, b) => a.localeCompare(b)), [allKnowledgeNorms]);
 
-  async function loadNorms(nextQuery = query, nextSource = source) {
-    setError('');
-    try {
-      const bridge = await waitForBridge();
-      let remoteRows: LegalNormRecord[] = [];
-      if (bridge?.knowledge) {
-        remoteRows = await bridge.knowledge.listNorms({ limit: 800 });
-      }
-      const mergedRows = mergeKnowledgeNorms(remoteRows);
-      const filteredRows = filterKnowledgeNorms(mergedRows, nextQuery, nextSource);
-      setAllKnowledgeNorms(mergedRows);
-      setNorms(filteredRows);
-      if (!selectedNormId && filteredRows.length) setSelectedNormId(filteredRows[0].id);
-      if (selectedNormId && !filteredRows.some((norm) => norm.id === selectedNormId)) setSelectedNormId(filteredRows[0]?.id ?? '');
-    } catch (error) {
-      const fallbackRows = filterKnowledgeNorms(SBV_ADVISOR_KNOWLEDGE_ENTRIES, nextQuery, nextSource);
-      setAllKnowledgeNorms(SBV_ADVISOR_KNOWLEDGE_ENTRIES);
-      setNorms(fallbackRows);
-      if (!selectedNormId && fallbackRows.length) setSelectedNormId(fallbackRows[0].id);
-      if (selectedNormId && !fallbackRows.some((norm) => norm.id === selectedNormId)) setSelectedNormId(fallbackRows[0]?.id ?? '');
-      setError(error instanceof Error ? `${error.message} Lokaler SBV-Ratgeber wurde geladen.` : 'Wissensdienst nicht erreichbar. Lokaler SBV-Ratgeber wurde geladen.');
-    }
-  }
-
-  async function loadDetails(normId: string) {
-    if (!normId) {
-      setCaseReferences([]);
-      setComments([]);
-      setCaseLaw([]);
-      setChecklist([]);
-      return;
-    }
-    setError('');
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.knowledge) throw new Error('Wissensdienst ist nicht erreichbar.');
-      const allCaseReferences = await Promise.all(cases.map((record) => bridge.knowledge.listCaseReferences(record.id)));
-      const [commentRows, caseLawRows, checklistRows] = await Promise.all([
-        bridge.knowledge.listComments(normId),
-        bridge.knowledge.listCaseLaw(normId),
-        bridge.knowledge.listChecklist(normId)
-      ]);
-      setCaseReferences(allCaseReferences.flat().filter((reference) => reference.legalNormId === normId));
-      setComments(commentRows);
-      setCaseLaw(caseLawRows);
-      setChecklist(checklistRows);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Details konnten nicht geladen werden.');
-    }
-  }
+  const { loadNorms, loadDetails } = createKnowledgeDataActions({
+    query, source, selectedNormId, cases, setError, setAllKnowledgeNorms, setNorms, setSelectedNormId,
+    setCaseReferences, setComments, setCaseLaw, setChecklist,
+  });
+  const { linkSelectedNormToCase, createCommentForNorm, createCaseLawForNorm, createChecklistItemForNorm } = createKnowledgeEditActions({
+    selectedNorm, linkCaseId, commentTitle, commentText, caseLawCourt, caseLawFileNumber, caseLawHolding, checklistText, checklist,
+    loadDetails, setMessage, setError, setCommentTitle, setCommentText, setCaseLawCourt, setCaseLawFileNumber, setCaseLawHolding, setChecklistText,
+  });
 
   useEffect(() => {
     void loadNorms();
@@ -106,78 +62,6 @@ export function KnowledgeView({ cases }: { cases: CaseRecord[] }) {
   async function runSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     await loadNorms(query, source);
-  }
-
-  async function linkSelectedNormToCase() {
-    setMessage('');
-    setError('');
-    if (!selectedNorm || !linkCaseId) {
-      setError('Bitte Norm und Fall auswählen.');
-      return;
-    }
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.knowledge) throw new Error('Wissensdienst ist nicht erreichbar.');
-      await bridge.knowledge.linkNormToCase({ caseId: linkCaseId, legalNormId: selectedNorm.id, note: 'Im Wissensmodul verknüpft.' });
-      setMessage(`Rechtsbezug ${selectedNorm.paragraph} wurde mit der Fallakte verknüpft.`);
-      await loadDetails(selectedNorm.id);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Rechtsbezug konnte nicht verknüpft werden.');
-    }
-  }
-
-  async function createCommentForNorm(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!selectedNorm) return;
-    setMessage('');
-    setError('');
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.knowledge) throw new Error('Wissensdienst ist nicht erreichbar.');
-      await bridge.knowledge.createComment({ legalNormId: selectedNorm.id, title: commentTitle, content: commentText });
-      setCommentTitle('');
-      setCommentText('');
-      setMessage('Kommentar gespeichert.');
-      await loadDetails(selectedNorm.id);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Kommentar konnte nicht gespeichert werden.');
-    }
-  }
-
-  async function createCaseLawForNorm(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!selectedNorm) return;
-    setMessage('');
-    setError('');
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.knowledge) throw new Error('Wissensdienst ist nicht erreichbar.');
-      await bridge.knowledge.createCaseLaw({ legalNormId: selectedNorm.id, court: caseLawCourt, fileNumber: caseLawFileNumber, shortHolding: caseLawHolding });
-      setCaseLawCourt('');
-      setCaseLawFileNumber('');
-      setCaseLawHolding('');
-      setMessage('Rechtsprechungsnotiz gespeichert.');
-      await loadDetails(selectedNorm.id);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Rechtsprechungsnotiz konnte nicht gespeichert werden.');
-    }
-  }
-
-  async function createChecklistItemForNorm(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!selectedNorm) return;
-    setMessage('');
-    setError('');
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.knowledge) throw new Error('Wissensdienst ist nicht erreichbar.');
-      await bridge.knowledge.createChecklistItem({ legalNormId: selectedNorm.id, text: checklistText, sortOrder: checklist.length + 1 });
-      setChecklistText('');
-      setMessage('Checklisteneintrag ergänzt.');
-      await loadDetails(selectedNorm.id);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Checklisteneintrag konnte nicht gespeichert werden.');
-    }
   }
 
   return (

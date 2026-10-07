@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildFallbackTemplateContext, extractPlaceholders, normalizeTemplateKey, renderTemplateText } from '../../../services/templatePolicy';
+import { buildFallbackTemplateContext, normalizeTemplateKey, renderTemplateText } from '../../../services/templatePolicy';
 
 describe('templatePolicy', () => {
   it('ersetzt bekannte Platzhalter und lässt unbekannte Platzhalter sichtbar', () => {
@@ -9,13 +9,6 @@ describe('templatePolicy', () => {
 
     expect(result.text).toBe('Aktenzeichen SBV-2026-17, offen {{unbekannt}}.');
     expect(result.unresolvedPlaceholders).toEqual(['unbekannt']);
-  });
-
-  it('extrahiert Platzhalter eindeutig und sortiert', () => {
-    expect(extractPlaceholders('{{frist.datum}} und {{fall.aktenzeichen}} und {{frist.datum}}')).toEqual([
-      'fall.aktenzeichen',
-      'frist.datum'
-    ]);
   });
 
   it('normalisiert Vorlagenschlüssel robust', () => {

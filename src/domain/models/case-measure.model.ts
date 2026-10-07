@@ -105,22 +105,6 @@ export function noteProcessTypeToCaseMeasureType(type: CaseMeasureNoteProcessTyp
   }
 }
 
-export function caseMeasureTypeToNoteProcessType(type: CaseMeasureType): CaseMeasureNoteProcessType | undefined {
-  switch (type) {
-    case 'bem':
-    case 'prevention':
-    case 'termination_hearing':
-    case 'workplace_accommodation':
-      return type;
-    case 'sbv_participation':
-      return 'participation';
-    case 'equalization_gdb':
-      return 'equalization';
-    default:
-      return undefined;
-  }
-}
-
 export interface CaseMeasureNoteRecord {
   id: string;
   caseId: string;

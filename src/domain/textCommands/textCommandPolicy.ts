@@ -6,6 +6,7 @@ export type TextCommandToken =
   | '/wiedervorlage'
   | '@@'
   | '/kontakt'
+  | '/person'
   | '##'
   | '/fall'
   | '§§'
@@ -44,6 +45,7 @@ export type TextCommandKind =
   | 'deadline'
   | 'follow_up'
   | 'contact'
+  | 'person_reference'
   | 'case_reference'
   | 'legal_norm'
   | 'risk'
@@ -82,6 +84,7 @@ export const TEXT_COMMAND_REGISTRY: TextCommandDefinition[] = [
   { kind: 'deadline', tokens: ['//', '/fr', '/frist'], label: 'Frist anlegen', description: 'Frist mit Datum direkt aus dem Protokoll anlegen. In der Fallakte fallbezogen, in der SBV-Steuerung als übergreifende Wiedervorlage.', requiresCase: false },
   { kind: 'follow_up', tokens: ['/wv', '/wiedervorlage'], label: 'Wiedervorlage anlegen', description: 'Wiedervorlage mit Datum direkt aus dem Protokoll anlegen. In der SBV-Steuerung ohne Fallzuordnung möglich.', requiresCase: false },
   { kind: 'contact', tokens: ['@@', '/kontakt'], label: 'Kontakt einfügen', description: 'Kontakt suchen oder anlegen und in den Text einfügen.' },
+  { kind: 'person_reference', tokens: ['/person'], label: 'Person verknüpfen', description: 'Person aus dem Verzeichnis verknüpfen; bei Löschung oder Anonymisierung wird der Verweis ersetzt.' },
   { kind: 'case_reference', tokens: ['##', '/fall'], label: 'Fallbezug verknüpfen', description: 'Weiteren Fallbezug in Text und Notiz hinterlegen.' },
   { kind: 'legal_norm', tokens: ['§§', '/norm'], label: 'Rechtsnorm einfügen', description: 'Rechtsnorm suchen, einfügen und mit der Fallakte verknüpfen.' },
   { kind: 'risk', tokens: ['!!', '/risiko'], label: 'Risiko markieren', description: 'Risiko- oder Warnhinweis sichtbar im Protokoll markieren.' },
@@ -114,7 +117,7 @@ export interface TextCommandHelpGroup {
 export const TEXT_COMMAND_HELP_GROUPS: TextCommandHelpGroup[] = [
   { title: 'Live-Erfassung', description: 'Direkt im Gespräch Fristen, Wiedervorlagen und Aufgaben vormerken.', kinds: ['deadline', 'follow_up', 'open_task'] },
   { title: 'Fallakten-Maßnahmen', description: 'Strukturierte SBV-Vorgänge in der geöffneten Fallakte anlegen.', kinds: ['bem_measure', 'prevention_measure', 'participation', 'termination_measure', 'equalization_measure', 'workplace_accommodation'] },
-  { title: 'Wissen und Bezüge', description: 'Kontakte, Fallbezüge, Normen und Vorlagen in den Arbeitsfluss holen.', kinds: ['contact', 'case_reference', 'legal_norm', 'template'] },
+  { title: 'Wissen und Bezüge', description: 'Kontakte, Personen, Fallbezüge, Normen und Vorlagen in den Arbeitsfluss holen.', kinds: ['contact', 'person_reference', 'case_reference', 'legal_norm', 'template'] },
   { title: 'Datenschutz und Bewertung', description: 'Risiken, Vertraulichkeit und Anonymisierung während des Protokolls markieren.', kinds: ['risk', 'confidentiality', 'anonymization'] }
 ];
 
@@ -125,18 +128,6 @@ const TOKEN_TO_KIND = TEXT_COMMAND_REGISTRY.reduce((acc, definition) => {
 
 export function getTextCommandKind(token: TextCommandToken): TextCommandKind {
   return TOKEN_TO_KIND[token];
-}
-
-export function isTextCommandKind(token: TextCommandToken, kind: TextCommandKind): boolean {
-  return getTextCommandKind(token) === kind;
-}
-
-export function tokensForTextCommandKind(kind: TextCommandKind): TextCommandToken[] {
-  return TEXT_COMMAND_REGISTRY.find((definition) => definition.kind === kind)?.tokens ?? [];
-}
-
-export function primaryTokenForTextCommandKind(kind: TextCommandKind): TextCommandToken {
-  return tokensForTextCommandKind(kind)[0];
 }
 
 export const LEGAL_NORM_SUGGESTIONS: LegalNormSuggestion[] = [
@@ -189,18 +180,20 @@ export function findFirstTextCommand(value: string, disabledCommands: TextComman
   return matches.sort((a, b) => a.index - b.index || b.token.length - a.token.length)[0] ?? null;
 }
 
-export function getTextCommandArgument(value: string, markerIndex: number, token: TextCommandToken): string {
+function getTextCommandSegment(value: string, markerIndex: number, token: TextCommandToken): string | null {
   const index = isTextCommandAt(value, markerIndex, token) ? markerIndex : value.indexOf(token);
-  if (index < 0) return '';
+  if (index < 0) return null;
   const afterToken = value.slice(index + token.length);
   const newlineIndex = afterToken.search(/[\r\n]/);
-  const segment = newlineIndex >= 0 ? afterToken.slice(0, newlineIndex) : afterToken;
-  return segment.replace(/\s+/g, ' ').trim();
+  return newlineIndex >= 0 ? afterToken.slice(0, newlineIndex) : afterToken;
+}
+
+export function getTextCommandArgument(value: string, markerIndex: number, token: TextCommandToken): string {
+  return getTextCommandSegment(value, markerIndex, token)?.replace(/\s+/g, ' ').trim() ?? '';
 }
 
 export function getTextCommandRangeLength(value: string, markerIndex: number, token: TextCommandToken): number {
-  const argument = getTextCommandArgument(value, markerIndex, token);
-  return token.length + (argument ? argument.length + 1 : 0);
+  return token.length + (getTextCommandSegment(value, markerIndex, token)?.trimEnd().length ?? 0);
 }
 
 export function replaceCommandMarker(value: string, markerIndex: number, token: TextCommandToken, replacement: string, rangeLength?: number): string {
@@ -236,31 +229,6 @@ export function formatConfidentialityText(level: ConfidentialCommandLevel): stri
   return `[Vertraulichkeit: ${label}]`;
 }
 
-
-export type AnonymizationTargetKind = 'name' | 'email' | 'personnel_number' | 'organizational_unit' | 'health_detail' | 'case_reference' | 'text_segment';
-
-const ANONYMIZATION_TARGET_LABELS: Record<AnonymizationTargetKind, string> = {
-  name: 'Name',
-  email: 'E-Mail-Adresse',
-  personnel_number: 'Personalnummer',
-  organizational_unit: 'Organisationseinheit',
-  health_detail: 'Gesundheitsdetail',
-  case_reference: 'Fallbezug',
-  text_segment: 'Textstelle'
-};
-
-export function classifyAnonymizationTarget(value: string): AnonymizationTargetKind {
-  const text = value.trim();
-  const normalized = text.toLowerCase();
-  if (!text) return 'text_segment';
-  if (/\b[\w.%+-]+@[\w.-]+\.[a-z]{2,}\b/i.test(text) || normalized.includes('e-mail') || normalized.includes('email') || normalized.includes('mailadresse')) return 'email';
-  if (/\b(pers(?:onal)?\.?\s*nr|personalnummer|pnr|mitarbeiter(?:nummer)?|ma-?nr)\b/i.test(text) || /\b[A-Z]{0,3}-?\d{3,}\b/.test(text)) return 'personnel_number';
-  if (/\b(gdb|diagnose|krank|erkrank|behinderung|depression|ptbs|adhs|autismus|krebs|tumor|sucht|therapie|medikation|reha)\b/i.test(text)) return 'health_detail';
-  if (/\b(team|bereich|abteilung|referat|dezernat|standort|organisationseinheit|org[-\s]?einheit)\b/i.test(text)) return 'organizational_unit';
-  if (/\b(fall|fallakte|fallakten|akte|aktenzeichen|az|sbv-\d|bem-\d)\b/i.test(text)) return 'case_reference';
-  if (/^[A-ZÄÖÜ][a-zäöüß]+(?:[-\s][A-ZÄÖÜ][a-zäöüß]+)+$/.test(text)) return 'name';
-  return 'text_segment';
-}
 
 export function formatAnonymizationMarkerText(label: string): string {
   const value = label.trim();

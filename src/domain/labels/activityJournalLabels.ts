@@ -22,7 +22,3 @@ export const activityJournalTimeModeLabels: Record<ActivityJournalTimeMode, stri
   range: 'Zeitraum',
   timer: 'Timer',
 };
-
-export function getActivityJournalCategoryLabel(category: ActivityJournalCategory): string {
-  return activityJournalCategoryLabels[category];
-}

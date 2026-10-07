@@ -92,7 +92,7 @@ function violation(overrides: Partial<SbvParticipationViolationRecord>): SbvPart
 
 describe('Beteiligungsverstoß-View-Logik', () => {
   it('beginnt mit einem allgemeinen, fallfreien Arbeitgeberverstoß ohne technische Kontext-ID', () => {
-    const form = createInitialViolationForm([]);
+    const form = createInitialViolationForm();
     expect(form).toMatchObject({ sourceContextType: 'general_employer_practice', sourceContextId: '' });
     expect(validateViolationDraft({
       ...form,
@@ -101,23 +101,18 @@ describe('Beteiligungsverstoß-View-Logik', () => {
       wrongBehavior: 'Die Anordnung missachtet die Beteiligungsrechte der SBV.',
     })).toEqual([]);
   });
-  it('startet unabhängig von vorhandenen Fällen im allgemeinen fallfreien Kontext', () => {
-    const withCase = createInitialViolationForm([caseRecord()]);
-    const withoutCase = createInitialViolationForm([]);
+  it('beginnt einen neuen Entwurf ohne den zuvor ausgewählten Fall zu übernehmen', () => {
+    const selected = applyViolationCaseContext(createInitialViolationForm(), 'case-1');
+    const fresh = createInitialViolationForm();
 
-    expect(withCase.sourceContextType).toBe('general_employer_practice');
-    expect(withCase.sourceContextId).toBe('');
-    expect(withCase.caseId).toBeUndefined();
-    expect(withCase.requiredBehavior).toContain('§ 178 Abs. 2 Satz 1 SGB IX');
-
-    expect(withoutCase.sourceContextType).toBe('general_employer_practice');
-    expect(withoutCase.sourceContextId).toBe('');
-    expect(withoutCase.caseId).toBeUndefined();
+    expect(selected.caseId).toBe('case-1');
+    expect(fresh).toMatchObject({ sourceContextType: 'general_employer_practice', sourceContextId: '' });
+    expect(fresh.caseId).toBeUndefined();
   });
 
   it('setzt Fallkontext nur nach bewusster Auswahl und löscht Maßnahmensonderbezug', () => {
     const form = {
-      ...createInitialViolationForm([]),
+      ...createInitialViolationForm(),
       sourceContextType: 'case_measure_participation' as const,
       sourceContextId: 'measure-participation-1',
       relatedCaseMeasureId: 'measure-participation-1',
@@ -147,7 +142,7 @@ describe('Beteiligungsverstoß-View-Logik', () => {
       value: 'measure-1',
       label: 'Allgemeine Freistellungspraxis prüfen · SBV-2026-004',
     }]);
-    expect(applyViolationMeasureContext(createInitialViolationForm([]), 'measure-1', measures)).toMatchObject({
+    expect(applyViolationMeasureContext(createInitialViolationForm(), 'measure-1', measures)).toMatchObject({
       sourceContextType: 'case_measure_participation',
       sourceContextId: 'measure-1',
       caseId: 'case-1',
@@ -157,7 +152,7 @@ describe('Beteiligungsverstoß-View-Logik', () => {
 
   it('wechselt Ausgangskontext ohne alte Relationen mitzuschleppen', () => {
     const form = {
-      ...createInitialViolationForm([]),
+      ...createInitialViolationForm(),
       sourceContextId: 'measure-participation-1',
       caseId: 'case-1',
       relatedCaseMeasureId: 'measure-participation-1',
@@ -190,7 +185,7 @@ describe('Beteiligungsverstoß-View-Logik', () => {
 
 
   it('validiert den bewussten Entwurf branchbasiert vor Persistenz', () => {
-    const emptyDraft = createInitialViolationForm([]);
+    const emptyDraft = createInitialViolationForm();
     const issues = validateViolationDraft(emptyDraft);
 
     expect(issues.map((issue) => issue.code)).toEqual([
@@ -208,7 +203,7 @@ describe('Beteiligungsverstoß-View-Logik', () => {
 
   it('erkennt widersprüchlichen allgemeinen Fallkontext ohne Stringtest auf UI-Text', () => {
     const draft = {
-      ...createInitialViolationForm([]),
+      ...createInitialViolationForm(),
       sourceContextType: 'case' as const,
       sourceContextId: 'case-1',
       caseId: 'case-2',

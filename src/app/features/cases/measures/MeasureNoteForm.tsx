@@ -77,9 +77,6 @@ export function MeasureNoteForm({
   onCancel: () => void;
   onSubmit: () => void;
 }) {
-  const protocolHelpId = `${fieldPrefix}-content-privacy-help`;
-  const nextStepsHelpId = `${fieldPrefix}-next-steps-help`;
-
   return (
     <>
       <MeasureNoteFields fieldPrefix={fieldPrefix} form={form} onChange={onChange} />

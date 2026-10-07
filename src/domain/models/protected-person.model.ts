@@ -128,20 +128,6 @@ export interface PersonImportColumnMapping {
   ignoredColumns?: string[];
 }
 
-export interface PersonImportProfileRecord {
-  id: string;
-  name: string;
-  fileType: 'csv' | 'xlsx';
-  sheetName?: string;
-  headerRowIndex: number;
-  firstDataRowIndex: number;
-  csvDelimiter?: string;
-  csvEncoding?: string;
-  columnMapping: PersonImportColumnMapping;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface PersonImportPreviewRow {
   rowNumber: number;
   firstName?: string;

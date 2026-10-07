@@ -273,7 +273,7 @@ type PrimaryViewsProps = { currentView: ViewId; setCurrentView: (view: ViewId) =
   setParticipationViolationPrefill: (prefill: SbvParticipationViolationPrefill | null) => void; };
 
 function PrimaryViews(props: PrimaryViewsProps & { openCaseNode: (target: CaseNodeTarget) => void }) {
-  const { currentView, setCurrentView, work, caseNodeTarget, setCaseNodeTarget, personTargetId, setPersonTargetId, recordTarget, setRecordTarget, activityJournalPrefill, setActivityJournalPrefill,
+  const { currentView, setCurrentView, work, personTargetId, setPersonTargetId, recordTarget, setRecordTarget, activityJournalPrefill, setActivityJournalPrefill,
     participationViolationPrefill, setParticipationViolationPrefill } = props;
   const { cases, contacts, deadlines, persons, caseMeasures, dashboardDeadlines, setSelectedDeadline, createCase, createContact,
     deleteContact, createDeadline, completeDeadline, reloadWorkData, setDeadlineExtensionTarget } = work;
@@ -303,7 +303,7 @@ function PrimaryViews(props: PrimaryViewsProps & { openCaseNode: (target: CaseNo
     onCreate={personHandlers.createProtectedPerson} onUpdate={personHandlers.updateProtectedPerson}
     onSelectImportFile={personHandlers.selectProtectedPersonImportFile} onPreviewImport={personHandlers.previewProtectedPersonsImport}
     onExecuteImport={personHandlers.executeProtectedPersonsImport} onEvaluateExpiry={personHandlers.evaluateProtectedPersonExpiry}
-    onExportIcal={personHandlers.exportDeadlinesAsIcal} onListOpenPrivacyReviews={personHandlers.listOpenPrivacyReviewsForPerson}
+    onExportIcal={icalHandlers.exportIcal} onListOpenPrivacyReviews={personHandlers.listOpenPrivacyReviewsForPerson}
     onDocumentRetention={personHandlers.documentPrivacyRetention} onScheduleReviewLater={personHandlers.schedulePrivacyReviewLater}
     onClearReview={personHandlers.clearPrivacyReview} onAnonymizeReviewCase={personHandlers.anonymizePrivacyReviewCase}
     onDeleteReviewCase={personHandlers.deletePrivacyReviewCase} onAnonymizePerson={personHandlers.anonymizeProtectedPerson}
@@ -366,7 +366,7 @@ function WorkspaceMain(props: PrimaryViewsProps & { currentModule?: (typeof modu
       setCaseNodeTarget={props.setCaseNodeTarget} recordTarget={props.recordTarget} setRecordTarget={props.setRecordTarget} openCaseNode={props.openCaseNode} theme={props.theme} setTheme={props.setTheme}
       setParticipationViolationPrefill={props.setParticipationViolationPrefill} />
     {!isImplementedView(currentView) && currentModule && <PlaceholderView view={currentModule} />}
-    <GlobalTextCommandController cases={work.cases} contacts={work.contacts} onCreateDeadline={work.createDeadline} /><TextCommandHelpModal />
+    <GlobalTextCommandController cases={work.cases} contacts={work.contacts} persons={work.persons} onCreateDeadline={work.createDeadline} /><TextCommandHelpModal />
     {work.selectedDeadline && <DeadlineEditor deadline={work.selectedDeadline} cases={work.cases} onClose={() => work.setSelectedDeadline(null)}
       onSave={work.updateDeadline} onComplete={work.completeDeadline} />}
     {work.deadlineExtensionTarget && <DeadlineExtensionModal deadline={work.deadlineExtensionTarget} cases={work.cases}

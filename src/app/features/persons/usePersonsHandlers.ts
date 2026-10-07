@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { waitForBridge } from '../../core/bridge/waitForBridge';
 import type {
   CreateProtectedPersonInput,
@@ -7,6 +7,12 @@ import type {
   UpdateProtectedPersonInput
 } from '../../../domain/models/protected-person.model';
 import type { PrivacyReviewActionInput } from '../../../domain/models/privacy-review.model';
+
+async function requirePrivacyReviewBridge() {
+  const bridge = await waitForBridge();
+  if (!bridge?.privacyReview) throw new Error('Datenschutzprüfung ist nicht erreichbar.');
+  return bridge.privacyReview;
+}
 
 export function usePersonsHandlers(reloadWorkData: () => Promise<void>) {
   const createProtectedPerson = useCallback(async (input: CreateProtectedPersonInput) => {
@@ -53,31 +59,27 @@ export function usePersonsHandlers(reloadWorkData: () => Promise<void>) {
   }, [reloadWorkData]);
 
   const listOpenPrivacyReviewsForPerson = useCallback(async (protectedPersonId: string) => {
-    const bridge = await waitForBridge();
-    if (!bridge?.privacyReview) throw new Error('Datenschutzprüfung ist nicht erreichbar.');
-    return await bridge.privacyReview.listOpenForPerson(protectedPersonId);
+    const privacyReview = await requirePrivacyReviewBridge();
+    return await privacyReview.listOpenForPerson(protectedPersonId);
   }, []);
 
   const documentPrivacyRetention = useCallback(async (input: PrivacyReviewActionInput) => {
-    const bridge = await waitForBridge();
-    if (!bridge?.privacyReview) throw new Error('Datenschutzprüfung ist nicht erreichbar.');
-    const result = await bridge.privacyReview.documentRetention(input);
+    const privacyReview = await requirePrivacyReviewBridge();
+    const result = await privacyReview.documentRetention(input);
     await reloadWorkData();
     return result;
   }, [reloadWorkData]);
 
   const schedulePrivacyReviewLater = useCallback(async (input: PrivacyReviewActionInput) => {
-    const bridge = await waitForBridge();
-    if (!bridge?.privacyReview) throw new Error('Datenschutzprüfung ist nicht erreichbar.');
-    const result = await bridge.privacyReview.scheduleLater(input);
+    const privacyReview = await requirePrivacyReviewBridge();
+    const result = await privacyReview.scheduleLater(input);
     await reloadWorkData();
     return result;
   }, [reloadWorkData]);
 
   const clearPrivacyReview = useCallback(async (input: PrivacyReviewActionInput) => {
-    const bridge = await waitForBridge();
-    if (!bridge?.privacyReview) throw new Error('Datenschutzprüfung ist nicht erreichbar.');
-    const result = await bridge.privacyReview.clearCase(input);
+    const privacyReview = await requirePrivacyReviewBridge();
+    const result = await privacyReview.clearCase(input);
     await reloadWorkData();
     return result;
   }, [reloadWorkData]);
@@ -112,20 +114,7 @@ export function usePersonsHandlers(reloadWorkData: () => Promise<void>) {
     await reloadWorkData();
   }, [reloadWorkData]);
 
-  const exportDeadlinesAsIcal = useCallback(async () => {
-    const bridge = await waitForBridge();
-    if (!bridge?.deadlines?.exportIcal) throw new Error('iCal-Export ist nicht erreichbar.');
-    const ics = await bridge.deadlines.exportIcal({ status: ['open', 'overdue'] }, 'process_type');
-    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'gremia-sbv-fristen.ics';
-    link.click();
-    URL.revokeObjectURL(url);
-  }, []);
-
-  return useMemo(() => ({
+  return {
     createProtectedPerson,
     updateProtectedPerson,
     selectProtectedPersonImportFile,
@@ -139,23 +128,6 @@ export function usePersonsHandlers(reloadWorkData: () => Promise<void>) {
     anonymizePrivacyReviewCase,
     deletePrivacyReviewCase,
     anonymizeProtectedPerson,
-    deleteProtectedPerson,
-    exportDeadlinesAsIcal
-  }), [
-    createProtectedPerson,
-    updateProtectedPerson,
-    selectProtectedPersonImportFile,
-    previewProtectedPersonsImport,
-    executeProtectedPersonsImport,
-    evaluateProtectedPersonExpiry,
-    listOpenPrivacyReviewsForPerson,
-    documentPrivacyRetention,
-    schedulePrivacyReviewLater,
-    clearPrivacyReview,
-    anonymizePrivacyReviewCase,
-    deletePrivacyReviewCase,
-    anonymizeProtectedPerson,
-    deleteProtectedPerson,
-    exportDeadlinesAsIcal
-  ]);
+    deleteProtectedPerson
+  };
 }

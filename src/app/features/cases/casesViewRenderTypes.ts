@@ -19,16 +19,16 @@ import type { ProcessTemplateModalState } from "./ProcessTemplateDocumentsModal"
 import type { useCaseWorkbenchSearch } from "./useCaseWorkbenchSearch";
 import type { useInlineCommands } from "./inlineCommands/useInlineCommands";
 import type { useCaseProcessUpdates } from "./useCaseProcessUpdates";
-import type { useProcessTemplateActions } from "./useProcessTemplateActions";
-import type { useCaseProcessCreation } from "./useCaseProcessCreation";
-import type { useCaseCrudActions } from "./useCaseCrudActions";
+import type { createProcessTemplateActions } from "./processTemplateActions";
+import type { createCaseProcessActions } from "./caseProcessActions";
+import type { createCaseCrudActions } from "./caseCrudActions";
 import type { useCaseNoteEditor } from "./useCaseNoteEditor";
 import type { CaseDocumentActions } from "./useCaseDocuments";
 export type SearchState = ReturnType<typeof useCaseWorkbenchSearch>;
 export type ProcessUpdateActions = ReturnType<typeof useCaseProcessUpdates>;
-export type TemplateActions = ReturnType<typeof useProcessTemplateActions>;
-export type ProcessCreationActions = ReturnType<typeof useCaseProcessCreation>;
-export type CrudActions = ReturnType<typeof useCaseCrudActions>;
+export type TemplateActions = ReturnType<typeof createProcessTemplateActions>;
+export type ProcessCreationActions = ReturnType<typeof createCaseProcessActions>;
+export type CrudActions = ReturnType<typeof createCaseCrudActions>;
 export type NoteEditorActions = ReturnType<typeof useCaseNoteEditor>;
 
 export type CasesViewRenderProps = {

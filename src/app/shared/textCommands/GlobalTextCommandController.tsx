@@ -3,12 +3,12 @@ import type { Dispatch, KeyboardEvent, SetStateAction } from "react";
 import { CalendarPlus, FileText, Link2, Lock, Search, ShieldAlert, UserPlus } from "lucide-react";
 import type { CaseRecord } from "../../../domain/models/case.model";
 import type { ContactRecord } from "../../../domain/models/contact.model";
+import type { ProtectedPersonRecord } from "../../../domain/models/protected-person.model";
 import type { CreateDeadlineInput } from "../../../domain/models/deadline.model";
 import {
   LEGAL_NORM_SUGGESTIONS,
   formatAnonymizationMarkerText,
   formatBemMarkerText,
-  formatCaseReferenceText,
   formatConfidentialityText,
   formatContactReferenceText,
   formatEqualizationMarkerText,
@@ -46,7 +46,7 @@ type CommandKind = ReturnType<typeof getTextCommandKind>;
 
 const TITLE_BY_KIND: Record<CommandKind, string> = {
   deadline: "Frist anlegen", follow_up: "Wiedervorlage anlegen", contact: "Kontakt einfügen",
-  case_reference: "Fallbezug einfügen", legal_norm: "Rechtsnorm einfügen", risk: "Risiko markieren",
+  person_reference: "Person verknüpfen", case_reference: "Fallbezug einfügen", legal_norm: "Rechtsnorm einfügen", risk: "Risiko markieren",
   open_task: "Aufgabe einfügen", confidentiality: "Vertraulichkeit einfügen", anonymization: "Anonymisierung vormerken",
   bem_measure: "BEM-Vorgang anlegen", prevention_measure: "Prävention anlegen", equalization_measure: "Gleichstellung/GdB anlegen",
   termination_measure: "Kündigungsanhörung anlegen", participation: "SBV-Beteiligung anlegen",
@@ -54,7 +54,7 @@ const TITLE_BY_KIND: Record<CommandKind, string> = {
   activity_journal_time: "Journalzeit übernehmen",
 };
 const MEASURE_KINDS: CommandKind[] = ["bem_measure", "prevention_measure", "equalization_measure", "termination_measure", "participation", "workplace_accommodation"];
-const SELECTION_KINDS: CommandKind[] = ["contact", "case_reference", "legal_norm"];
+const SELECTION_KINDS: CommandKind[] = ["contact", "person_reference", "case_reference", "legal_norm"];
 
 function initialDraft(detail: TextCommandTextareaChange): GlobalDraft | null {
   if (!detail.fieldId || getTextCommandKind(detail.token) === "activity_journal_time") return null;
@@ -131,19 +131,27 @@ function SearchFields({ label, placeholder, draft, setDraft, children }: { label
   </div>;
 }
 
-function SelectionFields({ kind, draft, setDraft, cases, contacts, replace }: { kind: CommandKind; draft: GlobalDraft; setDraft: DraftSetter;
-  cases: CaseRecord[]; contacts: ContactRecord[]; replace: (replacement: string) => void }) {
+function SelectionFields({ kind, draft, setDraft, cases, contacts, persons, replace, link }: { kind: CommandKind; draft: GlobalDraft; setDraft: DraftSetter;
+  cases: CaseRecord[]; contacts: ContactRecord[]; persons: ProtectedPersonRecord[]; replace: (replacement: string) => void;
+  link: (kind: 'person' | 'case', id: string) => void }) {
   const query = draft.query.trim().toLowerCase();
   const matchingCases = useMemo(() => cases.filter((item) => !query || `${item.caseNumber} ${item.displayName} ${item.summary ?? ""} ${item.category}`.toLowerCase().includes(query)).slice(0, 8), [cases, query]);
   const matchingContacts = useMemo(() => contacts.filter((item) => !query || `${item.firstName} ${item.lastName} ${item.organization ?? ""} ${item.role ?? ""} ${item.email ?? ""}`.toLowerCase().includes(query)).slice(0, 8), [contacts, query]);
+  const matchingPersons = useMemo(() => persons.filter((item) => item.lifecycleState !== 'anonymized' && item.lifecycleState !== 'deleted_marker'
+    && (!query || `${item.firstName} ${item.lastName} ${item.pseudonymLabel ?? ''}`.toLowerCase().includes(query))).slice(0, 8), [persons, query]);
   const matchingNorms = useMemo(() => LEGAL_NORM_SUGGESTIONS.filter((item) => !query || `${item.paragraph} ${item.title} ${item.shortText} ${item.source}`.toLowerCase().includes(query)).slice(0, 8), [query]);
   if (kind === "contact") return <SearchFields label="Kontakt suchen" placeholder="Name, Organisation, Rolle …" {...{ draft, setDraft }}>
     {matchingContacts.map((contact) => <button key={contact.id} type="button" onClick={() => replace(formatContactReferenceText(contact))} className="industrial-command-result">
       <UserPlus className="industrial-icon" />{formatContactReferenceText(contact)}</button>)}
     {!matchingContacts.length && <p className="industrial-empty-state">Kein passender Kontakt gefunden.</p>}
   </SearchFields>;
+  if (kind === "person_reference") return <SearchFields label="Person suchen" placeholder="Vorname oder Nachname …" {...{ draft, setDraft }}>
+    {matchingPersons.map((person) => <button key={person.id} type="button" onClick={() => link('person', person.id)} className="industrial-command-result">
+      <UserPlus className="industrial-icon" />{[person.firstName, person.lastName].filter(Boolean).join(' ') || person.pseudonymLabel || 'Person'}</button>)}
+    {!matchingPersons.length && <p className="industrial-empty-state">Keine passende Person gefunden.</p>}
+  </SearchFields>;
   if (kind === "case_reference") return <SearchFields label="Fall suchen" placeholder="Aktenzeichen, Name, Kurzbeschreibung …" {...{ draft, setDraft }}>
-    {matchingCases.map((item) => <button key={item.id} type="button" onClick={() => replace(formatCaseReferenceText(item.caseNumber, item.displayName))} className="industrial-command-result">
+    {matchingCases.map((item) => <button key={item.id} type="button" onClick={() => link('case', item.id)} className="industrial-command-result">
       <Link2 className="industrial-icon" />{item.caseNumber} · {item.displayName}</button>)}
     {!matchingCases.length && <p className="industrial-empty-state">Kein passender Fall gefunden.</p>}
   </SearchFields>;
@@ -185,17 +193,18 @@ function SimpleCommandFields({ kind, draft, setDraft }: { kind: CommandKind; dra
   return null;
 }
 
-function CommandFields({ kind, draft, setDraft, cases, contacts, replace }: { kind: CommandKind; draft: GlobalDraft; setDraft: DraftSetter;
-  cases: CaseRecord[]; contacts: ContactRecord[]; replace: (replacement: string) => void }) {
+function CommandFields({ kind, draft, setDraft, cases, contacts, persons, replace, link }: { kind: CommandKind; draft: GlobalDraft; setDraft: DraftSetter;
+  cases: CaseRecord[]; contacts: ContactRecord[]; persons: ProtectedPersonRecord[]; replace: (replacement: string) => void;
+  link: (kind: 'person' | 'case', id: string) => void }) {
   return <>
     {(kind === "deadline" || kind === "follow_up") && <DeadlineFields {...{ draft, setDraft }} />}
-    <SelectionFields {...{ kind, draft, setDraft, cases, contacts, replace }} />
+    <SelectionFields {...{ kind, draft, setDraft, cases, contacts, persons, replace, link }} />
     <RiskAndConfidentialityFields {...{ kind, draft, setDraft }} />
     <SimpleCommandFields {...{ kind, draft, setDraft }} />
   </>;
 }
 
-export function GlobalTextCommandController({ cases, contacts, onCreateDeadline }: { cases: CaseRecord[]; contacts: ContactRecord[]; onCreateDeadline: (input: CreateDeadlineInput) => Promise<void> }) {
+export function GlobalTextCommandController({ cases, contacts, persons, onCreateDeadline }: { cases: CaseRecord[]; contacts: ContactRecord[]; persons: ProtectedPersonRecord[]; onCreateDeadline: (input: CreateDeadlineInput) => Promise<void> }) {
   const [draft, setDraft] = useDetectedCommand();
   const [actionError, setActionError] = useState('');
   const [actionPending, setActionPending] = useState(false);
@@ -203,6 +212,12 @@ export function GlobalTextCommandController({ cases, contacts, onCreateDeadline 
   if (!draft) return null;
   const kind = getTextCommandKind(draft.token);
   const replace = (replacement: string) => { emitReplacement(draft, replacement); setDraft(null); setActionError(''); };
+  const link = async (entityKind: 'person' | 'case', id: string) => {
+    setActionError(''); setActionPending(true);
+    try { replace(await window.gremiaSbv.knowledge.createTextEntityReference(entityKind, id)); }
+    catch (error) { setActionError(error instanceof Error ? error.message : 'Verknüpfung konnte nicht erstellt werden.'); }
+    finally { setActionPending(false); }
+  };
   const applyPrimaryAction = async () => {
     setActionError('');
     if (kind === 'deadline' || kind === 'follow_up') {
@@ -234,7 +249,7 @@ export function GlobalTextCommandController({ cases, contacts, onCreateDeadline 
         <p className="industrial-kicker">Inline-Befehl</p><h2 id="global-text-command-title">{TITLE_BY_KIND[kind]}</h2>
         <p id="global-text-command-description">Dieser Befehl wirkt direkt auf das aktuell bearbeitete Textfeld. Strg+Enter speichert, Esc bricht ab.</p>
       </div></div>
-      <CommandFields {...{ kind, draft, setDraft, cases, contacts, replace }} />
+      <CommandFields {...{ kind, draft, setDraft, cases, contacts, persons, replace, link }} />
       {actionError && <div className="industrial-message industrial-message-error" role="alert">{actionError}</div>}
       <div className="industrial-modal-actions">
         <button type="button" className="industrial-secondary-button" onClick={() => { setDraft(null); setActionError(''); }} disabled={actionPending}>Abbrechen</button>

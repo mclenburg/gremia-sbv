@@ -3,21 +3,6 @@ import type { CaseMeasureRiskLevel } from '../../../../domain/models/case-measur
 import type { ParticipationMeasureType } from '../../../../domain/models/participation.model';
 import type { WorkplaceAccommodationCategory } from '../../../../domain/models/workplace-accommodation.model';
 
-export type PrefillFieldState = 'prefilled' | 'manual';
-
-export type PrefilledValue<T> = {
-  value: T;
-  state: PrefillFieldState;
-};
-
-export type MeasurePrefillKind =
-  | 'bem'
-  | 'prevention'
-  | 'participation'
-  | 'termination'
-  | 'equalization'
-  | 'workplace_accommodation';
-
 export type MeasurePrefillContext = {
   selectedCase?: CaseRecord;
   commandText?: string;
@@ -60,12 +45,6 @@ export function extractInlineCommandArgument(value: string, markerIndex: number,
 export function getInlineCommandRangeLength(token: string, commandText?: string): number {
   const suffix = cleanText(commandText);
   return token.length + (suffix ? suffix.length + 1 : 0);
-}
-
-export function prefillMarkerProps(isPrefilled: boolean) {
-  return isPrefilled
-    ? { 'data-prefill': 'true', 'aria-label': 'automatisch vorbelegt', title: 'automatisch vorbelegt' }
-    : {};
 }
 
 export function buildBemPrefill(context: MeasurePrefillContext) {

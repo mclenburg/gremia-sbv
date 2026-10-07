@@ -3,6 +3,7 @@ import { Pencil } from 'lucide-react';
 import type { EmploymentState, ProtectedPersonRecord, ProtectedPersonStatusSource, ProtectionStatus, UpdateProtectedPersonInput } from '../../../domain/models/protected-person.model';
 import { employmentStateLabels, protectionStatusLabels } from '../../../domain/models/protected-person.model';
 import { toInputDate } from './personImportUi';
+import { TextCommandTextarea } from '../../shared/textCommands/TextCommandTextarea';
 
 const statusOptions: ProtectionStatus[] = ['severely_disabled', 'equivalent', 'application_pending', 'unclear', 'expired', 'inactive'];
 const employmentOptions: EmploymentState[] = ['active_employee', 'left_company', 'unknown'];
@@ -139,7 +140,7 @@ export function PersonEditDialog({
           <label><span>Statusquelle</span><select className="industrial-select" value={form.statusSource} onChange={(event) => updateField('statusSource', event.target.value as ProtectedPersonStatusSource)}>{sourceOptions.map((option) => <option key={option} value={option}>{sourceLabel(option)}</option>)}</select></label>
           <label><span>Beschäftigungsstatus</span><select className="industrial-select" value={form.employmentState} onChange={(event) => updateField('employmentState', event.target.value as EmploymentState)}>{employmentOptions.map((option) => <option key={option} value={option}>{employmentStateLabels[option]}</option>)}</select></label>
           <label><span>Beschäftigungsende</span><input type="date" value={form.leftCompanyAt} onChange={(event) => updateField('leftCompanyAt', event.target.value)} className="industrial-input" /></label>
-          <label className="span-2"><span>Notiz</span><textarea rows={4} value={form.notes} onChange={(event) => updateField('notes', event.target.value)} className="industrial-textarea-input" /></label>
+          <label className="span-2"><span>Notiz</span><TextCommandTextarea fieldId="person-edit-notes" rows={4} value={form.notes} onChange={(event) => updateField('notes', event.target.value)} className="industrial-textarea-input" /></label>
           <div className="industrial-modal-actions industrial-modal-wide">
             <button type="button" className="industrial-secondary-button" onClick={onClose}>Abbrechen</button>
             <button type="submit" className="industrial-button">Person speichern</button>

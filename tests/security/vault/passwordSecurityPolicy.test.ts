@@ -1,13 +1,10 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { validatePassword as validateSettingsPassword } from "../../../src/app/features/settings/passwordValidation";
+import { validatePassword as validateServicePassword } from "../../../services/security/securitySupport";
 import {
   hasMoreThanTwoIdenticalCharactersInARow,
   validateAppPassword,
 } from "../../../services/passwordPolicy";
-
-function source(path: string): string {
-  return readFileSync(path, "utf8");
-}
 
 describe("Passwortsicherheitsregel P10b", () => {
   it("akzeptiert lange Passwörter ohne Zeichenklassenzwang", () => {
@@ -31,15 +28,8 @@ describe("Passwortsicherheitsregel P10b", () => {
     expect(hasMoreThanTwoIdenticalCharactersInARow("aaabesser-nicht")).toBe(true);
   });
 
-  it("nutzt dieselbe Regel im Login, in den Einstellungen und im Security-Service", () => {
-    expect(source("src/app/features/auth/LoginGate.tsx")).toContain(
-      "validateAppPassword",
-    );
-    expect(source("src/app/features/settings/passwordValidation.ts")).toContain(
-      "validateAppPassword as validatePassword",
-    );
-    expect(source("services/security/securitySupport.ts")).toContain(
-      "validateAppPassword",
-    );
+  it.each(["zu-kurz", "Passwort!!!2026", "aaa-besser-nicht", "aa-bb-cc-dd-2026", "112233445566", "nurkleinbuchstabenlang"])("wendet die Passwortregel für %s auch in Einstellungen und Service an", (password) => {
+    expect(validateSettingsPassword(password)).toEqual(validateAppPassword(password));
+    expect(validateServicePassword(password)).toEqual(validateAppPassword(password));
   });
 });

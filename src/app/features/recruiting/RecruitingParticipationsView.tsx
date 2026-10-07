@@ -1,18 +1,18 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, BriefcaseBusiness, CalendarClock, ClipboardList, PlusCircle } from 'lucide-react';
+import { useState } from 'react';
+import { PlusCircle } from 'lucide-react';
 import type { CreateDeadlineInput } from '../../../domain/models/deadline.model';
-import type { CreateRecruitingParticipationInput, RecruitingAccessibilityCheckStatus, RecruitingApplicantReferenceMode, RecruitingApplicantStatus, RecruitingInterviewEventRecord, RecruitingParticipationRecord, UpdateRecruitingParticipationInput } from '../../../domain/models/recruiting-participation.model';
-import { waitForBridge } from '../../core/bridge/waitForBridge';
-import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { IndustrialButton } from '../../shared/components/IndustrialButton';
-import { CheckboxField, DateInput, FormSection, SelectInput, TextInput, TextareaInput } from '../../shared/components/IndustrialForm';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
 import { EmptyState, WorkbenchDetailPanel, WorkbenchGrid, WorkbenchPage, WorkbenchSummary } from '../../shared/components/WorkbenchLayout';
 import { buildParticipationViolationPrefillFromRecruiting, type SbvParticipationViolationPrefill } from '../participation-violations/sbvParticipationViolationViewLogic';
-import { filterRecruitingRecords, getRecruitingRiskHints, type RecruitingListStatusFilter } from './recruitingViewLogic';
-import { ParticipationFormState, InterviewFormState, applicantStatusOptions, applicantReferenceModeOptions, accessibilityOptions, fromDateInput, emptyParticipationForm, formFromRecord, inputFromForm, emptyInterviewForm, interviewInputFromForm } from './recruitingParticipationViewSupport';
+import { recruitingFollowUpInput, emptyParticipationForm } from './recruitingParticipationViewSupport';
 import { RecruitingProcedureForm } from './RecruitingProcedureForm';
 import { RecruitingInterviewEvents, RecruitingListPanel } from './RecruitingPanels';
+import { useRecruitingParticipationState } from './useRecruitingParticipationState';
+import { createRecruitingMutations } from './createRecruitingMutations';
+import { RecruitingInterviewForm } from './RecruitingInterviewForm';
+import { RecruitingFollowUpSection } from './RecruitingFollowUpSection';
+
 export function RecruitingParticipationsView({
   onCreateDeadline,
   onOpenParticipationViolationPrefill,
@@ -24,169 +24,22 @@ export function RecruitingParticipationsView({
   targetId?: string;
   onTargetConsumed?: () => void;
 }) {
-  const initialTargetId = useRef(targetId).current;
-  const [records, setRecords] = useState<RecruitingParticipationRecord[]>([]);
-  const [interviews, setInterviews] = useState<RecruitingInterviewEventRecord[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [form, setForm] = useState<ParticipationFormState>(() => emptyParticipationForm());
-  const [interviewForm, setInterviewForm] = useState<InterviewFormState>(() => emptyInterviewForm());
+  const state = useRecruitingParticipationState(targetId, onTargetConsumed);
+  const {
+    records, interviews, selected, form, interviewForm, loading, saving, error, message, createOpen,
+    query, statusFilter, filteredRecords, riskHints, stats, creatingRef, announce, selectRecord,
+    setSelectedId, setForm, setInterviews, setError, setMessage,
+    setCreateOpen, setQuery, setStatusFilter, updateForm, updateInterviewForm,
+  } = state;
   const [followUpDueAt, setFollowUpDueAt] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
-  const [createOpen, setCreateOpen] = useState(false);
-  const [query, setQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<RecruitingListStatusFilter>('all');
-  const creatingRef = useRef(false);
-  const announce = useAnnouncer();
-
-  const filteredRecords = useMemo(() => filterRecruitingRecords(records, query, statusFilter), [records, query, statusFilter]);
-  const selected = useMemo(() => filteredRecords.find((record) => record.id === selectedId) ?? null, [filteredRecords, selectedId]);
-  const riskHints = selected ? getRecruitingRiskHints(selected) : [];
-
-  const reload = useCallback(async (preferredId?: string | null) => {
-    setLoading(true);
-    setError('');
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.recruitingParticipations) throw new Error('Stellenbesetzungsdienst ist nicht erreichbar.');
-      const rows = await bridge.recruitingParticipations.list();
-      setRecords(rows);
-      if (preferredId === undefined && creatingRef.current) { setSelectedId(null); setInterviews([]); return; }
-      const nextId = preferredId === undefined ? rows[0]?.id ?? null : preferredId;
-      const resolvedId = nextId && rows.some((row) => row.id === nextId) ? nextId : preferredId ? null : rows[0]?.id ?? null;
-      if (preferredId && !resolvedId) setError('Die Stellenbesetzung zur Frist ist nicht mehr vorhanden.');
-      setSelectedId(resolvedId);
-      if (resolvedId) {
-        const detail = rows.find((row) => row.id === resolvedId) ?? null;
-        if (detail) setForm(formFromRecord(detail));
-        const interviewRows = await bridge.recruitingParticipations.listInterviews(resolvedId);
-        setInterviews(interviewRows);
-      } else {
-        setForm(emptyParticipationForm());
-        setInterviews([]);
-      }
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Stellenbesetzungen konnten nicht geladen werden.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void reload(initialTargetId);
-  }, [reload, initialTargetId]);
-
-  useEffect(() => {
-    if (!targetId || loading) return;
-    if (selectedId === targetId) document.querySelector<HTMLElement>('.workbench-detail-panel')?.focus();
-    if (selectedId === targetId || error) onTargetConsumed?.();
-  }, [targetId, selectedId, loading, error, onTargetConsumed]);
-
-  useEffect(() => {
-    if (error) announce(error, 'assertive');
-  }, [error, announce]);
-
-  function updateForm(patch: Partial<ParticipationFormState>) { setForm((current) => ({ ...current, ...patch })); }
-
-  function updateInterviewForm(patch: Partial<InterviewFormState>) { setInterviewForm((current) => ({ ...current, ...patch })); }
-
-  async function selectRecord(id: string) {
-    creatingRef.current = false;
-    const record = records.find((item) => item.id === id);
-    setSelectedId(id);
-    if (record) setForm(formFromRecord(record));
-    try {
-      const bridge = await waitForBridge();
-      const rows = await bridge?.recruitingParticipations?.listInterviews(id) ?? [];
-      setInterviews(rows);
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Vorstellungsgespräche konnten nicht geladen werden.');
-    }
-  }
-
-  async function createRecord() {
-    setSaving(true);
-    setError('');
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.recruitingParticipations) throw new Error('Stellenbesetzungsdienst ist nicht erreichbar.');
-      const created = await bridge.recruitingParticipations.create(inputFromForm(form) as CreateRecruitingParticipationInput);
-      setQuery('');
-      setStatusFilter('all');
-      creatingRef.current = false;
-      setCreateOpen(false);
-      setMessage('Stellenbesetzung wurde angelegt.');
-      announce('Stellenbesetzung wurde angelegt.');
-      await reload(created.id);
-    } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : 'Stellenbesetzung konnte nicht angelegt werden.');
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function updateRecord() {
-    if (!selected) return;
-    setSaving(true);
-    setError('');
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.recruitingParticipations) throw new Error('Stellenbesetzungsdienst ist nicht erreichbar.');
-      await bridge.recruitingParticipations.update(selected.id, inputFromForm(form) as UpdateRecruitingParticipationInput);
-      setMessage('Stellenbesetzung wurde aktualisiert.');
-      announce('Stellenbesetzung wurde aktualisiert.');
-      await reload(selected.id);
-    } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : 'Stellenbesetzung konnte nicht aktualisiert werden.');
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function addInterview() {
-    if (!selected) return;
-    setSaving(true);
-    setError('');
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.recruitingParticipations) throw new Error('Stellenbesetzungsdienst ist nicht erreichbar.');
-      await bridge.recruitingParticipations.addInterview(interviewInputFromForm(selected.id, interviewForm));
-      setInterviewForm(emptyInterviewForm());
-      setMessage('Vorstellungsgespräch wurde als Beteiligungsereignis erfasst.');
-      announce('Vorstellungsgespräch wurde erfasst.');
-      await reload(selected.id);
-    } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : 'Vorstellungsgespräch konnte nicht erfasst werden.');
-    } finally {
-      setSaving(false);
-    }
-  }
+  const { createRecord, updateRecord, addInterview } = createRecruitingMutations(state);
 
   async function createRecruitingFollowUp(kind: 'documents' | 'hearing') {
     if (!selected || !followUpDueAt) {
       setError('Bitte zuerst ein Wiedervorlagedatum eintragen.');
       return;
     }
-    const title = kind === 'documents'
-      ? `Stellenbesetzung: Unterlagen nachhalten – ${selected.vacancyTitle}`
-      : `Stellenbesetzung: Anhörung vor Auswahlentscheidung – ${selected.vacancyTitle}`;
-    await onCreateDeadline({
-      processType: 'recruiting_participation',
-      processId: selected.id,
-      deadlineType: 'follow_up',
-      title,
-      confidentialTitle: title,
-      description: kind === 'documents'
-        ? 'Fallaktenunabhängige Wiedervorlage zur Nachforderung oder Prüfung vollständiger Stellenbesetzungsunterlagen.'
-        : 'Fallaktenunabhängige Wiedervorlage zur Anhörung der SBV vor Auswahlentscheidung.',
-      dueAt: fromDateInput(followUpDueAt) ?? new Date().toISOString(),
-      severity: kind === 'hearing' ? 'important' : 'normal',
-      calculationMode: 'manual',
-      isLegalDeadline: false,
-      sourceEvent: `recruiting_participation.${kind}_follow_up`,
-    });
+    await onCreateDeadline(recruitingFollowUpInput(selected, followUpDueAt, kind));
     setMessage('Wiedervorlage wurde angelegt.');
     announce('Wiedervorlage wurde angelegt.');
     setFollowUpDueAt('');
@@ -203,13 +56,6 @@ export function RecruitingParticipationsView({
     setMessage('Beteiligungsverstoß-Prüfung wurde vorbereitet. Speichern erfolgt erst in der Verstoßansicht.');
     announce('Beteiligungsverstoß-Prüfung wurde vorbereitet.');
   }
-
-  const stats = useMemo(() => ({
-    open: records.filter((record) => record.status !== 'closed').length,
-    hearingOpen: records.filter((record) => record.hasSeverelyDisabledApplicants && !record.statementSubmittedDate && !record.decisionKnownDate).length,
-    documentsOpen: records.filter((record) => record.hasSeverelyDisabledApplicants && !record.documentsComplete).length,
-    review: records.filter((record) => record.flaggedForViolationReview).length,
-  }), [records]);
 
   return (
     <WorkbenchPage
@@ -263,34 +109,10 @@ export function RecruitingParticipationsView({
 
           {selected ? (
             <>
-              <FormSection kicker="Vorstellungsgespräche" title="Beteiligungsereignis hinzufügen" helpId="recruiting.interviewEvent">
-                <div className="industrial-form-grid">
-                  <DateInput label="Gesprächsdatum" value={interviewForm.interviewDate} onValueChange={(value) => updateInterviewForm({ interviewDate: value })} />
-                  <TextInput label="Bewerbungsreferenz" value={interviewForm.applicantRef} onValueChange={(value) => updateInterviewForm({ applicantRef: value })} helpId="recruiting.applicantReference" />
-                  <SelectInput label="Referenzmodus" value={interviewForm.applicantReferenceMode} options={applicantReferenceModeOptions} onValueChange={(value) => updateInterviewForm({ applicantReferenceMode: value as RecruitingApplicantReferenceMode })} />
-                  <SelectInput label="Schutzstatus im Verfahren" value={interviewForm.applicantStatus} options={applicantStatusOptions} onValueChange={(value) => updateInterviewForm({ applicantStatus: value as RecruitingApplicantStatus })} />
-                  <DateInput label="SBV-Einladung am" value={interviewForm.sbvInvitationDate} onValueChange={(value) => updateInterviewForm({ sbvInvitationDate: value })} />
-                  <SelectInput label="Barrierefreiheit Gespräch" value={interviewForm.accessibilityCheckStatus} options={accessibilityOptions} onValueChange={(value) => updateInterviewForm({ accessibilityCheckStatus: value as RecruitingAccessibilityCheckStatus })} />
-                  <CheckboxField label="SBV eingeladen" checked={interviewForm.sbvInvited} onCheckedChange={(checked) => updateInterviewForm({ sbvInvited: checked })} />
-                  <CheckboxField label="SBV teilgenommen" checked={interviewForm.sbvAttended} onCheckedChange={(checked) => updateInterviewForm({ sbvAttended: checked })} />
-                  <CheckboxField label="Nachhaltung erforderlich" checked={interviewForm.followUpNeeded} onCheckedChange={(checked) => updateInterviewForm({ followUpNeeded: checked })} />
-                  <TextareaInput label="Verfahrensnotiz zum Ereignis" wide value={interviewForm.proceduralNote} onValueChange={(value) => updateInterviewForm({ proceduralNote: value })} helpId="recruiting.proceduralNote" />
-                </div>
-                <div className="industrial-action-row">
-                  <IndustrialButton loading={saving} onClick={() => void addInterview()}><BriefcaseBusiness className="industrial-icon" /> Gespräch erfassen</IndustrialButton>
-                </div>
-              </FormSection>
+              <RecruitingInterviewForm interviewForm={interviewForm} saving={saving} updateInterviewForm={updateInterviewForm} onAdd={() => void addInterview()} />
 
-              <FormSection kicker="Nachhaltung" title="Wiedervorlage anlegen" helpId="recruiting.deadlineFollowUp">
-                <div className="industrial-form-grid">
-                  <DateInput label="Wiedervorlage am" value={followUpDueAt} onValueChange={setFollowUpDueAt} />
-                </div>
-                <div className="industrial-action-row">
-                  <IndustrialButton variant="secondary" onClick={() => void createRecruitingFollowUp('documents')}><CalendarClock className="industrial-icon" /> Unterlagen nachhalten</IndustrialButton>
-                  <IndustrialButton variant="secondary" onClick={() => void createRecruitingFollowUp('hearing')}><ClipboardList className="industrial-icon" /> Anhörung nachhalten</IndustrialButton>
-                  <IndustrialButton variant="danger" loading={saving} onClick={() => openParticipationViolationPrefill()}><AlertTriangle className="industrial-icon" /> Beteiligungsverstoß prüfen</IndustrialButton>
-                </div>
-              </FormSection>
+              <RecruitingFollowUpSection dueAt={followUpDueAt} saving={saving} onDueAtChange={setFollowUpDueAt}
+                onFollowUp={(kind) => void createRecruitingFollowUp(kind)} onViolationReview={openParticipationViolationPrefill} />
 
               <RecruitingInterviewEvents interviews={interviews} />
 

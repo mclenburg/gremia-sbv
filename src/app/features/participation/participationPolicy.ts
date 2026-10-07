@@ -1,7 +1,9 @@
 import type {
   ParticipationDecisionStage,
+  ParticipationDashboardSummary,
   ParticipationMeasureType,
   ParticipationRecord,
+  ParticipationStatus,
 } from '../../../domain/models/participation.model';
 
 export type ParticipationEscalationLevel = 'normal' | 'warning' | 'critical';
@@ -21,6 +23,29 @@ export type ParticipationDocumentRequirement = {
 };
 
 const decisionAlreadyMade: ParticipationDecisionStage[] = ['entscheidung_getroffen', 'umgesetzt'];
+
+export function countParticipationCriticalIssues(record: ParticipationRecord, now = new Date()): number {
+  let count = 0;
+  if (!record.informationComplete) count += 1;
+  if (decisionAlreadyMade.includes(record.decisionStage) && !record.hearingBeforeDecision) count += 1;
+  if (record.suspensionDueAt && record.status === 'aussetzung_verlangt' && new Date(record.suspensionDueAt) < now) count += 1;
+  return count;
+}
+
+function isOpenParticipationStatus(status: ParticipationStatus): boolean {
+  return status !== 'abgeschlossen' && status !== 'pflichtverstoss_dokumentiert';
+}
+
+export function getParticipationSummary(records: ParticipationRecord[], now = new Date()): ParticipationDashboardSummary {
+  const summary = { open: 0, critical: 0, suspensionOpen: 0, violations: 0 };
+  for (const record of records) {
+    if (isOpenParticipationStatus(record.status)) summary.open += 1;
+    if (record.riskLevel === 'kritisch' || countParticipationCriticalIssues(record, now) > 0) summary.critical += 1;
+    if (record.status === 'aussetzung_verlangt') summary.suspensionOpen += 1;
+    if (record.status === 'pflichtverstoss_dokumentiert') summary.violations += 1;
+  }
+  return summary;
+}
 
 export function getParticipationEscalationAdvice(record: ParticipationRecord, now = new Date()): ParticipationEscalationAdvice {
   if (decisionAlreadyMade.includes(record.decisionStage) && !record.hearingBeforeDecision) {

@@ -11,13 +11,11 @@ class RuntimeSchemaCompatibility extends MigrationRepairValidation {
   personalDataAudit(): void { this.ensurePersonalDataAuditLogSchema(); }
   activityJournal(): void { this.ensureActivityJournalSchema(); }
   caseMeasures(): void { this.ensureCaseMeasureSchema(); }
-  caseMeasureNotes(): void { this.ensureCaseMeasureNoteSchema(); }
   caseHandover(): void { this.ensureCaseHandoverSchema(); }
   documentOcr(): void { this.ensureDocumentOcrSchema(); }
   protectedPersonBinding(): void { this.ensureProtectedPerson091Schema(); }
   recruitingParticipation(): void { this.ensureRecruitingParticipationSchema(); }
   sbvControlProtocol(): void { this.ensureSbvControlProtocolSchema(); }
-  workplaceAccommodation(): void { this.ensureWorkplaceAccommodationSchema(); }
   retention(): void { this.ensureRetentionActionsSchema(); }
   reports(): void { this.ensureReportExportSchema(); }
   templates(): void { this.ensureTemplateSchema(); }
@@ -43,7 +41,6 @@ export function ensureDocumentOcrRuntimeSchema(db: DatabaseAdapter): void { comp
 export function ensurePersonCaseBindingRuntimeSchema(db: DatabaseAdapter): void { compatibility(db).protectedPersonBinding(); }
 export function ensureRecruitingParticipationRuntimeSchema(db: DatabaseAdapter): void { compatibility(db).recruitingParticipation(); }
 export function ensureSbvControlProtocolRuntimeSchema(db: DatabaseAdapter): void { compatibility(db).sbvControlProtocol(); }
-export function ensureWorkplaceAccommodationRuntimeSchema(db: DatabaseAdapter): void { compatibility(db).workplaceAccommodation(); }
 export function ensureRetentionRuntimeSchema(db: DatabaseAdapter): void { compatibility(db).retention(); }
 export function ensureReportRuntimeSchema(db: DatabaseAdapter): void { compatibility(db).reports(); }
 export function ensureTemplateRuntimeSchema(db: DatabaseAdapter): void { compatibility(db).templates(); }

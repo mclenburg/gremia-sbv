@@ -308,13 +308,6 @@ html[data-theme='light'] .case-process-document-link {
   background: color-mix(in srgb, var(--industrial-danger) 14%, transparent);
 }
 
-.participation-legal-note {
-  border-left: 3px solid var(--industrial-accent);
-  background: var(--industrial-panel-muted);
-  padding: var(--space-3, 0.75rem);
-  color: var(--industrial-text);
-}
-
 .participation-legal-warning {
   display: grid;
   gap: 0.5rem;

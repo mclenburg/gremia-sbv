@@ -39,16 +39,6 @@ export function isExpired(expiresAt?: string, now = new Date()): boolean {
   return Number.isFinite(expires.getTime()) && expires.getTime() < now.getTime();
 }
 
-
-export function canImportPackage(expiresAt?: string, now = new Date()): boolean {
-  return !isExpired(expiresAt, now);
-}
-
-export function handoverExpiryState(expiresAt?: string, now = new Date()): 'no_expiry' | 'valid' | 'expired' {
-  if (!expiresAt) return 'no_expiry';
-  return isExpired(expiresAt, now) ? 'expired' : 'valid';
-}
-
 export function safeAuditMetadata(input: {
   packageId?: string;
   caseCount?: number;
@@ -75,11 +65,6 @@ export function safeAuditMetadata(input: {
     reasonCode: input.reasonCode ?? null,
     packageType: input.packageType ?? null,
   };
-}
-
-export function assertAuditMetadataContainsNoPersonalData(metadata: Record<string, unknown>): boolean {
-  const serialized = JSON.stringify(metadata);
-  return !/(diagnose|geburtsdatum|personalnummer|vorname|nachname|falltitel|notiz|inhalt)/i.test(serialized);
 }
 
 export function buildCandidateMatches(args: {

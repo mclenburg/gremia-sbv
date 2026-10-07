@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mergeContextValues, missingPlaceholderWarning, resolveContextualTemplateAction } from '../../../services/templateContextPolicy.js';
+import { missingPlaceholderWarning, resolveContextualTemplateAction } from '../../../services/templateContextPolicy.js';
 
 describe('templateContextPolicy', () => {
   it('maps prevention employer steps to the prevention request template', () => {
@@ -15,10 +15,6 @@ describe('templateContextPolicy', () => {
   it('provides a general case action for case context', () => {
     const action = resolveContextualTemplateAction({ sourceType: 'case', title: 'Fallübersicht' });
     expect(action?.templateKey).toBe('sbv-beteiligung-unterlagen-nachfordern');
-  });
-
-  it('merges only useful context values', () => {
-    expect(mergeContextValues({ a: 'eins', b: '' }, { b: 'zwei', c: undefined })).toEqual({ a: 'eins', b: 'zwei' });
   });
 
   it('formats unresolved placeholder warnings in German', () => {

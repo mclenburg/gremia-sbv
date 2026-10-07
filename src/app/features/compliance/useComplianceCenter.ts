@@ -7,21 +7,18 @@ import type {
   ComplianceIncidentRecord,
   ComplianceSelfCheckResult,
   ComplianceStatusOverview,
-  CreateComplianceIncidentInput,
-  UpdateComplianceIncidentInput,
 } from "../../../domain/models/compliance.model";
 import {
-  buildComplianceReportInput,
   listComplianceDocuments,
   renderComplianceDocument,
 } from "@/domain/compliance/complianceCenterService";
 import {
-  buildPdfExportFeedback,
   buildFallbackSelfCheck,
   buildFallbackStatus,
   loadComplianceStatus,
 } from "./complianceViewUtils";
 import { useComplianceDsar, type ComplianceWorkspace } from "./useComplianceDsar";
+import { createComplianceDocumentActions, createComplianceIncidentActions } from "./complianceActions";
 
 export function useComplianceCenter() {
   const descriptors = useMemo(() => listComplianceDocuments(), []);
@@ -92,70 +89,8 @@ export function useComplianceCenter() {
     void refreshIncidents();
   }, [refreshStatus, refreshSelfCheck, refreshIncidents]);
 
-  function render(type: ComplianceDocumentType) {
-    const next = renderComplianceDocument(type);
-    setSelectedType(type);
-    setDocument(next);
-    const info = `${next.title} wurde erzeugt.`;
-    setMessage(info);
-    announce(info, "polite");
-  }
-
-  async function exportPdfCurrent(openAfterExport = false) {
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.reports) throw new Error("Berichtsdienst ist nicht erreichbar.");
-      const result = await bridge.reports.generate(buildComplianceReportInput(document));
-      if (!result.ok) throw new Error(result.error ?? "PDF-Dokument konnte nicht erzeugt werden.");
-      const openResult = openAfterExport
-        ? await bridge.reports.openExportFolder(result.fileName)
-        : undefined;
-      const feedback = buildPdfExportFeedback({
-        title: document.title,
-        fileName: result.fileName,
-        openRequested: openAfterExport,
-        openResult,
-      });
-      setMessage(feedback.message);
-      announce(feedback.message, feedback.announceMode);
-    } catch (error) {
-      const info = error instanceof Error ? error.message : "PDF-Dokument konnte nicht erzeugt werden.";
-      setMessage(info);
-      announce(info, "assertive");
-    }
-  }
-
-  async function createIncident(input: CreateComplianceIncidentInput) {
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.compliance?.createIncident) throw new Error("Vorfallservice ist nicht erreichbar.");
-      await bridge.compliance.createIncident(input);
-      await refreshIncidents();
-      await refreshSelfCheck();
-      const info = "Datenschutzvorfall wurde gespeichert.";
-      setMessage(info);
-      announce(info, "polite");
-    } catch (error) {
-      const info = error instanceof Error ? error.message : "Datenschutzvorfall konnte nicht gespeichert werden.";
-      setMessage(info);
-      announce(info, "assertive");
-    }
-  }
-
-  async function updateIncident(id: string, input: UpdateComplianceIncidentInput) {
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.compliance?.updateIncident) throw new Error("Vorfallservice ist nicht erreichbar.");
-      await bridge.compliance.updateIncident(id, input);
-      await refreshIncidents();
-      await refreshSelfCheck();
-      announce("Datenschutzvorfall wurde aktualisiert.", "polite");
-    } catch (error) {
-      const info = error instanceof Error ? error.message : "Datenschutzvorfall konnte nicht aktualisiert werden.";
-      setMessage(info);
-      announce(info, "assertive");
-    }
-  }
+  const documentActions = createComplianceDocumentActions({ document, setDocument, setSelectedType, setMessage, announce });
+  const incidentActions = createComplianceIncidentActions({ refreshIncidents, refreshSelfCheck, setMessage, announce });
 
   return {
     descriptors,
@@ -171,14 +106,12 @@ export function useComplianceCenter() {
     statusOverview,
     selfCheck,
     incidents,
-    render,
+    ...documentActions,
     updateDsarInput: dsar.updateDsarInput,
     selectDsarPerson: dsar.selectDsarPerson,
     renderDsar: dsar.renderDsar,
     prefillDsar: dsar.prefillDsar,
-    exportPdfCurrent,
-    createIncident,
-    updateIncident,
+    ...incidentActions,
     refreshStatus,
     refreshSelfCheck,
   };

@@ -55,10 +55,6 @@ export function searchTokens(input: DataSubjectAccessRequestInput): string[] {
   return unique([...rawTokens(input.requesterName), ...rawTokens(input.caseReference)]);
 }
 
-export function nameTokens(input: DataSubjectAccessRequestInput): string[] {
-  return unique(rawTokens(input.requesterName));
-}
-
 export function nameVariants(input: DataSubjectAccessRequestInput): string[] {
   const parts = rawTokens(input.requesterName);
   const variants = [input.requesterName.trim()];

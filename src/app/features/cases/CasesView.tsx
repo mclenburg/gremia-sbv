@@ -6,9 +6,9 @@ import { useCaseRegisterFilter } from "./useCaseRegisterFilter";
 import { useCaseWorkbenchSearch } from "./useCaseWorkbenchSearch";
 import { useCaseNoteEditor } from "./useCaseNoteEditor";
 import { useCaseProcessUpdates } from "./useCaseProcessUpdates";
-import { useProcessTemplateActions } from "./useProcessTemplateActions";
-import { useCaseProcessCreation } from "./useCaseProcessCreation";
-import { useCaseCrudActions } from "./useCaseCrudActions";
+import { createProcessTemplateActions } from "./processTemplateActions";
+import { createCaseProcessActions } from "./caseProcessActions";
+import { createCaseCrudActions } from "./caseCrudActions";
 import { useLegacyCaseBindingHandlers } from "./useLegacyCaseBindingHandlers";
 import { CasesViewRender } from "./CasesViewRender";
 import { CaseHandoverTransferDialogs } from "./CaseHandoverTransferDialogs";
@@ -156,12 +156,12 @@ export function CasesView(props: CasesViewProps) {
     ensureSelectedCaseLink: noteEditor.ensureSelectedCaseLink, selectedCaseId: workbench.selectedCaseId, editingNote: noteEditor.editingNote });
   const processUpdates = useCaseProcessUpdates({ setNoteError: noteEditor.setNoteError, setNoteInfo: noteEditor.setNoteInfo,
     reloadSelectedCaseChildren: workbench.reloadSelectedCaseChildren, selectedCase: workbench.selectedCase });
-  const templates = useProcessTemplateActions({ processTemplateModal: form.processTemplateModal, setProcessTemplateModal: form.setProcessTemplateModal,
+  const templates = createProcessTemplateActions({ processTemplateModal: form.processTemplateModal, setProcessTemplateModal: form.setProcessTemplateModal,
     selectedCase: workbench.selectedCase, confirmDialog });
-  const processCreation = useCaseProcessCreation({ selectedCase: workbench.selectedCase, selectedCaseId: workbench.selectedCaseId,
+  const processCreation = createCaseProcessActions({ selectedCase: workbench.selectedCase, selectedCaseId: workbench.selectedCaseId,
     caseProcessDraft: form.caseProcessDraft, setCaseProcessDraft: form.setCaseProcessDraft, setSelection: workbench.setSelection,
     setNoteError: noteEditor.setNoteError, setNoteInfo: noteEditor.setNoteInfo, reloadSelectedCaseChildren: workbench.reloadSelectedCaseChildren, onCasesChanged });
-  const crud = useCaseCrudActions({ setError: form.setError, setIsCaseCreateModalOpen: form.setIsCaseCreateModalOpen, caseNumber: form.caseNumber,
+  const crud = createCaseCrudActions({ setError: form.setError, setIsCaseCreateModalOpen: form.setIsCaseCreateModalOpen, caseNumber: form.caseNumber,
     displayName: form.displayName, category: form.category, summary: form.summary, selectedProtectedPersonId: form.selectedProtectedPersonId,
     protectedPersons, onCreateCase, onCasesChanged, setCaseNumber: form.setCaseNumber, setDisplayName: form.setDisplayName, setSummary: form.setSummary,
     setSelectedProtectedPersonId: form.setSelectedProtectedPersonId, setNoteError: noteEditor.setNoteError, editingNote: noteEditor.editingNote, noteEditor,

@@ -46,7 +46,7 @@ import {
 export class GremiaBrWorkspaceActionService {
   constructor(
     private readonly database: DatabaseAdapter,
-    private readonly dataDirectoryProvider: () => string,
+    dataDirectoryProvider: () => string,
     private readonly auth: GremiaBrWorkspaceActionAuthPort,
     private readonly documentStore = new GeneratedDocumentStoreService(database, dataDirectoryProvider()),
     private readonly pdfDocuments = new PdfDocumentGenerationService(),

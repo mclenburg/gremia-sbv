@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "movedTests": 237,
+  "movedTests": 224,
   "entries": [
     {
       "from": "tests/accessibilityKnowledgeSelectP15o.test.ts",
@@ -87,16 +87,8 @@
       "to": "tests/privacy/auditMetadataPolicy.test.ts"
     },
     {
-      "from": "tests/auditService.test.ts",
-      "to": "tests/privacy/auditService.test.ts"
-    },
-    {
       "from": "tests/backupPayloadPolicy.test.ts",
       "to": "tests/security/backup/backupPayloadPolicy.test.ts"
-    },
-    {
-      "from": "tests/backupPolicy.test.ts",
-      "to": "tests/security/backup/backupPolicy.test.ts"
     },
     {
       "from": "tests/backupServiceBehavior0813f.test.ts",
@@ -181,10 +173,6 @@
     {
       "from": "tests/caseNoteEntityLinkBehavior0813e.test.ts",
       "to": "tests/features/cases/notes/caseNoteEntityLinkBehavior.test.ts"
-    },
-    {
-      "from": "tests/caseProcessPolicyBehavior0813m.test.ts",
-      "to": "tests/features/cases/caseProcessPolicyBehavior.test.ts"
     },
     {
       "from": "tests/caseSearchProviders091h.test.ts",
@@ -407,10 +395,6 @@
       "to": "tests/features/help/helpTextMigration.test.ts"
     },
     {
-      "from": "tests/helpTextPolicyGate095k.test.ts",
-      "to": "tests/features/help/helpTextPolicyGate.test.ts"
-    },
-    {
       "from": "tests/helpVisualConsistency095u.test.ts",
       "to": "tests/features/help/helpVisualConsistency.test.ts"
     },
@@ -508,11 +492,7 @@
     },
     {
       "from": "tests/moduleFeedbackArchitecture091.test.ts",
-      "to": "tests/architecture/moduleFeedbackArchitecture.test.ts"
-    },
-    {
-      "from": "tests/nativeDependencyPostinstallContract.test.ts",
-      "to": "tests/architecture/nativeDependencyPostinstallContract.test.ts"
+      "to": "tests/ui/moduleFeedbackBehavior.test.tsx"
     },
     {
       "from": "tests/navigationAndPanelCleanup092.test.ts",
@@ -529,10 +509,6 @@
     {
       "from": "tests/openTaskDashboardPolicy.test.ts",
       "to": "tests/features/dashboard/openTaskDashboardPolicy.test.ts"
-    },
-    {
-      "from": "tests/packagePostinstall059.test.ts",
-      "to": "tests/architecture/packagePostinstall.test.ts"
     },
     {
       "from": "tests/participationLegacyMigration092z.test.ts",
@@ -579,20 +555,12 @@
       "to": "tests/platform/electron/platformIndependentTestSuite.test.ts"
     },
     {
-      "from": "tests/portableProfileServiceBehavior096r.test.ts",
-      "to": "tests/platform/electron/portableProfileServiceBehavior.test.ts"
-    },
-    {
       "from": "tests/pre1ReleaseHardening092as.test.ts",
       "to": "tests/architecture/pre1ReleaseHardening.test.ts"
     },
     {
       "from": "tests/preventionWorkflowPolicy.test.ts",
       "to": "tests/features/prevention/preventionWorkflowPolicy.test.ts"
-    },
-    {
-      "from": "tests/privacyEntityRegistry091f.test.ts",
-      "to": "tests/privacy/privacyEntityRegistry.test.ts"
     },
     {
       "from": "tests/privacyLifecycleAudit091.test.ts",
@@ -783,10 +751,6 @@
       "to": "tests/architecture/serviceCoverageConfig.test.ts"
     },
     {
-      "from": "tests/serviceCoverageScope0813m.test.ts",
-      "to": "tests/architecture/serviceCoverageScope.test.ts"
-    },
-    {
       "from": "tests/sessionLockViewPersistence095z.test.ts",
       "to": "tests/security/vault/sessionLockViewPersistence.test.ts"
     },
@@ -797,10 +761,6 @@
     {
       "from": "tests/signpathCodeSigning092u.test.ts",
       "to": "tests/architecture/signpathCodeSigning.test.ts"
-    },
-    {
-      "from": "tests/sourceAssertionClassificationPatch7.test.ts",
-      "to": "tests/architecture/sourceAssertionClassification.test.ts"
     },
     {
       "from": "tests/sourceCleanupBuildContract096k.test.ts",
@@ -911,10 +871,6 @@
       "to": "tests/ui/uiFoundationTokensAndForms.test.ts"
     },
     {
-      "from": "tests/uiFoundation092Block2.test.ts",
-      "to": "tests/ui/uiFoundationStyleOrder.test.ts"
-    },
-    {
       "from": "tests/uiFoundation092Block3.test.ts",
       "to": "tests/ui/uiFoundationProcessFields.test.ts"
     },
@@ -925,14 +881,6 @@
     {
       "from": "tests/uiFoundation092Block5Behavior.test.ts",
       "to": "tests/ui/uiFoundationSemanticSections.test.ts"
-    },
-    {
-      "from": "tests/unifiedActivityReportCleanup095.test.ts",
-      "to": "tests/features/reports/unifiedActivityReportCleanup.test.ts"
-    },
-    {
-      "from": "tests/unitCoverageGate0813d.test.ts",
-      "to": "tests/architecture/unitCoverageGate.test.ts"
     },
     {
       "from": "tests/unlockDelay089.test.ts",

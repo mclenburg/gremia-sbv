@@ -37,16 +37,55 @@ type TemplateEditorModalProps<TDraft extends TemplateEditorDraft> = {
   onClose: () => void;
 };
 
-function splitCsv(value: string): string[] {
-  return [value];
-}
-
 function visibleTags(tags: string[] | undefined): string {
   return (tags ?? [])
     .filter(
       (tag) => tag !== "massnahme:prevention" && !tag.startsWith("status:"),
     )
     .join(", ");
+}
+
+function TemplateTextFields<TDraft extends TemplateEditorDraft>({ draft, onDraftChange, isEdit }: Pick<TemplateEditorModalProps<TDraft>, 'draft' | 'onDraftChange'> & { isEdit: boolean }) {
+  return (
+    <FormSection
+      title="Textinhalt"
+      description="Platzhalter kannst du über das Hilfe-Symbol im Vorlagenkatalog nachschlagen."
+    >
+      <div className="industrial-form-grid industrial-form-grid-1">
+        <TextInput
+          label="Beschreibung"
+          value={draft.description ?? ""}
+          onValueChange={(value) =>
+            onDraftChange((current) => ({ ...current, description: value } as TDraft))
+          }
+        />
+        <TextInput
+          label="Betreff"
+          value={draft.subject}
+          onValueChange={(value) =>
+            onDraftChange((current) => ({ ...current, subject: value } as TDraft))
+          }
+          placeholder="Beteiligung der SBV – {{fall.aktenzeichen}}"
+        />
+        <TextareaInput
+          label="Text"
+          value={draft.body}
+          onValueChange={(value) =>
+            onDraftChange((current) => ({ ...current, body: value } as TDraft))
+          }
+          textCommandFieldId={isEdit ? "template-edit-body" : "template-new-body"}
+          placeholder="Sehr geehrte Damen und Herren, ..."
+          wide
+          required
+        />
+      </div>
+      <p className="template-form-hint">
+        {isEdit
+          ? "Bei Präventionsvorlagen werden die Tags massnahme:prevention und status:… automatisch gesetzt."
+          : "Eigene Vorlagen werden lokal im verschlüsselten Datenbestand gespeichert."}
+      </p>
+    </FormSection>
+  );
 }
 
 export function TemplateEditorModal<TDraft extends TemplateEditorDraft>({
@@ -127,7 +166,7 @@ export function TemplateEditorModal<TDraft extends TemplateEditorDraft>({
               onValueChange={(value) =>
                 onDraftChange((current) => ({
                   ...current,
-                  legalBasis: splitCsv(value),
+                  legalBasis: [value],
                 } as TDraft))
               }
               placeholder="§ 178 Abs. 2 Satz 1 SGB IX"
@@ -138,7 +177,7 @@ export function TemplateEditorModal<TDraft extends TemplateEditorDraft>({
               onValueChange={(value) =>
                 onDraftChange((current) => ({
                   ...current,
-                  tags: splitCsv(value),
+                  tags: [value],
                 } as TDraft))
               }
               placeholder="Beteiligung, Frist, HR"
@@ -146,46 +185,7 @@ export function TemplateEditorModal<TDraft extends TemplateEditorDraft>({
           </div>
         </FormSection>
 
-        <FormSection
-          title="Textinhalt"
-          description="Platzhalter kannst du über das Hilfe-Symbol im Vorlagenkatalog nachschlagen."
-        >
-          <div className="industrial-form-grid industrial-form-grid-1">
-            <TextInput
-              label="Beschreibung"
-              value={draft.description ?? ""}
-              onValueChange={(value) =>
-                onDraftChange((current) => ({ ...current, description: value } as TDraft))
-              }
-            />
-            <TextInput
-              label="Betreff"
-              value={draft.subject}
-              onValueChange={(value) =>
-                onDraftChange((current) => ({ ...current, subject: value } as TDraft))
-              }
-              placeholder="Beteiligung der SBV – {{fall.aktenzeichen}}"
-            />
-            <TextareaInput
-              label="Text"
-              value={draft.body}
-              onValueChange={(value) =>
-                onDraftChange((current) => ({ ...current, body: value } as TDraft))
-              }
-              textCommandFieldId={
-                isEdit ? "template-edit-body" : "template-new-body"
-              }
-              placeholder="Sehr geehrte Damen und Herren, ..."
-              wide
-              required
-            />
-          </div>
-          <p className="template-form-hint">
-            {isEdit
-              ? "Bei Präventionsvorlagen werden die Tags massnahme:prevention und status:… automatisch gesetzt."
-              : "Eigene Vorlagen werden lokal im verschlüsselten Datenbestand gespeichert."}
-          </p>
-        </FormSection>
+        <TemplateTextFields draft={draft} onDraftChange={onDraftChange} isEdit={isEdit} />
 
         <FormActions>
           <GhostButton type="button" onClick={onClose}>

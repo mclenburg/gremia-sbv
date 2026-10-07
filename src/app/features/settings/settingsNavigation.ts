@@ -44,7 +44,3 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     description: 'Optionale Gremia.BR-Anbindung, Zugangsdaten, Relevanzfilter und Lesecache.',
   },
 ];
-
-export function findSettingsSection(id: string): SettingsSection | undefined {
-  return SETTINGS_SECTIONS.find((section) => section.id === id);
-}

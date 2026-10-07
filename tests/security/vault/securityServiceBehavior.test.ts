@@ -157,6 +157,8 @@ describe('security service behavior', () => {
     const service = createService(dataDir);
     await service.setupInitialPassword(PASSWORD);
     service.lock();
+    const storeBeforeAttempts = readFileSync(path.join(dataDir, 'security.json'));
+    const manifestBeforeAttempts = readFileSync(path.join(dataDir, 'vault-manifest.json'));
 
     await service.unlock('wrong-1');
     await service.unlock('wrong-2');
@@ -165,7 +167,8 @@ describe('security service behavior', () => {
     expect(delayed.ok).toBe(false);
     expect(delayed.unlockDelaySeconds).toBeGreaterThan(0);
     expect(delayed.unlockAvailableAt).toBeTruthy();
-    expect(readFileSync(path.join(dataDir, 'security.json'), 'utf8')).not.toContain('failedUnlockAttempts');
+    expect(readFileSync(path.join(dataDir, 'security.json'))).toEqual(storeBeforeAttempts);
+    expect(readFileSync(path.join(dataDir, 'vault-manifest.json'))).toEqual(manifestBeforeAttempts);
 
     const freshService = createService(dataDir);
     const freshStatus = freshService.status();

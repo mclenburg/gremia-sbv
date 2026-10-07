@@ -59,7 +59,7 @@ const participationMeasureLabels: Record<ParticipationRecord['measureType'], str
   sonstiges: 'Sonstiges',
 };
 
-export function createInitialViolationForm(_cases: CaseRecord[]): CreateSbvParticipationViolationInput {
+export function createInitialViolationForm(): CreateSbvParticipationViolationInput {
   return {
     stage: 'request',
     violationType: 'incomplete_information',

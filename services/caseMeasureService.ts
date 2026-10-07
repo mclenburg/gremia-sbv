@@ -13,8 +13,6 @@ import type {
   CaseMeasureNoteProcessType,
   CaseMeasureNoteRecord,
   CaseMeasureRecord,
-  CaseMeasureRiskLevel,
-  CaseMeasureStatus,
   CaseMeasureType,
   CreateCaseMeasureInput,
   DeleteCaseProcessInput,

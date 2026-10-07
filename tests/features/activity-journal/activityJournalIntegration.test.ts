@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { applyActivityJournalTextCommand } from '../../../src/app/features/activity-journal/activityJournalTextCommands';
-import { createEmptyActivityJournalForm, formFromActivityJournalPrefill } from '../../../src/app/features/activity-journal/hooks/useActivityJournal';
+import { createEmptyActivityJournalForm, formFromActivityJournalPrefill } from '../../../src/app/features/activity-journal/activityJournalForm';
 import { buildFromContext, buildFromClosedJournalDeadline } from '../../../services/activityJournalPrefill';
 
 describe('activity journal integration 0.9.3-b', () => {

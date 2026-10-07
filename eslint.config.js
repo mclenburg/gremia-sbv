@@ -57,6 +57,13 @@ export default [
     },
   },
   {
+    name: 'gremia/renderer-console',
+    files: ['src/app/**/*.ts', 'src/app/**/*.tsx'],
+    rules: {
+      'no-console': 'error',
+    },
+  },
+  {
     name: 'gremia/javascript-tooling',
     files: ['**/*.js', '**/*.cjs', '**/*.mjs'],
     rules: {

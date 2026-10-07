@@ -2,16 +2,6 @@ import type { CaseStatus } from '../src/domain/models/case.model.js';
 import type { EmploymentState, ProtectionStatus } from '../src/domain/models/protected-person.model.js';
 import type { PrivacyReviewPriority } from './personCaseBindingPolicy.js';
 
-export type PrivacyReviewLifecycleEvent =
-  | { type: 'status_expiring_soon'; referenceDate: string }
-  | { type: 'status_expired'; referenceDate: string }
-  | { type: 'status_renewed'; validUntil?: string | null }
-  | { type: 'employment_ended'; leftCompanyAt: string }
-  | { type: 'retention_reason_documented'; reason: string; reviewAt: string }
-  | { type: 'privacy_review_cleared'; clearedAt: string }
-  | { type: 'anonymization_confirmed'; reason: string }
-  | { type: 'deletion_confirmed'; reason: string };
-
 export type PrivacyReviewReason =
   | 'status_expired'
   | 'employment_ended'
@@ -85,9 +75,4 @@ export function decideLegacyBulkPrivacyReview(context: LegacyBulkReviewCandidate
     return { eligible: false, priority: context.hasOpenDeadlines ? 'critical' : 'normal', anonymizationRecommended: false };
   }
   return { eligible: true, reason: 'closed_legacy_no_open_deadlines', priority: 'low', anonymizationRecommended: true };
-}
-
-export function assertDestructivePrivacyConfirmation(action: 'anonymize' | 'delete', confirmation: string | undefined): void {
-  const expected = action === 'anonymize' ? 'FALL ANONYMISIEREN' : 'FALL LÖSCHEN';
-  if (confirmation !== expected) throw new Error(`Bitte exakt „${expected}“ eingeben.`);
 }

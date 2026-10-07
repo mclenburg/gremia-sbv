@@ -23,7 +23,7 @@ import { TerminationProcessDetail } from "../termination/TerminationProcessDetai
 import { ParticipationProcessDetail } from "../participation/ParticipationProcessDetail";
 import { WorkplaceAccommodationProcessDetail } from "../workplace-accommodation/WorkplaceAccommodationProcessDetail";
 import { resolveContextualTemplateAction } from "@/domain/templates/templateContextPolicy";
-import { formatBytes, formatNoteDate, formatProcessNodeSubtitle, processTypeLabel } from "./caseWorkbenchFormat";
+import { formatBytes, formatNoteDate, formatProcessNodeSubtitle } from "./caseWorkbenchFormat";
 import type { CaseSearchResult } from '../../../domain/models/case-note.model';
 import type { CaseProcessType } from './caseWorkbenchTypes';
 import type { CasesViewRenderProps } from './casesViewRenderTypes';
@@ -80,7 +80,7 @@ function PrimaryProcessContent({ props }: { props: CasesViewRenderProps }) {
     updateCasePreventionProcess, updateCaseBemProcess, updateCaseTerminationProcess, openProcessTemplateModal } = props;
   if (selection.type !== "process") return null;
   if (selection.processType === "prevention") return <>
-    <PreventionProcessDetail processType={selection.processType} process={selectedPreventionProcess}
+    <PreventionProcessDetail process={selectedPreventionProcess}
       onUpdate={updateCasePreventionProcess} onOpenTemplates={openProcessTemplateModal} />
     {selectedPreventionProcess && selectedCase && <MeasureNotesPanel caseId={selectedCase.id} measureType="prevention"
       measureId={selectedPreventionProcess.id} measureTitle="Präventionsverfahren" />}
@@ -228,7 +228,7 @@ export function CasesViewRender(props: CasesViewRenderProps) {
       <span>{caseToast.text}</span>
     </div>}
     <ProcessTemplateDocumentsModal state={processTemplateModal} onClose={() => setProcessTemplateModal(null)}
-      onDownload={(template) => void renderAndDownloadProcessTemplate(template)} processTypeLabel={processTypeLabel} />
+      onDownload={(template) => void renderAndDownloadProcessTemplate(template)} />
     <ModuleFrame title="Fälle" kicker="Fallakten" description="Fallakten, Notizen, Prozesse und Unterlagen bearbeiten." compact helpId="cases.overview" actions={<IndustrialButton onClick={openCaseCreateModal}><Plus className="industrial-icon" aria-hidden="true" /> Fallakte anlegen</IndustrialButton>}>
       <CaseRegister filteredCount={filteredCases.length} visibleCases={visibleCases} selectedCaseId={selectedCaseId}
         caseFilter={caseFilter} onCaseFilterChange={(value) => { setCaseFilter(value); setCaseRegisterPage(1); }}

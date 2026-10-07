@@ -7,7 +7,6 @@ import {
   buildLegacyPlaintextCleanupWarning,
 } from '../../../services/security/legacyPlaintextExportCleanupService';
 import { decryptReportArchive } from '../../../services/reports/reportArchiveCrypto';
-import { listCleartextFiles } from '../../../services/retentionSupport';
 import { isOwnerOnlyFileMode, posixModeBits, supportsPosixPermissionBits } from '../../../services/secureFilePermissions';
 
 const DATABASE_KEY = Buffer.alloc(32, 23);
@@ -103,6 +102,5 @@ describe('automatische Bereinigung alter Klartext-Berichtsexporte', () => {
     expect(result).toMatchObject({ converted: 0, symbolicLinks: 1, requiresReview: 1 });
     expect(readFileSync(outside)).toEqual(outsidePdf);
     expect(existsSync(link)).toBe(true);
-    expect(listCleartextFiles(dataDir)).toContain('exports/verknüpfter-export.pdf');
   });
 });

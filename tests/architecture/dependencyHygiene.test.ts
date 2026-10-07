@@ -1,10 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { spawnSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as {
   scripts: Record<string, string>;
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
+};
+const require = createRequire(import.meta.url);
+const { validateRuntimeDependencyBoundaries } = require('../../scripts/check-build-readiness.cjs') as {
+  validateRuntimeDependencyBoundaries: (pkg: typeof packageJson) => void;
 };
 const packageLock = JSON.parse(readFileSync('package-lock.json', 'utf8')) as {
   packages: Record<string, { resolved?: string; version?: string }>;
@@ -45,38 +53,40 @@ describe('Dependency-Hygiene nach Dependabot-Updates', () => {
   });
 
   it('neutralisiert npm-Workspace-Defaults projektlokal für das Nicht-Workspace-Projekt', () => {
-    const npmrc = readFileSync('.npmrc', 'utf8');
+    const fixtureDir = mkdtempSync(join(tmpdir(), 'gremia-npm-config-'));
+    try {
+      const userConfig = join(fixtureDir, 'user.npmrc');
+      const globalConfig = join(fixtureDir, 'global.npmrc');
+      writeFileSync(userConfig, 'registry=https://example.invalid/\nworkspaces=true\ninclude-workspace-root=true\n');
+      writeFileSync(globalConfig, '');
+      const npmPackage = require.resolve('npm/package.json', {
+        paths: [dirname(process.execPath), resolve(dirname(process.execPath), '..', 'lib')],
+      });
+      const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !/^npm_config_/i.test(key)));
+      const result = spawnSync(process.execPath, [
+        join(dirname(npmPackage), 'bin', 'npm-cli.js'),
+        'config', 'list', '--json', '--userconfig', userConfig, '--globalconfig', globalConfig,
+      ], { cwd: process.cwd(), env, encoding: 'utf8' });
 
-    expect(npmrc.includes('registry=https://registry.npmjs.org/')).toBe(true);
-    expect(npmrc.includes('workspaces=false')).toBe(true);
-    expect(npmrc.includes('include-workspace-root=false')).toBe(true);
+      expect(result.error).toBeUndefined();
+      expect(result.status).toBe(0);
+      const effectiveConfig = JSON.parse(result.stdout) as Record<string, unknown>;
+      expect(effectiveConfig.registry).toBe('https://registry.npmjs.org/');
+      expect(effectiveConfig.workspaces).toBe(false);
+      expect(effectiveConfig['include-workspace-root']).toBe(false);
+    } finally {
+      rmSync(fixtureDir, { recursive: true, force: true });
+    }
   });
 
 
   it('hält Build- und E2E-Werkzeuge aus den Runtime-Abhängigkeiten heraus', () => {
-    const runtimeDependencies = packageJson.dependencies ?? {};
-    const devDependencies = packageJson.devDependencies ?? {};
-
-    for (const dependencyName of [
-      '@playwright/test',
-      '@axe-core/playwright',
-      '@vitejs/plugin-react',
-      'electron',
-      'electron-builder',
-      'esbuild',
-      'vite',
-      'vitest',
-      'tsx',
-      'typescript',
-      'tailwindcss',
-      '@tailwindcss/postcss',
-    ]) {
-      expect(runtimeDependencies[dependencyName]).toBeUndefined();
-    }
-
-    expect(devDependencies['@vitejs/plugin-react']).toBeDefined();
-    expect(packageJson.scripts['test:e2e:setup']).toBe('node scripts/install-e2e-tools.cjs && npm run test:e2e:install');
-    expect(packageJson.scripts['test:e2e:setup']).not.toContain('npm install --no-save');
+    expect(() => validateRuntimeDependencyBoundaries(packageJson)).not.toThrow();
+    const unsafeSetup = {
+      ...packageJson,
+      scripts: { ...packageJson.scripts, 'test:e2e:setup': 'npm install --no-save @playwright/test' },
+    };
+    expect(() => validateRuntimeDependencyBoundaries(unsafeSetup)).toThrow(/test:e2e:setup/);
   });
 
 

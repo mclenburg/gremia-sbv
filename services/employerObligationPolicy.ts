@@ -15,8 +15,3 @@ export function deriveAnnualReportStatus(periodYear:number, now:Date, receivedAt
   if (receivedAt) return 'received';
   return now.getTime() > new Date(annualReportDueAt(periodYear)).getTime() ? 'due' : 'not_due';
 }
-export function inclusionOfficerFinding(status:string): 'open'|'ok'|'unknown' {
-  if (status === 'not_appointed') return 'open';
-  if (status === 'appointed') return 'ok';
-  return 'unknown';
-}

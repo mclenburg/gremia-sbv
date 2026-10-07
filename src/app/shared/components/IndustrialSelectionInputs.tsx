@@ -44,6 +44,8 @@ export function SelectInput({
       disabled={selectProps.disabled}
       name={selectProps.name}
       autoFocus={selectProps.autoFocus}
+      aria-label={selectProps['aria-label']}
+      aria-labelledby={selectProps['aria-labelledby']}
     />;
   }
   return (

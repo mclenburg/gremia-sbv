@@ -52,11 +52,6 @@ export function inferMimeType(filename: string): string {
   return map[ext] ?? 'application/octet-stream';
 }
 
-export function isDocumentTextExtractionSupported(filename: string): boolean {
-  const ext = path.extname(filename).toLowerCase();
-  return PLAIN_TEXT_EXTENSIONS.has(ext) || ['.pdf', '.docx', '.xlsx'].includes(ext);
-}
-
 function decodeXmlEntities(value: string): string {
   return value
     .replace(/&amp;/g, '&')

@@ -1,15 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { minimumReportGroupSize, reportPdfTheme, scanReportTextForPrivacyRisks } from '../../services/reportPrivacyPolicy';
+import { minimumReportGroupSize, scanReportTextForPrivacyRisks } from '../../services/reportPrivacyPolicy';
 import { decryptReportArchive, encryptReportArchive } from '../../services/reports/reportArchiveCrypto';
 
 describe('report privacy policy', () => {
   it('forces the report minimum group size to at least three', () => {
     expect(minimumReportGroupSize(1)).toBe(3);
     expect(minimumReportGroupSize(5)).toBe(5);
-  });
-
-  it('uses a light print theme for generated PDFs', () => {
-    expect(reportPdfTheme()).toBe('light-industrial-print');
   });
 
   it('detects identifiers that must not appear in anonymized activity reports', () => {

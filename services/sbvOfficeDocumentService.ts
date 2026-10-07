@@ -11,7 +11,6 @@ export interface SbvOfficeDocumentGenerationResult {
   previewMessage?: string;
 }
 import type { RetentionOwnerRef } from '../src/domain/models/retention-owner.model.js';
-import type { SbvAssemblyRecord } from '../src/domain/models/sbv-office-workflow.model.js';
 import {
   externalLetterDocument,
   externalReportDocument,

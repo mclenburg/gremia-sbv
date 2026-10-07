@@ -110,38 +110,14 @@ export function SbvControlView({
       description={initialSection === 'meetings' ? 'BR- und Ausschusssitzungen aus eigener SBV-Sicht vorbereiten, begleiten und dokumentieren.' : 'Sitzungen, Protokolle, Nachweise, Arbeitgeberpflichten und weitere übergreifende SBV-Dokumentation. Kein Ersatz für Fallakten.'}
       helpId={initialSection === 'meetings' ? 'sbvOffice.meetings' : 'sbvOffice.overview'}
     >
-      <ModuleFeedback
-        items={[
-          error ? { id: 'sbv-control-error', tone: 'warning', message: error } : null,
-          notice ? { id: 'sbv-control-notice', tone: 'success', message: notice } : null,
-        ]}
-      />
-      <WorkbenchSummary
-        ariaLabel="SBV-Dokumentation Kennzahlen"
-        items={[
-          { label: 'Nachweise', value: resourcesState.resources.length, tone: 'default' },
-          {
-            label: 'Protokolle',
-            value: protocolsState.protocols.length,
-            tone: protocolsState.openProtocolFollowUps > 0 ? 'warning' : 'default',
-          },
-          {
-            label: 'offene Ressourcenanfragen',
-            value: resourcesState.openResourceRequests,
-            tone: resourcesState.openResourceRequests > 0 ? 'warning' : 'default',
-          },
-          {
-            label: 'kritische Beteiligungen',
-            value: criticalParticipation,
-            tone: criticalParticipation > 0 ? 'danger' : 'default',
-          },
-          {
-            label: 'Datenschutzprüfungen',
-            value: privacyReviewCases,
-            tone: privacyReviewCases > 0 ? 'warning' : 'default',
-          },
-        ]}
-        actions={<span className="industrial-meta">Monatsblick {monthLabel()}</span>}
+      <SbvControlMessages error={error} notice={notice} />
+      <SbvControlSummary
+        resources={resourcesState.resources.length}
+        protocols={protocolsState.protocols.length}
+        openProtocolFollowUps={protocolsState.openProtocolFollowUps}
+        openResourceRequests={resourcesState.openResourceRequests}
+        criticalParticipation={criticalParticipation}
+        privacyReviewCases={privacyReviewCases}
       />
 
       <WorkbenchWorkspace
@@ -175,5 +151,46 @@ export function SbvControlView({
         )}
       </WorkbenchWorkspace>
     </WorkbenchPage>
+  );
+}
+
+function SbvControlSummary({
+  resources,
+  protocols,
+  openProtocolFollowUps,
+  openResourceRequests,
+  criticalParticipation,
+  privacyReviewCases,
+}: {
+  resources: number;
+  protocols: number;
+  openProtocolFollowUps: number;
+  openResourceRequests: number;
+  criticalParticipation: number;
+  privacyReviewCases: number;
+}) {
+  return (
+    <WorkbenchSummary
+      ariaLabel="SBV-Dokumentation Kennzahlen"
+      items={[
+        { label: 'Nachweise', value: resources, tone: 'default' },
+        { label: 'Protokolle', value: protocols, tone: openProtocolFollowUps > 0 ? 'warning' : 'default' },
+        { label: 'offene Ressourcenanfragen', value: openResourceRequests, tone: openResourceRequests > 0 ? 'warning' : 'default' },
+        { label: 'kritische Beteiligungen', value: criticalParticipation, tone: criticalParticipation > 0 ? 'danger' : 'default' },
+        { label: 'Datenschutzprüfungen', value: privacyReviewCases, tone: privacyReviewCases > 0 ? 'warning' : 'default' },
+      ]}
+      actions={<span className="industrial-meta">Monatsblick {monthLabel()}</span>}
+    />
+  );
+}
+
+function SbvControlMessages({ error, notice }: { error: string; notice: string }) {
+  return (
+    <ModuleFeedback
+      items={[
+        error ? { id: 'sbv-control-error', tone: 'warning', message: error } : null,
+        notice ? { id: 'sbv-control-notice', tone: 'success', message: notice } : null,
+      ]}
+    />
   );
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-const { mkdtempSync, rmSync, existsSync, mkdirSync } = require('node:fs');
+const { mkdtempSync, rmSync, existsSync, mkdirSync, statSync } = require('node:fs');
 const { delimiter, join, resolve } = require('node:path');
 const { availableParallelism, tmpdir } = require('node:os');
 const { spawnSync } = require('node:child_process');
@@ -90,8 +90,34 @@ function buildPlaywrightArgs(rawArgs) {
   return { keep, playwrightArgs };
 }
 
+function missingExplicitSpecPaths(args, root = process.cwd()) {
+  const valueOptions = new Set([
+    '--grep', '-g', '--grep-invert', '--project', '-p', '--config', '-c',
+    '--output', '--test-list', '--test-list-invert', '--tsconfig',
+  ]);
+  const missing = [];
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    if (valueOptions.has(arg)) { index += 1; continue; }
+    if (arg.startsWith('-') || !/[\\/]/.test(arg) || !/\.(spec|test)\.[cm]?[jt]sx?$/.test(arg)) continue;
+    if (/[*?^$|(){}\[\]]/.test(arg)) continue;
+    try {
+      if (!statSync(resolve(root, arg)).isFile()) missing.push(arg);
+    } catch {
+      missing.push(arg);
+    }
+  }
+  return missing;
+}
+
 function run() {
   const { keep, playwrightArgs } = buildPlaywrightArgs(process.argv.slice(2));
+  const missingSpecs = missingExplicitSpecPaths(playwrightArgs.slice(1));
+  if (missingSpecs.length) {
+    console.error(`E2E-Abbruch: Angeforderte Testdateien fehlen oder sind keine Dateien: ${missingSpecs.join(', ')}`);
+    process.exitCode = 2;
+    return;
+  }
 
   const providedDataDir = process.env.GREMIA_SBV_E2E_DATA_DIR || '';
   const dataDir = providedDataDir || mkdtempSync(join(tmpdir(), 'gremia-sbv-e2e-'));
