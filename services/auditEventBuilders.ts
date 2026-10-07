@@ -329,7 +329,6 @@ export function auditGremiaBrWorkspaceAction(args: GremiaBrWorkspaceActionAuditA
       status: args.status,
       localDocumentId: args.localDocumentId,
       remoteDocumentId: args.remoteDocumentId,
-      targetSecurityDomain: args.targetSecurityDomain,
       correlationId: args.correlationId,
     }),
   };

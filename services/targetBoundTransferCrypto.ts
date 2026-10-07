@@ -90,9 +90,9 @@ export function assertKdfParams(value: unknown): TransferKdfParams {
   const r = Number(record.r);
   const p = Number(record.p);
   const maxmem = record.maxmem === undefined || record.maxmem === null ? undefined : Number(record.maxmem);
-  if (!Number.isInteger(N) || N < 65_536) throw new Error('Übergabepaket nutzt keine zulässigen KDF-Parameter.');
-  if (!Number.isInteger(r) || r < 1 || !Number.isInteger(p) || p < 1) throw new Error('Übergabepaket nutzt keine zulässigen KDF-Parameter.');
-  if (maxmem !== undefined && (!Number.isInteger(maxmem) || maxmem < 128 * 1024 * 1024)) throw new Error('Übergabepaket nutzt keine zulässigen KDF-Parameter.');
+  if (!Number.isInteger(N) || N < 65_536 || N > 262_144 || (N & (N - 1)) !== 0) throw new Error('Übergabepaket nutzt keine zulässigen KDF-Parameter.');
+  if (r !== 8 || p !== 1) throw new Error('Übergabepaket nutzt keine zulässigen KDF-Parameter.');
+  if (maxmem !== undefined && (!Number.isInteger(maxmem) || maxmem < 128 * 1024 * 1024 || maxmem > 512 * 1024 * 1024)) throw new Error('Übergabepaket nutzt keine zulässigen KDF-Parameter.');
   return { N, r, p, maxmem };
 }
 

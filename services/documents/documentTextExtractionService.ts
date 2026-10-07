@@ -6,6 +6,9 @@ import type { CaseSearchExtractionQuality } from '../search/searchTypes.js';
 
 const TEXT_EXTRACTION_LIMIT = 300_000;
 const EXTRACTION_ERROR_LIMIT = 1_000;
+const MAX_ZIP_TEXT_ENTRY_BYTES = 8 * 1024 * 1024;
+const MAX_ZIP_TEXT_TOTAL_BYTES = 32 * 1024 * 1024;
+const MAX_ZIP_TEXT_ENTRIES = 64;
 
 export type DocumentTextExtractionStatus = 'extracted' | 'empty' | 'unsupported' | 'failed' | 'unknown';
 
@@ -130,30 +133,64 @@ function readZipTextEntries(
         reject(openError ?? new Error('ZIP-Datei konnte nicht geöffnet werden.'));
         return;
       }
-      zipfile.readEntry();
+      let totalBytes = 0;
+      let entryCount = 0;
+      let settled = false;
+      const fail = (error: unknown) => {
+        if (settled) return;
+        settled = true;
+        zipfile.close();
+        reject(error);
+      };
       zipfile.on('entry', (entry: Entry) => {
+        if (settled) return;
         if (!matcher(entry.fileName)) {
           zipfile.readEntry();
           return;
         }
+        entryCount += 1;
+        if (entryCount > MAX_ZIP_TEXT_ENTRIES || entry.uncompressedSize > MAX_ZIP_TEXT_ENTRY_BYTES
+          || totalBytes + entry.uncompressedSize > MAX_ZIP_TEXT_TOTAL_BYTES) {
+          fail(new Error('Office-Dokument überschreitet die zulässige Größe für die Textextraktion.'));
+          return;
+        }
         zipfile.openReadStream(entry, (streamError: Error | null, stream: Readable | undefined) => {
+          if (settled) {
+            stream?.destroy();
+            return;
+          }
           if (streamError || !stream) {
-            reject(streamError ?? new Error(`ZIP-Eintrag ${entry.fileName} konnte nicht gelesen werden.`));
+            fail(streamError ?? new Error(`ZIP-Eintrag ${entry.fileName} konnte nicht gelesen werden.`));
             return;
           }
           const parts: Buffer[] = [];
+          let entryBytes = 0;
           stream.on('data', (part: Buffer | string | Uint8Array) => {
-            parts.push(Buffer.isBuffer(part) ? part : Buffer.from(part));
+            const bytes = Buffer.isBuffer(part) ? part : Buffer.from(part);
+            entryBytes += bytes.length;
+            totalBytes += bytes.length;
+            if (entryBytes > MAX_ZIP_TEXT_ENTRY_BYTES || totalBytes > MAX_ZIP_TEXT_TOTAL_BYTES) {
+              stream.destroy();
+              fail(new Error('Office-Dokument überschreitet die zulässige Größe für die Textextraktion.'));
+              return;
+            }
+            parts.push(bytes);
           });
-          stream.on('error', (error: unknown) => reject(error));
+          stream.on('error', fail);
           stream.on('end', () => {
+            if (settled) return;
             chunks.push(stripXml(Buffer.concat(parts).toString('utf8')));
             zipfile.readEntry();
           });
         });
       });
-      zipfile.on('end', () => resolve(chunks.filter(Boolean)));
-      zipfile.on('error', (error: unknown) => reject(error));
+      zipfile.on('end', () => {
+        if (settled) return;
+        settled = true;
+        resolve(chunks.filter(Boolean));
+      });
+      zipfile.on('error', fail);
+      zipfile.readEntry();
     });
   });
 }

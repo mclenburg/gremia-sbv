@@ -95,7 +95,6 @@ const GREMIA_BR_WORKSPACE_ACTION_METADATA_FIELDS = [
   'status',
   'localDocumentId',
   'remoteDocumentId',
-  'targetSecurityDomain',
   'correlationId',
 ] as const;
 

@@ -212,7 +212,7 @@ export class CaseHandoverReturnDeltaService {
       SELECT i.package_ref, i.local_entity_type, i.local_entity_id
       FROM case_handover_export_items i
       JOIN case_handover_exports e ON e.id = i.handover_export_id
-      WHERE e.package_id = ?
+      WHERE e.package_id = ? AND e.package_type = 'vacation_handover'
     `).all(sourcePackageId);
     if (!rows.length) throw new Error('Rückgabepaket kann nicht zugeordnet werden: Das Ausgangspaket ist auf dieser Instanz nicht bekannt.');
     return new Map(rows.map((item) => [item.package_ref, { type: item.local_entity_type, localId: item.local_entity_id }]));
