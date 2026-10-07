@@ -3,6 +3,7 @@ import { ShieldAlert, Trash2 } from "lucide-react";
 import type { ProtectedPersonRecord } from "../../../domain/models/protected-person.model";
 import { AUDIT_LOG_RETENTION_NOTICE } from "../../core/copy/privacyNotices";
 import { IndustrialModal } from "../../shared/components/IndustrialControls";
+import { TextCommandTextarea } from "../../shared/textCommands/TextCommandTextarea";
 
 export type PersonPrivacyActionMode = "anonymize" | "delete";
 
@@ -139,7 +140,7 @@ export function PersonPrivacyActionDialog({
         <form className="privacy-review-form" onSubmit={submit}>
           <label>
             <span>Grund</span>
-            <textarea
+            <TextCommandTextarea fieldId="person-privacy-reason"
               value={reason}
               onChange={(event) => setReason(event.target.value)}
               aria-describedby={formError ? errorId : undefined}

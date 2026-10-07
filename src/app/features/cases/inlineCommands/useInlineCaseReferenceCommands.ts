@@ -1,5 +1,4 @@
 import type { CaseRecord } from "../../../../domain/models/case.model";
-import { formatCaseReferenceText } from "@/domain/textCommands/textCommandPolicy";
 import { defaultDeadlineTitleForCase } from "../caseWorkbenchFormat";
 import type { InlineCommandRuntime } from "./inlineCommandRuntime";
 
@@ -27,15 +26,15 @@ export function useInlineCaseReferenceCommands(runtime: InlineCommandRuntime) {
 
   async function insertCaseReferenceFromProtocol(record: CaseRecord) {
     if (!inlineCaseLinkDraft) return;
-    setLinkedCaseIds((current) => [...new Set([...current, record.id])]);
-    replaceInlineCommandWithToken(
-      inlineCaseLinkDraft.target,
-      inlineCaseLinkDraft.markerIndex,
-      inlineCaseLinkDraft.token,
-      formatCaseReferenceText(record.caseNumber, record.displayName),
-    );
-    setInlineCaseLinkDraft(null);
-    setNoteInfo(`Fallbezug ergänzt: ${record.caseNumber}`);
+    try {
+      const marker = await window.gremiaSbv.knowledge.createTextEntityReference('case', record.id);
+      setLinkedCaseIds((current) => [...new Set([...current, record.id])]);
+      replaceInlineCommandWithToken(inlineCaseLinkDraft.target, inlineCaseLinkDraft.markerIndex, inlineCaseLinkDraft.token, marker);
+      setInlineCaseLinkDraft(null);
+      setNoteInfo(`Fallbezug ergänzt: ${record.caseNumber}`);
+    } catch (error) {
+      setNoteError(error instanceof Error ? error.message : 'Fallbezug konnte nicht verknüpft werden.');
+    }
   }
 
   function cancelInlineCaseLinkDraft() {

@@ -9,6 +9,7 @@ import { CASE_ANONYMIZATION_MATRIX, type CaseAnonymizationMatrixEntry } from './
 import { CASE_ANONYMIZATION_CONFIRMATION, REMOVED_PARTICIPANTS_TEXT, replaceFreeTextPreservingLength, type CaseAnonymizationMode } from './caseAnonymizationPolicy.js';
 import { safeRun, tableExists } from './retentionSupport.js';
 import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
+import { TextEntityReferenceService } from './textEntityReferenceService.js';
 import { CaseAnonymizationFileQuarantine } from './caseAnonymizationFileQuarantine.js';
 import { CaseAnonymizationVerificationService, snapshotCaseAnonymizationHashChains } from './caseAnonymizationVerificationService.js';
 import { ensureRetentionRuntimeSchema } from './runtimeSchemaCompatibility.js';
@@ -283,6 +284,7 @@ export class CaseAnonymizationService {
     if (mode !== 'marked_free_text' && mode !== 'replace_all_free_text') return { ok: false, action: 'none', error: 'Bitte einen gültigen Anonymisierungsmodus auswählen.' };
 
     const db = this.database;
+    const sanitizedReason = new TextEntityReferenceService(db).replaceForTarget('case', caseId, reason.trim());
     const dataDir = this.dataDirProvider();
     const row = db.prepare<{ id: string; case_number: string; person_id: string | null; protected_person_id: string | null; handover_import_id: string | null }>(
       'SELECT id, case_number, person_id, protected_person_id, handover_import_id FROM cases WHERE id = ?',
@@ -308,6 +310,7 @@ export class CaseAnonymizationService {
 
       const timestamp = nowIso();
       const affectedRows = new DatabaseUnitOfWork(db).run(() => {
+        new TextEntityReferenceService(db).redact('case', caseId);
         const journalEntryIds = journalEntryIdsForCase(
           db,
           caseId,
@@ -343,7 +346,7 @@ export class CaseAnonymizationService {
         ensureRetentionRuntimeSchema(db);
         db.prepare(`INSERT INTO retention_actions (id, action_type, entity_type, entity_id, reference, reason, affected_rows, affected_files, created_at)
           VALUES (?, 'case_anonymized', 'case', ?, ?, ?, ?, ?, ?)`)
-          .run(randomUUID(), caseId, row.case_number, reason.trim(), affected, quarantine.affectedFiles, timestamp);
+          .run(randomUUID(), caseId, row.case_number, sanitizedReason, affected, quarantine.affectedFiles, timestamp);
 
         new PersonalDataAuditLogService(db).append({
           action: 'anonymize', subjectType: 'case', subjectId: caseId, caseId, purpose: 'Fallakte anonymisiert',

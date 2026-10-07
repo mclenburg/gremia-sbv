@@ -6,6 +6,7 @@ export type TextCommandToken =
   | '/wiedervorlage'
   | '@@'
   | '/kontakt'
+  | '/person'
   | '##'
   | '/fall'
   | '§§'
@@ -44,6 +45,7 @@ export type TextCommandKind =
   | 'deadline'
   | 'follow_up'
   | 'contact'
+  | 'person_reference'
   | 'case_reference'
   | 'legal_norm'
   | 'risk'
@@ -82,6 +84,7 @@ export const TEXT_COMMAND_REGISTRY: TextCommandDefinition[] = [
   { kind: 'deadline', tokens: ['//', '/fr', '/frist'], label: 'Frist anlegen', description: 'Frist mit Datum direkt aus dem Protokoll anlegen. In der Fallakte fallbezogen, in der SBV-Steuerung als übergreifende Wiedervorlage.', requiresCase: false },
   { kind: 'follow_up', tokens: ['/wv', '/wiedervorlage'], label: 'Wiedervorlage anlegen', description: 'Wiedervorlage mit Datum direkt aus dem Protokoll anlegen. In der SBV-Steuerung ohne Fallzuordnung möglich.', requiresCase: false },
   { kind: 'contact', tokens: ['@@', '/kontakt'], label: 'Kontakt einfügen', description: 'Kontakt suchen oder anlegen und in den Text einfügen.' },
+  { kind: 'person_reference', tokens: ['/person'], label: 'Person verknüpfen', description: 'Person aus dem Verzeichnis verknüpfen; bei Löschung oder Anonymisierung wird der Verweis ersetzt.' },
   { kind: 'case_reference', tokens: ['##', '/fall'], label: 'Fallbezug verknüpfen', description: 'Weiteren Fallbezug in Text und Notiz hinterlegen.' },
   { kind: 'legal_norm', tokens: ['§§', '/norm'], label: 'Rechtsnorm einfügen', description: 'Rechtsnorm suchen, einfügen und mit der Fallakte verknüpfen.' },
   { kind: 'risk', tokens: ['!!', '/risiko'], label: 'Risiko markieren', description: 'Risiko- oder Warnhinweis sichtbar im Protokoll markieren.' },
@@ -114,7 +117,7 @@ export interface TextCommandHelpGroup {
 export const TEXT_COMMAND_HELP_GROUPS: TextCommandHelpGroup[] = [
   { title: 'Live-Erfassung', description: 'Direkt im Gespräch Fristen, Wiedervorlagen und Aufgaben vormerken.', kinds: ['deadline', 'follow_up', 'open_task'] },
   { title: 'Fallakten-Maßnahmen', description: 'Strukturierte SBV-Vorgänge in der geöffneten Fallakte anlegen.', kinds: ['bem_measure', 'prevention_measure', 'participation', 'termination_measure', 'equalization_measure', 'workplace_accommodation'] },
-  { title: 'Wissen und Bezüge', description: 'Kontakte, Fallbezüge, Normen und Vorlagen in den Arbeitsfluss holen.', kinds: ['contact', 'case_reference', 'legal_norm', 'template'] },
+  { title: 'Wissen und Bezüge', description: 'Kontakte, Personen, Fallbezüge, Normen und Vorlagen in den Arbeitsfluss holen.', kinds: ['contact', 'person_reference', 'case_reference', 'legal_norm', 'template'] },
   { title: 'Datenschutz und Bewertung', description: 'Risiken, Vertraulichkeit und Anonymisierung während des Protokolls markieren.', kinds: ['risk', 'confidentiality', 'anonymization'] }
 ];
 

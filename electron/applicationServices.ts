@@ -1,4 +1,5 @@
 import { ActivityJournalPreferenceService, ActivityJournalService, PersonalDataAuditLogService, MeasureLifecycleAuditService, SearchIndexService, BackupService, BemService, CaseAnonymizationService, CaseHandoverService, CaseMeasureService, CaseService, ComplianceIncidentService, ComplianceSelfCheckService, ContactService, DeadlineService, DsarPrefillService, EqualizationService, EqualizationIntakeService, GremiaBrAuthService, GremiaBrCacheService, GremiaBrExternalReferenceService, GremiaBrSettingsService, GremiaBrWorkspaceActionService, KnowledgeService, MobileCompanionReturnService, MobileCompanionService, ParticipationService, PersonAnonymizationService, PersonImportService, PersonStatusExpiryService, PreventionService, PrivacyReviewService, ProtectedPersonService, RecruitingParticipationService, ReportService, RetentionService, SbvControlProtocolService, SbvParticipationViolationDocumentService, SbvParticipationViolationService, SbvParticipationViolationTemplateService, SbvResourceService, TemplateDefaultService, TemplateService, TransferInstanceIdentityService, TransferRecipientProfileService, TerminationService, WorkplaceAccommodationService, SbvMeetingService, SbvAssemblyService, EmployerObligationService, InclusionAgreementService, ComplaintWorkflowService, SbvOfficeDocumentService, SbvOfficeWorkflowDocumentAdapter, SbvElectionService, SbvElectionDocumentService, ElectionExecutionService, ElectionArchiveService, ElectionTransferService, type DatabaseAdapter, type SecurityService } from './applicationServiceDependencies.js';
+import { TextEntityReferenceService } from '../services/textEntityReferenceService.js';
 /**
  * Central composition root for Electron main-process application services.
  *
@@ -86,6 +87,8 @@ export class ApplicationServices {
     this.databaseService('dsarPrefill', (database) => new DsarPrefillService(database));
   knowledge = (): KnowledgeService =>
     this.databaseService('knowledge', (database) => new KnowledgeService(database));
+  textEntityReferences = (): TextEntityReferenceService =>
+    this.databaseService('textEntityReferences', (database) => new TextEntityReferenceService(database));
   mobileCompanion = (): MobileCompanionService =>
     this.databaseService('mobileCompanion', (database) => new MobileCompanionService(database, this.auditLog()));
   mobileCompanionReturn = (): MobileCompanionReturnService =>

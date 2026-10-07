@@ -366,7 +366,7 @@ function WorkspaceMain(props: PrimaryViewsProps & { currentModule?: (typeof modu
       setCaseNodeTarget={props.setCaseNodeTarget} recordTarget={props.recordTarget} setRecordTarget={props.setRecordTarget} openCaseNode={props.openCaseNode} theme={props.theme} setTheme={props.setTheme}
       setParticipationViolationPrefill={props.setParticipationViolationPrefill} />
     {!isImplementedView(currentView) && currentModule && <PlaceholderView view={currentModule} />}
-    <GlobalTextCommandController cases={work.cases} contacts={work.contacts} onCreateDeadline={work.createDeadline} /><TextCommandHelpModal />
+    <GlobalTextCommandController cases={work.cases} contacts={work.contacts} persons={work.persons} onCreateDeadline={work.createDeadline} /><TextCommandHelpModal />
     {work.selectedDeadline && <DeadlineEditor deadline={work.selectedDeadline} cases={work.cases} onClose={() => work.setSelectedDeadline(null)}
       onSave={work.updateDeadline} onComplete={work.completeDeadline} />}
     {work.deadlineExtensionTarget && <DeadlineExtensionModal deadline={work.deadlineExtensionTarget} cases={work.cases}

@@ -51,6 +51,7 @@ function openLegacy(files: string[]): DatabaseSync {
 }
 
 const cases: MigrationCase[] = [
+  { name: 'Verknüpfungen in Freitexten', files: ['0064_text_entity_references.sql'], tables: ['text_entity_references'], indexes: ['idx_text_entity_references_entity'], required: { text_entity_references: ['id', 'entity_kind', 'entity_id', 'label', 'marker', 'created_at'] } },
   { name: 'Fallmaßnahmennotizen', files: ['0026_case_measure_notes.sql'], tables: ['case_measure_notes'], indexes: ['idx_case_measure_notes_measure', 'idx_case_measure_notes_case'], required: { case_measure_notes: schema.CASE_MEASURE_NOTES_REQUIRED_COLUMNS } },
   { name: 'Fallsuchindex', files: ['0027_case_search_index.sql'], tables: ['case_search_index'], indexes: ['idx_case_search_index_case', 'idx_case_search_index_source', 'idx_case_search_index_navigation'], required: { case_search_index: schema.CASE_SEARCH_INDEX_REQUIRED_COLUMNS } },
   { name: 'Dokumenttext-Extraktion', files: ['0028_document_text_extraction_metadata.sql'], tables: ['case_documents'], required: { case_documents: ['extraction_quality', 'text_extraction_status', 'text_extracted_at'] }, partialTables: ['case_documents'] },

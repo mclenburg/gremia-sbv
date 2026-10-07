@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
+import { TextEntityReferenceService } from './textEntityReferenceService.js';
 import { assertRetentionDecision, decideLegacyBulkPrivacyReview, decidePrivacyReviewForContext, type PrivacyReviewReason } from './privacyReviewPolicy.js';
 import { ProtectedPersonService } from './protectedPersonService.js';
 import type { CaseCategory, CasePriority, CaseRecord, CaseStatus } from '../src/domain/models/case.model.js';
@@ -179,6 +180,7 @@ export class PrivacyReviewService {
 
 
   markCaseAnonymized(caseId: string): void {
+    new TextEntityReferenceService(this.database).redact('case', caseId);
     const timestamp = nowIso();
     this.database.prepare(`UPDATE cases SET person_binding_state = 'anonymized', privacy_review_required = 1, privacy_review_reason = 'linked_person_anonymized', anonymized_at = ?, updated_at = ? WHERE id = ?`).run(timestamp, timestamp, caseId);
     this.database.prepare(`UPDATE privacy_review_items SET status = 'anonymized', updated_at = ? WHERE case_id = ? AND status = 'open'`).run(timestamp, caseId);

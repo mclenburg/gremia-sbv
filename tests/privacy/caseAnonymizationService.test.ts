@@ -4,6 +4,7 @@ import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { CaseAnonymizationService } from '../../services/caseAnonymizationService';
 import { RetentionService } from '../../services/retentionService';
+import { TextEntityReferenceService } from '../../services/textEntityReferenceService';
 import { DocumentContainerService } from '../../services/documentContainerService';
 import { PersonalDataAuditLogService } from '../../services/auditLogService';
 import { PrivacyReviewService } from '../../services/privacyReviewService';
@@ -161,6 +162,28 @@ async function seedExtendedCaseData(db: DatabaseAdapter, dataDir: string): Promi
 }
 
 describe('CaseAnonymizationService', () => {
+  it.each(['anonymize', 'delete'] as const)('replaces a linked case in another meeting when the case is %s', async (action) => {
+    const db = await openTestDatabase();
+    const dataDir = tempDir();
+    try {
+      await seedCase(db, dataDir, 'Fallnotiz');
+      const marker = new TextEntityReferenceService(db).create('case', 'case-1');
+      const now = '2026-08-15T12:00:00.000Z';
+      db.prepare("INSERT INTO sbv_meetings (id, meeting_type, title, starts_at, notes, created_at, updated_at) VALUES ('meeting-1', 'works_council', 'Sitzung', ?, ?, ?, ?)")
+        .run(now, `Fall SBV-2026-001 wurde erwähnt. ${marker}`, now, now);
+
+      const result = action === 'anonymize'
+        ? await new CaseAnonymizationService(db, () => dataDir).anonymizeCase('case-1', `Zweck entfallen: ${marker}`, 'FALL ANONYMISIEREN', 'marked_free_text')
+        : await new RetentionService(db, () => dataDir).deleteCase('case-1', `Zweck entfallen: ${marker}`, 'FALL LÖSCHEN');
+
+      expect(result.ok).toBe(true);
+      expect(db.prepare<{ notes: string }>("SELECT notes FROM sbv_meetings WHERE id = 'meeting-1'").get()!.notes)
+        .toBe('Fall SBV-2026-001 wurde erwähnt. [anonymisiert]');
+      expect(db.prepare<{ reason: string }>('SELECT reason FROM retention_actions WHERE entity_id = ? ORDER BY created_at DESC LIMIT 1').get('case-1')!.reason)
+        .toBe('Zweck entfallen: [anonymisiert]');
+    } finally { db.close(); }
+  });
+
   it('leaves case data intact when anonymization or deletion confirmation is wrong', async () => {
     const db = await openTestDatabase();
     const dataDir = tempDir();

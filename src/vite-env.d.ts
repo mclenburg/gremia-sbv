@@ -313,6 +313,7 @@ declare global {
         delete(id: string): Promise<DeleteContactResult>;
       };
       knowledge: {
+        createTextEntityReference(kind: 'person' | 'case', id: string): Promise<string>;
         listNorms(filters?: LegalNormSearchInput): Promise<LegalNormRecord[]>;
         getNorm(id: string): Promise<LegalNormRecord | null>;
         createNorm(input: CreateLegalNormInput): Promise<LegalNormRecord>;

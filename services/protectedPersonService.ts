@@ -1,4 +1,5 @@
 import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
+import { TextEntityReferenceService } from './textEntityReferenceService.js';
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import { DeadlineService } from './deadlineService.js';
@@ -214,8 +215,10 @@ export class ProtectedPersonService {
     return new DatabaseUnitOfWork(this.database).run(() => {
     const before = this.get(id);
     if (!before) throw new Error(`Person nicht gefunden: ${id}`);
+    const references = new TextEntityReferenceService(this.database);
+    const normalizedReason = references.replaceForTarget('person', id, assertPersonPrivacyReason(reason));
+    references.redact('person', id);
     const timestamp = nowIso();
-    const normalizedReason = assertPersonPrivacyReason(reason);
     const decision = decideStructuredPersonAnonymization(id);
     this.database.prepare(`
       UPDATE protected_persons SET

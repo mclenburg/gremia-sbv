@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { ChangeEvent, TextareaHTMLAttributes } from 'react';
-import { TEXT_COMMAND_HINT, findFirstTextCommand, type TextCommandToken } from '@/domain/textCommands/textCommandPolicy';
+import { TEXT_COMMAND_HINT, findFirstTextCommand, getTextCommandKind, type TextCommandToken } from '@/domain/textCommands/textCommandPolicy';
 
 export type TextCommandTextareaChange = {
   token: TextCommandToken;
@@ -79,8 +79,12 @@ export function TextCommandTextarea({
       fieldId
     };
 
-    onTextCommand?.(payload);
-    if (globalCommandsEnabled && !onTextCommand) window.dispatchEvent(new CustomEvent<TextCommandTextareaChange>('gremia-sbv:text-command-detected', { detail: payload }));
+    if (globalCommandsEnabled && getTextCommandKind(command.token) === 'person_reference') {
+      window.dispatchEvent(new CustomEvent<TextCommandTextareaChange>('gremia-sbv:text-command-detected', { detail: payload }));
+    } else {
+      onTextCommand?.(payload);
+      if (globalCommandsEnabled && !onTextCommand) window.dispatchEvent(new CustomEvent<TextCommandTextareaChange>('gremia-sbv:text-command-detected', { detail: payload }));
+    }
   }
 
   const describedBy = [ariaDescribedBy, hintId].filter(Boolean).join(' ') || undefined;

@@ -262,6 +262,15 @@ CREATE TABLE IF NOT EXISTS contact_text_references (
   UNIQUE(contact_id, source_type, source_id, field_name, matched_text)
 );
 
+CREATE TABLE IF NOT EXISTS text_entity_references (
+  id TEXT PRIMARY KEY,
+  entity_kind TEXT NOT NULL CHECK (entity_kind IN ('person', 'case')),
+  entity_id TEXT NOT NULL,
+  label TEXT NOT NULL,
+  marker TEXT NOT NULL UNIQUE,
+  created_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS case_contacts (
   case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
   contact_id TEXT NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
@@ -423,6 +432,7 @@ CREATE INDEX IF NOT EXISTS idx_contacts_name ON contacts(last_name, first_name);
 CREATE INDEX IF NOT EXISTS idx_contacts_category ON contacts(category);
 CREATE INDEX IF NOT EXISTS idx_contact_text_refs_contact ON contact_text_references(contact_id);
 CREATE INDEX IF NOT EXISTS idx_contact_text_refs_source ON contact_text_references(source_type, source_id);
+CREATE INDEX IF NOT EXISTS idx_text_entity_references_entity ON text_entity_references(entity_kind, entity_id);
 
 CREATE VIRTUAL TABLE IF NOT EXISTS case_notes_fts USING fts5(
   id UNINDEXED,
