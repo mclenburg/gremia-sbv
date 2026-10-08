@@ -9,6 +9,8 @@ import { VaultSetupUnlockService } from './vaultSetupUnlockService.js';
 import { CURRENT_SCRYPT_PARAMS, derivePasswordVerifier, deriveRecoveryVerifier, normalizeRecoveryKey, safeDestroyBuffer, safeEqualsHex, unwrapDatabaseKey, validatePassword, wrapDatabaseKey } from './securitySupport.js';
 import { buildLegacyPlaintextCleanupWarning } from './legacyPlaintextExportCleanupService.js';
 
+const OLD_BACKUP_PASSWORD_WARNING = 'Alte Backups bleiben nach Wiederherstellung mit ihrer Backup-Passphrase und dem damaligen Tresorpasswort lesbar. Bei vermutetem Passwortverlust bitte alte Sicherungen prüfen und neue Backups erstellen.';
+
 export class VaultCredentialService extends VaultSetupUnlockService {
   async changePassword(
         currentPassword: string,
@@ -20,6 +22,15 @@ export class VaultCredentialService extends VaultSetupUnlockService {
             initialized: false,
             unlocked: false,
             error: "Es wurde noch kein Initialpasswort eingerichtet.",
+          };
+        }
+
+        if (!this.unlocked || !this.databaseKey) {
+          return {
+            ok: false,
+            initialized: true,
+            unlocked: false,
+            error: 'Bitte den Tresor vor der Passwortänderung entsperren.',
           };
         }
     
@@ -34,30 +45,21 @@ export class VaultCredentialService extends VaultSetupUnlockService {
         }
     
         let verified = false;
-        if (this.unlocked && this.databaseKey) {
-          try {
-            const currentStore = this.readStore();
-            this.assertStoreMatchesManifest(currentStore);
-            verified = safeEqualsHex(
-              derivePasswordVerifier(currentPassword, currentStore.salt, currentStore.kdfParams),
-              currentStore.passwordVerifier,
-            );
-          } catch {
-            verified = false;
-          }
-        } else if (!this.unlockInProgress) {
-          this.unlockInProgress = true;
-          try {
-            verified = (await this.performUnlock(currentPassword, { auditUnlock: false, cleanupLegacy: false })).ok;
-          } finally {
-            this.unlockInProgress = false;
-          }
+        try {
+          const currentStore = this.readStore();
+          this.assertStoreMatchesManifest(currentStore);
+          verified = safeEqualsHex(
+            derivePasswordVerifier(currentPassword, currentStore.salt, currentStore.kdfParams),
+            currentStore.passwordVerifier,
+          );
+        } catch {
+          verified = false;
         }
         if (!verified || !this.databaseKey) {
           return {
             ok: false,
             initialized: true,
-            unlocked: false,
+            unlocked: this.unlocked,
             error: "Das aktuelle Passwort ist nicht korrekt.",
           };
         }
@@ -92,7 +94,12 @@ export class VaultCredentialService extends VaultSetupUnlockService {
           this.commitSecurityArtifacts(nextStore, this.withManifestTimestamp(currentManifest, now));
           this.unlocked = true;
           this.auditSecurityEvent('password_change', 'Tresorpasswort geändert');
-          return { ok: true, initialized: true, unlocked: true };
+          return {
+            ok: true,
+            initialized: true,
+            unlocked: true,
+            warning: OLD_BACKUP_PASSWORD_WARNING,
+          };
         } catch {
           return {
             ok: false,
@@ -199,7 +206,7 @@ export class VaultCredentialService extends VaultSetupUnlockService {
             ok: true,
             initialized: true,
             unlocked: true,
-            warning: buildLegacyPlaintextCleanupWarning(cleanup),
+            warning: [OLD_BACKUP_PASSWORD_WARNING, buildLegacyPlaintextCleanupWarning(cleanup)].filter(Boolean).join(' '),
           };
         } catch {
           this.unlocked = false;

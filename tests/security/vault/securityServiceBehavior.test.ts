@@ -205,10 +205,13 @@ describe('security service behavior', () => {
     writeFileSync(source, Buffer.from('%PDF-1.7\nRecovery-Altbestand\n%%EOF'));
     service.lock();
     rmSync(path.join(dataDir, 'security.json'), { force: true });
-    const audit = vi.spyOn(service as never, 'auditSecurityEvent');
+    const audit = vi.spyOn(service as unknown as {
+      auditSecurityEvent: (eventType: string, purpose: string, metadata?: Record<string, unknown>) => void;
+    }, 'auditSecurityEvent');
     const recovery = await service.resetPasswordWithRecoveryKey(setup.recoveryKey!, NEXT_PASSWORD);
 
     expect(recovery).toMatchObject({ ok: true, initialized: true, unlocked: true });
+    expect(recovery.warning).toMatch(/alte Backups/i);
     expect(audit).toHaveBeenCalledWith('recovery_reset', expect.any(String));
     expect(existsSync(source)).toBe(false);
     expect(existsSync(target)).toBe(true);
@@ -237,17 +240,29 @@ describe('security service behavior', () => {
     const service = createService(dataDir);
     await service.setupInitialPassword(PASSWORD);
     service.lock();
-    const audit = vi.spyOn(service as never, 'auditSecurityEvent');
+    const audit = vi.spyOn(service as unknown as {
+      auditSecurityEvent: (eventType: string, purpose: string, metadata?: Record<string, unknown>) => void;
+    }, 'auditSecurityEvent');
 
     const storeBeforeFailedChange = readFileSync(path.join(dataDir, 'security.json'), 'utf8');
     const failed = await service.changePassword('falsch', NEXT_PASSWORD);
     expect(failed.ok).toBe(false);
+    expect(failed.unlocked).toBe(false);
     expect(readFileSync(path.join(dataDir, 'security.json'), 'utf8')).toBe(storeBeforeFailedChange);
+
+    const lockedChange = await service.changePassword(PASSWORD, NEXT_PASSWORD);
+    expect(lockedChange).toMatchObject({ ok: false, unlocked: false });
+    expect(readFileSync(path.join(dataDir, 'security.json'), 'utf8')).toBe(storeBeforeFailedChange);
+    expect((await service.unlock(PASSWORD)).ok).toBe(true);
+    audit.mockClear();
+    const unlockedFailure = await service.changePassword('falsch', NEXT_PASSWORD);
+    expect(unlockedFailure).toMatchObject({ ok: false, unlocked: true });
 
     const changed = await service.changePassword(PASSWORD, NEXT_PASSWORD);
     expect(changed.ok).toBe(true);
+    expect(changed.warning).toMatch(/alte Backups/i);
     expect(audit).toHaveBeenCalledWith('password_change', expect.any(String));
-    expect(audit).not.toHaveBeenCalledWith('unlock', expect.any(String));
+    expect(audit.mock.calls.map(([action]) => action)).not.toContain('unlock');
     expect(readFileSync(path.join(dataDir, 'security.json'), 'utf8')).not.toBe(storeBeforeFailedChange);
     service.lock();
 
@@ -445,6 +460,8 @@ describe('security persistence rollback completion', () => {
     };
     const service = new SecurityService(dataDir, operations);
     vi.spyOn(service as unknown as VaultDatabaseOpener, 'openAndInitializeVaultDatabase').mockResolvedValue(undefined);
+    expect((await service.unlock(PASSWORD)).ok).toBe(true);
+    writes = 0;
 
     const changed = await service.changePassword(PASSWORD, NEXT_PASSWORD);
     expect(changed).toMatchObject({ ok: false, initialized: true });
