@@ -166,6 +166,7 @@ describe('backup service behavior', () => {
     expect(envelope.kdfParams.N).toBeGreaterThanOrEqual(131072);
     const inspected = new BackupService(createSecurityStub(dataDir) as never).inspectBackup(target, PASSPHRASE);
     expect(inspected.ok).toBe(true);
+    expect(inspected.warnings).not.toEqual(expect.arrayContaining([expect.stringMatching(/älterer Schlüsselableitung/)]));
     expect(inspected.files?.map((file) => file.relativePath)).toEqual(expect.arrayContaining([
       'gremia-sbv.vault.sqlite',
       'security.json',
@@ -215,9 +216,11 @@ describe('backup service behavior', () => {
     const inspected = service.inspectBackup(legacyFile, PASSPHRASE);
     expect(inspected.ok).toBe(true);
     expect(inspected.fileCount).toBe(3);
+    expect(inspected.warnings).toEqual(expect.arrayContaining([expect.stringMatching(/älterer Schlüsselableitung/)]));
 
     const restored = service.restoreBackup(legacyFile, PASSPHRASE, 'BACKUP WIEDERHERSTELLEN');
     expect(restored.ok).toBe(true);
+    expect(restored.warnings).toEqual(expect.arrayContaining([expect.stringMatching(/älterer Schlüsselableitung/)]));
     expect(readFileSync(path.join(dataDir, 'gremia-sbv.vault.sqlite'), 'utf8')).toBe('legacy-vault');
     expect(existsSync(path.join(dataDir, 'documents'))).toBe(true);
     expect(existsSync(path.join(dataDir, 'exports'))).toBe(true);

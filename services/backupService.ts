@@ -10,6 +10,7 @@ import { atomicWriteFileSync } from './secureFileOperations.js';
 import { OWNER_ONLY_FILE_MODE } from './secureFilePermissions.js';
 import { gunzipBackupPayload, MAX_BACKUP_PAYLOAD_BYTES, readBoundedBackupEnvelope } from './backupPayloadDecompression.js';
 import { safePublicBackupError } from './backupPublicError.js';
+import { buildBackupPrivacyWarnings, LEGACY_BACKUP_KDF_WARNING } from './backupWarnings.js';
 export { safePublicBackupError } from './backupPublicError.js';
 
 export interface BackupFileOperations {
@@ -87,6 +88,11 @@ interface BackupEnvelope {
   payload: string;
 }
 
+interface ReadBackupResult {
+  payload: BackupPayload;
+  legacyKdf: boolean;
+}
+
 function assertPassphrase(passphrase: string): void {
   if (!passphrase || passphrase.length < MIN_BACKUP_PASSPHRASE_LENGTH) {
     throw new Error(`Die Backup-Passphrase muss mindestens ${MIN_BACKUP_PASSPHRASE_LENGTH} Zeichen lang sein.`);
@@ -148,19 +154,6 @@ function walkFiles(root: string, relativeBase = ''): string[] {
     result.push(normalized);
   }
   return result.sort((a, b) => a.localeCompare(b));
-}
-
-function buildBackupPrivacyWarnings(files: BackupPayloadFile[]): string[] {
-  const warnings: string[] = [];
-  warnings.push('Backup enthält den verschlüsselten Gremia.SBV-Tresor einschließlich SBV-, BEM- und Gesundheitsdaten.');
-  warnings.push('Backup-Passphrase getrennt vom Backup aufbewahren; ohne Passphrase ist keine Wiederherstellung möglich.');
-  if (files.some((file) => file.relativePath.includes('exports/'))) {
-    warnings.push('Backup enthält verschlüsselte Berichtsexporte. Weitergabe nur an berechtigte Personen.');
-  }
-  if (files.some((file) => file.relativePath.includes('documents/'))) {
-    warnings.push('Backup enthält Fall- und Dokumentenablagen. Lösch- und Aufbewahrungsfristen beachten.');
-  }
-  return warnings;
 }
 
 function schemaVersionWarning(schemaVersion?: string): string | undefined {
@@ -283,7 +276,7 @@ export class BackupService {
 
   inspectBackup(filePath: string, passphrase: string): BackupInspectionResult {
     try {
-      const payload = this.readBackupPayload(filePath, passphrase);
+      const { payload, legacyKdf } = this.readBackupPayload(filePath, passphrase);
       this.verifyPayload(payload);
       return {
         ok: true,
@@ -300,7 +293,8 @@ export class BackupService {
         files: payload.files.map(({ contentBase64: _contentBase64, ...summary }) => summary),
         warnings: [
           ...buildBackupPrivacyWarnings(payload.files),
-          ...(schemaVersionWarning(payload.schemaVersion) ? [schemaVersionWarning(payload.schemaVersion)!] : [])
+          ...(schemaVersionWarning(payload.schemaVersion) ? [schemaVersionWarning(payload.schemaVersion)!] : []),
+          ...(legacyKdf ? [LEGACY_BACKUP_KDF_WARNING] : [])
         ]
       };
     } catch (error) {
@@ -313,7 +307,7 @@ export class BackupService {
     let backupOfCurrent: string | undefined;
     try {
       if (confirmation !== RESTORE_CONFIRMATION) throw new Error(`Bitte exakt „${RESTORE_CONFIRMATION}“ eingeben.`);
-      const payload = this.readBackupPayload(filePath, passphrase);
+      const { payload, legacyKdf } = this.readBackupPayload(filePath, passphrase);
       this.verifyPayload(payload);
 
       const dataDir = this.security.getDataDirectory();
@@ -354,7 +348,7 @@ export class BackupService {
         restoredAt: new Date().toISOString(), filePath, fileName: path.basename(filePath),
         fileCount: payload.files.length,
         totalBytes: payload.files.reduce((sum, file) => sum + file.sizeBytes, 0),
-        warnings: [`Der vorherige Datenbestand wurde gesichert unter: ${backupOfCurrent}`, ...buildBackupPrivacyWarnings(payload.files), ...(schemaVersionWarning(payload.schemaVersion) ? [schemaVersionWarning(payload.schemaVersion)!] : [])],
+        warnings: [`Der vorherige Datenbestand wurde gesichert unter: ${backupOfCurrent}`, ...buildBackupPrivacyWarnings(payload.files), ...(schemaVersionWarning(payload.schemaVersion) ? [schemaVersionWarning(payload.schemaVersion)!] : []), ...(legacyKdf ? [LEGACY_BACKUP_KDF_WARNING] : [])],
         restartRequired: true
       };
     } catch (error) {
@@ -369,7 +363,7 @@ export class BackupService {
     return path.join(backupsDir, safeBackupFileName());
   }
 
-  private readBackupPayload(filePath: string, passphrase: string): BackupPayload {
+  private readBackupPayload(filePath: string, passphrase: string): ReadBackupResult {
     assertPassphrase(passphrase);
     let envelope: BackupEnvelope;
     try { envelope = JSON.parse(readBoundedBackupEnvelope(filePath)) as BackupEnvelope; }
@@ -385,7 +379,10 @@ export class BackupService {
       decipher.setAAD(Buffer.from(`${BACKUP_FORMAT}:${BACKUP_VERSION}`, 'utf8'));
       decipher.setAuthTag(Buffer.from(envelope.tag, 'hex'));
       const compressed = Buffer.concat([decipher.update(Buffer.from(envelope.payload, 'base64')), decipher.final()]);
-      return JSON.parse(gunzipBackupPayload(compressed).toString('utf8')) as BackupPayload;
+      return {
+        payload: JSON.parse(gunzipBackupPayload(compressed).toString('utf8')) as BackupPayload,
+        legacyKdf: !envelope.kdfParams || envelope.kdfParams.N < CURRENT_BACKUP_SCRYPT_PARAMS.N,
+      };
     } finally { safeDestroyBuffer(key); }
   }
 

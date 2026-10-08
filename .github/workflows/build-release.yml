@@ -92,6 +92,23 @@ jobs:
       - name: Run shared security, license and build quality gates
         run: npm run build:quality
 
+      - name: Generate release dependency SBOM
+        shell: bash
+        env:
+          PACKAGE_VERSION: ${{ needs.verify-tag.outputs.package_version }}
+        run: |
+          set -euo pipefail
+          mkdir -p release-metadata
+          npm sbom --package-lock-only --omit=dev --sbom-format spdx \
+            > "release-metadata/Gremia.SBV-${PACKAGE_VERSION}-sbom.spdx.json"
+
+      - name: Upload release dependency SBOM
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-dependency-sbom
+          path: release-metadata/*-sbom.spdx.json
+          if-no-files-found: error
+
   prepare-release:
     name: Prepare draft GitHub release
     runs-on: ubuntu-latest
@@ -128,6 +145,24 @@ jobs:
           fi
 
           gh release create "${release_args[@]}"
+
+      - name: Download release dependency SBOM
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: release-dependency-sbom
+          path: release-metadata
+
+      - name: Attach release dependency SBOM
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PACKAGE_VERSION: ${{ needs.verify-tag.outputs.package_version }}
+        run: |
+          set -euo pipefail
+          gh release upload "${RELEASE_TAG}" \
+            "release-metadata/Gremia.SBV-${PACKAGE_VERSION}-sbom.spdx.json" \
+            --clobber --repo "${GH_REPO}"
 
   build-android:
     name: Build signed Android APK
