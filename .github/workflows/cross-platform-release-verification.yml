@@ -134,6 +134,8 @@ jobs:
 
       - name: Run packaged product E2E tests
         if: matrix.platform == 'linux'
+        env:
+          GREMIA_SBV_FULL_E2E_WORKERS: '1'
         run: xvfb-run -a npm run test:e2e:full-product:reuse
 
       - name: Upload verified release artifact

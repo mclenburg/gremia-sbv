@@ -58,6 +58,14 @@ export class MigrationExecutor extends MigrationInference {
     }
 
   protected executeStatements(sql: string, options: { skipAlterAddColumn?: boolean; skipUnsafeCreateContacts?: boolean } = {}): void {
+      if (/\bCREATE\s+TRIGGER\b/i.test(sql)) {
+        if (/\bALTER\s+TABLE\s+\w+\s+ADD\s+COLUMN\b/i.test(sql) || options.skipUnsafeCreateContacts) {
+          throw new Error('Trigger-Migrationen mit bedingt auszuführenden Tabellenänderungen werden nicht unterstützt.');
+        }
+        // SQLite verarbeitet BEGIN ... END und dessen innere Semikolons als einen Trigger.
+        this.db.exec(sql);
+        return;
+      }
       const statements = splitSqlStatements(sql);
       statements.forEach((statement) => {
         const trimmed = statement.trim();
