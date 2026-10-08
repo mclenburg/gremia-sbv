@@ -23,6 +23,7 @@ function createSecurityStub(dataDir: string) {
   return {
     getDataDirectory: () => dataDir,
     getActiveDatabase: () => db,
+    checkpointAuditIntegrityForBackup: () => undefined,
     lock: () => undefined,
   };
 }
