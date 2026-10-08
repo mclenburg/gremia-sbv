@@ -122,6 +122,20 @@ jobs:
         if: matrix.platform == 'linux'
         run: xvfb-run -a npm run ${{ matrix.platform_check }}
 
+      - name: Install isolated Playwright tools and Chromium
+        if: matrix.platform == 'linux'
+        run: npm run test:e2e:setup
+
+      - name: Run browser E2E tests
+        if: matrix.platform == 'linux'
+        env:
+          GREMIA_SBV_E2E_WORKERS: '2'
+        run: npm run test:e2e
+
+      - name: Run packaged product E2E tests
+        if: matrix.platform == 'linux'
+        run: xvfb-run -a npm run test:e2e:full-product:reuse
+
       - name: Upload verified release artifact
         if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
