@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { registerMobilePairingFileIpc } from '../../../electron/ipc/mobilePairingFileIpc';
 import { IPC_CHANNELS } from '../../../electron/ipc/channels';
+import { trustedIpcEvent } from '../../helpers/trustedIpcEvent.js';
 
 const boundary = vi.hoisted(() => ({ open: vi.fn(), save: vi.fn(), read: vi.fn(), write: vi.fn() }));
 vi.mock('electron', () => ({ dialog: { showOpenDialog: boundary.open, showSaveDialog: boundary.save } }));
@@ -9,9 +10,10 @@ vi.mock('../../../services/mobilePairingFileService', () => ({ readMobilePairing
 function handlers() {
   const registered = new Map<string, (...args: unknown[]) => Promise<unknown>>();
   const cancel = vi.fn();
-  registerMobilePairingFileIpc({ handle: (channel: string, handler: (...args: unknown[]) => Promise<unknown>) => registered.set(channel, handler) } as never,
+  const ipcMain = { handle: (channel: string, handler: (...args: unknown[]) => Promise<unknown>) => registered.set(channel, handler) };
+  registerMobilePairingFileIpc(ipcMain as never,
     { mobileCompanion: () => ({ cancelPairing: cancel }) } as never);
-  return { cancel, invoke: (channel: string, ...args: unknown[]) => registered.get(channel)?.({ senderFrame: { url: 'file:///app/index.html' } }, ...args) };
+  return { cancel, invoke: (channel: string, ...args: unknown[]) => registered.get(channel)?.(trustedIpcEvent(ipcMain), ...args) };
 }
 
 describe('Kopplungsdateien über die native Auswahl', () => {

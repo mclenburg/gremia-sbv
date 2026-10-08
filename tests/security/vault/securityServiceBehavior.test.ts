@@ -151,7 +151,7 @@ describe('security service behavior', () => {
     expect(existsSync(`${source}.gsbvpdf`)).toBe(false);
   });
 
-  it('blocks unlock temporarily after repeated wrong passwords and does not persist the attempt counter', async () => {
+  it('blocks unlock temporarily after repeated wrong passwords across restarts', async () => {
     const dataDir = tempDataDir();
     createdDirs.push(dataDir);
     const service = createService(dataDir);
@@ -172,7 +172,8 @@ describe('security service behavior', () => {
 
     const freshService = createService(dataDir);
     const freshStatus = freshService.status();
-    expect(freshStatus.unlockDelaySeconds).toBeUndefined();
+    expect(freshStatus.unlockDelaySeconds).toBeGreaterThan(0);
+    expect((await freshService.unlock(PASSWORD)).ok).toBe(false);
   });
 
   it('rejects an unlock attempt while the delay window is active', async () => {
@@ -204,9 +205,11 @@ describe('security service behavior', () => {
     writeFileSync(source, Buffer.from('%PDF-1.7\nRecovery-Altbestand\n%%EOF'));
     service.lock();
     rmSync(path.join(dataDir, 'security.json'), { force: true });
+    const audit = vi.spyOn(service as never, 'auditSecurityEvent');
     const recovery = await service.resetPasswordWithRecoveryKey(setup.recoveryKey!, NEXT_PASSWORD);
 
     expect(recovery).toMatchObject({ ok: true, initialized: true, unlocked: true });
+    expect(audit).toHaveBeenCalledWith('recovery_reset', expect.any(String));
     expect(existsSync(source)).toBe(false);
     expect(existsSync(target)).toBe(true);
     service.lock();
@@ -234,6 +237,7 @@ describe('security service behavior', () => {
     const service = createService(dataDir);
     await service.setupInitialPassword(PASSWORD);
     service.lock();
+    const audit = vi.spyOn(service as never, 'auditSecurityEvent');
 
     const storeBeforeFailedChange = readFileSync(path.join(dataDir, 'security.json'), 'utf8');
     const failed = await service.changePassword('falsch', NEXT_PASSWORD);
@@ -242,6 +246,8 @@ describe('security service behavior', () => {
 
     const changed = await service.changePassword(PASSWORD, NEXT_PASSWORD);
     expect(changed.ok).toBe(true);
+    expect(audit).toHaveBeenCalledWith('password_change', expect.any(String));
+    expect(audit).not.toHaveBeenCalledWith('unlock', expect.any(String));
     expect(readFileSync(path.join(dataDir, 'security.json'), 'utf8')).not.toBe(storeBeforeFailedChange);
     service.lock();
 

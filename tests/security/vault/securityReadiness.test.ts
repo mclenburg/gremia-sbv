@@ -12,10 +12,16 @@ const boundary = vi.hoisted(() => ({
   app: { isPackaged: true },
   headers: vi.fn<(handler: HeadersHandler) => void>(),
   requests: vi.fn<(handler: RequestHandler) => void>(),
+  permissions: vi.fn(),
+  permissionChecks: vi.fn(),
 }));
 vi.mock('electron', () => ({
   app: boundary.app,
-  session: { defaultSession: { webRequest: { onHeadersReceived: boundary.headers, onBeforeRequest: boundary.requests } } },
+  session: { defaultSession: {
+    webRequest: { onHeadersReceived: boundary.headers, onBeforeRequest: boundary.requests },
+    setPermissionRequestHandler: boundary.permissions,
+    setPermissionCheckHandler: boundary.permissionChecks,
+  } },
 }));
 
 describe('Electron security boundary', () => {
@@ -45,6 +51,14 @@ describe('Electron security boundary', () => {
     expect(directives.get('frame-src')).toEqual(["'none'"]);
   });
 
+  it('verweigert Browser-Berechtigungen unabhängig vom HTTP-Header', () => {
+    registerSessionSecurityPolicy();
+    const decide = vi.fn();
+    boundary.permissions.mock.calls[0][0]({}, 'camera', decide);
+    expect(decide).toHaveBeenCalledWith(false);
+    expect(boundary.permissionChecks.mock.calls[0][0]({}, 'microphone')).toBe(false);
+  });
+
   it.each([
     ['file:///app/main.js', false],
     ['https://external.invalid/collect', true],
@@ -67,7 +81,7 @@ describe('Electron security boundary', () => {
         on: (event: string, handler: (event: { preventDefault: () => void }, url: string) => void) => handlers.set(event, handler),
       },
     };
-    registerRendererSecurityPolicy(win as unknown as BrowserWindow);
+    registerRendererSecurityPolicy(win as unknown as BrowserWindow, currentUrl);
     expect(openWindow.mock.calls[0][0]()).toEqual({ action: 'deny' });
     const preventDefault = vi.fn();
     handlers.get('will-navigate')?.({ preventDefault }, currentUrl);

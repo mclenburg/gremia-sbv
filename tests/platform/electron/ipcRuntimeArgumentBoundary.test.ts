@@ -1,3 +1,4 @@
+import { trustedIpcEvent } from '../../helpers/trustedIpcEvent.js';
 import { describe, expect, it } from 'vitest';
 import { IPC_CHANNELS } from '../../../electron/ipc/channels';
 import { registerIpcHandler } from '../../../electron/ipc/ipcHandler';
@@ -11,7 +12,7 @@ describe('IPC-Laufzeitgrenze', () => {
       calls += 1;
       return { password };
     });
-    const event = { senderFrame: { url: 'file:///app/index.html' } };
+    const event = trustedIpcEvent(ipcMain);
     await expect(registered?.(event)).rejects.toThrow(/VALIDATION_FAILED/);
     await expect(registered?.(event, 'secret', 'surplus')).rejects.toThrow(/VALIDATION_FAILED/);
     await expect(registered?.(event, 'secret')).resolves.toEqual({ password: 'secret' });

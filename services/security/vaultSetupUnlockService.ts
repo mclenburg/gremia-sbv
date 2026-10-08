@@ -221,7 +221,7 @@ export class VaultSetupUnlockService extends UnlockDelayService {
         this.commitSecurityArtifacts(nextStore, this.withManifestTimestamp(this.readManifest(), now));
       }
 
-  protected async performUnlock(password: string): Promise<SecurityResult> {
+  protected async performUnlock(password: string, options: { auditUnlock?: boolean; cleanupLegacy?: boolean } = {}): Promise<SecurityResult> {
       const activeDelay = this.currentUnlockDelay();
       if (activeDelay.remainingSeconds > 0) {
         return {
@@ -286,33 +286,27 @@ export class VaultSetupUnlockService extends UnlockDelayService {
         this.destroyActiveDatabaseKey();
         this.databaseKey = databaseKey;
         this.unlocked = true;
+        const failedUnlockAttempts = this.failedUnlockAttempts;
         this.resetUnlockDelay();
         this.upgradePasswordKdfIfNeeded(store, password, databaseKey);
-        this.auditSecurityEvent("unlock", "Tresor per Passwort entsperrt");
-        const cleanup = this.cleanupLegacyPlaintextExports(databaseKey);
+        if (options.auditUnlock !== false) this.auditSecurityEvent("unlock", "Tresor per Passwort entsperrt", { failedUnlockAttempts });
+        const cleanup = options.cleanupLegacy === false ? undefined : this.cleanupLegacyPlaintextExports(databaseKey);
         return {
           ok: true,
           initialized: true,
           unlocked: true,
-          warning: buildLegacyPlaintextCleanupWarning(cleanup),
+          warning: cleanup ? buildLegacyPlaintextCleanupWarning(cleanup) : undefined,
         };
       } catch (error) {
         this.unlocked = false;
         this.destroyActiveDatabaseKey();
         this.databaseService.close();
         this.tempFiles.cleanup();
-        const delay = this.recordFailedUnlockAttempt();
         return {
           ok: false,
           initialized: true,
           unlocked: false,
-          error: `${formatVaultOpenError(error)}${delay.remainingSeconds > 0 ? ` ${this.buildUnlockDelayError(delay)}` : ""}`,
-          ...(delay.remainingSeconds > 0
-            ? {
-                unlockDelaySeconds: delay.remainingSeconds,
-                unlockAvailableAt: new Date(delay.blockedUntilEpochMs).toISOString(),
-              }
-            : {}),
+          error: formatVaultOpenError(error),
         };
       }
     }

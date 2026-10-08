@@ -75,7 +75,7 @@ export class SbvOfficeWorkflowDocumentAdapter {
             storage_path, filename, mime_type, sha256, document_key, iv, auth_tag, size_bytes, created_at
           ) VALUES (?, NULL, NULL, NULL, 'generic', NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).run(
-          documentId, title, container.storagePath, container.filename, container.mimeType, container.sha256,
+          documentId, title, container.storageReference, container.filename, container.mimeType, container.sha256,
           container.documentKey, container.iv, container.authTag, container.sizeBytes, now,
         );
         this.database.prepare(`

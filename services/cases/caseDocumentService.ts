@@ -89,7 +89,7 @@ export class CaseDocumentService extends CaseNoteService {
           originalName,
           originalName,
           mimeType,
-          container.storagePath,
+          container.storageReference,
           container.sha256,
           extractedText,
           container.documentKey,

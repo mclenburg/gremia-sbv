@@ -83,6 +83,14 @@ export function atomicWriteFileSync(
     fileSystem.closeSync(descriptor);
     descriptor = undefined;
     replaceFileSync(temporaryPath, filePath, fileSystem);
+    if (process.platform !== 'win32') {
+      const directoryDescriptor = fileSystem.openSync(path.dirname(filePath), 'r');
+      try {
+        fileSystem.fsyncSync(directoryDescriptor);
+      } finally {
+        fileSystem.closeSync(directoryDescriptor);
+      }
+    }
   } catch (error) {
     if (descriptor !== undefined) {
       try { fileSystem.closeSync(descriptor); } catch { /* best effort */ }
@@ -120,4 +128,3 @@ export function commitAtomicArtifacts(
     throw error;
   }
 }
-

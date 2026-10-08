@@ -26,6 +26,9 @@ describe('target-bound transfer crypto', () => {
       { N: 131_072, r: 8, p: 1000, maxmem: 256 * 1024 * 1024 },
       { N: 131_072, r: 8, p: 1, maxmem: 2_147_483_648 },
       { N: 131_073, r: 8, p: 1, maxmem: 256 * 1024 * 1024 },
+      { N: '131072', r: 8, p: 1, maxmem: 256 * 1024 * 1024 },
+      { N: 131_072, r: '8', p: 1, maxmem: 256 * 1024 * 1024 },
+      { N: 131_072, r: 8, p: 1, maxmem: '268435456' },
     ]) expect(() => assertKdfParams(params)).toThrow(/KDF-Parameter/);
     expect(assertKdfParams({ N: 131_072, r: 8, p: 1, maxmem: 256 * 1024 * 1024 })).toMatchObject({ N: 131_072, r: 8, p: 1 });
   });

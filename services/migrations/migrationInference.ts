@@ -213,6 +213,11 @@ export class MigrationInference extends MigrationCore {
           return this.tableExists('transfer_recipient_profiles')
             && ['id', 'label', 'instance_id', 'key_fingerprint', 'recipient_token', 'active', 'created_at', 'updated_at']
               .every((column) => this.columnExists('transfer_recipient_profiles', column));
+        case '0065':
+          return ['personal_data_audit_no_update', 'personal_data_audit_no_delete'].every((name) =>
+            Boolean(this.db.prepare("SELECT 1 AS present FROM sqlite_master WHERE type='trigger' AND name=?").get(name)));
+        case '0066':
+          return this.columnExists('personal_data_audit_log', 'entry_mac');
       default:
         return false;
     }

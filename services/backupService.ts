@@ -204,6 +204,7 @@ export class BackupService {
   createBackup(targetFilePath: string, passphrase: string): BackupOperationResult {
     try {
       assertPassphrase(passphrase);
+      this.security.checkpointAuditIntegrityForBackup();
       const dataDir = this.security.getDataDirectory();
       this.fileOperations.mkdirSync(path.dirname(targetFilePath), { recursive: true });
 
@@ -414,6 +415,7 @@ export class BackupService {
     }
 
     const required = ['gremia-sbv.vault.sqlite', 'security.json', 'vault-manifest.json'];
+    if (payload.schemaVersion && payload.schemaVersion >= '0066') required.push('audit-integrity.anchor');
     for (const requiredFile of required) {
       if (!seen.has(requiredFile)) {
         throw new Error(`Pflichtdatei fehlt im Backup: ${requiredFile}`);

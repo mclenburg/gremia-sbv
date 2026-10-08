@@ -173,6 +173,7 @@ describe('Gremia.BR Einstellungen 0.9.2-A', () => {
   it('erzwingt HTTPS außer für localhost und blockiert nicht freigegebene Endpunkte', () => {
     expect(validateGremiaBrBaseUrl('https://br.example.invalid/app/')).toBe('https://br.example.invalid/app');
     expect(validateGremiaBrBaseUrl('http://localhost:4200')).toBe('http://localhost:4200');
+    expect(validateGremiaBrBaseUrl('http://[::1]:4200')).toBe('http://[::1]:4200');
     expect(() => validateGremiaBrBaseUrl('http://br.example.invalid')).toThrow(/HTTPS/);
 
     expect(checkGremiaBrEndpoint('GET', '/search').allowed).toBe(false);

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu } from "electron";
+import { app, BrowserWindow, ipcMain, Menu, powerMonitor } from "electron";
 import { registerCaseIpc } from "./ipc/caseIpc.js";
 import { registerCaseHandoverIpc } from "./ipc/caseHandoverIpc.js";
 import { registerCaseMeasureIpc } from "./ipc/caseMeasureIpc.js";
@@ -30,9 +30,9 @@ import type { SecurityResult, SecurityStatus } from "../src/domain/models/securi
 import { SecurityService } from "../services/securityService.js";
 import { ApplicationServices } from "./applicationServices.js";
 import { isDemoMode, prepareDemoVault, resetDemoDataDirectory, finishPackagedStartupSmoke } from "./runtimePlatformIntegration.js";
-import { registerSessionSecurityPolicy } from "./security/electronSecurity.js";
+import { registerSessionSecurityPolicy, startMainSessionLock } from "./security/electronSecurity.js";
 import { logStartupTimeline, markStartupPhase } from "./startupPerformance.js";
-import { adoptStartupSplashWindow, createWindow, focusStartupWindow, hasStartupSplashWindow, resolveRuntimeDataDir, showStartupSplash, updateStartupSplash } from './appRuntimeSupport.js';
+import { adoptStartupSplashWindow, createWindow, focusStartupWindow, hasStartupSplashWindow, refreshMainWindowAfterSecurityLock, resolveRuntimeDataDir, showStartupSplash, updateStartupSplash } from './appRuntimeSupport.js';
 let security: SecurityService;
 let applicationServices: ApplicationServices;
 let demoVaultPreparing = false;
@@ -94,6 +94,19 @@ export async function startApplication(existingSplashWindow?: BrowserWindow): Pr
     workingDirectory: process.cwd(),
   });
   applicationServices = new ApplicationServices(security, resolveRuntimeDataDir);
+  const clearVolatileRemoteSession = (): void => {
+    applicationServices.gremiaBrAuth.clearToken();
+    applicationServices.gremiaBrCache.clear();
+  };
+  startMainSessionLock({
+    monitor: powerMonitor,
+    isUnlocked: () => security.isUnlocked(),
+    lock: (reason) => security.lock(reason),
+    afterLock: () => {
+      clearVolatileRemoteSession();
+      refreshMainWindowAfterSecurityLock();
+    },
+  });
   markStartupPhase("runtime:security-service-ready");
   if (demoMode) {
     console.info("Gremia.SBV demo mode active. Demo vault is prepared in the background.");
@@ -102,10 +115,7 @@ export async function startApplication(existingSplashWindow?: BrowserWindow): Pr
   }
   await updateStartupSplash("ipc");
   registerSecurityIpc(ipcMain, security, {
-    afterLock: () => {
-      applicationServices.gremiaBrAuth.clearToken();
-      applicationServices.gremiaBrCache.clear();
-    },
+    afterLock: clearVolatileRemoteSession,
     ...(demoMode ? {
       status: async (): Promise<SecurityStatus> => {
         if (!demoVaultPreparing || demoVaultReady) return security.status();

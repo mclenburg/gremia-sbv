@@ -1,4 +1,5 @@
-import type { IpcMain, IpcMainInvokeEvent } from 'electron';
+import type { IpcMain, IpcMainInvokeEvent, WebContents } from 'electron';
+import { isAllowedRendererNavigationUrl } from '../security/rendererSecurityPolicy.js';
 import type { IpcChannel } from './channels.js';
 import { IPC_ENDPOINT_CONTRACTS } from './contracts.js';
 import { IpcValidationError } from './ipcValidation.js';
@@ -68,17 +69,30 @@ export function serializeApplicationError(error: unknown, operation: string): st
 }
 
 
-function assertAllowedSender(event: IpcMainInvokeEvent, channel: string): void {
-  const senderUrl = event.senderFrame?.url;
-  if (!senderUrl) {
-    if (process.env.NODE_ENV === "test" || process.env.VITEST) return;
-    throw new IpcValidationError(channel, "Aufruf ohne nachweisbaren Anwendungskontext.");
-  }
-  let parsed: URL;
-  try { parsed = new URL(senderUrl); } catch { throw new IpcValidationError(channel, "Aufruf aus einem ungültigen Anwendungskontext."); }
-  const localDevelopment = parsed.protocol === "http:" && ["127.0.0.1", "localhost"].includes(parsed.hostname) && ["5173", "5174"].includes(parsed.port);
-  if (parsed.protocol !== "file:" && !localDevelopment) {
-    throw new IpcValidationError(channel, "Aufruf aus einem nicht erlaubten Anwendungskontext.");
+interface TrustedRenderer {
+  webContents: WebContents;
+  packaged: boolean;
+  documentUrl?: string;
+}
+
+const trustedRenderers = new WeakMap<IpcMain, TrustedRenderer>();
+
+export function bindTrustedIpcRenderer(
+  ipcMain: IpcMain,
+  webContents: WebContents,
+  packaged: boolean,
+  documentUrl?: string,
+): void {
+  if (packaged && !documentUrl) throw new Error('Die vertrauenswürdige Renderer-Datei fehlt.');
+  trustedRenderers.set(ipcMain, { webContents, packaged, documentUrl });
+}
+
+function assertAllowedSender(ipcMain: IpcMain, event: IpcMainInvokeEvent, channel: string): void {
+  const trusted = trustedRenderers.get(ipcMain);
+  const frame = event.senderFrame;
+  if (!trusted || event.sender !== trusted.webContents || !frame || frame !== event.sender.mainFrame ||
+      !isAllowedRendererNavigationUrl(frame.url, trusted.packaged, trusted.documentUrl)) {
+    throw new IpcValidationError(channel, 'Aufruf aus einem nicht erlaubten Anwendungskontext.');
   }
 }
 
@@ -113,7 +127,7 @@ export function registerIpcHandler<Args extends unknown[], Result>(
 ): void {
   ipcMain.handle(channel, async (event, ...args) => {
     try {
-      assertAllowedSender(event, channel);
+      assertAllowedSender(ipcMain, event, channel);
       assertIpcArgumentCount(channel, args);
       const result = await Reflect.apply(handler, undefined, [event, ...args]);
       assertSerializableResult(result, channel);

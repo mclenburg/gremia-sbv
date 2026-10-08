@@ -13,21 +13,21 @@ export function buildContentSecurityPolicy(url?: string): string {
   );
 }
 
-export function registerRendererSecurityPolicy(win: BrowserWindow): void {
+export function registerRendererSecurityPolicy(win: BrowserWindow, trustedDocumentUrl?: string): void {
   win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
 
   win.webContents.on("will-navigate", (event, url: string) => {
-    const currentUrl = win.webContents.getURL();
-    if (url === currentUrl) return;
-    if (!isAllowedRendererNavigationUrl(url, app.isPackaged)) event.preventDefault();
+    if (!isAllowedRendererNavigationUrl(url, app.isPackaged, trustedDocumentUrl)) event.preventDefault();
   });
 
   win.webContents.on("will-redirect", (event, url) => {
-    if (!isAllowedRendererNavigationUrl(url, app.isPackaged)) event.preventDefault();
+    if (!isAllowedRendererNavigationUrl(url, app.isPackaged, trustedDocumentUrl)) event.preventDefault();
   });
 }
 
 export function registerSessionSecurityPolicy(): void {
+  session.defaultSession.setPermissionRequestHandler((_webContents, _permission, callback) => callback(false));
+  session.defaultSession.setPermissionCheckHandler(() => false);
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     callback({
       responseHeaders: {
@@ -44,3 +44,4 @@ export function registerSessionSecurityPolicy(): void {
     callback({ cancel: !isAllowedRendererRequestUrl(details.url, app.isPackaged) });
   });
 }
+export { startMainSessionLock } from './mainSessionLock.js';

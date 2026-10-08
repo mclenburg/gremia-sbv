@@ -1,8 +1,10 @@
-import { app, BrowserWindow, nativeImage } from "electron";
+import { app, BrowserWindow, ipcMain, nativeImage } from "electron";
 import { existsSync } from "node:fs";
 import path from "node:path";
+import { pathToFileURL } from 'node:url';
 import { resolveApplicationDataDirectory } from "./runtimePlatformIntegration.js";
 import { registerRendererSecurityPolicy } from "./security/electronSecurity.js";
+import { bindTrustedIpcRenderer } from './ipc/ipcHandler.js';
 import { buildStartupSplashHtml, buildStartupStatusScript, type StartupPhaseId } from "./startupStatus.js";
 import { logStartupTimeline, markStartupPhase } from "./startupPerformance.js";
 import {
@@ -28,6 +30,10 @@ export function focusStartupWindow(): void {
   if (target.isMinimized()) target.restore();
   target.show();
   target.focus();
+}
+
+export function refreshMainWindowAfterSecurityLock(): void {
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.reload();
 }
 
 export async function showStartupSplash(initialPhase: StartupPhaseId = "app"): Promise<void> {
@@ -227,6 +233,7 @@ export function registerDiagnostics(win: BrowserWindow): void {
 
 export async function createWindow(): Promise<void> {
   const preload = resolvePreloadPath();
+  const indexHtml = app.isPackaged ? resolvePackagedIndexHtml() : undefined;
   console.info("Gremia.SBV app icon resolved.");
 
   const win = new BrowserWindow({
@@ -251,8 +258,9 @@ export async function createWindow(): Promise<void> {
   }
 
   mainWindow = win;
+  bindTrustedIpcRenderer(ipcMain, win.webContents, app.isPackaged, indexHtml ? pathToFileURL(indexHtml).href : undefined);
   registerDiagnostics(win);
-  registerRendererSecurityPolicy(win);
+  registerRendererSecurityPolicy(win, indexHtml ? pathToFileURL(indexHtml).href : undefined);
 
   let mainWindowWasRevealed = false;
   const revealMainWindow = (
@@ -301,9 +309,8 @@ export async function createWindow(): Promise<void> {
       win.webContents.openDevTools({ mode: "detach" });
     }
   } else {
-    const indexHtml = resolvePackagedIndexHtml();
     console.info("Gremia.SBV packaged renderer index resolved.");
-    await win.loadFile(indexHtml);
+    await win.loadFile(indexHtml!);
     revealMainWindow("load-complete");
     if (process.env.GREMIA_SBV_OPEN_DEVTOOLS === "1") {
       win.webContents.openDevTools({ mode: "detach" });

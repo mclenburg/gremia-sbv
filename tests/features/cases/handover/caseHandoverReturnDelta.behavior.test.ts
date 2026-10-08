@@ -204,7 +204,7 @@ describe('Fallübergabe P1 – Rückgabe-Delta', () => {
     ).get();
     expect(auditEntry).toMatchObject({
       action: 'import',
-      purpose: 'SBV-Datenschutzereignis',
+      purpose: 'Verschlüsseltes Fallübergabepaket importiert.',
     });
     expect(JSON.parse(auditEntry?.metadata_json ?? '{}')).toMatchObject({
       packageId: delta.packageId,

@@ -1,3 +1,4 @@
+import { trustedIpcEvent } from '../../helpers/trustedIpcEvent.js';
 import { describe, expect, it, vi } from 'vitest';
 import { registerSecurityIpc } from '../../../electron/ipc/securityIpc';
 import { IPC_CHANNELS } from '../../../electron/ipc/channels';
@@ -13,7 +14,7 @@ describe('Tresorsperre und flüchtige Sitzungsdaten', () => {
     const afterLock = vi.fn(() => { order.push('remote'); });
     registerSecurityIpc(ipcMain as never, security as never, { afterLock });
 
-    const result = await handlers.get(IPC_CHANNELS.securityLock)?.({ senderFrame: { url: 'file:///app/index.html' } }, 'manual');
+    const result = await handlers.get(IPC_CHANNELS.securityLock)?.(trustedIpcEvent(ipcMain), 'manual');
 
     expect(result).toEqual({ locked: true });
     expect(order).toEqual(['vault', 'remote']);
@@ -27,7 +28,7 @@ describe('Tresorsperre und flüchtige Sitzungsdaten', () => {
     const afterLock = vi.fn();
     registerSecurityIpc(ipcMain as never, security as never, { afterLock });
 
-    await handlers.get(IPC_CHANNELS.securityDestroyLocalVault)?.({ senderFrame: { url: 'file:///app/index.html' } }, 'BESTÄTIGEN');
+    await handlers.get(IPC_CHANNELS.securityDestroyLocalVault)?.(trustedIpcEvent(ipcMain), 'BESTÄTIGEN');
 
     expect(afterLock).toHaveBeenCalledTimes(1);
   });

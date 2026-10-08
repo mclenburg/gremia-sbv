@@ -1,3 +1,4 @@
+import { trustedIpcEvent } from '../helpers/trustedIpcEvent.js';
 import { describe, expect, it, vi } from 'vitest';
 import { ApplicationError } from '../../src/domain/models/application-error.model.js';
 import { normalizeApplicationError, registerIpcHandler, serializeApplicationError } from '../../electron/ipc/ipcHandler.js';
@@ -34,13 +35,13 @@ describe('zentrale IPC-Fehlergrenze', () => {
       }),
     };
     registerIpcHandler(ipcMain as never, IPC_CHANNELS.casesList, async () => ({ ok: true }));
-    await expect(registered?.({})).resolves.toEqual({ ok: true });
-    await expect(registered?.({}, 'unerwartet')).rejects.toThrow('VALIDATION_FAILED');
+    await expect(registered?.(trustedIpcEvent(ipcMain))).resolves.toEqual({ ok: true });
+    await expect(registered?.(trustedIpcEvent(ipcMain), 'unerwartet')).rejects.toThrow('VALIDATION_FAILED');
 
     registerIpcHandler(ipcMain as never, IPC_CHANNELS.casesList, async () => {
       throw new ApplicationError('FILE_OPERATION_FAILED', 'Datei konnte nicht geschrieben werden');
     });
-    await expect(registered?.({})).rejects.toThrow('GREMIA_SBV_APPLICATION_ERROR:');
+    await expect(registered?.(trustedIpcEvent(ipcMain))).rejects.toThrow('GREMIA_SBV_APPLICATION_ERROR:');
     const serialized = serializeApplicationError(
       new ApplicationError('FILE_OPERATION_FAILED', 'Datei konnte nicht geschrieben werden'),
       IPC_CHANNELS.casesList,

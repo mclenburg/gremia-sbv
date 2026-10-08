@@ -248,7 +248,7 @@ async function prepareDocumentEvidence(dataDir: string, caseId: string, original
       id,
       filename,
       text,
-      storagePath: container.storagePath,
+      storagePath: container.storageReference,
       sha256: container.sha256,
       documentKey: container.documentKey,
       iv: container.iv,

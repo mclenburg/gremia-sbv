@@ -1,3 +1,4 @@
+import { trustedIpcEvent } from '../helpers/trustedIpcEvent.js';
 import { describe, expect, it, vi } from "vitest";
 import { createIpcInvoker, RendererApplicationError } from "../../electron/preload/invoke";
 import { createPreloadApi } from "../../electron/preload/index";
@@ -33,14 +34,18 @@ describe("Patch 5 modular preload and IPC contracts", () => {
     let registered: ((event: object) => Promise<unknown>) | undefined;
     const ipcMain = { handle: (_channel: string, handler: (event: object) => Promise<unknown>) => { registered = handler; } };
     registerIpcHandler(ipcMain as never, IPC_CHANNELS.securityStatus, async () => ({ value: () => undefined }));
-    await expect(registered?.({ senderFrame: { url: "file:///app/index.html" } })).rejects.toThrow(/GREMIA_SBV_APPLICATION_ERROR/);
+    await expect(registered?.(trustedIpcEvent(ipcMain))).rejects.toThrow(/GREMIA_SBV_APPLICATION_ERROR/);
   });
 
   it("rejects calls from an untrusted renderer origin", async () => {
     let registered: ((event: object) => Promise<unknown>) | undefined;
     const ipcMain = { handle: (_channel: string, handler: (event: object) => Promise<unknown>) => { registered = handler; } };
     registerIpcHandler(ipcMain as never, IPC_CHANNELS.securityStatus, async () => ({ ok: true }));
-    await expect(registered?.({ senderFrame: { url: "https://example.invalid/attack" } })).rejects.toThrow(/VALIDATION_FAILED/);
+    await expect(registered?.(trustedIpcEvent(ipcMain, 'https://example.invalid/attack'))).rejects.toThrow(/VALIDATION_FAILED/);
+    await expect(registered?.(trustedIpcEvent(ipcMain, pathToFileURL(path.join(tmpdir(), 'fremd.html')).href))).rejects.toThrow(/VALIDATION_FAILED/);
+    const trusted = trustedIpcEvent(ipcMain);
+    await expect(registered?.({ sender: trusted.sender, senderFrame: { url: trusted.senderFrame.url } })).rejects.toThrow(/VALIDATION_FAILED/);
+    await expect(registered?.({ sender: { mainFrame: trusted.senderFrame }, senderFrame: trusted.senderFrame })).rejects.toThrow(/VALIDATION_FAILED/);
   });
 
   it("deep-freezes the exposed API without changing its public namespaces", () => {
@@ -58,7 +63,7 @@ describe("Patch 5 modular preload and IPC contracts", () => {
     registerIpcHandler(ipcMain as never, IPC_CHANNELS.securityStatus, async () => {
       throw new Error("SQLITE_SECRET_INTERNAL_PATH=/private/vault.db");
     });
-    const error = await registered?.({ senderFrame: { url: "file:///app/index.html" } }).catch((cause: unknown) => cause);
+    const error = await registered?.(trustedIpcEvent(ipcMain)).catch((cause: unknown) => cause);
     expect(error).toBeInstanceOf(Error);
     expect((error as Error).message).toContain("Die angeforderte Aktion konnte nicht ausgeführt werden.");
     expect((error as Error).message).not.toContain("SQLITE_SECRET_INTERNAL_PATH");
@@ -73,13 +78,14 @@ describe("Patch 5 modular preload and IPC contracts", () => {
 
   it("preserves a typed security failure across the main-process and preload boundary", async () => {
     let registered: ((event: object) => Promise<unknown>) | undefined;
+    const ipcMain = { handle: (_channel: string, handler: (event: object) => Promise<unknown>) => { registered = handler; } };
     registerIpcHandler(
-      { handle: (_channel: string, handler: (event: object) => Promise<unknown>) => { registered = handler; } } as never,
+      ipcMain as never,
       IPC_CHANNELS.casesList,
       async () => { throw new ApplicationError("SECURITY_OPERATION_FAILED", "Tresor ist gesperrt."); },
     );
     const ipc = createIpcInvoker({
-      invoke: vi.fn(async () => registered?.({ senderFrame: { url: "file:///app/index.html" } })),
+      invoke: vi.fn(async () => registered?.(trustedIpcEvent(ipcMain))),
     });
 
     await expect(ipc(IPC_CHANNELS.casesList)).rejects.toMatchObject({
@@ -88,3 +94,6 @@ describe("Patch 5 modular preload and IPC contracts", () => {
     });
   });
 });
+import path from 'node:path';
+import { tmpdir } from 'node:os';
+import { pathToFileURL } from 'node:url';

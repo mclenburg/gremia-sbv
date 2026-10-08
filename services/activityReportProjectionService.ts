@@ -1,5 +1,6 @@
 import type { DatabaseAdapter } from './databaseService.js';
-import { verifyAuditHashChain, type AuditChainRowInput } from './auditHashChain.js';
+import { PersonalDataAuditLogService } from './auditLogService.js';
+import type { AuditChainRowInput } from './auditHashChain.js';
 import {
   MEASURE_LIFECYCLE_SCHEMA_VERSION,
   type MeasureLifecycleAuditMetadata,
@@ -139,6 +140,7 @@ function isLifecycleMetadata(value: unknown): value is MeasureLifecycleAuditMeta
 }
 
 interface PersonalDataAuditLogRow {
+  id?: string;
   sequence: number | string;
   occurred_at: string;
   actor: string;
@@ -150,22 +152,7 @@ interface PersonalDataAuditLogRow {
   metadata_json: string;
   previous_hash: string;
   entry_hash: string;
-}
-
-function mapChainRow(row: PersonalDataAuditLogRow): AuditChainRowInput {
-  return {
-    sequence: Number(row.sequence),
-    occurredAt: row.occurred_at,
-    actor: row.actor,
-    action: row.action,
-    subjectType: row.subject_type,
-    subjectId: row.subject_id ?? null,
-    caseId: row.case_id ?? null,
-    purpose: row.purpose,
-    metadataJson: row.metadata_json,
-    previousHash: row.previous_hash,
-    entryHash: row.entry_hash,
-  };
+  entry_mac?: string | null;
 }
 
 export class ActivityReportProjectionService {
@@ -173,7 +160,22 @@ export class ActivityReportProjectionService {
 
   build(period: ActivityReportPeriod = {}): ActivityReportProjection {
     const rows = this.database.prepare<PersonalDataAuditLogRow>('SELECT * FROM personal_data_audit_log ORDER BY sequence ASC').all();
-    const verification = verifyAuditHashChain(rows.map(mapChainRow));
+    const verificationRows: AuditChainRowInput[] = rows.map((row) => ({
+      id: row.id,
+      sequence: Number(row.sequence),
+      occurredAt: row.occurred_at,
+      actor: row.actor,
+      action: row.action,
+      subjectType: row.subject_type,
+      subjectId: row.subject_id ?? null,
+      caseId: row.case_id ?? null,
+      purpose: row.purpose,
+      metadataJson: row.metadata_json,
+      previousHash: row.previous_hash,
+      entryHash: row.entry_hash,
+      entryMac: row.entry_mac ?? null,
+    }));
+    const verification = new PersonalDataAuditLogService(this.database).verifyChain(verificationRows);
     if (!verification.ok) throw new ActivityReportIntegrityError(verification.firstBrokenSequence);
 
     const counters = emptyCounters();

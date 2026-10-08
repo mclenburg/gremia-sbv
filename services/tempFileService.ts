@@ -1,5 +1,6 @@
 import {
   existsSync,
+  lstatSync,
   mkdirSync,
   readdirSync,
   rmSync,
@@ -7,7 +8,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
-import { OWNER_ONLY_FILE_MODE, restrictFileToOwnerSync } from "./secureFilePermissions.js";
+import { OWNER_ONLY_DIRECTORY_MODE, OWNER_ONLY_FILE_MODE, restrictDirectoryToOwnerSync, restrictFileToOwnerSync } from "./secureFilePermissions.js";
 
 export type TempFileScope =
   | "document-preview"
@@ -56,6 +57,16 @@ function walkFiles(directory: string): string[] {
   return result;
 }
 
+function assertNoSymbolicDirectory(directory: string): void {
+  try {
+    if (lstatSync(directory).isSymbolicLink()) {
+      throw new Error('Symbolische temporäre Verzeichnisse sind nicht zulässig.');
+    }
+  } catch (error) {
+    if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error;
+  }
+}
+
 export class TempFileService {
   constructor(private readonly dataDir: string) {}
 
@@ -64,9 +75,14 @@ export class TempFileService {
   }
 
   ensureLayout(): void {
-    mkdirSync(this.root, { recursive: true });
+    assertNoSymbolicDirectory(this.root);
+    mkdirSync(this.root, { recursive: true, mode: OWNER_ONLY_DIRECTORY_MODE });
+    restrictDirectoryToOwnerSync(this.root);
     for (const scope of TEMP_SCOPES) {
-      mkdirSync(this.scopeDir(scope), { recursive: true });
+      const scopePath = this.scopeDir(scope);
+      assertNoSymbolicDirectory(scopePath);
+      mkdirSync(scopePath, { recursive: true, mode: OWNER_ONLY_DIRECTORY_MODE });
+      restrictDirectoryToOwnerSync(scopePath);
     }
   }
 

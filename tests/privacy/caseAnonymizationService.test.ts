@@ -241,7 +241,8 @@ describe('CaseAnonymizationService', () => {
       ).all('case-1');
       expect(documents).toHaveLength(1);
       expect(documents[0]?.extracted_text).toBe('Es waren 2 Dokumente hochgeladen.');
-      expect(fs.existsSync(documents[0]!.storage_path)).toBe(true);
+      expect(path.isAbsolute(documents[0]!.storage_path)).toBe(false);
+      expect(fs.existsSync(path.join(dataDir, documents[0]!.storage_path))).toBe(true);
       const evidencePlain = await new DocumentContainerService().readEncryptedContainer({
         storageRoot: dataDir,
         storagePath: documents[0]!.storage_path,

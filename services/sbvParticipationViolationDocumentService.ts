@@ -114,7 +114,7 @@ export class SbvParticipationViolationDocumentService {
       INSERT INTO generated_documents (id, case_id, template_id, violation_id, document_kind, template_version, title, storage_path, filename, mime_type, sha256, document_key, iv, auth_tag, size_bytes, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
-      documentId, violation.caseId ?? null, null, violation.id, 'sbv_participation_violation', templateVersion, title, container.storagePath,
+      documentId, violation.caseId ?? null, null, violation.id, 'sbv_participation_violation', templateVersion, title, container.storageReference,
       container.filename, container.mimeType, container.sha256, container.documentKey, container.iv, container.authTag, container.sizeBytes, timestamp,
     );
     this.database.prepare(`

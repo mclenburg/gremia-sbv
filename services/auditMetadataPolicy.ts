@@ -156,6 +156,7 @@ const PERSON_BINDING_METADATA_FIELDS = [
 
 const SECURITY_SESSION_METADATA_FIELDS = [
   'eventType',
+  'failedUnlockAttempts',
   'result',
   'reasonCode',
   'converted',

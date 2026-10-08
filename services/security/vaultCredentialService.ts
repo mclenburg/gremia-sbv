@@ -33,8 +33,27 @@ export class VaultCredentialService extends VaultSetupUnlockService {
           };
         }
     
-        const currentResult = await this.unlock(currentPassword);
-        if (!currentResult.ok || !this.databaseKey) {
+        let verified = false;
+        if (this.unlocked && this.databaseKey) {
+          try {
+            const currentStore = this.readStore();
+            this.assertStoreMatchesManifest(currentStore);
+            verified = safeEqualsHex(
+              derivePasswordVerifier(currentPassword, currentStore.salt, currentStore.kdfParams),
+              currentStore.passwordVerifier,
+            );
+          } catch {
+            verified = false;
+          }
+        } else if (!this.unlockInProgress) {
+          this.unlockInProgress = true;
+          try {
+            verified = (await this.performUnlock(currentPassword, { auditUnlock: false, cleanupLegacy: false })).ok;
+          } finally {
+            this.unlockInProgress = false;
+          }
+        }
+        if (!verified || !this.databaseKey) {
           return {
             ok: false,
             initialized: true,
@@ -72,6 +91,7 @@ export class VaultCredentialService extends VaultSetupUnlockService {
           const currentManifest = this.readManifest();
           this.commitSecurityArtifacts(nextStore, this.withManifestTimestamp(currentManifest, now));
           this.unlocked = true;
+          this.auditSecurityEvent('password_change', 'Tresorpasswort geändert');
           return { ok: true, initialized: true, unlocked: true };
         } catch {
           return {
@@ -173,7 +193,7 @@ export class VaultCredentialService extends VaultSetupUnlockService {
           recoveredDatabaseKey = undefined;
           this.unlocked = true;
           this.resetUnlockDelay();
-          this.auditSecurityEvent("unlock", "Tresor per Recovery-Key entsperrt");
+          this.auditSecurityEvent('recovery_reset', 'Tresorpasswort per Recovery-Key zurückgesetzt');
           const cleanup = this.cleanupLegacyPlaintextExports(databaseKey);
           return {
             ok: true,

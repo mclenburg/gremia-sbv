@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { releaseAuditIntegrityKey } from './auditLogService.js';
 
 export interface DatabaseAdapter {
   prepare<T = unknown>(sql: string): {
@@ -70,6 +71,7 @@ export class DatabaseService {
   }
 
   close(): void {
+    if (this.db) releaseAuditIntegrityKey(this.db);
     this.db?.close();
     this.db = undefined;
   }

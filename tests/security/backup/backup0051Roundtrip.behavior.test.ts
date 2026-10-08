@@ -20,7 +20,7 @@ describe('backup roundtrip for schema 0051 vault contents', () => {
     writeFileSync(path.join(dataDir, 'vault-manifest.json'), '{"version":3}');
     writeFileSync(path.join(dataDir, 'documents', 'office', 'election', 'archive.gsbvdoc'), documentBytes);
     const db = { prepare: () => ({ get: () => ({ value: '0051' }) }), pragma: () => undefined };
-    const security = { getDataDirectory: () => dataDir, getActiveDatabase: () => db, lock: () => undefined };
+    const security = { getDataDirectory: () => dataDir, getActiveDatabase: () => db, checkpointAuditIntegrityForBackup: () => undefined, lock: () => undefined };
     const backup = path.join(root, 'archive.gsbvbackup');
     const service = new BackupService(security as never);
     try {

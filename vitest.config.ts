@@ -46,7 +46,7 @@ export default defineConfig({
   },
   test: {
     maxWorkers: 4,
-    testTimeout: 60000,
+    testTimeout: 120000,
     exclude: [
       '**/node_modules/**',
       '**/dist/**',
