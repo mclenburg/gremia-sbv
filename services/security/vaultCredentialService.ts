@@ -201,7 +201,7 @@ export class VaultCredentialService extends VaultSetupUnlockService {
             unlocked: true,
             warning: buildLegacyPlaintextCleanupWarning(cleanup),
           };
-        } catch (error) {
+        } catch {
           this.unlocked = false;
           this.destroyActiveDatabaseKey();
           safeDestroyBuffer(recoveredDatabaseKey);
@@ -211,8 +211,7 @@ export class VaultCredentialService extends VaultSetupUnlockService {
             ok: false,
             initialized: true,
             unlocked: false,
-            error:
-              `Der Recovery-Key ist korrekt, aber die Datenbank konnte nicht geöffnet werden. Datenbankdatei und Manifest gehören möglicherweise nicht zusammen. ${error instanceof Error ? error.message : ""}`.trim(),
+            error: 'Der Recovery-Key ist korrekt, aber die Datenbank konnte nicht geöffnet werden. Bitte Datenbankdatei, Manifest und Audit-Anker aus derselben Sicherung verwenden.',
           };
         }
       }

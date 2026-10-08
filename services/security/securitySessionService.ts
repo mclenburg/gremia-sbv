@@ -41,8 +41,8 @@ export class SecuritySessionService extends VaultCredentialService {
         );
         try {
           this.checkpointAuditIntegrity();
-        } catch (error) {
-          console.error('Audit-Integritätsprüfung beim Sperren fehlgeschlagen:', error instanceof Error ? error.message : String(error));
+        } catch {
+          console.error('Audit-Integritätsprüfung beim Sperren fehlgeschlagen. Vertrauensanker wurde nicht fortgeschrieben.');
         }
       }
       this.unlocked = false;

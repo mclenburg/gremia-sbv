@@ -4,11 +4,20 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { afterEach, describe, expect, it } from 'vitest';
-import { BackupService, CURRENT_BACKUP_SCRYPT_PARAMS, LEGACY_BACKUP_SCRYPT_PARAMS, type BackupFileOperations } from '../../../services/backupService';
+import { BackupService, CURRENT_BACKUP_SCRYPT_PARAMS, LEGACY_BACKUP_SCRYPT_PARAMS, safePublicBackupError, type BackupFileOperations } from '../../../services/backupService';
 import { gunzipBackupPayload, MAX_BACKUP_ENVELOPE_BYTES } from '../../../services/backupPayloadDecompression';
 import { atomicWriteFileSync } from '../../../services/secureFileOperations';
 
 const PASSPHRASE = 'SehrSichereBackupPassphrase!2026';
+
+describe('datensparsame Backup-Fehler', () => {
+  it('zeigt bei technischen Fehlern keinen internen Pfad an', () => {
+    const privatePath = path.join(path.parse(process.cwd()).root, 'private', 'Max-Mustermann.vault.sqlite');
+    const message = safePublicBackupError(new Error(`EACCES ${privatePath}`));
+    expect(message).toContain('Backup');
+    expect(message).not.toContain('Max-Mustermann');
+  });
+});
 
 describe('begrenzte Backup-Dekompression', () => {
   it('verwirft stark komprimierte Daten vor der JSON-Auswertung', () => {

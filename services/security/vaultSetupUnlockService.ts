@@ -152,7 +152,7 @@ export class VaultSetupUnlockService extends UnlockDelayService {
           this.writeStore(store);
           await this.openAndInitializeVaultDatabase(databaseKey);
           this.touchManifest(new Date().toISOString(), true);
-        } catch (error) {
+        } catch {
           this.databaseService.close(); this.tempFiles.cleanup();
           this.unlocked = false;
           this.destroyActiveDatabaseKey();
@@ -165,7 +165,7 @@ export class VaultSetupUnlockService extends UnlockDelayService {
             ok: false,
             initialized: false,
             unlocked: false,
-            error: `Die verschlüsselte Datenbank konnte nicht initialisiert werden: ${error instanceof Error ? error.message : String(error)}`,
+            error: 'Die verschlüsselte Datenbank konnte nicht initialisiert werden. Bitte Dateizugriff und freien Speicherplatz prüfen; die vorhandene Sicherung aufbewahren.',
           };
         }
     
@@ -237,8 +237,8 @@ export class VaultSetupUnlockService extends UnlockDelayService {
       let store: PasswordStore;
       try {
         store = this.readStore();
-      } catch (error) {
-        return { ok: false, initialized: true, unlocked: false, error: error instanceof Error ? error.message : "Die Passwortdatei konnte nicht gelesen werden." };
+      } catch {
+        return { ok: false, initialized: true, unlocked: false, error: 'Die Passwortdatei ist beschädigt oder konnte nicht geprüft werden. Bitte die vorhandene Sicherung aufbewahren.' };
       }
   
       if (!this.hasVaultManifest()) {
@@ -253,8 +253,8 @@ export class VaultSetupUnlockService extends UnlockDelayService {
   
       try {
         this.assertStoreMatchesManifest(store);
-      } catch (error) {
-        return { ok: false, initialized: true, unlocked: false, error: error instanceof Error ? error.message : "Das Tresor-Manifest konnte nicht gelesen werden." };
+      } catch {
+        return { ok: false, initialized: true, unlocked: false, error: 'Das Tresor-Manifest konnte nicht gelesen oder geprüft werden. Bitte die vorhandene Sicherung aufbewahren.' };
       }
   
       const verifier = derivePasswordVerifier(password, store.salt, store.kdfParams);

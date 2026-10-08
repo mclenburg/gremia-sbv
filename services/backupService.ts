@@ -9,6 +9,8 @@ import { APP_SCHEMA_VERSION, DATABASE_SCHEMA_VERSION_KEY, LEGACY_DATABASE_SCHEMA
 import { atomicWriteFileSync } from './secureFileOperations.js';
 import { OWNER_ONLY_FILE_MODE } from './secureFilePermissions.js';
 import { gunzipBackupPayload, MAX_BACKUP_PAYLOAD_BYTES, readBoundedBackupEnvelope } from './backupPayloadDecompression.js';
+import { safePublicBackupError } from './backupPublicError.js';
+export { safePublicBackupError } from './backupPublicError.js';
 
 export interface BackupFileOperations {
   readonly atomicWriteFileSync: typeof atomicWriteFileSync;
@@ -275,7 +277,7 @@ export class BackupService {
         warnings: buildBackupPrivacyWarnings(files)
       };
     } catch (error) {
-      return { ok: false, error: error instanceof Error ? error.message : String(error), warnings: [] };
+      return { ok: false, error: safePublicBackupError(error), warnings: [] };
     }
   }
 
@@ -302,7 +304,7 @@ export class BackupService {
         ]
       };
     } catch (error) {
-      return { ok: false, filePath, fileName: path.basename(filePath), error: error instanceof Error ? error.message : String(error), warnings: [] };
+      return { ok: false, filePath, fileName: path.basename(filePath), error: safePublicBackupError(error), warnings: [] };
     }
   }
 
@@ -357,7 +359,7 @@ export class BackupService {
       };
     } catch (error) {
       if (stagingDir) this.fileOperations.rmSync(stagingDir, { recursive: true, force: true });
-      return { ok: false, filePath, fileName: path.basename(filePath), error: error instanceof Error ? error.message : String(error), warnings: [] };
+      return { ok: false, filePath, fileName: path.basename(filePath), error: safePublicBackupError(error), warnings: [] };
     }
   }
 

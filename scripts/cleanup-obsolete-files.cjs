@@ -7,10 +7,11 @@ const projectRoot = path.resolve(__dirname, '..');
 const manifestDir = path.join(projectRoot, 'maintenance', 'source-cleanup');
 const consolidatedManifest = path.join(manifestDir, 'cleanup-manifest.json');
 const dryRun = process.argv.includes('--dry-run') || process.argv.includes('--plan');
+const checkOnly = process.argv.includes('--check');
 const verbose = process.argv.includes('--verbose');
 const strictDelete = process.argv.includes('--strict-delete');
 const explicitManifests = process.argv.slice(2)
-  .filter((arg) => !['--dry-run', '--plan', '--verbose', '--strict-delete'].includes(arg))
+  .filter((arg) => !['--dry-run', '--plan', '--check', '--verbose', '--strict-delete'].includes(arg))
   .map((arg) => path.resolve(projectRoot, arg));
 
 const protectedTopLevel = new Set(['.', '', 'node_modules', 'dist', 'dist-electron', 'release', '.git', '.idea', '.vscode']);
@@ -172,11 +173,15 @@ function main() {
     else planned.push({ entry, target, display });
   }
 
-  console.log(dryRun ? 'Cleanup-Plan:' : 'Source-Cleanup:');
-  if (dryRun) {
+  console.log(dryRun ? 'Cleanup-Plan:' : checkOnly ? 'Cleanup-Prüfung:' : 'Source-Cleanup:');
+  if (dryRun || checkOnly) {
     for (const item of planned) console.log(`  WOULD DELETE ${item.display}`);
     if (verbose) for (const entry of alreadyClean) console.log(`  ALREADY CLEAN ${entry}`);
     console.log(`${planned.length} Ziel(e), ${alreadyClean.length} bereits entfernt, 0 Fehler.`);
+    if (checkOnly && planned.length > 0) {
+      console.error(`Source-Cleanup ausstehend: ${planned.map((item) => item.display).join(', ')}. Bitte den Cleanup getrennt ausführen.`);
+      process.exitCode = 1;
+    }
     return;
   }
 

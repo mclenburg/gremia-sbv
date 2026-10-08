@@ -116,6 +116,20 @@ describe('Patch 2 source cleanup safety', () => {
     expect(existsSync(join(root, 'src', 'obsolete.ts'))).toBe(true);
   });
 
+  it('verweigert den Build bei vorhandenen Cleanup-Zielen ohne sie zu löschen', () => {
+    const root = prepareCleanupRoot();
+    writeFileSync(join(root, 'src', 'obsolete.ts'), 'obsolete', 'utf8');
+    writeFileSync(join(root, 'maintenance', 'source-cleanup', 'cleanup-manifest.json'), JSON.stringify({
+      entries: [{ path: 'src/obsolete.ts', type: 'file' }],
+    }), 'utf8');
+
+    const result = run(root, 'scripts/cleanup-obsolete-files.cjs', ['--check']);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('src/obsolete.ts');
+    expect(existsSync(join(root, 'src', 'obsolete.ts'))).toBe(true);
+  });
+
   it('aborts on hash mismatch without deleting the target', () => {
     const root = prepareCleanupRoot();
     writeFileSync(join(root, 'src', 'obsolete.ts'), 'changed', 'utf8');

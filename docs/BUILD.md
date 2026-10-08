@@ -37,7 +37,7 @@ npm run build:github
 
 Der Build ist in drei eindeutige Phasen getrennt:
 
-1. `build:verify` führt Cleanup, Readiness, Qualitätsgates, Lint und Coverage genau einmal aus.
+1. `build:verify` prüft ausstehende Cleanup-Ziele ohne Dateien zu löschen und führt Readiness, Qualitätsgates, Lint und Coverage genau einmal aus.
 2. `build:compile` erzeugt Renderer- und Electron-Artefakte und schreibt anschließend ein SHA-256-Manifest unter `maintenance/build-state/compiled-artifacts.json`.
 3. `build:package:*` prüft dieses Manifest und verweigert Packaging, wenn Quellen, Buildkonfiguration oder kompilierte Artefakte seit dem Compile verändert wurden.
 
