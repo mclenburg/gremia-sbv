@@ -7,11 +7,19 @@ import type { ApplicationServices } from '../applicationServices.js';
 import type { CreateProtectedPersonInput, PersonImportExecuteInput, PersonImportPreviewInput, ProtectedPersonListFilters, UpdateProtectedPersonInput } from '../../src/domain/models/protected-person.model.js';
 import type { DeadlineListFilters } from '../../src/domain/models/deadline.model.js';
 import type { PrivacyReviewActionInput } from '../../src/domain/models/privacy-review.model.js';
+import type { EmployerQuotaSettings } from '../../src/domain/models/employer-quota.model.js';
 import { assertAllowedEnum, assertOptionalObject, assertRecordInput, assertString } from './ipcValidation.js';
 
 export function registerProtectedPersonIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
   const persons = services.protectedPersons, imports = services.personImport, expiry = services.personStatusExpiry;
   const anonymization = services.personAnonymization, deadlines = services.deadlines, privacyReviews = services.privacyReviews;
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.employerQuotaSettingsGet, async () => services.employerQuotaSettings().get());
+  registerIpcHandler(ipcMain, IPC_CHANNELS.employerQuotaSettingsSave, async (_event, input: unknown) =>
+    services.employerQuotaSettings().save(
+      assertRecordInput<EmployerQuotaSettings>(input, 'employer-quota:settings:save'),
+    ),
+  );
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.personsList, async (_event, filters?: unknown) =>
     persons().list(assertOptionalObject<ProtectedPersonListFilters>(filters, 'persons:list', 'Filter') ?? {}),

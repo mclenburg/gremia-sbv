@@ -40,6 +40,8 @@ const rcCriticalServiceCoverage = [
   'electron/security/mainSessionLock.ts',
   'services/recruitingParticipationValidation.ts',
   'services/personCaseLinkService.ts',
+  'services/employerQuotaSettingsService.ts',
+  'src/domain/persons/employmentQuota.ts',
   'services/tempFileService.ts',
   'services/demoMode.ts'
 ];

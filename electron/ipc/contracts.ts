@@ -15,6 +15,8 @@ function endpoint<const TArguments extends readonly IpcArgumentKind[]>(contract:
 }
 
 export const IPC_ENDPOINT_CONTRACTS: Readonly<Record<IpcChannel, IpcEndpointContract>> = Object.freeze({
+  "employer-quota:settings:get": endpoint({ arguments: [], outputType: "EmployerQuotaSettings", outputSchema: "structured-clone-value", rejectsAbsoluteRendererPaths: true, behaviorTest: "validates every exposed IPC endpoint contract at runtime" }),
+  "employer-quota:settings:save": endpoint({ arguments: ["record"], outputType: "EmployerQuotaSettings", outputSchema: "structured-clone-value", rejectsAbsoluteRendererPaths: true, behaviorTest: "validates every exposed IPC endpoint contract at runtime" }),
   "gremia-br:document:classification:get": endpoint({ arguments: ["string"], outputType: "GremiaBrDocumentClassification", outputSchema: "structured-clone-value", rejectsAbsoluteRendererPaths: true, behaviorTest: "validates every exposed IPC endpoint contract at runtime" }),
   "gremia-br:document:classification:change": endpoint({ arguments: ["record"], outputType: "GremiaBrDocumentClassification", outputSchema: "structured-clone-value", rejectsAbsoluteRendererPaths: true, behaviorTest: "validates every exposed IPC endpoint contract at runtime" }),
   "gremia-br:meeting:minutes:get": endpoint({ arguments: ["string"], outputType: "GremiaBrMinutesSummary | null", outputSchema: "structured-clone-value", rejectsAbsoluteRendererPaths: true, behaviorTest: "validates every exposed IPC endpoint contract at runtime" }),

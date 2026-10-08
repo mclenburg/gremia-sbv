@@ -9,6 +9,7 @@ export const OVERVIEW_HELP_ENTRIES = {
     blocks: [
       { type: 'paragraph', text: 'Erfasst werden nur Angaben, die für SBV-Prüfpflichten, Anhörungen, Fristen und Verfahren erforderlich sind. GdB-Werte gehören nicht in das Verzeichnis.' },
       { type: 'paragraph', text: 'Die Kennzahlen zeigen den Arbeitsbestand: bestätigte Schwerbehinderung, Gleichstellung, prüfbedürftige Status und ausgeschiedene Personen.' },
+      { type: 'paragraph', text: 'Wenn unter Einstellungen die maßgeblichen Arbeitsplätze eingetragen sind, zeigt die Beschäftigungsquote eine aktuelle Orientierung. Sie zählt aktiv beschäftigte, als schwerbehindert oder gleichgestellt erfasste Personen. Jahresdurchschnitt, Teilzeit-Ausnahmen und Mehrfachanrechnungen müssen für eine rechtliche Prüfung gesondert bewertet werden.' },
     ],
   },
   'cases.overview': {
