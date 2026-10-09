@@ -4,6 +4,7 @@ export { ActivityJournalService } from '../services/activityJournalService.js';
 export { PersonalDataAuditLogService } from '../services/auditLogService.js';
 export { MeasureLifecycleAuditService } from '../services/measureLifecycleAuditService.js';
 export { SearchIndexService } from '../services/search/searchIndexService.js';
+export { UnifiedSearchIndexService } from '../services/search/unifiedSearchIndexService.js';
 export { BackupService } from '../services/backupService.js';
 export { BemService } from '../services/bemService.js';
 export { CaseAnonymizationService } from '../services/caseAnonymizationService.js';

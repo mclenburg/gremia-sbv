@@ -22,6 +22,16 @@ export const CASE_SEARCH_INDEX_STATE_REQUIRED_COLUMNS = [
   'updated_at'
 ] as const;
 
+export const SEARCH_ENTRIES_REQUIRED_COLUMNS = [
+  'id', 'source_type', 'source_id', 'case_id', 'module', 'source_label',
+  'title', 'content', 'updated_at', 'navigation_kind', 'navigation_id',
+] as const;
+
+export const SEARCH_ENTRY_CASES_REQUIRED_COLUMNS = ['entry_id', 'case_id'] as const;
+export const SEARCH_CHANGE_CLOCK_REQUIRED_COLUMNS = ['id', 'revision'] as const;
+export const SEARCH_DIRTY_TABLES_REQUIRED_COLUMNS = ['table_name', 'revision'] as const;
+export const SEARCH_INDEX_BUILD_STATE_REQUIRED_COLUMNS = ['id', 'built_revision', 'built_at', 'entry_count'] as const;
+
 
 export const CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS = [
   'id',

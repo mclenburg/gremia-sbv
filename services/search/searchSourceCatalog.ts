@@ -127,6 +127,7 @@ export const SEARCH_SOURCE_CATALOG: readonly SearchSourceDefinition[] = [
 export const SEARCH_EXCLUDED_TABLES = [
   // Derived full-text copies.
   'case_search_index', 'case_search_index_fts', 'case_search_index_state',
+  'search_entries', 'search_entry_cases', 'search_entries_fts', 'search_change_clock', 'search_dirty_tables', 'search_index_build_state',
   'case_notes_fts', 'case_documents_fts',
   // Audit, migration and retention decisions are intentionally not returned as content.
   'personal_data_audit_log', 'audit_log', 'retention_actions', 'deadline_audit',

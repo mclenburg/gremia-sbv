@@ -1,5 +1,6 @@
 import { ActivityJournalPreferenceService, ActivityJournalService, PersonalDataAuditLogService, MeasureLifecycleAuditService, SearchIndexService, BackupService, BemService, CaseAnonymizationService, CaseHandoverService, CaseMeasureService, CaseService, ComplianceIncidentService, ComplianceSelfCheckService, ContactService, DeadlineService, DsarPrefillService, EqualizationService, EqualizationIntakeService, EmployerQuotaSettingsService, GremiaBrAuthService, GremiaBrCacheService, GremiaBrExternalReferenceService, GremiaBrSettingsService, GremiaBrWorkspaceActionService, KnowledgeService, MobileCompanionReturnService, MobileCompanionService, ParticipationService, PersonAnonymizationService, PersonImportService, PersonStatusExpiryService, PreventionService, PrivacyReviewService, ProtectedPersonService, RecruitingParticipationService, ReportService, RetentionService, SbvControlProtocolService, SbvParticipationViolationDocumentService, SbvParticipationViolationService, SbvParticipationViolationTemplateService, SbvResourceService, TemplateDefaultService, TemplateService, TransferInstanceIdentityService, TransferRecipientProfileService, TerminationService, WorkplaceAccommodationService, SbvMeetingService, SbvAssemblyService, EmployerObligationService, InclusionAgreementService, ComplaintWorkflowService, SbvOfficeDocumentService, SbvOfficeWorkflowDocumentAdapter, SbvElectionService, SbvElectionDocumentService, ElectionExecutionService, ElectionArchiveService, ElectionTransferService, type DatabaseAdapter, type SecurityService } from './applicationServiceDependencies.js';
 import { TextEntityReferenceService } from '../services/textEntityReferenceService.js';
+import { UnifiedSearchIndexService } from '../services/search/unifiedSearchIndexService.js';
 /**
  * Central composition root for Electron main-process application services.
  *
@@ -64,6 +65,8 @@ export class ApplicationServices {
     this.databaseService('lifecycleAudit', (database) => new MeasureLifecycleAuditService(database, this.auditLog()));
   searchIndex = (): SearchIndexService =>
     this.databaseService('searchIndex', (database) => new SearchIndexService(database));
+  unifiedSearchIndex = (): UnifiedSearchIndexService =>
+    this.databaseService('unifiedSearchIndex', (database) => new UnifiedSearchIndexService(database));
   activityJournal = (): ActivityJournalService =>
     this.databaseService('activityJournal', (database) => new ActivityJournalService(database));
   activityJournalPreferences = (): ActivityJournalPreferenceService =>
