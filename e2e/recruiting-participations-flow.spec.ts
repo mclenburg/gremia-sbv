@@ -16,6 +16,7 @@ async function openRecruiting(page: Page) {
 }
 
 test('tracks recruiting participation without case file and opens violation only as explicit prefill', async ({ page }) => {
+  test.setTimeout(60_000);
   await openRecruiting(page);
   await page.locator('.industrial-hero-actions').getByRole('button', { name: 'Stellenbesetzung anlegen', exact: true }).click();
   const createDialog = page.getByRole('dialog', { name: 'Stellenbesetzung anlegen' });

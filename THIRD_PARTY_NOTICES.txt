@@ -703,7 +703,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@jridgewell/sourcemap-codec@1.5.5
+@jridgewell/sourcemap-codec@1.6.0
 License: MIT
 Repository: git+https://github.com/jridgewell/sourcemaps.git
 Homepage: https://github.com/jridgewell/sourcemaps/tree/main/packages/sourcemap-codec
@@ -871,7 +871,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@oxc-project/types@0.150.0
+@oxc-project/types@0.152.0
 License: MIT
 Repository: git+https://github.com/oxc-project/oxc.git
 Homepage: https://oxc.rs
@@ -922,79 +922,79 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-android-arm-eabi@1.2.9
+@rolldown/binding-android-arm-eabi@1.2.12
 License: MIT
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-android-arm64@1.2.9
+@rolldown/binding-android-arm64@1.2.12
 License: MIT
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-darwin-arm64@1.2.9
+@rolldown/binding-darwin-arm64@1.2.12
 License: MIT
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-darwin-x64@1.2.9
+@rolldown/binding-darwin-x64@1.2.12
 License: MIT
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-freebsd-x64@1.2.9
+@rolldown/binding-freebsd-x64@1.2.12
 License: MIT
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-linux-arm-gnueabihf@1.2.9
+@rolldown/binding-linux-arm-gnueabihf@1.2.12
 License: MIT
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-linux-arm64-gnu@1.2.9
+@rolldown/binding-linux-arm64-gnu@1.2.12
 License: MIT
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-linux-arm64-musl@1.2.9
+@rolldown/binding-linux-arm64-musl@1.2.12
 License: MIT
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-linux-ppc64-gnu@1.2.9
+@rolldown/binding-linux-ppc64-gnu@1.2.12
 License: MIT
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-linux-s390x-gnu@1.2.9
+@rolldown/binding-linux-s390x-gnu@1.2.12
 License: MIT
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-linux-x64-gnu@1.2.9
+@rolldown/binding-linux-x64-gnu@1.2.12
 License: MIT
 Repository: git+https://github.com/rolldown/rolldown.git
 Homepage: https://rolldown.rs/
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-linux-x64-musl@1.2.9
+@rolldown/binding-linux-x64-musl@1.2.12
 License: MIT
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-openharmony-arm64@1.2.9
+@rolldown/binding-openharmony-arm64@1.2.12
 License: MIT
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-win32-arm64-msvc@1.2.9
+@rolldown/binding-win32-arm64-msvc@1.2.12
 License: MIT
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-@rolldown/binding-win32-x64-msvc@1.2.9
+@rolldown/binding-win32-x64-msvc@1.2.12
 License: MIT
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
@@ -1218,7 +1218,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@types/node@24.13.6
+@types/node@24.19.0
 License: MIT
 Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
 Homepage: https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/node
@@ -1278,7 +1278,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/eslint-plugin@8.70.0
+@typescript-eslint/eslint-plugin@8.71.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io/packages/eslint-plugin
@@ -1288,7 +1288,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/parser@8.70.0
+@typescript-eslint/parser@8.71.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io/packages/parser
@@ -1298,7 +1298,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/project-service@8.70.0
+@typescript-eslint/project-service@8.71.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io
@@ -1308,7 +1308,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/scope-manager@8.70.0
+@typescript-eslint/scope-manager@8.71.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io/packages/scope-manager
@@ -1318,7 +1318,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/tsconfig-utils@8.70.0
+@typescript-eslint/tsconfig-utils@8.71.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io
@@ -1328,7 +1328,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/type-utils@8.70.0
+@typescript-eslint/type-utils@8.71.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io
@@ -1338,7 +1338,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/types@8.70.0
+@typescript-eslint/types@8.71.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io
@@ -1348,7 +1348,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/typescript-estree@8.70.0
+@typescript-eslint/typescript-estree@8.71.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io/packages/typescript-estree
@@ -1358,7 +1358,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/utils@8.70.0
+@typescript-eslint/utils@8.71.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io/packages/utils
@@ -1368,7 +1368,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/visitor-keys@8.70.0
+@typescript-eslint/visitor-keys@8.71.0
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io
@@ -1388,7 +1388,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@vitest/coverage-v8@4.1.11
+@vitest/coverage-v8@5.0.3
 License: MIT
 Repository: git+https://github.com/vitest-dev/vitest.git
 Homepage: https://vitest.dev/guide/coverage
@@ -1398,17 +1398,35 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@vitest/expect@4.1.11
+@vitest/istanbul-lib-coverage@1.0.2
 License: MIT
-Repository: git+https://github.com/vitest-dev/vitest.git
-Homepage: https://vitest.dev/api/expect
+Repository: git+https://github.com/vitest-dev/istanbuljs.git
+Homepage: https://vitest.dev/
 Copyright notices:
+- Copyright 2012-2015 Yahoo! Inc.
+- * Redistributions of source code must retain the above copyright
+- * Redistributions in binary form must reproduce the above copyright
+- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 - Copyright (c) 2021-Present VoidZero Inc. and Vitest contributors
 - The above copyright notice and this permission notice shall be included in all
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@vitest/mocker@4.1.11
+@vitest/istanbul-lib-report@1.0.2
+License: MIT
+Repository: git+https://github.com/vitest-dev/istanbuljs.git
+Homepage: https://vitest.dev
+Copyright notices:
+- Copyright 2012-2015 Yahoo! Inc.
+- * Redistributions of source code must retain the above copyright
+- * Redistributions in binary form must reproduce the above copyright
+- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+- Copyright (c) 2021-Present VoidZero Inc. and Vitest contributors
+- The above copyright notice and this permission notice shall be included in all
+- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+License text: LICENSES/MIT.txt
+
+@vitest/mocker@5.0.3
 License: MIT
 Repository: git+https://github.com/vitest-dev/vitest.git
 Homepage: https://github.com/vitest-dev/vitest/tree/main/packages/mocker
@@ -1418,50 +1436,10 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@vitest/pretty-format@4.1.11
-License: MIT
-Repository: git+https://github.com/vitest-dev/vitest.git
-Homepage: https://github.com/vitest-dev/vitest/tree/main/packages/pretty-format
-Copyright notices:
-- Copyright (c) 2021-Present VoidZero Inc. and Vitest contributors
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
-@vitest/runner@4.1.11
-License: MIT
-Repository: git+https://github.com/vitest-dev/vitest.git
-Homepage: https://vitest.dev/api/advanced/runner
-Copyright notices:
-- Copyright (c) 2021-Present VoidZero Inc. and Vitest contributors
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
-@vitest/snapshot@4.1.11
-License: MIT
-Repository: git+https://github.com/vitest-dev/vitest.git
-Homepage: https://vitest.dev/guide/snapshot
-Copyright notices:
-- Copyright (c) 2021-Present VoidZero Inc. and Vitest contributors
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
-@vitest/spy@4.1.11
+@vitest/spy@5.0.3
 License: MIT
 Repository: git+https://github.com/vitest-dev/vitest.git
 Homepage: https://vitest.dev/api/mock
-Copyright notices:
-- Copyright (c) 2021-Present VoidZero Inc. and Vitest contributors
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
-@vitest/utils@4.1.11
-License: MIT
-Repository: git+https://github.com/vitest-dev/vitest.git
-Homepage: https://github.com/vitest-dev/vitest/tree/main/packages/utils
 Copyright notices:
 - Copyright (c) 2021-Present VoidZero Inc. and Vitest contributors
 - The above copyright notice and this permission notice shall be included in all
@@ -1602,7 +1580,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-ast-v8-to-istanbul@1.0.2
+ast-v8-to-istanbul@1.0.7
 License: MIT
 Repository: git+https://github.com/AriPerkkio/ast-v8-to-istanbul.git
 Homepage: https://github.com/AriPerkkio/ast-v8-to-istanbul
@@ -1887,7 +1865,7 @@ Copyright notices:
 - c. Copyright and Similar Rights means copyright and/or similar rights
 License text: LICENSES/CC-BY-4.0.txt
 
-chai@6.2.2
+chai@6.3.0
 License: MIT
 Repository: https://github.com/chaijs/chai
 Homepage: http://chaijs.com
@@ -2289,7 +2267,7 @@ Copyright notices:
 - NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 License text: LICENSES/MIT.txt
 
-electron@43.7.3
+electron@43.7.7
 License: MIT
 Repository: https://github.com/electron/electron
 Copyright notices:
@@ -2358,7 +2336,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-es-module-lexer@2.1.0
+es-module-lexer@2.3.2
 License: MIT
 Repository: git+https://github.com/guybedford/es-module-lexer.git
 Homepage: https://github.com/guybedford/es-module-lexer#readme
@@ -2539,7 +2517,7 @@ Copyright notices:
 - ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
 License text: LICENSES/BSD-2-Clause.txt
 
-expect-type@1.3.0
+expect-type@1.4.0
 License: Apache-2.0
 Repository: https://github.com/mmkal/expect-type.git
 Homepage: https://github.com/mmkal/expect-type#readme
@@ -2957,16 +2935,6 @@ Copyright notices:
 - copyright notice and this permission notice appear in all copies.
 License text: LICENSES/ISC.txt
 
-html-escaper@2.0.2
-License: MIT
-Repository: https://github.com/WebReflection/html-escaper.git
-Homepage: https://github.com/WebReflection/html-escaper
-Copyright notices:
-- Copyright (C) 2017-present by Andrea Giammarchi - @WebReflection
-- The above copyright notice and this permission notice shall be included in
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
 http-proxy-agent@7.0.2
 License: MIT
 Repository: https://github.com/TooTallNate/proxy-agents.git
@@ -3123,39 +3091,6 @@ Copyright notices:
 - ## Copyright
 - copyright in it.
 License text: LICENSES/BlueOak-1.0.0.txt
-
-istanbul-lib-coverage@3.2.2
-License: BSD-3-Clause
-Repository: git+ssh://git@github.com/istanbuljs/istanbuljs.git
-Homepage: https://istanbul.js.org/
-Copyright notices:
-- Copyright 2012-2015 Yahoo! Inc.
-- * Redistributions of source code must retain the above copyright
-- * Redistributions in binary form must reproduce the above copyright
-- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-License text: LICENSES/BSD-3-Clause.txt
-
-istanbul-lib-report@3.0.1
-License: BSD-3-Clause
-Repository: git+ssh://git@github.com/istanbuljs/istanbuljs.git
-Homepage: https://istanbul.js.org/
-Copyright notices:
-- Copyright 2012-2015 Yahoo! Inc.
-- * Redistributions of source code must retain the above copyright
-- * Redistributions in binary form must reproduce the above copyright
-- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-License text: LICENSES/BSD-3-Clause.txt
-
-istanbul-reports@3.2.0
-License: BSD-3-Clause
-Repository: git+ssh://git@github.com/istanbuljs/istanbuljs.git
-Homepage: https://istanbul.js.org/
-Copyright notices:
-- Copyright 2012-2015 Yahoo! Inc.
-- * Redistributions of source code must retain the above copyright
-- * Redistributions in binary form must reproduce the above copyright
-- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-License text: LICENSES/BSD-3-Clause.txt
 
 jake@10.9.4
 License: Apache-2.0
@@ -3561,21 +3496,21 @@ Copyright notices:
 - The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
-magicast@0.5.3
+magic-string@1.4.3
+License: MIT
+Repository: git+https://github.com/Rich-Harris/magic-string.git
+Copyright notices:
+- Copyright 2018 Rich Harris
+- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+License text: LICENSES/MIT.txt
+
+magicast@0.5.5
 License: MIT
 Repository: unjs/magicast
 Copyright notices:
 - Copyright (c) Pooya Parsa <pooya@pi0.io> and Anthony Fu <https://github.com/antfu>
 - The above copyright notice and this permission notice shall be included in all
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
-
-make-dir@4.0.0
-License: MIT
-Repository: sindresorhus/make-dir
-Copyright notices:
-- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
 math-intrinsics@1.1.0
@@ -3788,7 +3723,7 @@ Copyright notices:
 - copyright notice and this permission notice appear in all copies.
 License text: LICENSES/ISC.txt
 
-obug@2.1.1
+obug@2.2.1
 License: MIT
 Repository: git+https://github.com/sxzz/obug.git
 Homepage: https://github.com/sxzz/obug#readme
@@ -3877,20 +3812,6 @@ Repository: sindresorhus/path-key
 Copyright notices:
 - Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
 - The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-License text: LICENSES/MIT.txt
-
-pathe@2.0.3
-License: MIT
-Repository: unjs/pathe
-Copyright notices:
-- Copyright (c) Pooya Parsa <pooya@pi0.io> - Daniel Roe <daniel@roe.dev>
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-- Copyright Joyent, Inc. and other Node contributors.
-- The above copyright notice and this permission notice shall be included
-- NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-- Copyright (c) 2023-present Fabio Spampinato
-- The above copyright notice and this permission notice shall be included in
 License text: LICENSES/MIT.txt
 
 pdfjs-dist@6.3.289
@@ -4229,7 +4150,7 @@ Copyright notices:
 - copyright notice and this permission notice appear in all copies.
 License text: LICENSES/ISC.txt
 
-rolldown@1.2.9
+rolldown@1.2.12
 License: MIT
 Repository: git+https://github.com/rolldown/rolldown.git
 Homepage: https://rolldown.rs/
@@ -4351,15 +4272,6 @@ Copyright notices:
 - IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR
 License text: LICENSES/MIT.txt
 
-siginfo@2.0.0
-License: ISC
-Repository: git+https://github.com/emilbayes/siginfo.git
-Homepage: https://github.com/emilbayes/siginfo#readme
-Copyright notices:
-- Copyright (c) 2017, Emil Bay <github@tixz.dk>
-- copyright notice and this permission notice appear in all copies.
-License text: LICENSES/ISC.txt
-
 signal-exit@3.0.7
 License: ISC
 Repository: https://github.com/tapjs/signal-exit.git
@@ -4412,12 +4324,6 @@ Copyright notices:
 - DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
 License text: LICENSES/BSD-3-Clause.txt
 
-stackback@0.0.2
-License: MIT
-Repository: git://github.com/shtylman/node-stackback.git
-Copyright notices: none detected in package metadata or distributed notice files.
-License text: LICENSES/MIT.txt
-
 stat-mode@1.0.0
 License: MIT
 Repository: git://github.com/TooTallNate/stat-mode.git
@@ -4428,7 +4334,7 @@ Copyright notices:
 - NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
 License text: LICENSES/MIT.txt
 
-std-env@4.1.0
+std-env@4.3.0
 License: MIT
 Repository: unjs/std-env
 Copyright notices:
@@ -4557,16 +4463,17 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-tinybench@2.9.0
+tinybench@6.2.1
 License: MIT
 Repository: tinylibs/tinybench
+Homepage: https://github.com/tinylibs/tinybench#readme
 Copyright notices:
 - Copyright (c) 2022 Tinylibs
 - The above copyright notice and this permission notice shall be included in all
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-tinyexec@1.2.2
+tinyexec@1.3.1
 License: MIT
 Repository: git+https://github.com/tinylibs/tinyexec.git
 Homepage: https://github.com/tinylibs/tinyexec#readme
@@ -4586,7 +4493,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-tinyrainbow@3.1.0
+tinyrainbow@3.1.1
 License: MIT
 Repository: git+https://github.com/tinylibs/tinyrainbow.git
 Homepage: https://github.com/tinylibs/tinyrainbow#readme
@@ -4670,16 +4577,6 @@ Copyright notices:
 - "Licensor" shall mean the copyright owner or entity authorized by the copyright owner that is granting the License.
 - "Work" shall mean the work of authorship, whether in Source or Object form, made available under the License, as indicated by a copyright notice that is included in or attached to the work (an example is provided in the Appendix below).
 License text: LICENSES/Apache-2.0.txt
-
-undici-types@7.18.2
-License: MIT
-Repository: git+https://github.com/nodejs/undici.git
-Homepage: https://undici.nodejs.org
-Copyright notices:
-- Copyright (c) Matteo Collina and Undici contributors
-- The above copyright notice and this permission notice shall be included in all
-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-License text: LICENSES/MIT.txt
 
 undici-types@7.24.6
 License: MIT
@@ -4797,7 +4694,7 @@ Copyright notices:
 - NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
 License text: LICENSES/MIT.txt
 
-vite@8.3.0
+vite@8.3.2
 License: MIT
 Repository: git+https://github.com/vitejs/vite.git
 Homepage: https://vite.dev
@@ -4814,7 +4711,7 @@ Copyright notices:
 - > the copyright owner that is granting the License.
 License text: LICENSES/MIT.txt
 
-vitest@4.1.11
+vitest@5.0.3
 License: MIT
 Repository: git+https://github.com/vitest-dev/vitest.git
 Homepage: https://vitest.dev
@@ -4831,9 +4728,9 @@ Copyright notices:
 - > Copyright (c) 2018, Sinon.JS
 License text: LICENSES/MIT.txt
 
-wait-on@9.1.0
+wait-on@9.5.1
 License: MIT
-Repository: http://github.com/jeffbski/wait-on.git
+Repository: git+https://github.com/jeffbski/wait-on.git
 Copyright notices:
 - Copyright (c) 2015 Jeff Barczewski
 - The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
@@ -4873,7 +4770,7 @@ Copyright notices:
 - copyright notice and this permission notice appear in all copies.
 License text: LICENSES/ISC.txt
 
-why-is-node-running@2.3.0
+why-is-node-running@3.2.1
 License: MIT
 Repository: https://github.com/mafintosh/why-is-node-running.git
 Homepage: https://github.com/mafintosh/why-is-node-running
