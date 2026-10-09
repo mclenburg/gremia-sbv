@@ -91,7 +91,7 @@ npx tsc -p tsconfig.json --noEmit
 
 ## Android
 
-Die Android-Begleit-App wird im Release-Workflow separat getestet, signiert und geprüft. Der Build benötigt die in der [Begleit-App-Dokumentation](../companion-app/README.md) beschriebenen Signing-Secrets; ein abweichendes Schlüsselpasswort ist optional. Debug-Builds kommen ohne Release-Schlüssel aus. Der Workflow erzeugt außerdem eine SPDX-Stückliste der produktiven npm-Abhängigkeiten aus der Lockdatei und hängt sie an den Draft-Release.
+Die Android-Begleit-App wird im Release-Workflow separat getestet, signiert und geprüft. Der Build benötigt die in der [Begleit-App-Dokumentation](../companion-app/README.md) beschriebenen Signing-Secrets; ein abweichendes Schlüsselpasswort ist optional. Debug-Builds kommen ohne Release-Schlüssel aus. Der Workflow erzeugt außerdem eine SPDX-Stückliste der produktiven npm-Abhängigkeiten aus der Lockdatei als internes Actions-Artefakt. Sie gehört nicht zu den Release-Downloads für Endanwender.
 
 ## macOS
 
