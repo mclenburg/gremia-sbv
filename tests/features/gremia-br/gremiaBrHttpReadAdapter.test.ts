@@ -442,6 +442,7 @@ describe('Gremia.BR HTTP-ReadAdapter 0.9.2-B', () => {
 
     await expect(client.request('GET', '/admin/health', 'jwt-token')).rejects.toThrow(/gesperrt|freigegeben/);
     await expect(client.request('POST', '/protokolle/beschluesse', 'jwt-token', { body: {} })).rejects.toThrow(/freigegeben/);
+    await expect(client.request('GET', '/api/v1/bodies/%2e%2e', 'jwt-token')).rejects.toThrow(/kanonische/);
     expect(calls).toHaveLength(0);
   });
 

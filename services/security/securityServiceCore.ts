@@ -6,7 +6,8 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { DatabaseService } from "../databaseService.js";
-import { PersonalDataAuditLogService } from "../auditLogService.js";
+import { PersonalDataAuditLogService, setAuditIntegrityCheckpoint } from "../auditLogService.js";
+import { writeAuditIntegrityAnchor, type AuditIntegrityAnchor } from '../auditIntegrityAnchor.js';
 import {
   TempFileService,
 } from "../tempFileService.js";
@@ -32,6 +33,10 @@ export class SecurityServiceCore {
 
   protected readonly vaultDatabasePath: string;
 
+  protected readonly auditAnchorPath: string;
+
+  protected auditAnchor?: AuditIntegrityAnchor;
+
   protected readonly databaseService = new DatabaseService();
 
   protected readonly tempFiles: TempFileService;
@@ -53,9 +58,25 @@ export class SecurityServiceCore {
       this.storePath = path.join(dataDir, STORE_FILE_NAME);
       this.vaultManifestPath = path.join(dataDir, VAULT_MANIFEST_FILE_NAME);
       this.vaultDatabasePath = path.join(dataDir, VAULT_DATABASE_FILE_NAME);
+      this.auditAnchorPath = path.join(dataDir, 'audit-integrity.anchor');
       this.tempFiles = new TempFileService(dataDir);
       this.ensureDataLayout();
     }
+
+  protected checkpointAuditIntegrity(): void {
+    if (!this.auditAnchor || !this.databaseKey) return;
+    const db = this.databaseService.active;
+    const result = new PersonalDataAuditLogService(db).verifyChain();
+    if (!result.ok) throw new Error('Audit-Integritätsprüfung fehlgeschlagen; Vertrauensanker wird nicht fortgeschrieben.');
+    const next: AuditIntegrityAnchor = {
+      ...this.auditAnchor,
+      sequence: result.lastSequence ?? 0,
+      entryHash: result.latestHash
+    };
+    writeAuditIntegrityAnchor(this.auditAnchorPath, this.databaseKey, next);
+    setAuditIntegrityCheckpoint(db, next.sequence, next.entryHash);
+    this.auditAnchor = next;
+  }
 
 
 
@@ -167,7 +188,7 @@ export class SecurityServiceCore {
     }
 
   protected auditSecurityEvent(
-        eventType: "lock" | "unlock" | "cleanup",
+        eventType: "lock" | "unlock" | "cleanup" | "password_change" | "recovery_reset",
         purpose: string,
         metadata?: Record<string, unknown>,
       ): void {

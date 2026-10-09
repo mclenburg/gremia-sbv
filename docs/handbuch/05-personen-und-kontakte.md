@@ -6,6 +6,14 @@ Das Personenverzeichnis hilft, wiederkehrende Beratung und Fallakten eindeutig z
 
 Erfasse nur Angaben, die du für die SBV-Arbeit brauchst. Häufig reichen Name, organisatorische Zuordnung und ein datensparsamer Hinweis zur Erreichbarkeit.
 
+## Beschäftigungsquote
+
+Unter **Einstellungen → Allgemein → Unternehmensgröße** kannst du die Zahl der maßgeblichen Arbeitsplätze nach §§ 156–157 SGB IX eintragen. Ausbildungsplätze und weitere gesetzliche Ausnahmen gehören nicht in diese Zahl. Ohne Eintrag wird die Kachel **Beschäftigungsquote** in der Personenliste nicht angezeigt. Du kannst die Angabe jederzeit entfernen, indem du das Feld leer speicherst.
+
+Die Kachel berechnet die Pflichtplätze nach § 154 SGB IX: Bei 20 bis 39 maßgeblichen Arbeitsplätzen einen, bei 40 bis 59 zwei und ab 60 fünf Prozent mit der gesetzlichen Rundung. Als aktuell anrechenbar erfasst zählt sie aktiv beschäftigte Personen mit gültigem Status **schwerbehindert** oder **gleichgestellt**. Sie zeigt, wie viele Pflichtplätze nach den erfassten Personen noch offen sind.
+
+Das Ergebnis ist eine **aktuelle Orientierung**, keine amtliche Feststellung der Beschäftigungspflicht. Insbesondere Jahresdurchschnitt, individuelle Ausnahmen bei geringer Arbeitszeit und Mehrfachanrechnungen werden nicht berechnet. Gleiche die Anzeige für eine verbindliche Bewertung mit den erforderlichen Personal- und Nachweisdaten ab.
+
 ## Sensible Angaben
 
 Angaben zu Schwerbehinderung, Gleichstellung, GdB, Merkzeichen, Diagnosen oder Einschränkungen sind besonders sensibel. Speichere sie nur, wenn sie für den konkreten Vorgang erforderlich sind.

@@ -7,11 +7,11 @@ function parsedUrl(rawUrl: string): URL | null {
   try { return new URL(rawUrl); } catch { return null; }
 }
 
-export function isAllowedRendererNavigationUrl(rawUrl: string, packaged: boolean): boolean {
+export function isAllowedRendererNavigationUrl(rawUrl: string, packaged: boolean, trustedDocumentUrl?: string): boolean {
   const url = parsedUrl(rawUrl);
   if (!url) return false;
-  if (packaged) return url.protocol === 'file:';
-  return url.protocol === 'file:' || (url.protocol === 'http:' && DEV_RENDERER_ORIGINS.has(url.origin));
+  if (packaged) return Boolean(trustedDocumentUrl && url.href === parsedUrl(trustedDocumentUrl)?.href);
+  return url.protocol === 'http:' && DEV_RENDERER_ORIGINS.has(url.origin);
 }
 
 export function isAllowedRendererRequestUrl(rawUrl: string, packaged: boolean): boolean {

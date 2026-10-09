@@ -3,6 +3,7 @@ import { IndustrialPanel } from '../../shared/components/WorkbenchLayout';
 import type { ThemeMode } from '../../shared/theme/appTheme';
 
 import { ThemeSettingsForm } from './ThemeSettingsForm';
+import { EmployerQuotaSettingsForm } from './EmployerQuotaSettingsForm';
 import { TemplateDefaultSettingsForm } from './TemplateDefaultSettingsForm';
 import { TemporaryFilesSettingsPanel } from './TemporaryFilesSettingsPanel';
 import { ChangePasswordForm } from './ChangePasswordForm';
@@ -43,9 +44,10 @@ export function SettingsView({
 
       {section === 'settings-general' && (
         <>
-          <SettingsSectionIntro title="Allgemein" description="Darstellung und lokale Arbeitsumgebung ohne Sicherheitsfolgen einstellen." />
+          <SettingsSectionIntro title="Allgemein" description="Darstellung und Angaben zum Arbeitgeber einstellen." />
           <div className="settings-section-grid">
             <ThemeSettingsForm theme={theme} onThemeChange={onThemeChange} />
+            <EmployerQuotaSettingsForm />
           </div>
         </>
       )}

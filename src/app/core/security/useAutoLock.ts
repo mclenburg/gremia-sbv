@@ -1,8 +1,9 @@
 import { useEffect } from "react";
 import { waitForBridge } from "../bridge/waitForBridge";
 import { requestSecurityLock } from "./requestSecurityLock";
+import { AUTO_LOCK_TIMEOUT_MS } from '../../../domain/security/sessionPolicy';
 
-export const AUTO_LOCK_TIMEOUT_MS = 10 * 60 * 1000;
+export { AUTO_LOCK_TIMEOUT_MS };
 export const AUTO_LOCK_EVENTS = [
   "pointerdown",
   "keydown",

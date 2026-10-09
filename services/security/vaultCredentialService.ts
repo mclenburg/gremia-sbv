@@ -9,6 +9,8 @@ import { VaultSetupUnlockService } from './vaultSetupUnlockService.js';
 import { CURRENT_SCRYPT_PARAMS, derivePasswordVerifier, deriveRecoveryVerifier, normalizeRecoveryKey, safeDestroyBuffer, safeEqualsHex, unwrapDatabaseKey, validatePassword, wrapDatabaseKey } from './securitySupport.js';
 import { buildLegacyPlaintextCleanupWarning } from './legacyPlaintextExportCleanupService.js';
 
+const OLD_BACKUP_PASSWORD_WARNING = 'Alte Backups bleiben nach Wiederherstellung mit ihrer Backup-Passphrase und dem damaligen Tresorpasswort lesbar. Bei vermutetem Passwortverlust bitte alte Sicherungen prüfen und neue Backups erstellen.';
+
 export class VaultCredentialService extends VaultSetupUnlockService {
   async changePassword(
         currentPassword: string,
@@ -22,6 +24,15 @@ export class VaultCredentialService extends VaultSetupUnlockService {
             error: "Es wurde noch kein Initialpasswort eingerichtet.",
           };
         }
+
+        if (!this.unlocked || !this.databaseKey) {
+          return {
+            ok: false,
+            initialized: true,
+            unlocked: false,
+            error: 'Bitte den Tresor vor der Passwortänderung entsperren.',
+          };
+        }
     
         const validationError = validatePassword(newPassword);
         if (validationError) {
@@ -33,12 +44,22 @@ export class VaultCredentialService extends VaultSetupUnlockService {
           };
         }
     
-        const currentResult = await this.unlock(currentPassword);
-        if (!currentResult.ok || !this.databaseKey) {
+        let verified = false;
+        try {
+          const currentStore = this.readStore();
+          this.assertStoreMatchesManifest(currentStore);
+          verified = safeEqualsHex(
+            derivePasswordVerifier(currentPassword, currentStore.salt, currentStore.kdfParams),
+            currentStore.passwordVerifier,
+          );
+        } catch {
+          verified = false;
+        }
+        if (!verified || !this.databaseKey) {
           return {
             ok: false,
             initialized: true,
-            unlocked: false,
+            unlocked: this.unlocked,
             error: "Das aktuelle Passwort ist nicht korrekt.",
           };
         }
@@ -72,7 +93,13 @@ export class VaultCredentialService extends VaultSetupUnlockService {
           const currentManifest = this.readManifest();
           this.commitSecurityArtifacts(nextStore, this.withManifestTimestamp(currentManifest, now));
           this.unlocked = true;
-          return { ok: true, initialized: true, unlocked: true };
+          this.auditSecurityEvent('password_change', 'Tresorpasswort geändert');
+          return {
+            ok: true,
+            initialized: true,
+            unlocked: true,
+            warning: OLD_BACKUP_PASSWORD_WARNING,
+          };
         } catch {
           return {
             ok: false,
@@ -173,15 +200,15 @@ export class VaultCredentialService extends VaultSetupUnlockService {
           recoveredDatabaseKey = undefined;
           this.unlocked = true;
           this.resetUnlockDelay();
-          this.auditSecurityEvent("unlock", "Tresor per Recovery-Key entsperrt");
+          this.auditSecurityEvent('recovery_reset', 'Tresorpasswort per Recovery-Key zurückgesetzt');
           const cleanup = this.cleanupLegacyPlaintextExports(databaseKey);
           return {
             ok: true,
             initialized: true,
             unlocked: true,
-            warning: buildLegacyPlaintextCleanupWarning(cleanup),
+            warning: [OLD_BACKUP_PASSWORD_WARNING, buildLegacyPlaintextCleanupWarning(cleanup)].filter(Boolean).join(' '),
           };
-        } catch (error) {
+        } catch {
           this.unlocked = false;
           this.destroyActiveDatabaseKey();
           safeDestroyBuffer(recoveredDatabaseKey);
@@ -191,8 +218,7 @@ export class VaultCredentialService extends VaultSetupUnlockService {
             ok: false,
             initialized: true,
             unlocked: false,
-            error:
-              `Der Recovery-Key ist korrekt, aber die Datenbank konnte nicht geöffnet werden. Datenbankdatei und Manifest gehören möglicherweise nicht zusammen. ${error instanceof Error ? error.message : ""}`.trim(),
+            error: 'Der Recovery-Key ist korrekt, aber die Datenbank konnte nicht geöffnet werden. Bitte Datenbankdatei, Manifest und Audit-Anker aus derselben Sicherung verwenden.',
           };
         }
       }

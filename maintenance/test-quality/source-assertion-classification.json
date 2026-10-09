@@ -5,5 +5,12 @@
     "B": "Statische Architekturregel; AST- oder strukturbezogene Prüfung",
     "C": "Durch Verhaltenstest zu ersetzen"
   },
-  "entries": []
+  "entries": [
+    {
+      "file": "tests/privacy/auditIntegrityAnchor.test.ts",
+      "sourceAssertions": 1,
+      "category": "A",
+      "rationale": "Der verschlüsselte Anker ist selbst das geprüfte Dateiartefakt; der Test stellt sicher, dass der Kettenkopf nicht im Klartext gespeichert wird."
+    }
+  ]
 }

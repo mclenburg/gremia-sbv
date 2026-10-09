@@ -1,3 +1,4 @@
+import { trustedIpcEvent } from '../../helpers/trustedIpcEvent.js';
 import { describe, expect, it, vi } from "vitest";
 import { registerGremiaBrIpc } from "../../../electron/ipc/gremiaBrIpc";
 import { IPC_CHANNELS } from "../../../electron/ipc/channels";
@@ -67,7 +68,7 @@ describe("Gremia.BR IPC-Startup-Grenze", () => {
     services.gremiaBrAuth.get.mockResolvedValue({ access: 'vertraulicher Zugang' });
     registerGremiaBrIpc(ipcMain as never, {} as never, services as never);
     const load = handlers.get(IPC_CHANNELS.gremiaBrMeetingRemoteAccessGet)!;
-    const event = { senderFrame: { url: 'file:///app/index.html' } };
+    const event = trustedIpcEvent(ipcMain);
 
     expect(services.gremiaBrAuth.get).not.toHaveBeenCalled();
     await expect(load(event, 'meeting-2')).rejects.toThrow();
@@ -84,7 +85,7 @@ describe("Gremia.BR IPC-Startup-Grenze", () => {
     });
     registerGremiaBrIpc(ipcMain as never, {} as never, services as never);
     const save = handlers.get(IPC_CHANNELS.gremiaBrReferencesCreate)!;
-    const event = { senderFrame: { url: 'file:///app/index.html' } };
+    const event = trustedIpcEvent(ipcMain);
 
     await expect(save(event, { caseId: 'local-case-1', sourceType: 'verfahren', sourceId: 'procedure-2', title: 'Fremd' })).rejects.toThrow();
     expect(services.gremiaBrReferences.createOrUpdate).not.toHaveBeenCalled();
@@ -112,7 +113,7 @@ describe("Gremia.BR IPC-Startup-Grenze", () => {
     });
     registerGremiaBrIpc(ipcMain as never, {} as never, services as never);
     const detail = handlers.get(IPC_CHANNELS.gremiaBrProcedureDetailGet)!;
-    const event = { senderFrame: { url: 'file:///app/index.html' } };
+    const event = trustedIpcEvent(ipcMain);
 
     expect(services.gremiaBrAuth.get).not.toHaveBeenCalled();
     await expect(detail(event, 'procedure-2')).rejects.toThrow();
@@ -140,7 +141,7 @@ describe("Gremia.BR IPC-Startup-Grenze", () => {
     services.gremiaBrAuth.get.mockResolvedValue([]);
     registerGremiaBrIpc(ipcMain as never, {} as never, services as never);
     const list = handlers.get(IPC_CHANNELS.gremiaBrInformationRequestsList)!;
-    const event = { senderFrame: { url: 'file:///app/index.html' } };
+    const event = trustedIpcEvent(ipcMain);
 
     await expect(list(event, 'local-case-1', 'procedure-1')).rejects.toThrow();
     expect(services.gremiaBrAuth.get).not.toHaveBeenCalled();
@@ -159,7 +160,7 @@ describe("Gremia.BR IPC-Startup-Grenze", () => {
     services.gremiaBrAuth.post.mockResolvedValue({ id: 'request-1', procedureId: 'procedure-1', status: 'OPEN', requestedAt: '2026-09-29T12:00:00.000Z', version: 1 });
     registerGremiaBrIpc(ipcMain as never, {} as never, services as never);
     const create = handlers.get(IPC_CHANNELS.gremiaBrInformationRequestCreate)!;
-    const event = { senderFrame: { url: 'file:///app/index.html' } };
+    const event = trustedIpcEvent(ipcMain);
     const input = { caseId: 'local-case-1', procedureId: 'procedure-1', items: 'Unterlage' };
 
     await expect(create(event, input)).rejects.toThrow();
@@ -180,7 +181,7 @@ describe("Gremia.BR IPC-Startup-Grenze", () => {
     services.gremiaBrAuth.post.mockResolvedValue({ id: 'request-1', procedureId: 'procedure-1', status: 'FULFILLED', requestedAt: '2026-09-29T10:00:00.000Z', version: 4 });
     registerGremiaBrIpc(ipcMain as never, {} as never, services as never);
     const complete = handlers.get(IPC_CHANNELS.gremiaBrInformationRequestComplete)!;
-    const event = { senderFrame: { url: 'file:///app/index.html' } };
+    const event = trustedIpcEvent(ipcMain);
     const input = { caseId: 'local-case-1', procedureId: 'procedure-1', requestId: 'request-1', expectedVersion: 3 };
 
     await expect(complete(event, input)).rejects.toThrow();
@@ -201,7 +202,7 @@ describe("Gremia.BR IPC-Startup-Grenze", () => {
     services.gremiaBrAuth.post.mockResolvedValue({ id: 'task-1', title: 'Prüfung', status: 'OPEN', version: 1, subjectType: 'PROCEDURE', subjectId: 'procedure-1' });
     registerGremiaBrIpc(ipcMain as never, {} as never, services as never);
     const create = handlers.get(IPC_CHANNELS.gremiaBrProcedureTaskCreate)!;
-    const event = { senderFrame: { url: 'file:///app/index.html' } };
+    const event = trustedIpcEvent(ipcMain);
     const input = { caseId: 'local-case-1', procedureId: 'procedure-1', title: 'Prüfung' };
 
     await expect(create(event, input)).rejects.toThrow();
@@ -222,7 +223,7 @@ describe("Gremia.BR IPC-Startup-Grenze", () => {
     });
     services.gremiaBrCache.getOverview.mockReturnValue({ ownTasks: [{ id: 'task-1' }] });
     registerGremiaBrIpc(ipcMain as never, {} as never, services as never);
-    const event = { senderFrame: { url: 'file:///app/index.html' } };
+    const event = trustedIpcEvent(ipcMain);
     const detail = handlers.get(IPC_CHANNELS.gremiaBrOwnTaskDetailGet)!;
 
     expect(services.gremiaBrAuth.get).not.toHaveBeenCalled();
@@ -239,7 +240,7 @@ describe("Gremia.BR IPC-Startup-Grenze", () => {
     services.gremiaBrAuth.get.mockResolvedValue({ from: 'OPEN', allowed: ['IN_PROGRESS'] });
     services.gremiaBrAuth.post.mockResolvedValue({ id: 'task-1', title: 'Prüfung', status: 'IN_PROGRESS', version: 4 });
     registerGremiaBrIpc(ipcMain as never, {} as never, services as never);
-    const event = { senderFrame: { url: 'file:///app/index.html' } };
+    const event = trustedIpcEvent(ipcMain);
     const options = handlers.get(IPC_CHANNELS.gremiaBrOwnTaskTransitionsGet)!;
     const transition = handlers.get(IPC_CHANNELS.gremiaBrOwnTaskTransitionPost)!;
 
@@ -274,7 +275,7 @@ describe("Gremia.BR IPC-Startup-Grenze", () => {
       throw new Error(`Unerwarteter Pfad: ${path}`);
     });
     registerGremiaBrIpc(ipcMain as never, {} as never, { ...services, gremiaBrCache: cache } as never);
-    const event = { senderFrame: { url: "file:///app/index.html" } };
+    const event = trustedIpcEvent(ipcMain);
     const refresh = handlers.get(IPC_CHANNELS.gremiaBrCacheRefresh)!;
 
     await refresh(event);
@@ -291,7 +292,7 @@ describe("Gremia.BR IPC-Startup-Grenze", () => {
     const services = createLockedStartupServices();
     services.gremiaBrSettings.saveSettings.mockReturnValue({ enabled: true });
     registerGremiaBrIpc(ipcMain as never, {} as never, services as never);
-    const event = { senderFrame: { url: "file:///app/index.html" } };
+    const event = trustedIpcEvent(ipcMain);
 
     await handlers.get(IPC_CHANNELS.gremiaBrSettingsSave)?.(event, { enabled: true });
     expect(services.gremiaBrCache.clear).toHaveBeenCalledTimes(1);
@@ -308,7 +309,7 @@ describe("Gremia.BR IPC-Startup-Grenze", () => {
     expect(services.gremiaBrWorkspaceActions).not.toHaveBeenCalled();
     expect(handlers.has(IPC_CHANNELS.gremiaBrSettingsGet)).toBe(true);
 
-    await expect(handlers.get(IPC_CHANNELS.gremiaBrDocumentsList)?.({ senderFrame: { url: "file:///app/index.html" } }, 10))
+    await expect(handlers.get(IPC_CHANNELS.gremiaBrDocumentsList)?.(trustedIpcEvent(ipcMain), 10))
       .rejects.toThrow("SECURITY_OPERATION_FAILED");
     expect(services.gremiaBrWorkspaceActions).toHaveBeenCalledTimes(1);
   });

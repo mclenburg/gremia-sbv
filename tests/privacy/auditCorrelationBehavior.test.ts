@@ -48,8 +48,8 @@ describe('audit correlation behavior', () => {
       const records = audit.listForSubject('gremia_br_workspace_action');
       expect(records).toHaveLength(2);
       expect(records.map((record) => JSON.parse(record.metadataJson))).toEqual([
-        { actionType: 'document_shared', correlationId: correlationIds[0], targetSecurityDomain: 'BR' },
-        { actionType: 'document_uploaded', correlationId: correlationIds[0], targetSecurityDomain: 'BR' },
+        { actionType: 'document_shared', correlationId: correlationIds[0] },
+        { actionType: 'document_uploaded', correlationId: correlationIds[0] },
       ]);
       expect(audit.verifyChain()).toMatchObject({ ok: true, checked: 2, issues: [] });
     } finally {

@@ -18,7 +18,10 @@ function readMetaCsp(): string {
 
 describe('Renderer-Sicherheitsgrenze', () => {
   it('erlaubt in der gepackten App nur lokale Navigation und blockiert externe Renderer-Netzwerkziele', () => {
-    expect(isAllowedRendererNavigationUrl('file:///opt/gremia/dist/index.html', true)).toBe(true);
+    const trusted = 'file:///opt/gremia/dist/index.html';
+    expect(isAllowedRendererNavigationUrl(trusted, true, trusted)).toBe(true);
+    expect(isAllowedRendererNavigationUrl(pathToFileURL(path.join(tmpdir(), 'fremd.html')).href, true, trusted)).toBe(false);
+    expect(isAllowedRendererNavigationUrl(pathToFileURL(path.join(tmpdir(), 'index.html')).href, true, trusted)).toBe(false);
     expect(isAllowedRendererNavigationUrl('data:text/html,attack', true)).toBe(false);
     expect(isAllowedRendererNavigationUrl('blob:https://evil.invalid/id', true)).toBe(false);
     expect(isAllowedRendererNavigationUrl('https://evil.invalid/', true)).toBe(false);
@@ -83,3 +86,6 @@ describe('Renderer-Sicherheitsgrenze', () => {
     expect(csp).not.toMatch(/connect-src[^;]*https?:/);
   });
 });
+import path from 'node:path';
+import { tmpdir } from 'node:os';
+import { pathToFileURL } from 'node:url';

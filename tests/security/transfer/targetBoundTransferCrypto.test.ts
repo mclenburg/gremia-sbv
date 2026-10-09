@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { openTestDatabase } from '../../helpers/openTestDatabase';
 import { TransferInstanceIdentityService } from '../../../services/transferInstanceIdentityService';
 import {
+  assertKdfParams,
   decryptTargetBoundTransferPayload,
   encryptTargetBoundTransferPayload,
 } from '../../../services/targetBoundTransferCrypto';
@@ -18,6 +19,19 @@ async function transferIdentity() {
 }
 
 describe('target-bound transfer crypto', () => {
+  it('weist arbeits- und speicherintensive KDF-Parameter vor der Ableitung zurück', () => {
+    for (const params of [
+      { N: 1_073_741_824, r: 8, p: 1, maxmem: 2_147_483_648 },
+      { N: 131_072, r: 1024, p: 1, maxmem: 512 * 1024 * 1024 },
+      { N: 131_072, r: 8, p: 1000, maxmem: 256 * 1024 * 1024 },
+      { N: 131_072, r: 8, p: 1, maxmem: 2_147_483_648 },
+      { N: 131_073, r: 8, p: 1, maxmem: 256 * 1024 * 1024 },
+      { N: '131072', r: 8, p: 1, maxmem: 256 * 1024 * 1024 },
+      { N: 131_072, r: '8', p: 1, maxmem: 256 * 1024 * 1024 },
+      { N: 131_072, r: 8, p: 1, maxmem: '268435456' },
+    ]) expect(() => assertKdfParams(params)).toThrow(/KDF-Parameter/);
+    expect(assertKdfParams({ N: 131_072, r: 8, p: 1, maxmem: 256 * 1024 * 1024 })).toMatchObject({ N: 131_072, r: 8, p: 1 });
+  });
   it.each(['recipient_key_only', 'passphrase_and_recipient_key'] as const)(
     'akzeptiert andere JSON-Feldreihenfolge ohne Integritätsverlust (%s)', async (protectionMode) => {
       const target = await transferIdentity();

@@ -1,13 +1,46 @@
 import { createCipheriv, createHash, randomBytes, scryptSync } from 'node:crypto';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, truncateSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { afterEach, describe, expect, it } from 'vitest';
-import { BackupService, CURRENT_BACKUP_SCRYPT_PARAMS, LEGACY_BACKUP_SCRYPT_PARAMS, type BackupFileOperations } from '../../../services/backupService';
+import { BackupService, CURRENT_BACKUP_SCRYPT_PARAMS, LEGACY_BACKUP_SCRYPT_PARAMS, safePublicBackupError, type BackupFileOperations } from '../../../services/backupService';
+import { gunzipBackupPayload, MAX_BACKUP_ENVELOPE_BYTES } from '../../../services/backupPayloadDecompression';
 import { atomicWriteFileSync } from '../../../services/secureFileOperations';
 
 const PASSPHRASE = 'SehrSichereBackupPassphrase!2026';
+
+describe('datensparsame Backup-Fehler', () => {
+  it('zeigt bei technischen Fehlern keinen internen Pfad an', () => {
+    const privatePath = path.join(path.parse(process.cwd()).root, 'private', 'Max-Mustermann.vault.sqlite');
+    const message = safePublicBackupError(new Error(`EACCES ${privatePath}`));
+    expect(message).toContain('Backup');
+    expect(message).not.toContain('Max-Mustermann');
+  });
+});
+
+describe('begrenzte Backup-Dekompression', () => {
+  it('verwirft stark komprimierte Daten vor der JSON-Auswertung', () => {
+    const compressed = gzipSync(Buffer.alloc(64 * 1024, 65));
+    expect(compressed.length).toBeLessThan(200);
+    expect(() => gunzipBackupPayload(compressed, 1024)).toThrow(/zulässige Größe/);
+    expect(gunzipBackupPayload(compressed, 64 * 1024)).toHaveLength(64 * 1024);
+  });
+
+  it('liest übergroße Backup-Hüllen nicht in den Speicher', () => {
+    const dir = tempDir('gremia-sbv-backup-bound-');
+    try {
+      const file = path.join(dir, 'oversized.gsbvbackup');
+      writeFileSync(file, '');
+      truncateSync(file, MAX_BACKUP_ENVELOPE_BYTES + 1);
+      const result = new BackupService(createSecurityStub(dir) as never).inspectBackup(file, PASSPHRASE);
+      expect(result.ok).toBe(false);
+      expect(result.error).toMatch(/zulässige Größe/);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});
 
 type DbStub = {
   prepare: (sql: string) => { get: () => { value: string } | undefined };
@@ -30,6 +63,7 @@ function createSecurityStub(dataDir: string) {
   return {
     getDataDirectory: () => dataDir,
     getActiveDatabase: () => db,
+    checkpointAuditIntegrityForBackup: () => undefined,
     lock: () => undefined
   };
 }
@@ -132,6 +166,7 @@ describe('backup service behavior', () => {
     expect(envelope.kdfParams.N).toBeGreaterThanOrEqual(131072);
     const inspected = new BackupService(createSecurityStub(dataDir) as never).inspectBackup(target, PASSPHRASE);
     expect(inspected.ok).toBe(true);
+    expect(inspected.warnings).not.toEqual(expect.arrayContaining([expect.stringMatching(/älterer Schlüsselableitung/)]));
     expect(inspected.files?.map((file) => file.relativePath)).toEqual(expect.arrayContaining([
       'gremia-sbv.vault.sqlite',
       'security.json',
@@ -181,9 +216,11 @@ describe('backup service behavior', () => {
     const inspected = service.inspectBackup(legacyFile, PASSPHRASE);
     expect(inspected.ok).toBe(true);
     expect(inspected.fileCount).toBe(3);
+    expect(inspected.warnings).toEqual(expect.arrayContaining([expect.stringMatching(/älterer Schlüsselableitung/)]));
 
     const restored = service.restoreBackup(legacyFile, PASSPHRASE, 'BACKUP WIEDERHERSTELLEN');
     expect(restored.ok).toBe(true);
+    expect(restored.warnings).toEqual(expect.arrayContaining([expect.stringMatching(/älterer Schlüsselableitung/)]));
     expect(readFileSync(path.join(dataDir, 'gremia-sbv.vault.sqlite'), 'utf8')).toBe('legacy-vault');
     expect(existsSync(path.join(dataDir, 'documents'))).toBe(true);
     expect(existsSync(path.join(dataDir, 'exports'))).toBe(true);

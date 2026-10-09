@@ -4,6 +4,7 @@ import type { ComplianceAuditChainStatus, ComplianceDatabaseIntegrityStatus, Com
 import type { CaseDocumentRecord } from "./domain/models/case-document.model";
 import type { CaseHandoverChecklist, CaseHandoverChecklistInput, CaseHandoverCockpit, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult, CaseHandoverReturnDeltaExportInput } from "./domain/models/case-handover.model";
 import type { TransferInstanceIdentity } from "./domain/models/transfer-identity.model";
+import type { EmployerQuotaSettings } from "./domain/models/employer-quota.model";
 import type { SaveTransferRecipientProfileInput, TransferRecipientProfile } from "./domain/models/transfer-recipient-profile.model";
 import type { CaseRecord, CreateCaseInput, LegacyCaseBindingInput, LegacyCaseBindingResult } from "./domain/models/case.model";
 import type {
@@ -567,6 +568,10 @@ declare global {
       templateDefaults: {
         list(): Promise<TemplateDefaultValues>;
         save(values: TemplateDefaultValues): Promise<TemplateDefaultValues>;
+      };
+      employerQuota: {
+        getSettings(): Promise<EmployerQuotaSettings>;
+        saveSettings(settings: EmployerQuotaSettings): Promise<EmployerQuotaSettings>;
       };
       transferIdentity: {
         get(): Promise<TransferInstanceIdentity>;

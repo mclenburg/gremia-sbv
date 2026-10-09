@@ -269,9 +269,17 @@ export class GremiaBrSettingsService implements GremiaBrSettingsStore {
     const selectedBodyName = normalizeOptionalText(input.selectedBodyName) ?? null;
     const selectedOrganizationId = normalizeOptionalText(input.selectedOrganizationId) ?? null;
     const selectedSecurityDomain = normalizeOptionalText(input.selectedSecurityDomain) ?? null;
+    let sameServerOrigin = false;
+    if (existing?.password_secret && existing.server_url && normalizedUrl) {
+      try {
+        sameServerOrigin = new URL(normalizedUrl).origin === new URL(validateGremiaBrBaseUrl(existing.server_url)).origin;
+      } catch {
+        // Eine ungültige Altadresse berechtigt nicht zur Wiederverwendung des Passworts.
+      }
+    }
     const passwordSecret = typeof input.password === 'string' && input.password.length > 0
       ? this.encodeSecret(input.password)
-      : this.migrateSecretIfNeeded(existing?.password_secret);
+      : sameServerOrigin ? this.migrateSecretIfNeeded(existing?.password_secret) : null;
     const relevanceJson = serializeGremiaBrRelevanceSettings(input.relevanceSettings ?? parseGremiaBrRelevanceSettings(existing?.relevance_keywords_json));
 
     this.db().prepare(`

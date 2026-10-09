@@ -1,6 +1,8 @@
 import {
   existsSync,
+  readFileSync,
 } from "node:fs";
+import path from 'node:path';
 import type {
   SecurityStatus,
 } from "../../src/domain/models/security.model.js";
@@ -9,7 +11,42 @@ import { MAX_UNLOCK_DELAY_MS, UNLOCK_DELAY_STEPS } from './securitySupport.js';
 import type { UnlockDelaySnapshot } from './securitySupport.js';
 
 export class UnlockDelayService extends VaultDatabaseRuntime {
+  private unlockDelayLoaded = false;
+
+  private unlockDelayFile(): string {
+    return path.join(this.dataDir, 'unlock-delay.json');
+  }
+
+  private loadUnlockDelay(): void {
+    if (this.unlockDelayLoaded) return;
+    this.unlockDelayLoaded = true;
+    if (!existsSync(this.unlockDelayFile())) return;
+    try {
+      const state: unknown = JSON.parse(readFileSync(this.unlockDelayFile(), 'utf8'));
+      if (!state || typeof state !== 'object') throw new Error('Ungültiger Zustand');
+      const { failedAttempts, blockedUntilEpochMs } = state as Record<string, unknown>;
+      if (!Number.isSafeInteger(failedAttempts) || Number(failedAttempts) < 0 || Number(failedAttempts) > 1_000_000 ||
+          !Number.isSafeInteger(blockedUntilEpochMs) || Number(blockedUntilEpochMs) < 0) {
+        throw new Error('Ungültiger Zustand');
+      }
+      this.failedUnlockAttempts = Number(failedAttempts);
+      this.unlockBlockedUntilEpochMs = Number(blockedUntilEpochMs);
+    } catch {
+      // Ein beschädigter Schutzstatus darf die Sperre nicht stillschweigend aufheben.
+      this.failedUnlockAttempts = 7;
+      this.unlockBlockedUntilEpochMs = Date.now() + MAX_UNLOCK_DELAY_MS;
+    }
+  }
+
+  private persistUnlockDelay(): void {
+    this.fileOperations.atomicWriteFileSync(this.unlockDelayFile(), JSON.stringify({
+      failedAttempts: this.failedUnlockAttempts,
+      blockedUntilEpochMs: this.unlockBlockedUntilEpochMs,
+    }));
+  }
+
   protected currentUnlockDelay(): UnlockDelaySnapshot {
+      this.loadUnlockDelay();
       const now = Date.now();
       const remainingMs = Math.max(0, this.unlockBlockedUntilEpochMs - now);
       if (remainingMs <= 0 && this.unlockBlockedUntilEpochMs !== 0) {
@@ -33,17 +70,21 @@ export class UnlockDelayService extends VaultDatabaseRuntime {
     }
 
   protected resetUnlockDelay(): void {
+      this.loadUnlockDelay();
       this.failedUnlockAttempts = 0;
       this.unlockBlockedUntilEpochMs = 0;
+      this.persistUnlockDelay();
     }
 
   protected recordFailedUnlockAttempt(): UnlockDelaySnapshot {
+      this.loadUnlockDelay();
       this.failedUnlockAttempts += 1;
       const step = UNLOCK_DELAY_STEPS.find((candidate) => this.failedUnlockAttempts >= candidate.attempts);
       if (step) {
         const delayMs = Math.min(step.delayMs, MAX_UNLOCK_DELAY_MS);
         this.unlockBlockedUntilEpochMs = Date.now() + delayMs;
       }
+      this.persistUnlockDelay();
       return this.currentUnlockDelay();
     }
 

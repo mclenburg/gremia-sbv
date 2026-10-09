@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { allowedAuditMetadataFields } from './auditMetadataPolicy.js';
+import { isAllowedAuditPurpose } from './auditPurposePolicy.js';
 
 export const PERSONAL_DATA_AUDIT_HASH_ALGORITHM = 'sha256' as const;
 export const PERSONAL_DATA_AUDIT_CHAIN_VERSION = 1 as const;
@@ -20,6 +21,8 @@ export interface AuditChainPayloadInput {
 
 export interface AuditChainRowInput extends AuditChainPayloadInput {
   entryHash: string;
+  id?: string;
+  entryMac?: string | null;
 }
 
 export type AuditChainIssueKind =
@@ -27,7 +30,10 @@ export type AuditChainIssueKind =
   | 'previous_hash_mismatch'
   | 'entry_hash_mismatch'
   | 'invalid_sequence'
-  | 'invalid_hash';
+  | 'invalid_hash'
+  | 'entry_mac_mismatch'
+  | 'legacy_hash_outside_boundary'
+  | 'anchor_mismatch';
 
 export interface AuditChainIssue {
   kind: AuditChainIssueKind;
@@ -77,8 +83,7 @@ const DIRECT_IDENTIFIER_PATTERNS = [
 
 export function sanitizeAuditPurpose(purpose: string): string {
   const normalized = purpose.trim() || 'SBV-Datenschutzereignis';
-  if (DIRECT_IDENTIFIER_PATTERNS.some((pattern) => pattern.test(normalized))) return 'SBV-Datenschutzereignis';
-  return normalized.slice(0, 240);
+  return isAllowedAuditPurpose(normalized) ? normalized : 'SBV-Datenschutzereignis';
 }
 
 export function sanitizeAuditActor(actor: string): string {
@@ -160,7 +165,7 @@ function isHexSha256(value: string): boolean {
   return /^[a-f0-9]{64}$/i.test(value);
 }
 
-export function verifyAuditHashChain(rows: AuditChainRowInput[]): AuditChainVerificationResult {
+export function verifyAuditHashChain(rows: AuditChainRowInput[], legacyMaxSequence = Number.POSITIVE_INFINITY): AuditChainVerificationResult {
   let previousHash = PERSONAL_DATA_AUDIT_GENESIS_HASH;
   let expectedSequence = 1;
   let latestHash = PERSONAL_DATA_AUDIT_GENESIS_HASH;
@@ -210,7 +215,9 @@ export function verifyAuditHashChain(rows: AuditChainRowInput[]): AuditChainVeri
     };
     const expectedHash = computeAuditEntryHash(hashInput);
     const legacyExpectedHash = computeLegacyAuditEntryHash(hashInput);
-    if (row.entryHash !== expectedHash && row.entryHash !== legacyExpectedHash) {
+    if (row.entryHash === legacyExpectedHash && row.entryHash !== expectedHash && sequence > legacyMaxSequence) {
+      issues.push({ kind: 'legacy_hash_outside_boundary', sequence, message: `Veralteter Audit-Hash nach der Migrationsgrenze bei Sequenz ${sequence}.` });
+    } else if (row.entryHash !== expectedHash && row.entryHash !== legacyExpectedHash) {
       issues.push({
         kind: 'entry_hash_mismatch',
         sequence,

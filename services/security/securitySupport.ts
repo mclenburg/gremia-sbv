@@ -241,10 +241,16 @@ export function formatVaultOpenError(error: unknown): string {
   const message = error instanceof Error ? error.message : String(error);
 
   if (
+    /^(?:Der geschützte Audit-Vertrauensanker fehlt|Die Audit-Kette stimmt nicht|Ungültig(?:er|es) Audit-Anker|Audit-Anker gehört nicht)/.test(message)
+  ) {
+    return 'Die Audit-Integrität konnte nicht bestätigt werden. Tresor wurde nicht entsperrt. Bitte die zusammengehörige Sicherung aufbewahren und wiederherstellen.';
+  }
+
+  if (
     /Migration .* fehlgeschlagen/i.test(message) ||
     /Datenbankschema unvollständig/i.test(message)
   ) {
-    return `Die verschlüsselte Datenbank wurde geöffnet, aber die Schema-Migration ist fehlgeschlagen. ${message} Bitte Backup sichern und den Migrationsstatus prüfen.`;
+    return 'Die verschlüsselte Datenbank wurde geöffnet, aber die Schema-Migration ist fehlgeschlagen. Bitte die vorhandene Sicherung aufbewahren und den Migrationsstatus prüfen.';
   }
 
   if (
@@ -252,12 +258,12 @@ export function formatVaultOpenError(error: unknown): string {
       message,
     )
   ) {
-    return `Die Datenbankdatei konnte mit dem entschlüsselten Schlüssel nicht gelesen werden. Das spricht für ein falsches Passwort, eine falsche Manifest-Datei, eine kopierte Datenbank aus einem anderen Tresor oder eine beschädigte Datenbankdatei. Technische Ursache: ${message}`;
+    return 'Die Datenbankdatei konnte mit dem entschlüsselten Schlüssel nicht gelesen werden. Bitte Passwort, Manifest und zugehörige Tresordatei prüfen und die vorhandene Sicherung aufbewahren.';
   }
 
   if (/Passwortdatei und Datenbestand gehören nicht zusammen/i.test(message)) {
-    return message;
+    return 'Passwortdatei und Datenbestand gehören nicht zusammen. Bitte die Dateien aus derselben Sicherung wiederherstellen.';
   }
 
-  return `Die Datenbank konnte nicht geöffnet werden. Technische Ursache: ${message}`;
+  return 'Die Datenbank konnte nicht geöffnet werden. Bitte Dateizugriff und freien Speicherplatz prüfen; die vorhandene Sicherung aufbewahren.';
 }

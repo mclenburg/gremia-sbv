@@ -7,6 +7,13 @@ import {
 import { AUDIT_SUBJECT_TYPES } from '../../services/auditEventBuilders';
 
 describe('Audit-Metadatenpolicy 0.9.4c', () => {
+  it('schreibt keine frei eingegebene Sicherheitsdomäne ins Audit', () => {
+    const metadata = JSON.parse(normalizeAuditMetadata({
+      actionType: 'document_shared', targetSecurityDomain: 'Vertrauliche Fallakte', status: 'success',
+    }, 'gremia_br_workspace_action'));
+    expect(metadata).toMatchObject({ actionType: 'document_shared', status: 'success' });
+    expect(metadata).not.toHaveProperty('targetSecurityDomain');
+  });
   it('filtert Metadaten anhand der Ereignisfamilie statt über eine globale Zufalls-Whitelist', () => {
     const violationMetadata = normalizeAuditMetadata(
       {

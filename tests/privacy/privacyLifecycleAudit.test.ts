@@ -39,6 +39,8 @@ describe('0.9.1 Datenschutz-Lifecycle und Audit-Härtung', () => {
     expect(sanitizeAuditPurpose('Fall max.mustermann@example.invalid gelöscht')).toBe('SBV-Datenschutzereignis');
     expect(sanitizeAuditPurpose('Person P-12345 anonymisiert')).toBe('SBV-Datenschutzereignis');
     expect(sanitizeAuditPurpose('Fallakte strukturiert anonymisiert')).toBe('Fallakte strukturiert anonymisiert');
+    expect(sanitizeAuditPurpose('Automatische Prüfung alter Klartext-Berichtsexporte abgeschlossen')).toBe('Automatische Prüfung alter Klartext-Berichtsexporte abgeschlossen');
+    expect(sanitizeAuditPurpose('Frau müller ruft an')).toBe('SBV-Datenschutzereignis');
     expect(sanitizeAuditActor('max.mustermann@example.invalid')).toBe('local-sbv-user');
   });
 

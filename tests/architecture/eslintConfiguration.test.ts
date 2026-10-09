@@ -67,9 +67,9 @@ describe('0.9.6-m ESLint- und Freigabevertrag', () => {
     const compile = packageScripts()['build:compile'] ?? '';
     const release = packageScripts()['release:check'] ?? '';
 
-    expect(verify.indexOf('source:cleanup:strict')).toBeGreaterThanOrEqual(0);
+    expect(verify.indexOf('source:cleanup:check')).toBeGreaterThanOrEqual(0);
     expect(verify.indexOf('npm run lint')).toBeGreaterThan(
-      verify.indexOf('source:cleanup:strict'),
+      verify.indexOf('source:cleanup:check'),
     );
     expect(compile).toContain('tsc -p tsconfig.json');
     expect(release).toContain('npm run build:verify');

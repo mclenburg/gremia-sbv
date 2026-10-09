@@ -65,4 +65,19 @@ describe('unlock delay behavior', () => {
     expect(nextFailedAttempt.unlockDelaySeconds).toBeUndefined();
     expect(await service.unlock(PASSWORD)).toMatchObject({ ok: true, unlocked: true });
   });
+
+  it('zählt einen Datenbankfehler nach korrektem Passwort nicht als Fehlversuch', async () => {
+    const dataDir = tempDataDir();
+    createdDirs.push(dataDir);
+    const service = createService(dataDir);
+    await service.setupInitialPassword(PASSWORD);
+    service.lock();
+    vi.spyOn(service as unknown as VaultDatabaseOpener, 'openAndInitializeVaultDatabase')
+      .mockRejectedValue(new Error('Datenbank beschädigt'));
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      expect((await service.unlock(PASSWORD)).ok).toBe(false);
+    }
+    expect(service.status().unlockDelaySeconds).toBeUndefined();
+  });
 });

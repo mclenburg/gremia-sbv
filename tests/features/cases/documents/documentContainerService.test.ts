@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -21,6 +21,7 @@ describe('DocumentContainerService 0.9.4-c-r6', () => {
       });
 
       expect(result.storagePath).toBe(path.join(dir, 'generated-documents', 'sbv-participation-violations', 'doc-1.gsbvdoc'));
+      expect(result.storageReference).toBe('generated-documents/sbv-participation-violations/doc-1.gsbvdoc');
       expect(result.filename).toBe('test.docx');
       expect(result.sizeBytes).toBe(plain.length);
       expect(readFileSync(result.storagePath).subarray(0, 2).toString()).not.toBe('PK');
@@ -33,6 +34,23 @@ describe('DocumentContainerService 0.9.4-c-r6', () => {
         authTag: result.authTag,
         expectedSha256: result.sha256,
       })).resolves.toEqual(plain);
+
+      const relocatedRoot = mkdtempSync(path.join(tmpdir(), 'gremia-doc-relocated-'));
+      try {
+        const relocatedPath = path.join(relocatedRoot, result.storageReference);
+        mkdirSync(path.dirname(relocatedPath), { recursive: true });
+        copyFileSync(result.storagePath, relocatedPath);
+        await expect(service.readEncryptedContainer({
+          storageRoot: relocatedRoot,
+          storagePath: result.storageReference,
+          documentKey: result.documentKey,
+          iv: result.iv,
+          authTag: result.authTag,
+          expectedSha256: result.sha256,
+        })).resolves.toEqual(plain);
+      } finally {
+        rmSync(relocatedRoot, { recursive: true, force: true });
+      }
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -61,6 +79,40 @@ describe('DocumentContainerService 0.9.4-c-r6', () => {
       })).rejects.toThrow(/Dokumentcontainer-ID/);
     } finally {
       rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('verweigert symbolische Ausbrüche und schreibt Container nur mit Besitzerrechten', async () => {
+    const vaultDir = mkdtempSync(path.join(tmpdir(), 'gremia-doc-vault-'));
+    const outsideDir = mkdtempSync(path.join(tmpdir(), 'gremia-doc-outside-'));
+    try {
+      symlinkSync(outsideDir, path.join(vaultDir, 'linked'));
+      const service = new DocumentContainerService();
+      await expect(service.writeEncryptedContainer({
+        plain: Buffer.from('geheim'), storageRoot: vaultDir, subdirectory: 'linked',
+        documentId: 'doc', filename: 'doc.pdf', mimeType: 'application/pdf',
+      })).rejects.toThrow(/außerhalb|symbolisch/);
+
+      const result = await service.writeEncryptedContainer({
+        plain: Buffer.from('geheim'), storageRoot: vaultDir, subdirectory: 'documents',
+        documentId: 'doc', filename: 'doc.pdf', mimeType: 'application/pdf',
+      });
+      if (process.platform !== 'win32') expect(statSync(result.storagePath).mode & 0o777).toBe(0o600);
+      mkdirSync(path.join(vaultDir, 'other'));
+      const movedPath = path.join(vaultDir, 'other', 'doc.gsbvdoc');
+      copyFileSync(result.storagePath, movedPath);
+      await expect(service.readEncryptedContainer({
+        storageRoot: vaultDir, storagePath: movedPath,
+        documentKey: result.documentKey, iv: result.iv, authTag: result.authTag,
+      })).rejects.toThrow();
+      symlinkSync(result.storagePath, path.join(outsideDir, 'link.gsbvdoc'));
+      await expect(service.readEncryptedContainer({
+        storageRoot: outsideDir, storagePath: path.join(outsideDir, 'link.gsbvdoc'),
+        documentKey: result.documentKey, iv: result.iv, authTag: result.authTag,
+      })).rejects.toThrow(/symbolisch|außerhalb/i);
+    } finally {
+      rmSync(vaultDir, { recursive: true, force: true });
+      rmSync(outsideDir, { recursive: true, force: true });
     }
   });
 

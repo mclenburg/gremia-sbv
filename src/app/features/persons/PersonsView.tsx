@@ -10,6 +10,8 @@ import { PersonForm } from './PersonForm';
 import { PersonEditDialog } from './PersonEditDialog';
 import { PersonDetail } from './PersonDetail';
 import { PersonExpiryDashboardCard } from './PersonExpiryDashboardCard';
+import { EmploymentQuotaCard } from './EmploymentQuotaCard';
+import { useEmployerQuotaSettings } from './useEmployerQuotaSettings';
 import { PersonImportWizard } from './PersonImportWizard';
 import { PersonCaseCreateDialog } from './PersonCaseCreateDialog';
 import { PersonPrivacyActionDialog, type PersonPrivacyActionMode } from './PersonPrivacyActionDialog';
@@ -43,6 +45,7 @@ export function PersonsView(props: PersonsViewProps) {
   const [privacyReviews, setPrivacyReviews] = useState<PrivacyReviewItemRecord[]>([]);
   const [privacyReviewLoading, setPrivacyReviewLoading] = useState(false);
   const summary = useMemo(() => summarizePersonDirectory(persons), [persons]);
+  const employerQuota = useEmployerQuotaSettings();
   const selected = persons.find((person) => person.id === selectedId) ?? null;
   const reportMissingTarget = useCallback(() => {
     setError('Die Person zur Frist ist nicht mehr im Verzeichnis vorhanden.');
@@ -101,10 +104,12 @@ export function PersonsView(props: PersonsViewProps) {
           { label: 'Ausgeschieden', value: summary.leftCompany, tone: summary.leftCompany ? 'warning' : 'default' },
         ]}
       />
+      <EmploymentQuotaCard workplaces={employerQuota.workplaces} persons={persons} />
       <PersonToolbar query={query} onQueryChange={setQuery} onOpenImport={() => setImportOpen(true)} onExportIcal={() => void exportIcal()} />
       <ModuleFeedback items={[
         message ? { id: 'persons-message', tone: 'success', message } : null,
-        error ? { id: 'persons-error', tone: 'warning', message: error } : null
+        error ? { id: 'persons-error', tone: 'warning', message: error } : null,
+        employerQuota.error ? { id: 'persons-employer-quota-error', tone: 'warning', message: employerQuota.error } : null,
       ]} />
       <div className="person-workbench-grid" data-e2e="persons-workbench">
         <PersonList persons={filtered} selectedId={selected?.id} onSelect={(person) => setSelectedId(person.id)} onEdit={(person) => { setSelectedId(person.id); setPersonEditOpen(true); }} onDelete={(person) => { setSelectedId(person.id); setPersonPrivacyAction('delete'); }} onCreatePerson={() => setPersonCreateOpen(true)} onImportPersons={() => setImportOpen(true)} />

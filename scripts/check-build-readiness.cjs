@@ -195,12 +195,15 @@ function validateCleanup(pkg) {
   expect(pkg.scripts['source:cleanup'] === 'node scripts/cleanup-obsolete-files.cjs', 'source:cleanup Script fehlt oder ist verändert.');
   expect(pkg.scripts['source:cleanup:plan'] === 'node scripts/cleanup-obsolete-files.cjs --plan --verbose', 'source:cleanup:plan muss einen nachvollziehbaren Dry-Run liefern.');
   expect(pkg.scripts['source:cleanup:dry-run'] === pkg.scripts['source:cleanup:plan'], 'source:cleanup:dry-run muss Alias des Cleanup-Plans sein.');
+  expect(pkg.scripts['source:cleanup:check'] === 'node scripts/cleanup-obsolete-files.cjs --check --verbose', 'source:cleanup:check muss vorhandene Cleanup-Ziele ohne Löschen melden.');
   expect(pkg.scripts['source:cleanup:strict'] === 'node scripts/cleanup-obsolete-files.cjs --strict-delete --verbose', 'source:cleanup:strict muss Löschfehler hart behandeln.');
   expect(pkg.scripts['test:coverage'] === 'vitest run --coverage', 'test:coverage darf den bereits im Verify-Schritt ausgeführten Cleanup nicht wiederholen.');
 
   const verify = pkg.scripts['build:verify'];
   const compile = pkg.scripts['build:compile'];
-  expect(typeof verify === 'string' && verify.includes('npm run source:cleanup:strict'), 'build:verify muss den strikten Cleanup ausführen.');
+  expect(typeof verify === 'string' && verify.includes('npm run source:cleanup:check') && !verify.includes('source:cleanup:strict'), 'build:verify muss Cleanup-Ziele ohne Löschen prüfen.');
+  expect(pkg.scripts.pretest?.includes('npm run source:cleanup:check'), 'pretest darf keine Quelldateien löschen.');
+  expect(pkg.scripts['rc:check']?.includes('npm run source:cleanup:check'), 'rc:check darf keine Quelldateien löschen.');
   expect(typeof verify === 'string' && verify.includes('npm run lint') && verify.includes('npm run test:coverage'), 'build:verify muss Qualitätsgates und Coverage ausführen.');
   expect(typeof compile === 'string' && compile.includes('tsc -p tsconfig.json') && compile.includes('vite build'), 'build:compile muss Renderer und TypeScript kompilieren.');
   expect(compile.includes('tsc -p tsconfig.electron.json') && compile.includes('build-artifact-state.cjs write'), 'build:compile muss Electron kompilieren und den Artefaktzustand schreiben.');

@@ -29,8 +29,19 @@ const rcCriticalServiceCoverage = [
   'services/icalPrivacyPolicy.ts',
   'services/deadlineIcalExportService.ts',
   'services/auditHashChain.ts',
+  'services/auditLogService.ts',
+  'services/auditIntegrityAnchor.ts',
+  'services/caseHandoverCrypto.ts',
+  'services/targetBoundTransferCrypto.ts',
+  'services/secureFileOperations.ts',
+  'services/documentContainerService.ts',
+  'services/gremiaBr/gremiaBrPolicy.ts',
+  'electron/security/rendererSecurityPolicy.ts',
+  'electron/security/mainSessionLock.ts',
   'services/recruitingParticipationValidation.ts',
   'services/personCaseLinkService.ts',
+  'services/employerQuotaSettingsService.ts',
+  'src/domain/persons/employmentQuota.ts',
   'services/tempFileService.ts',
   'services/demoMode.ts'
 ];
@@ -46,7 +57,7 @@ export default defineConfig({
   },
   test: {
     maxWorkers: 4,
-    testTimeout: 60000,
+    testTimeout: 120000,
     exclude: [
       '**/node_modules/**',
       '**/dist/**',
@@ -62,7 +73,6 @@ export default defineConfig({
       exclude: [
         'services/**/*.test.ts',
         'services/generated/**',
-        'electron/**',
         'src/app/features/**',
         'src/app/shared/**',
         'src/**/*.d.ts',

@@ -2,6 +2,7 @@ import type { IpcInvoker } from "./invoke.js";
 import { IPC_CHANNELS } from "../ipc/channels.js";
 import type { CompleteGremiaBrInformationRequestInput, CreateGremiaBrCaseSummaryInput, CreateGremiaBrExternalReferenceInput, CreateGremiaBrInformationRequestInput, CreateGremiaBrProcedureTaskInput, GremiaBrAgendaChanges, GremiaBrAgendaItemRequestResult, GremiaBrCachedOverview, GremiaBrCacheRefreshResult, GremiaBrConnectionTestResult, GremiaBrCreatedPdfDocument, GremiaBrDashboardOverview, GremiaBrDocumentDetail, GremiaBrDocumentHit, GremiaBrDocumentTransferResult, GremiaBrExternalReferenceRecord, GremiaBrGeneratedPdfDocument, GremiaBrInformationRequest, GremiaBrInlineSuggestion, GremiaBrOwnTaskDetail, GremiaBrProcedureDetail, GremiaBrPublicSettings, GremiaBrRelevanceSettings, GremiaBrSettingsInput, GremiaBrTaskTransitionInput, GremiaBrTaskTransitionOptions, GremiaBrWorkspaceActionRecord, GremiaBrWorkspaceBody, RequestGremiaBrAgendaItemInput, TransferGremiaBrDocumentInput } from "../../src/domain/models/gremia-br.model.js";
 import type { TemplateDefaultValues } from "../../src/domain/models/template-default.model.js";
+import type { EmployerQuotaSettings } from "../../src/domain/models/employer-quota.model.js";
 import type { CaseDocumentRecord } from "../../src/domain/models/case-document.model.js";
 import type { GremiaBrDocumentImportInput, GremiaBrManagedDocument, GremiaBrOwnShare, GremiaBrShareCreateInput, GremiaBrShareRevokeInput } from "../../src/domain/models/gremia-br.model.js";
 import type { TransferInstanceIdentity } from "../../src/domain/models/transfer-identity.model.js";
@@ -9,6 +10,12 @@ import type { SaveTransferRecipientProfileInput, TransferRecipientProfile } from
 
 export function createSettingsApi(invokeIpc: IpcInvoker) {
   return {
+    employerQuota: {
+      getSettings: (): Promise<EmployerQuotaSettings> =>
+        invokeIpc(IPC_CHANNELS.employerQuotaSettingsGet),
+      saveSettings: (settings: EmployerQuotaSettings): Promise<EmployerQuotaSettings> =>
+        invokeIpc(IPC_CHANNELS.employerQuotaSettingsSave, settings),
+    },
   gremiaBr: {
       getSettings: (): Promise<GremiaBrPublicSettings> =>
         invokeIpc(IPC_CHANNELS.gremiaBrSettingsGet),

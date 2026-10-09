@@ -39,6 +39,11 @@ export class SecuritySessionService extends VaultCredentialService {
           reason === "auto" ? "Tresor automatisch gesperrt" : "Tresor gesperrt",
           { reason },
         );
+        try {
+          this.checkpointAuditIntegrity();
+        } catch {
+          console.error('Audit-Integritätsprüfung beim Sperren fehlgeschlagen. Vertrauensanker wurde nicht fortgeschrieben.');
+        }
       }
       this.unlocked = false;
       this.destroyActiveDatabaseKey();
@@ -114,4 +119,9 @@ export class SecuritySessionService extends VaultCredentialService {
   getDataDirectory(): string {
       return this.dataDir;
     }
+
+  checkpointAuditIntegrityForBackup(): void {
+    if (!this.unlocked) throw new Error('Tresor ist gesperrt; Audit-Integrität kann nicht bestätigt werden.');
+    this.checkpointAuditIntegrity();
+  }
 }

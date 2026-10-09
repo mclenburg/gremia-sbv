@@ -37,7 +37,7 @@ npm run build:github
 
 Der Build ist in drei eindeutige Phasen getrennt:
 
-1. `build:verify` führt Cleanup, Readiness, Qualitätsgates, Lint und Coverage genau einmal aus.
+1. `build:verify` prüft ausstehende Cleanup-Ziele ohne Dateien zu löschen und führt Readiness, Qualitätsgates, Lint und Coverage genau einmal aus.
 2. `build:compile` erzeugt Renderer- und Electron-Artefakte und schreibt anschließend ein SHA-256-Manifest unter `maintenance/build-state/compiled-artifacts.json`.
 3. `build:package:*` prüft dieses Manifest und verweigert Packaging, wenn Quellen, Buildkonfiguration oder kompilierte Artefakte seit dem Compile verändert wurden.
 
@@ -91,7 +91,7 @@ npx tsc -p tsconfig.json --noEmit
 
 ## Android
 
-Die Android-Begleit-App wird im Release-Workflow separat getestet, signiert und geprüft. Der Build benötigt die in der [Begleit-App-Dokumentation](../companion-app/README.md) beschriebenen Signing-Secrets; ein abweichendes Schlüsselpasswort ist optional. Debug-Builds kommen ohne Release-Schlüssel aus.
+Die Android-Begleit-App wird im Release-Workflow separat getestet, signiert und geprüft. Der Build benötigt die in der [Begleit-App-Dokumentation](../companion-app/README.md) beschriebenen Signing-Secrets; ein abweichendes Schlüsselpasswort ist optional. Debug-Builds kommen ohne Release-Schlüssel aus. Der Workflow erzeugt außerdem eine SPDX-Stückliste der produktiven npm-Abhängigkeiten aus der Lockdatei und hängt sie an den Draft-Release.
 
 ## macOS
 

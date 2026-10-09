@@ -81,7 +81,7 @@ export class GeneratedDocumentStoreService {
           documentKindForSource(input.source),
           input.templateVersion?.trim() || null,
           title,
-          container.storagePath,
+          container.storageReference,
           container.filename,
           container.mimeType,
           container.sha256,

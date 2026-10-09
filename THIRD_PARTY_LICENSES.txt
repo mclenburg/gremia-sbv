@@ -563,9 +563,6 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - app-builder-lib@26.15.3
   License: MIT
   License text: LICENSES/MIT.txt
-- argon2-browser@1.18.0
-  License: MIT
-  License text: LICENSES/MIT.txt
 - argparse@2.0.1
   License: Python-2.0
   License text: LICENSES/Python-2.0.txt

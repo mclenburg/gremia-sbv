@@ -1,10 +1,10 @@
-import { mkdtempSync, statSync, utimesSync, existsSync } from 'node:fs';
+import { mkdtempSync, statSync, utimesSync, existsSync, symlinkSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { rmSync } from 'node:fs';
 import { TempFileService } from '../../../services/tempFileService';
-import { isOwnerOnlyFileMode, posixModeBits, supportsPosixPermissionBits } from '../../../services/secureFilePermissions';
+import { isOwnerOnlyDirectoryMode, isOwnerOnlyFileMode, posixModeBits, supportsPosixPermissionBits } from '../../../services/secureFilePermissions';
 
 const roots: string[] = [];
 function createService(): TempFileService {
@@ -23,7 +23,11 @@ describe('Temporäre Dateien – Lebenszyklus und Sicherheitsverhalten', () => {
     expect(path.dirname(target)).toBe(service.scopeDir('document-preview'));
     expect(path.basename(target)).not.toMatch(/[/?\\]/);
     expect(statSync(target).isFile()).toBe(true);
-    if (supportsPosixPermissionBits()) expect(isOwnerOnlyFileMode(posixModeBits(target))).toBe(true);
+    if (supportsPosixPermissionBits()) {
+      expect(isOwnerOnlyFileMode(posixModeBits(target))).toBe(true);
+      expect(isOwnerOnlyDirectoryMode(posixModeBits(service.root))).toBe(true);
+      expect(isOwnerOnlyDirectoryMode(posixModeBits(service.scopeDir('document-preview')))).toBe(true);
+    }
     expect(service.status()).toMatchObject({ remaining: 1, bytesRemaining: 6, failed: 0 });
   });
 
@@ -53,5 +57,13 @@ describe('Temporäre Dateien – Lebenszyklus und Sicherheitsverhalten', () => {
     expect(existsSync(oldFile)).toBe(false);
     expect(existsSync(newFile)).toBe(true);
     expect(service.status().oldestRemainingAt).toBeDefined();
+  });
+
+  it('folgt beim Bereinigen keinem symbolischen tmp-Verzeichnis', () => {
+    const service = createService();
+    const outside = mkdtempSync(path.join(os.tmpdir(), 'gremia-temp-outside-'));
+    roots.push(outside);
+    symlinkSync(outside, service.root);
+    expect(() => service.cleanup()).toThrow(/symbolisch/i);
   });
 });

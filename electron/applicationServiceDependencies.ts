@@ -42,6 +42,7 @@ export { SbvParticipationViolationTemplateService } from '../services/sbvPartici
 export { SbvResourceService } from '../services/sbvResourceService.js';
 export type { SecurityService } from '../services/securityService.js';
 export { TemplateDefaultService } from '../services/templateDefaultService.js';
+export { EmployerQuotaSettingsService } from '../services/employerQuotaSettingsService.js';
 export { TemplateService } from '../services/templateService.js';
 export { TransferInstanceIdentityService } from '../services/transferInstanceIdentityService.js';
 export { TransferRecipientProfileService } from '../services/transferRecipientProfileService.js';

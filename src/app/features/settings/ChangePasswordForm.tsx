@@ -9,11 +9,13 @@ export function ChangePasswordForm() {
   const [newPassword, setNewPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [warning, setWarning] = useState("");
   const [error, setError] = useState("");
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage("");
+    setWarning("");
     setError("");
 
     const validationError = validatePassword(newPassword);
@@ -49,6 +51,7 @@ export function ChangePasswordForm() {
       setNewPassword("");
       setRepeatPassword("");
       setMessage("Passwort wurde geändert.");
+      setWarning(result.warning ?? "");
     } catch (error) {
       recordRendererDiagnostic("error", "Passwortänderung konnte nicht verarbeitet werden.", error);
       setError(
@@ -90,6 +93,12 @@ export function ChangePasswordForm() {
       {message && (
         <div className="industrial-message industrial-message-ok" role="status">
           {message}
+        </div>
+      )}
+
+      {warning && (
+        <div className="industrial-message industrial-message-warning" role="status">
+          {warning}
         </div>
       )}
 

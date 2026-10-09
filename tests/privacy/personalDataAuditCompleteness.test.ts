@@ -7,6 +7,7 @@ import { ensurePersonalDataAuditSchema, PersonalDataAuditLogService } from '../.
 import { ensureKnowledgeSchema, KnowledgeService } from '../../services/knowledgeService';
 import { GremiaBrExternalReferenceService } from '../../services/gremiaBr/gremiaBrExternalReferenceService';
 import { VaultDatabaseRuntime } from '../../services/security/vaultDatabaseRuntime';
+import type { VaultManifest } from '../../services/securityArtifactValidation';
 import type { DatabaseAdapter } from '../../services/databaseService';
 import { openTestDatabase } from '../helpers/openTestDatabase';
 
@@ -144,6 +145,7 @@ describe('Phase 4 – VaultDatabaseRuntime besitzt echte Verhaltensabdeckung', (
     const db = await openTestDatabase();
 
     class TestVaultDatabaseRuntime extends VaultDatabaseRuntime {
+      protected readManifest(): VaultManifest { return { vaultId: '7'.repeat(32) } as VaultManifest; }
       public schemaPath(): string { return this.resolveSchemaPath(); }
       public migrationsPath(): string { return this.resolveMigrationsDir(); }
       public open(databaseKey: Buffer): Promise<void> { return this.openAndInitializeVaultDatabase(databaseKey); }

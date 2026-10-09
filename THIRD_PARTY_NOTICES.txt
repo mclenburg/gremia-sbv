@@ -1567,15 +1567,6 @@ Homepage: https://github.com/electron-userland/electron-builder
 Copyright notices: none detected in package metadata or distributed notice files.
 License text: LICENSES/MIT.txt
 
-argon2-browser@1.18.0
-License: MIT
-Repository: git+https://github.com/antelle/argon2-browser.git
-Homepage: https://github.com/antelle/argon2-browser#readme
-Copyright notices:
-- Copyright © 2021 Antelle
-- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-License text: LICENSES/MIT.txt
-
 argparse@2.0.1
 License: Python-2.0
 Repository: nodeca/argparse

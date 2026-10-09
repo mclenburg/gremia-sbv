@@ -152,7 +152,7 @@ export class VaultSetupUnlockService extends UnlockDelayService {
           this.writeStore(store);
           await this.openAndInitializeVaultDatabase(databaseKey);
           this.touchManifest(new Date().toISOString(), true);
-        } catch (error) {
+        } catch {
           this.databaseService.close(); this.tempFiles.cleanup();
           this.unlocked = false;
           this.destroyActiveDatabaseKey();
@@ -165,7 +165,7 @@ export class VaultSetupUnlockService extends UnlockDelayService {
             ok: false,
             initialized: false,
             unlocked: false,
-            error: `Die verschlüsselte Datenbank konnte nicht initialisiert werden: ${error instanceof Error ? error.message : String(error)}`,
+            error: 'Die verschlüsselte Datenbank konnte nicht initialisiert werden. Bitte Dateizugriff und freien Speicherplatz prüfen; die vorhandene Sicherung aufbewahren.',
           };
         }
     
@@ -221,7 +221,7 @@ export class VaultSetupUnlockService extends UnlockDelayService {
         this.commitSecurityArtifacts(nextStore, this.withManifestTimestamp(this.readManifest(), now));
       }
 
-  protected async performUnlock(password: string): Promise<SecurityResult> {
+  protected async performUnlock(password: string, options: { auditUnlock?: boolean; cleanupLegacy?: boolean } = {}): Promise<SecurityResult> {
       const activeDelay = this.currentUnlockDelay();
       if (activeDelay.remainingSeconds > 0) {
         return {
@@ -237,8 +237,8 @@ export class VaultSetupUnlockService extends UnlockDelayService {
       let store: PasswordStore;
       try {
         store = this.readStore();
-      } catch (error) {
-        return { ok: false, initialized: true, unlocked: false, error: error instanceof Error ? error.message : "Die Passwortdatei konnte nicht gelesen werden." };
+      } catch {
+        return { ok: false, initialized: true, unlocked: false, error: 'Die Passwortdatei ist beschädigt oder konnte nicht geprüft werden. Bitte die vorhandene Sicherung aufbewahren.' };
       }
   
       if (!this.hasVaultManifest()) {
@@ -253,8 +253,8 @@ export class VaultSetupUnlockService extends UnlockDelayService {
   
       try {
         this.assertStoreMatchesManifest(store);
-      } catch (error) {
-        return { ok: false, initialized: true, unlocked: false, error: error instanceof Error ? error.message : "Das Tresor-Manifest konnte nicht gelesen werden." };
+      } catch {
+        return { ok: false, initialized: true, unlocked: false, error: 'Das Tresor-Manifest konnte nicht gelesen oder geprüft werden. Bitte die vorhandene Sicherung aufbewahren.' };
       }
   
       const verifier = derivePasswordVerifier(password, store.salt, store.kdfParams);
@@ -286,33 +286,27 @@ export class VaultSetupUnlockService extends UnlockDelayService {
         this.destroyActiveDatabaseKey();
         this.databaseKey = databaseKey;
         this.unlocked = true;
+        const failedUnlockAttempts = this.failedUnlockAttempts;
         this.resetUnlockDelay();
         this.upgradePasswordKdfIfNeeded(store, password, databaseKey);
-        this.auditSecurityEvent("unlock", "Tresor per Passwort entsperrt");
-        const cleanup = this.cleanupLegacyPlaintextExports(databaseKey);
+        if (options.auditUnlock !== false) this.auditSecurityEvent("unlock", "Tresor per Passwort entsperrt", { failedUnlockAttempts });
+        const cleanup = options.cleanupLegacy === false ? undefined : this.cleanupLegacyPlaintextExports(databaseKey);
         return {
           ok: true,
           initialized: true,
           unlocked: true,
-          warning: buildLegacyPlaintextCleanupWarning(cleanup),
+          warning: cleanup ? buildLegacyPlaintextCleanupWarning(cleanup) : undefined,
         };
       } catch (error) {
         this.unlocked = false;
         this.destroyActiveDatabaseKey();
         this.databaseService.close();
         this.tempFiles.cleanup();
-        const delay = this.recordFailedUnlockAttempt();
         return {
           ok: false,
           initialized: true,
           unlocked: false,
-          error: `${formatVaultOpenError(error)}${delay.remainingSeconds > 0 ? ` ${this.buildUnlockDelayError(delay)}` : ""}`,
-          ...(delay.remainingSeconds > 0
-            ? {
-                unlockDelaySeconds: delay.remainingSeconds,
-                unlockAvailableAt: new Date(delay.blockedUntilEpochMs).toISOString(),
-              }
-            : {}),
+          error: formatVaultOpenError(error),
         };
       }
     }

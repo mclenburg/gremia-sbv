@@ -84,9 +84,10 @@ describe('GeneratedDocumentStoreService', () => {
         source: 'template',
       });
       expect(row?.document_kind).toBe('generic');
-      expect(String(row?.storage_path)).toContain(`${path.sep}generated${path.sep}template${path.sep}`);
+      expect(String(row?.storage_path)).toContain(`generated${path.sep}template${path.sep}`);
       expect(String(row?.storage_path)).toMatch(/\.gsbvdoc$/);
-      expect(fs.readFileSync(String(row?.storage_path))).not.toEqual(plain);
+      expect(path.isAbsolute(String(row?.storage_path))).toBe(false);
+      expect(fs.readFileSync(path.join(storageRoot, String(row?.storage_path)))).not.toEqual(plain);
       await expect(store.read(record.id)).resolves.toEqual(plain);
     } finally {
       fs.rmSync(storageRoot, { recursive: true, force: true });

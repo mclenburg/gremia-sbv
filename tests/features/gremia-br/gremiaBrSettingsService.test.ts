@@ -98,6 +98,25 @@ describe('Gremia.BR Einstellungen 0.9.2-A', () => {
     expect(db.row?.api_mode).toBe('gremia_br_v2');
   });
 
+  it('bindet ein gespeichertes Passwort an den Server-Ursprung', () => {
+    const db = new GremiaBrSettingsDb();
+    const service = new GremiaBrSettingsService(() => db, () => TEST_DATABASE_KEY);
+    service.saveSettings({ enabled: true, serverUrl: 'https://br.example.invalid/app', username: 'sbv', password: 'streng-geheim' });
+    service.saveSettings({ enabled: true, serverUrl: 'https://br.example.invalid/neu', username: 'sbv' });
+    expect(service.getServiceSettings().password).toBe('streng-geheim');
+
+    const moved = service.saveSettings({ enabled: true, serverUrl: 'https://neu.example.invalid/app', username: 'sbv' });
+    expect(moved.hasStoredCredentials).toBe(false);
+    expect(service.getServiceSettings().password).toBe('');
+    expect(db.row?.password_secret).toBeNull();
+
+    service.saveSettings({ enabled: true, serverUrl: 'https://neu.example.invalid/app', username: 'sbv', password: 'neu-geheim' });
+    expect(service.getServiceSettings().password).toBe('neu-geheim');
+    db.row!.server_url = 'http://alter-server.example.invalid';
+    service.saveSettings({ enabled: true, serverUrl: 'https://neu.example.invalid/app', username: 'sbv', password: 'erneuert' });
+    expect(service.getServiceSettings().password).toBe('erneuert');
+  });
+
   it('speichert den Gremia.BR-2-Arbeitsbereich als fachliche Konfiguration ohne Secret-Leakage', () => {
     const db = new GremiaBrSettingsDb();
     const service = new GremiaBrSettingsService(() => db, () => TEST_DATABASE_KEY);
@@ -154,6 +173,7 @@ describe('Gremia.BR Einstellungen 0.9.2-A', () => {
   it('erzwingt HTTPS außer für localhost und blockiert nicht freigegebene Endpunkte', () => {
     expect(validateGremiaBrBaseUrl('https://br.example.invalid/app/')).toBe('https://br.example.invalid/app');
     expect(validateGremiaBrBaseUrl('http://localhost:4200')).toBe('http://localhost:4200');
+    expect(validateGremiaBrBaseUrl('http://[::1]:4200')).toBe('http://[::1]:4200');
     expect(() => validateGremiaBrBaseUrl('http://br.example.invalid')).toThrow(/HTTPS/);
 
     expect(checkGremiaBrEndpoint('GET', '/search').allowed).toBe(false);

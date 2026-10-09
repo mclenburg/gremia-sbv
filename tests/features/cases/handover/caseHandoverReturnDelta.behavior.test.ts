@@ -5,6 +5,10 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { DatabaseAdapter } from '../../../../services/databaseService';
 import { MigrationService } from '../../../../services/migrationService';
 import { CaseHandoverService } from '../../../../services/caseHandoverService';
+import { CaseHandoverReturnDeltaService } from '../../../../services/caseHandoverReturnDeltaService';
+import { recordMobileCompanionSnapshotExport } from '../../../../services/caseHandoverExportLedger';
+import type { MobileCompanionSnapshotPayload } from '../../../../src/domain/models/mobile-companion.model';
+import type { PackagePayload } from '../../../../services/caseHandoverSupport';
 import { CaseHandoverChecklistService } from '../../../../services/caseHandoverChecklistService';
 import { TransferInstanceIdentityService } from '../../../../services/transferInstanceIdentityService';
 import { storeImportedCaseDocument } from '../../../../services/caseHandoverImportedDocumentStore';
@@ -57,6 +61,27 @@ function countDocuments(database: DatabaseAdapter, caseId: string): number {
 }
 
 describe('Fallübergabe P1 – Rückgabe-Delta', () => {
+  it('verweigert ein Rückgabe-Delta mit einer mobilen Momentaufnahme als Ausgangspaket', () => {
+    insertSourceCase(sourceDb, 'source-case-1');
+    const snapshot = {
+      packageId: 'mobile_snapshot_1', createdAt: '2026-09-05T08:00:00.000Z',
+      targetInstanceId: 'desktop-1', schemaVersion: 1,
+      cases: [{ id: 'source-case-1' }], deadlines: [],
+    } as unknown as MobileCompanionSnapshotPayload;
+    recordMobileCompanionSnapshotExport(sourceDb, snapshot, 1, 'a'.repeat(64));
+    const delta: PackagePayload = {
+      format: 'gremia-sbv-case-handover', version: 2, packageId: 'handover_forged_delta',
+      createdAt: '2026-09-06T08:00:00.000Z', purpose: 'Rückgabe', packageType: 'return_delta',
+      sourcePackageId: snapshot.packageId,
+      cases: [{ ref: 'source-case-1', data: { id: 'source-case-1', case_id: 'source-case-1', measure_id: '', protected_person_id: null } }],
+      protectedPersons: [], notes: [], measures: [], measureNotes: [], deadlines: [], documents: [],
+    };
+    const service = new CaseHandoverReturnDeltaService(sourceDb, () => path.join(tempRoot, 'source-data'));
+    expect(() => service.importPayload(delta, { filePath: '', passphrase: '', mode: 'merge_existing' }))
+      .toThrow(/Ausgangspaket.*nicht bekannt/);
+    expect(countNotes(sourceDb, 'source-case-1')).toBe(1);
+    expect(sourceDb.prepare<{ status: string }>('SELECT status FROM case_handover_exports WHERE package_id = ?').get(snapshot.packageId)?.status).toBe('open');
+  });
   it('ordnet ein Rückgabe-Delta über das Ausgangspaket der ursprünglichen Fallakte zu', async () => {
     insertSourceCase(sourceDb, 'source-case-1');
     const source = new CaseHandoverService(sourceDb, () => path.join(tempRoot, 'source-data'));
@@ -179,7 +204,7 @@ describe('Fallübergabe P1 – Rückgabe-Delta', () => {
     ).get();
     expect(auditEntry).toMatchObject({
       action: 'import',
-      purpose: 'SBV-Datenschutzereignis',
+      purpose: 'Verschlüsseltes Fallübergabepaket importiert.',
     });
     expect(JSON.parse(auditEntry?.metadata_json ?? '{}')).toMatchObject({
       packageId: delta.packageId,

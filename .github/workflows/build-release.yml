@@ -12,7 +12,7 @@ on:
         type: string
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: tagged-release-${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
@@ -32,12 +32,12 @@ jobs:
       prerelease: ${{ steps.version.outputs.prerelease }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: .node-version
           cache: npm
@@ -70,12 +70,12 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: .node-version
           cache: npm
@@ -92,9 +92,28 @@ jobs:
       - name: Run shared security, license and build quality gates
         run: npm run build:quality
 
+      - name: Generate release dependency SBOM
+        shell: bash
+        env:
+          PACKAGE_VERSION: ${{ needs.verify-tag.outputs.package_version }}
+        run: |
+          set -euo pipefail
+          mkdir -p release-metadata
+          npm sbom --package-lock-only --omit=dev --sbom-format spdx \
+            > "release-metadata/Gremia.SBV-${PACKAGE_VERSION}-sbom.spdx.json"
+
+      - name: Upload release dependency SBOM
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-dependency-sbom
+          path: release-metadata/*-sbom.spdx.json
+          if-no-files-found: error
+
   prepare-release:
     name: Prepare draft GitHub release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     needs:
       - verify-tag
       - quality-gates
@@ -127,25 +146,48 @@ jobs:
 
           gh release create "${release_args[@]}"
 
+      - name: Download release dependency SBOM
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: release-dependency-sbom
+          path: release-metadata
+
+      - name: Attach release dependency SBOM
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PACKAGE_VERSION: ${{ needs.verify-tag.outputs.package_version }}
+        run: |
+          set -euo pipefail
+          gh release upload "${RELEASE_TAG}" \
+            "release-metadata/Gremia.SBV-${PACKAGE_VERSION}-sbom.spdx.json" \
+            --clobber --repo "${GH_REPO}"
+
   build-android:
     name: Build signed Android APK
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
     needs: [verify-tag, quality-gates, prepare-release]
     timeout-minutes: 45
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: .node-version
           cache: npm
 
       - name: Setup Java
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
           distribution: temurin
           java-version: '21'
@@ -164,6 +206,11 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: node scripts/build-android-release.cjs
 
+      - name: Attest Android release artifacts
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: release/*.apk
+
       - name: Replace Android assets in release
         shell: bash
         env:
@@ -180,6 +227,11 @@ jobs:
   build-artifacts:
     name: Build ${{ matrix.label }}
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
     needs:
       - verify-tag
       - quality-gates
@@ -198,12 +250,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: .node-version
           cache: npm
@@ -229,6 +281,22 @@ jobs:
         if: matrix.platform == 'linux'
         run: xvfb-run -a npm run release:platform:linux
 
+      - name: Install isolated Playwright tools and Chromium
+        if: matrix.platform == 'linux'
+        run: npm run test:e2e:setup
+
+      - name: Run browser E2E tests
+        if: matrix.platform == 'linux'
+        env:
+          GREMIA_SBV_E2E_WORKERS: '2'
+        run: npm run test:e2e
+
+      - name: Run packaged product E2E tests
+        if: matrix.platform == 'linux'
+        env:
+          GREMIA_SBV_FULL_E2E_WORKERS: '1'
+        run: xvfb-run -a npm run test:e2e:full-product:reuse
+
       - name: Package Windows portable EXE + MSI
         if: matrix.platform == 'windows'
         run: node scripts/build-platform.cjs win
@@ -236,6 +304,11 @@ jobs:
       - name: Verify Windows artifacts, portable startup, paths and backup/restore
         if: matrix.platform == 'windows'
         run: npm run release:platform:windows
+
+      - name: Attest verified release artifacts
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: release/*
 
       - name: Replace Linux asset in release
         if: matrix.platform == 'linux'

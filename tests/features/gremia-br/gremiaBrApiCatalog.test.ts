@@ -3,6 +3,17 @@ import { GREMIA_BR_API_CATALOG, findGremiaBrEndpointDefinition, toGremiaBrEndpoi
 import { checkGremiaBrEndpoint, isGremiaBrReadOnlyEndpoint, isGremiaBrWorkspaceActionEndpoint } from '../../../services/gremiaBr/gremiaBrPolicy';
 
 describe('Gremia.BR API-Katalog 0.9.2-G', () => {
+  it('weist nicht-kanonische Pfade vor der Endpunktfreigabe zurück', () => {
+    for (const path of [
+      '/api/v1/bodies/..', '/api/v1/bodies/%2e%2e', '/api/v1/bodies/a%2Fb',
+      '/api/v1/bodies/a%5Cb', '/api//v1/bodies/body-1', '/api/v1/bodies/./body-1',
+      '/api/v1/bodies/body-1\\..',
+    ]) {
+      expect(checkGremiaBrEndpoint('GET', path).allowed, path).toBe(false);
+      expect(isGremiaBrReadOnlyEndpoint('GET', path), path).toBe(false);
+    }
+    expect(checkGremiaBrEndpoint('GET', '/api/v1/bodies/body-1').allowed).toBe(true);
+  });
   it('zentralisiert lesende oder technische Auth-Endpunkte ohne Arbeitsbereichsaktionen', () => {
     const readEndpoints = GREMIA_BR_API_CATALOG.filter((endpoint) => endpoint.category !== 'workspace_action');
     expect(readEndpoints.length).toBeGreaterThan(10);

@@ -1,7 +1,7 @@
 import { closeSync, existsSync, fsyncSync, mkdtempSync, openSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { atomicWriteFileSync, type AtomicFileSystemOperations } from '../../../services/secureFileOperations';
 
 describe('cross-platform atomic file replacement', () => {
@@ -53,5 +53,14 @@ describe('cross-platform atomic file replacement', () => {
     expect(() => atomicWriteFileSync(target, 'new', 0o600, operations(failingRename))).toThrow('activation failed');
     expect(readFileSync(target, 'utf8')).toBe('old');
     expect(readdirSync(directory)).toEqual(['security.json']);
+  });
+
+  it('synchronisiert nach dem Umbenennen auch das Elternverzeichnis auf POSIX', () => {
+    const directory = mkdtempSync(path.join(tmpdir(), 'gremia-atomic-dirsync-'));
+    directories.push(directory);
+    const sync = vi.fn(fsyncSync);
+    const ops = { ...operations(renameSync), fsyncSync: sync };
+    atomicWriteFileSync(path.join(directory, 'security.json'), 'new', 0o600, ops);
+    expect(sync).toHaveBeenCalledTimes(process.platform === 'win32' ? 1 : 2);
   });
 });

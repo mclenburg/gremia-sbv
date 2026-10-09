@@ -1,13 +1,17 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { createCipheriv, createDecipheriv, createHash, randomBytes, scryptSync } from 'node:crypto';
-import { gzipSync, gunzipSync } from 'node:zlib';
+import { gzipSync } from 'node:zlib';
 import type { SecurityService } from './securityService.js';
 import type { BackupFileSummary, BackupInspectionResult, BackupOperationResult } from '../src/domain/models/backup.model.js';
 import { APP_VERSION } from './generated/appMetadata.js';
 import { APP_SCHEMA_VERSION, DATABASE_SCHEMA_VERSION_KEY, LEGACY_DATABASE_SCHEMA_VERSION_KEY } from './appSchema.js';
 import { atomicWriteFileSync } from './secureFileOperations.js';
 import { OWNER_ONLY_FILE_MODE } from './secureFilePermissions.js';
+import { gunzipBackupPayload, MAX_BACKUP_PAYLOAD_BYTES, readBoundedBackupEnvelope } from './backupPayloadDecompression.js';
+import { safePublicBackupError } from './backupPublicError.js';
+import { buildBackupPrivacyWarnings, LEGACY_BACKUP_KDF_WARNING } from './backupWarnings.js';
+export { safePublicBackupError } from './backupPublicError.js';
 
 export interface BackupFileOperations {
   readonly atomicWriteFileSync: typeof atomicWriteFileSync;
@@ -84,6 +88,11 @@ interface BackupEnvelope {
   payload: string;
 }
 
+interface ReadBackupResult {
+  payload: BackupPayload;
+  legacyKdf: boolean;
+}
+
 function assertPassphrase(passphrase: string): void {
   if (!passphrase || passphrase.length < MIN_BACKUP_PASSPHRASE_LENGTH) {
     throw new Error(`Die Backup-Passphrase muss mindestens ${MIN_BACKUP_PASSPHRASE_LENGTH} Zeichen lang sein.`);
@@ -147,19 +156,6 @@ function walkFiles(root: string, relativeBase = ''): string[] {
   return result.sort((a, b) => a.localeCompare(b));
 }
 
-function buildBackupPrivacyWarnings(files: BackupPayloadFile[]): string[] {
-  const warnings: string[] = [];
-  warnings.push('Backup enthält den verschlüsselten Gremia.SBV-Tresor einschließlich SBV-, BEM- und Gesundheitsdaten.');
-  warnings.push('Backup-Passphrase getrennt vom Backup aufbewahren; ohne Passphrase ist keine Wiederherstellung möglich.');
-  if (files.some((file) => file.relativePath.includes('exports/'))) {
-    warnings.push('Backup enthält verschlüsselte Berichtsexporte. Weitergabe nur an berechtigte Personen.');
-  }
-  if (files.some((file) => file.relativePath.includes('documents/'))) {
-    warnings.push('Backup enthält Fall- und Dokumentenablagen. Lösch- und Aufbewahrungsfristen beachten.');
-  }
-  return warnings;
-}
-
 function schemaVersionWarning(schemaVersion?: string): string | undefined {
   if (!schemaVersion) return 'Schema-Version im Backup konnte nicht ermittelt werden.';
   if (schemaVersion !== APP_SCHEMA_VERSION) return `Backup-Schema ${schemaVersion} weicht von der erwarteten Schema-Version ${APP_SCHEMA_VERSION} ab. Restore nur nach Prüfung durchführen.`;
@@ -203,6 +199,7 @@ export class BackupService {
   createBackup(targetFilePath: string, passphrase: string): BackupOperationResult {
     try {
       assertPassphrase(passphrase);
+      this.security.checkpointAuditIntegrityForBackup();
       const dataDir = this.security.getDataDirectory();
       this.fileOperations.mkdirSync(path.dirname(targetFilePath), { recursive: true });
 
@@ -233,7 +230,11 @@ export class BackupService {
         files
       };
 
-      const payloadBuffer = gzipSync(Buffer.from(JSON.stringify(payload), 'utf8'));
+      const payloadJson = JSON.stringify(payload);
+      if (Buffer.byteLength(payloadJson, 'utf8') > MAX_BACKUP_PAYLOAD_BYTES) {
+        throw new Error('Das Backup überschreitet die zulässige Größe des entschlüsselten Manifests.');
+      }
+      const payloadBuffer = gzipSync(Buffer.from(payloadJson, 'utf8'));
       const salt = randomBytes(16).toString('hex');
       const iv = randomBytes(12);
       const key = deriveBackupKey(passphrase, salt, CURRENT_BACKUP_SCRYPT_PARAMS);
@@ -269,13 +270,13 @@ export class BackupService {
         warnings: buildBackupPrivacyWarnings(files)
       };
     } catch (error) {
-      return { ok: false, error: error instanceof Error ? error.message : String(error), warnings: [] };
+      return { ok: false, error: safePublicBackupError(error), warnings: [] };
     }
   }
 
   inspectBackup(filePath: string, passphrase: string): BackupInspectionResult {
     try {
-      const payload = this.readBackupPayload(filePath, passphrase);
+      const { payload, legacyKdf } = this.readBackupPayload(filePath, passphrase);
       this.verifyPayload(payload);
       return {
         ok: true,
@@ -292,11 +293,12 @@ export class BackupService {
         files: payload.files.map(({ contentBase64: _contentBase64, ...summary }) => summary),
         warnings: [
           ...buildBackupPrivacyWarnings(payload.files),
-          ...(schemaVersionWarning(payload.schemaVersion) ? [schemaVersionWarning(payload.schemaVersion)!] : [])
+          ...(schemaVersionWarning(payload.schemaVersion) ? [schemaVersionWarning(payload.schemaVersion)!] : []),
+          ...(legacyKdf ? [LEGACY_BACKUP_KDF_WARNING] : [])
         ]
       };
     } catch (error) {
-      return { ok: false, filePath, fileName: path.basename(filePath), error: error instanceof Error ? error.message : String(error), warnings: [] };
+      return { ok: false, filePath, fileName: path.basename(filePath), error: safePublicBackupError(error), warnings: [] };
     }
   }
 
@@ -305,7 +307,7 @@ export class BackupService {
     let backupOfCurrent: string | undefined;
     try {
       if (confirmation !== RESTORE_CONFIRMATION) throw new Error(`Bitte exakt „${RESTORE_CONFIRMATION}“ eingeben.`);
-      const payload = this.readBackupPayload(filePath, passphrase);
+      const { payload, legacyKdf } = this.readBackupPayload(filePath, passphrase);
       this.verifyPayload(payload);
 
       const dataDir = this.security.getDataDirectory();
@@ -346,12 +348,12 @@ export class BackupService {
         restoredAt: new Date().toISOString(), filePath, fileName: path.basename(filePath),
         fileCount: payload.files.length,
         totalBytes: payload.files.reduce((sum, file) => sum + file.sizeBytes, 0),
-        warnings: [`Der vorherige Datenbestand wurde gesichert unter: ${backupOfCurrent}`, ...buildBackupPrivacyWarnings(payload.files), ...(schemaVersionWarning(payload.schemaVersion) ? [schemaVersionWarning(payload.schemaVersion)!] : [])],
+        warnings: [`Der vorherige Datenbestand wurde gesichert unter: ${backupOfCurrent}`, ...buildBackupPrivacyWarnings(payload.files), ...(schemaVersionWarning(payload.schemaVersion) ? [schemaVersionWarning(payload.schemaVersion)!] : []), ...(legacyKdf ? [LEGACY_BACKUP_KDF_WARNING] : [])],
         restartRequired: true
       };
     } catch (error) {
       if (stagingDir) this.fileOperations.rmSync(stagingDir, { recursive: true, force: true });
-      return { ok: false, filePath, fileName: path.basename(filePath), error: error instanceof Error ? error.message : String(error), warnings: [] };
+      return { ok: false, filePath, fileName: path.basename(filePath), error: safePublicBackupError(error), warnings: [] };
     }
   }
 
@@ -361,10 +363,10 @@ export class BackupService {
     return path.join(backupsDir, safeBackupFileName());
   }
 
-  private readBackupPayload(filePath: string, passphrase: string): BackupPayload {
+  private readBackupPayload(filePath: string, passphrase: string): ReadBackupResult {
     assertPassphrase(passphrase);
     let envelope: BackupEnvelope;
-    try { envelope = JSON.parse(readFileSync(filePath, 'utf8')) as BackupEnvelope; }
+    try { envelope = JSON.parse(readBoundedBackupEnvelope(filePath)) as BackupEnvelope; }
     catch (error) { throw new Error(error instanceof SyntaxError ? 'Die Backup-Datei enthält kein gültiges JSON.' : String(error)); }
     if (envelope.format !== BACKUP_FORMAT || envelope.version !== BACKUP_VERSION || envelope.algorithm !== 'aes-256-gcm' || envelope.kdf !== 'scrypt' || envelope.compression !== 'gzip') throw new Error('Die Datei ist kein unterstütztes Gremia.SBV-Backup.');
     if (![envelope.salt, envelope.iv, envelope.tag].every((value) => typeof value === 'string' && /^[0-9a-f]+$/i.test(value))) throw new Error('Der Backup-Umschlag ist beschädigt.');
@@ -377,7 +379,10 @@ export class BackupService {
       decipher.setAAD(Buffer.from(`${BACKUP_FORMAT}:${BACKUP_VERSION}`, 'utf8'));
       decipher.setAuthTag(Buffer.from(envelope.tag, 'hex'));
       const compressed = Buffer.concat([decipher.update(Buffer.from(envelope.payload, 'base64')), decipher.final()]);
-      return JSON.parse(gunzipSync(compressed).toString('utf8')) as BackupPayload;
+      return {
+        payload: JSON.parse(gunzipBackupPayload(compressed).toString('utf8')) as BackupPayload,
+        legacyKdf: !envelope.kdfParams || envelope.kdfParams.N < CURRENT_BACKUP_SCRYPT_PARAMS.N,
+      };
     } finally { safeDestroyBuffer(key); }
   }
 
@@ -409,6 +414,7 @@ export class BackupService {
     }
 
     const required = ['gremia-sbv.vault.sqlite', 'security.json', 'vault-manifest.json'];
+    if (payload.schemaVersion && payload.schemaVersion >= '0066') required.push('audit-integrity.anchor');
     for (const requiredFile of required) {
       if (!seen.has(requiredFile)) {
         throw new Error(`Pflichtdatei fehlt im Backup: ${requiredFile}`);

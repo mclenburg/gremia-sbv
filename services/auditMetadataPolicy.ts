@@ -95,7 +95,6 @@ const GREMIA_BR_WORKSPACE_ACTION_METADATA_FIELDS = [
   'status',
   'localDocumentId',
   'remoteDocumentId',
-  'targetSecurityDomain',
   'correlationId',
 ] as const;
 
@@ -157,6 +156,7 @@ const PERSON_BINDING_METADATA_FIELDS = [
 
 const SECURITY_SESSION_METADATA_FIELDS = [
   'eventType',
+  'failedUnlockAttempts',
   'result',
   'reasonCode',
   'converted',

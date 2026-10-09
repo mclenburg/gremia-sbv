@@ -165,6 +165,8 @@ export const IPC_CHANNELS = Object.freeze({
   personsLinkCase: "persons:link-case",
   personsList: "persons:list",
   personsUpdate: "persons:update",
+  employerQuotaSettingsGet: "employer-quota:settings:get",
+  employerQuotaSettingsSave: "employer-quota:settings:save",
   preventionCreate: "prevention:create",
   preventionDashboard: "prevention:dashboard",
   preventionList: "prevention:list",
