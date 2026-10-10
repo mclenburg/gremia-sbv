@@ -135,7 +135,7 @@ export function CasesView(props: CasesViewProps) {
   const [processDeleteTarget, setProcessDeleteTarget] = useState<{ id: string; processType: CaseProcessType; label?: string } | null>(null);
   const [caseLoadError, setCaseLoadError] = useState("");
   const workbench = useCaseWorkbenchData({ cases, target, onTargetConsumed, onError: setCaseLoadError });
-  const search = useCaseWorkbenchSearch({ selectedCaseId: workbench.selectedCaseId, onSelect: workbench.setSelection });
+  const search = useCaseWorkbenchSearch({ selectedCaseId: workbench.selectedCaseId, initialArea: 'current_case', onSelect: workbench.setSelection });
   const selected = selectedEntities(workbench, search.searchResults);
   const noteEditor = useCaseNoteEditor({ selectedCaseId: workbench.selectedCaseId, searchQuery: search.searchQuery,
     reloadSelectedCaseChildren: workbench.reloadSelectedCaseChildren, reloadWorkData: onCasesChanged,

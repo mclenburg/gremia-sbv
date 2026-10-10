@@ -69,7 +69,6 @@ export type CasesViewRenderProps = {
   selectCaseNodeTarget: (target: import('../../core/navigation/caseNodeTarget').CaseNodeTarget) => void;
   setSelectedCaseId: Dispatch<SetStateAction<string>>;
   searchQuery: SearchState["searchQuery"];
-  searchArea: SearchState["searchArea"];
   searchResults: SearchState["searchResults"];
   searchTotal: SearchState["searchTotal"];
   selectedSearchSourceTypes: SearchState["selectedSearchSourceTypes"];
@@ -78,7 +77,6 @@ export type CasesViewRenderProps = {
   isSearching: SearchState["isSearching"];
   runSearch: SearchState["runSearch"];
   setSearchQuery: SearchState["setSearchQuery"];
-  setSearchArea: SearchState["setSearchArea"];
   loadMoreSearchResults: SearchState["loadMoreSearchResults"];
   setSelectedSearchSourceTypes: SearchState["setSelectedSearchSourceTypes"];
   documentActions: CaseDocumentActions;

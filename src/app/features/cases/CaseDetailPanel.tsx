@@ -33,6 +33,7 @@ const SOURCE_FILTERS: readonly { type: string; label: string }[] = [
 
 type CaseDetailPanelProps = CaseDetailPanelSearchProps & {
   children: ReactNode;
+  searchAreaSelector?: { area: SearchArea; onChange: (area: SearchArea) => void };
   casePicker?: ReactNode;
   onExportHandover?: () => void;
   canExportHandover?: boolean;
@@ -44,9 +45,9 @@ function toggleSourceType(values: string[], type: string): string[] {
 
 export function CaseDetailPanel({
   children,
+  searchAreaSelector,
   casePicker,
   searchQuery,
-  searchArea,
   searchResults,
   searchTotal,
   searchError,
@@ -55,7 +56,6 @@ export function CaseDetailPanel({
   selectedSearchSourceTypes,
   onSearchSubmit,
   onSearchQueryChange,
-  onSearchAreaChange,
   onSearchSourceTypesChange,
   onSelectSearchResult,
   onLoadMoreSearchResults,
@@ -73,17 +73,17 @@ export function CaseDetailPanel({
           data-global-search-target="case-fulltext"
           value={searchQuery}
           onChange={(event) => onSearchQueryChange(event.target.value)}
-          placeholder="Fallakten, Dokumente und weitere Daten durchsuchen …"
-          aria-label="Volltextsuche"
+          placeholder={searchAreaSelector ? 'Fallakten, Dokumente und weitere Daten durchsuchen …' : 'Diese Fallakte durchsuchen …'}
+          aria-label={searchAreaSelector ? 'Volltextsuche' : 'Diese Fallakte durchsuchen'}
         />
-        <fieldset className="case-search-area-options">
+        {searchAreaSelector && <fieldset className="case-search-area-options">
           <legend>Suchbereich</legend>
           {SEARCH_AREAS.map((area) => <label key={area.id} className="industrial-checkbox-row compact">
-            <input type="radio" name="case-search-area" value={area.id} checked={searchArea === area.id}
-              onChange={() => onSearchAreaChange(area.id)} className="industrial-choice-input" />
+            <input type="radio" name="case-search-area" value={area.id} checked={searchAreaSelector.area === area.id}
+              onChange={() => searchAreaSelector.onChange(area.id)} className="industrial-choice-input" />
             <span>{area.label}</span>
           </label>)}
-        </fieldset>
+        </fieldset>}
         {casePicker}
         <div className="case-detail-search-actions">
           <ToolbarButton

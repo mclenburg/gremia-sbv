@@ -1,6 +1,6 @@
 import type { CaseDocumentRecord } from '../../../domain/models/case-document.model';
 import type { CaseNoteRecord } from '../../../domain/models/case-note.model';
-import type { SearchArea, UnifiedSearchHit } from '../../../domain/models/unified-search.model';
+import type { UnifiedSearchHit } from '../../../domain/models/unified-search.model';
 import type { FormEvent } from 'react';
 import type { PreventionProcessRecord } from '../../../domain/models/prevention.model';
 import type { BemProcessRecord } from '../../../domain/models/bem.model';
@@ -40,7 +40,6 @@ export type CaseTreePanelProps = {
 
 export type CaseDetailPanelSearchProps = {
   searchQuery: string;
-  searchArea: SearchArea;
   searchResults: UnifiedSearchHit[];
   searchTotal: number;
   searchError: string;
@@ -49,7 +48,6 @@ export type CaseDetailPanelSearchProps = {
   selectedSearchSourceTypes: string[];
   onSearchSubmit: (event?: FormEvent<HTMLFormElement>) => void | Promise<void>;
   onSearchQueryChange: (value: string) => void;
-  onSearchAreaChange: (value: SearchArea) => void;
   onSearchSourceTypesChange: (value: string[]) => void;
   onSelectSearchResult: (result: UnifiedSearchHit) => void;
   onLoadMoreSearchResults: () => void | Promise<void>;

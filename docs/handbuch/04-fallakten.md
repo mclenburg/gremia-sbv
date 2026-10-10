@@ -36,6 +36,10 @@ Eine belastbare Fallakte enthält nicht möglichst viel, sondern das Richtige:
 - offene Fragen,
 - Ergebnis oder Abschlussvermerk.
 
+## In der Fallakte suchen
+
+Das Suchfeld in der geöffneten Fallakte durchsucht nur Inhalte, die dieser Fallakte zugeordnet sind, einschließlich ihrer indizierten Dokumenttexte. Für die Suche in allen Fallakten oder im gesamten Datenbestand nutze den eigenen Bereich **Suche** in der Hauptnavigation. Dort kannst du den Suchbereich auswählen.
+
 ## Maßnahmen nutzen
 
 Lege Maßnahmen an, wenn aus der Beratung ein fachlicher Vorgang wird. Eine Maßnahme macht sichtbar, woran gearbeitet wird.

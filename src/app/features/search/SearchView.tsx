@@ -30,7 +30,7 @@ export function SearchView({ cases, onOpenCaseNode, onOpenSearchRecord }: Search
     description="Durchsuchen Sie Fallakten, Dokumente und weitere gespeicherte Inhalte.">
     <CaseDetailPanel
       searchQuery={search.searchQuery}
-      searchArea={search.searchArea}
+      searchAreaSelector={{ area: search.searchArea, onChange: (value) => { setSelectedHit(null); search.setSearchArea(value); } }}
       searchResults={search.searchResults}
       searchTotal={search.searchTotal}
       searchError={search.searchError}
@@ -39,7 +39,6 @@ export function SearchView({ cases, onOpenCaseNode, onOpenSearchRecord }: Search
       selectedSearchSourceTypes={search.selectedSearchSourceTypes}
       onSearchSubmit={(event) => { setSelectedHit(null); return search.runSearch(event); }}
       onSearchQueryChange={(value) => { setSelectedHit(null); search.setSearchQuery(value); }}
-      onSearchAreaChange={(value) => { setSelectedHit(null); search.setSearchArea(value); }}
       onSearchSourceTypesChange={(value) => { setSelectedHit(null); search.setSelectedSearchSourceTypes(value); }}
       onSelectSearchResult={openResult}
       onLoadMoreSearchResults={search.loadMoreSearchResults}

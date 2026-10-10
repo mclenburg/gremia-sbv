@@ -168,8 +168,8 @@ function CaseResourceContent({ props }: { props: CasesViewRenderProps }) {
 function CaseWorkbench({ props }: { props: CasesViewRenderProps }) {
   const { selectedCase, notes, documents, casePreventionProcesses, caseBemProcesses, caseEqualizationProcesses,
     caseTerminationProcesses, caseParticipationProcesses, caseWorkplaceAccommodationProcesses, isCaseChildrenLoading,
-    selection, setSelection, searchQuery, searchArea, searchResults, searchTotal, searchError, searchInfo, isSearching,
-    selectedSearchSourceTypes, runSearch, setSearchQuery, setSearchArea, setSelectedSearchSourceTypes, loadMoreSearchResults,
+    selection, setSelection, searchQuery, searchResults, searchTotal, searchError, searchInfo, isSearching,
+    selectedSearchSourceTypes, runSearch, setSearchQuery, setSelectedSearchSourceTypes, loadMoreSearchResults,
     selectedCaseId, openNewNoteModal, documentActions, inlineCommands, openCaseProcessDraft } = props;
   return <section className="case-workbench">
     <CaseTreePanel selectedCase={selectedCase} notes={notes} documents={documents} preventionProcesses={casePreventionProcesses}
@@ -177,9 +177,9 @@ function CaseWorkbench({ props }: { props: CasesViewRenderProps }) {
       participationProcesses={caseParticipationProcesses} workplaceAccommodationProcesses={caseWorkplaceAccommodationProcesses}
       isLoading={isCaseChildrenLoading} selection={selection} onSelect={setSelection} onDeleteProcess={props.onOpenProcessDelete}
       formatProcessNodeSubtitle={formatProcessNodeSubtitle} formatNoteDate={formatNoteDate} formatBytes={formatBytes} />
-    <CaseDetailPanel searchQuery={searchQuery} searchArea={searchArea} searchResults={searchResults} searchTotal={searchTotal}
+    <CaseDetailPanel searchQuery={searchQuery} searchResults={searchResults} searchTotal={searchTotal}
       searchError={searchError} searchInfo={searchInfo} isSearching={isSearching} selectedSearchSourceTypes={selectedSearchSourceTypes}
-      onSearchSubmit={runSearch} onSearchQueryChange={setSearchQuery} onSearchAreaChange={setSearchArea}
+      onSearchSubmit={runSearch} onSearchQueryChange={setSearchQuery}
       onSearchSourceTypesChange={setSelectedSearchSourceTypes} onSelectSearchResult={(result) => selectSearchResult(result, props)}
       onLoadMoreSearchResults={loadMoreSearchResults}
       onExportHandover={props.onOpenExportHandover} canExportHandover={Boolean(selectedCase)}>

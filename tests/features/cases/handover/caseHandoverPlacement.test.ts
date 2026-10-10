@@ -158,7 +158,6 @@ describe('case handover placement 0.9.2', () => {
     const detail = renderComponent(CaseDetailPanel, {
       children: 'Fallinhalt',
       searchQuery: '',
-      searchArea: 'current_case',
       searchResults: [],
       searchTotal: 0,
       searchError: '',
@@ -167,7 +166,6 @@ describe('case handover placement 0.9.2', () => {
       selectedSearchSourceTypes: [],
       onSearchSubmit: noopForm,
       onSearchQueryChange: () => undefined,
-      onSearchAreaChange: () => undefined,
       onSearchSourceTypesChange: () => undefined,
       onSelectSearchResult: () => undefined,
       onLoadMoreSearchResults: () => undefined,

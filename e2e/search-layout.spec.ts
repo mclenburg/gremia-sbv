@@ -32,7 +32,7 @@ test('keeps search controls compact and within the panel in both entry points', 
     });
     expect(layout.inputWidth).toBeGreaterThanOrEqual(layout.panelWidth - 90);
     expect(layout.inputWithinPanel).toBe(true);
-    expect(layout.radioSizes).toHaveLength(3);
+    expect(layout.radioSizes).toHaveLength(route === 'Suche' ? 3 : 0);
     expect(layout.radioSizes.every(({ width, height }) => width <= 20 && height <= 20)).toBe(true);
     expect(layout.radioAccents.every((value) => value === layout.accent)).toBe(true);
     expect(layout.checkboxSizes.length).toBeGreaterThan(0);
@@ -64,8 +64,24 @@ test('keeps search controls compact and within the panel in both entry points', 
     expect(layout.overflow).toBe(false);
     expect(layout.inputWithinPanel).toBe(true);
     expect(layout.inputWidth).toBeGreaterThan(250);
-    expect(layout.choiceWidths.length).toBeGreaterThan(3);
+    if (route === 'Suche') expect(layout.choiceWidths.length).toBeGreaterThan(3);
+    else expect(layout.choiceWidths.length).toBeGreaterThan(0);
     expect(layout.choiceWidths.every((width) => width <= 20)).toBe(true);
     expect(layout.choiceAccents.every((accent) => accent === layout.accent)).toBe(true);
   }
+});
+
+test('limits search from the case workbench to its selected case', async ({ page }) => {
+  await page.getByRole('navigation', { name: 'Hauptnavigation' })
+    .getByRole('button', { name: 'Fallakte', exact: true }).click();
+  const panel = page.locator('.case-detail-panel').first();
+  await expect(panel.locator('.case-search-area-options')).toHaveCount(0);
+  await panel.getByRole('textbox', { name: 'Diese Fallakte durchsuchen' }).fill('synthetisch');
+  await panel.getByRole('button', { name: 'Suchen', exact: true }).click();
+
+  await expect.poll(() => page.evaluate(() => {
+    const calls = (window as Window & { __GREMIA_SBV_E2E_SEARCH_CALLS?: Array<{ area: string; currentCaseId?: string }> })
+      .__GREMIA_SBV_E2E_SEARCH_CALLS;
+    return calls?.at(-1);
+  })).toMatchObject({ area: 'current_case', currentCaseId: expect.any(String) });
 });
