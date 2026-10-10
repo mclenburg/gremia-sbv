@@ -3,6 +3,7 @@ import type { ProtectedPersonRecord } from "../../../domain/models/protected-per
 import type { ContactRecord, CreateContactInput } from "../../../domain/models/contact.model";
 import type { CreateDeadlineInput } from "../../../domain/models/deadline.model";
 import type { CaseNodeTarget } from "../../core/navigation/caseNodeTarget";
+import type { ViewId } from '../../core/navigation/modules';
 import type { SbvParticipationViolationPrefill } from "../participation-violations/sbvParticipationViolationViewLogic";
 
 export type CasesViewProps = {
@@ -24,6 +25,7 @@ export type CasesViewProps = {
   onCasesChanged: () => Promise<void>;
   onTargetConsumed?: () => void;
   onOpenParticipationViolationPrefill?: (prefill: SbvParticipationViolationPrefill) => void;
+  onNavigate?: (view: ViewId) => void;
 };
 
 export type CaseToast = {

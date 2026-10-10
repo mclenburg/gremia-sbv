@@ -16,6 +16,7 @@ import {
   sanitizeDialogFileName,
 } from "./ipcValidation.js";
 import { requestPlainDocumentPreview } from "./documentPreviewWorkflow.js";
+import { validateUnifiedSearchInput } from './unifiedSearchInput.js';
 
 const DOCUMENT_IMPORT_EXTENSIONS = [
   "pdf",
@@ -157,5 +158,8 @@ export function registerCaseIpc(
     cases.searchContent(
       assertRecordInput<CaseContentSearchInput>(input, "cases:search"),
     ),
+  );
+  registerIpcHandler(ipcMain, IPC_CHANNELS.casesSearchUnified, async (_event, input: unknown) =>
+    services.unifiedSearchIndex().search(validateUnifiedSearchInput(input)),
   );
 }

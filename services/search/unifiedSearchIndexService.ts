@@ -1,40 +1,12 @@
 import type { DatabaseAdapter } from '../databaseService.js';
 import { escapeFtsQuery } from './searchIndexSupport.js';
-import { SEARCH_SOURCE_CATALOG, type SearchArea } from './searchSourceCatalog.js';
+import { SEARCH_SOURCE_CATALOG } from './searchSourceCatalog.js';
 import { collectUnifiedSearchDocuments, type UnifiedSearchDocument } from './unifiedSearchProviders.js';
-
-export interface UnifiedSearchQuery {
-  query: string;
-  area: SearchArea;
-  currentCaseId?: string;
-  sourceTypes?: readonly string[];
-  limit?: number;
-  offset?: number;
-}
-
-export interface UnifiedSearchHit {
-  sourceType: string;
-  sourceId: string;
-  module: string;
-  sourceLabel: string;
-  title: string;
-  excerpt: string;
-  caseId?: string;
-  caseNumber?: string;
-  navigationKind: string;
-  navigationId: string;
-  navigationSubId?: string;
-  extractionQuality: string;
-  occurredAt?: string;
-}
-
-export interface UnifiedSearchPage {
-  total: number;
-  hits: UnifiedSearchHit[];
-  indexedAt?: string;
-}
+import type { UnifiedSearchHit, UnifiedSearchPage, UnifiedSearchQuery } from '../../src/domain/models/unified-search.model.js';
+export type { UnifiedSearchHit, UnifiedSearchPage, UnifiedSearchQuery } from '../../src/domain/models/unified-search.model.js';
 
 interface StoredHit extends Omit<UnifiedSearchHit, 'excerpt' | 'caseId' | 'caseNumber' | 'navigationSubId' | 'occurredAt'> {
+  entryId: string;
   excerpt: string;
   case_id: string | null;
   case_number: string | null;
@@ -132,7 +104,7 @@ export class UnifiedSearchIndexService {
     const total = Number(this.db.prepare<{ count: number }>(`SELECT COUNT(*) AS count ${from}`).get(...params)?.count ?? 0);
     const limit = Math.min(Math.max(Math.trunc(input.limit ?? 50), 1), 100);
     const offset = Math.max(Math.trunc(input.offset ?? 0), 0);
-    const rows = this.db.prepare<StoredHit>(`SELECT e.source_type AS sourceType, e.source_id AS sourceId,
+    const rows = this.db.prepare<StoredHit>(`SELECT e.id AS entryId, e.source_type AS sourceType, e.source_id AS sourceId,
       e.module, e.source_label AS sourceLabel, e.title,
       snippet(search_entries_fts, 2, '[', ']', ' … ', 20) AS excerpt,
       e.case_id, e.case_number, e.navigation_kind AS navigationKind,
@@ -140,13 +112,29 @@ export class UnifiedSearchIndexService {
       e.extraction_quality AS extractionQuality, e.occurred_at
       ${from} ORDER BY bm25(search_entries_fts), e.updated_at DESC, e.id LIMIT ? OFFSET ?`)
       .all(...params, limit, offset);
+    const links = rows.length ? this.db.prepare<{ entry_id: string; case_id: string; case_number: string }>(`
+      SELECT ec.entry_id, ec.case_id, c.case_number FROM search_entry_cases ec
+      JOIN cases c ON c.id = ec.case_id
+      WHERE ec.entry_id IN (${rows.map(() => '?').join(',')}) ORDER BY c.case_number`)
+      .all(...rows.map((row) => row.entryId)) : [];
+    const linksByEntry = new Map<string, typeof links>();
+    for (const link of links) {
+      const group = linksByEntry.get(link.entry_id) ?? [];
+      group.push(link);
+      linksByEntry.set(link.entry_id, group);
+    }
     const state = this.db.prepare<{ built_at: string }>('SELECT built_at FROM search_index_build_state WHERE id = 1').get();
     return {
       total,
       hits: rows.map((row) => ({
         sourceType: row.sourceType, sourceId: row.sourceId, module: row.module,
         sourceLabel: row.sourceLabel, title: row.title, excerpt: row.excerpt,
-        caseId: row.case_id ?? undefined, caseNumber: row.case_number ?? undefined,
+        caseId: input.area === 'current_case' ? input.currentCaseId : row.case_id ?? undefined,
+        caseNumber: input.area === 'current_case'
+          ? linksByEntry.get(row.entryId)?.find((link) => link.case_id === input.currentCaseId)?.case_number
+          : row.case_number ?? undefined,
+        caseNumbers: input.area === 'current_case'
+          ? undefined : linksByEntry.get(row.entryId)?.map((link) => link.case_number),
         navigationKind: row.navigationKind, navigationId: row.navigationId,
         navigationSubId: row.navigation_sub_id ?? undefined,
         extractionQuality: row.extractionQuality, occurredAt: row.occurred_at ?? undefined,

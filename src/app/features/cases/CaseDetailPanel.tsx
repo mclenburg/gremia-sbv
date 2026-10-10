@@ -1,10 +1,17 @@
 import type { ReactNode } from 'react';
 import { Download, Search } from 'lucide-react';
 import { ToolbarButton } from '../../shared/components/IndustrialButton';
-import type { CaseSearchHighlightSegment, CaseSearchSourceType } from '../../../domain/models/case-note.model';
+import type { SearchArea } from '../../../domain/models/unified-search.model';
 import type { CaseDetailPanelSearchProps } from './caseWorkbenchTypes';
+import { SearchSnippet } from './SearchSnippet';
 
-const SOURCE_FILTERS: readonly { type: CaseSearchSourceType; label: string }[] = [
+const SEARCH_AREAS: readonly { id: SearchArea; label: string }[] = [
+  { id: 'current_case', label: 'Diese Fallakte' },
+  { id: 'all_cases', label: 'Alle Fallakten' },
+  { id: 'all_data', label: 'Gesamter Datenbestand' },
+];
+
+const SOURCE_FILTERS: readonly { type: string; label: string }[] = [
   { type: 'case', label: 'Fallakte' },
   { type: 'note', label: 'Fallnotizen' },
   { type: 'document', label: 'Dokumente' },
@@ -16,6 +23,13 @@ const SOURCE_FILTERS: readonly { type: CaseSearchSourceType; label: string }[] =
   { type: 'equalization', label: 'Gleichstellung/GdB' },
   { type: 'participation', label: 'SBV-Beteiligung' },
   { type: 'workplace_accommodation', label: 'Arbeitsplatzgestaltung' },
+  { type: 'person', label: 'Personen' },
+  { type: 'contact', label: 'Kontakte' },
+  { type: 'journal', label: 'Tätigkeitsjournal' },
+  { type: 'legal_norm', label: 'Wissensbasis' },
+  { type: 'template', label: 'Vorlagen' },
+  { type: 'deadline', label: 'Fristen' },
+  { type: 'control_protocol', label: 'SBV-Steuerung' },
 ];
 
 type CaseDetailPanelProps = CaseDetailPanelSearchProps & {
@@ -24,36 +38,26 @@ type CaseDetailPanelProps = CaseDetailPanelSearchProps & {
   canExportHandover?: boolean;
 };
 
-function toggleSourceType(values: CaseSearchSourceType[], type: CaseSearchSourceType): CaseSearchSourceType[] {
+function toggleSourceType(values: string[], type: string): string[] {
   return values.includes(type) ? values.filter((value) => value !== type) : [...values, type];
-}
-
-function renderExcerpt(segments?: CaseSearchHighlightSegment[], fallback = '') {
-  const safeSegments = segments?.length ? segments : [{ text: fallback, match: false }];
-  let textOffset = 0;
-  return safeSegments.map((segment) => {
-    const key = `${segment.match ? 'match' : 'text'}-${textOffset}-${segment.text}`;
-    textOffset += segment.text.length;
-    return segment.match
-      ? <mark key={key}>{segment.text}</mark>
-      : <span key={key} className="industrial-text-fragment">{segment.text}</span>;
-  });
 }
 
 export function CaseDetailPanel({
   children,
   searchQuery,
-  searchOnlySelectedCase,
+  searchArea,
   searchResults,
+  searchTotal,
   searchError,
   searchInfo,
   isSearching,
   selectedSearchSourceTypes,
   onSearchSubmit,
   onSearchQueryChange,
-  onSearchOnlySelectedCaseChange,
+  onSearchAreaChange,
   onSearchSourceTypesChange,
   onSelectSearchResult,
+  onLoadMoreSearchResults,
   onExportHandover,
   canExportHandover
 }: CaseDetailPanelProps) {
@@ -68,16 +72,17 @@ export function CaseDetailPanel({
           data-global-search-target="case-fulltext"
           value={searchQuery}
           onChange={(event) => onSearchQueryChange(event.target.value)}
-          placeholder="Volltextsuche in Fallakte, Notizen, Protokollen und Dokumenten …"
-          aria-label="Volltextsuche in der Fallakte"
+          placeholder="Fallakten, Dokumente und weitere Daten durchsuchen …"
+          aria-label="Volltextsuche"
         />
-        <label className="industrial-checkbox-row compact">
-          <input
-            type="checkbox"
-            checked={searchOnlySelectedCase}
-            onChange={(event) => onSearchOnlySelectedCaseChange(event.target.checked)} className="industrial-input" />
-          <span>nur diese Fallakte</span>
-        </label>
+        <fieldset className="case-search-area-options">
+          <legend>Suchbereich</legend>
+          {SEARCH_AREAS.map((area) => <label key={area.id} className="industrial-checkbox-row compact">
+            <input type="radio" name="case-search-area" value={area.id} checked={searchArea === area.id}
+              onChange={() => onSearchAreaChange(area.id)} className="industrial-input" />
+            <span>{area.label}</span>
+          </label>)}
+        </fieldset>
         <div className="case-detail-search-actions">
           <ToolbarButton
             type="submit" className="case-detail-search-button"
@@ -109,8 +114,8 @@ export function CaseDetailPanel({
         </p>
       )}
 
-      <fieldset className="case-search-source-filters" aria-label="Suchbereich einschränken">
-        <legend>Suchbereiche</legend>
+      <fieldset className="case-search-source-filters" aria-label="Inhaltstypen einschränken">
+        <legend>Häufige Inhaltstypen (optional)</legend>
         <ToolbarButton
           onClick={() => onSearchSourceTypesChange([])}
           aria-pressed={selectedSearchSourceTypes.length === 0}
@@ -130,6 +135,7 @@ export function CaseDetailPanel({
 
       {!!searchResults.length && (
         <div className="case-search-results" aria-label="Suchtreffer">
+          <p className="industrial-meta">{searchResults.length} von {searchTotal} Treffern angezeigt</p>
           {searchResults.map((result) => (
             <button
               key={`${result.sourceType}-${result.sourceId}`}
@@ -137,13 +143,18 @@ export function CaseDetailPanel({
               onClick={() => onSelectSearchResult(result)}
             >
               <span>
-                {result.sourceLabel ?? result.sourceType} · {(result.caseNumbers?.length ? result.caseNumbers.join(', ') : result.caseNumber)}
+                {result.module} · {result.sourceLabel}{result.caseNumber
+                  ? ` · ${result.caseNumbers && result.caseNumbers.length > 1 ? 'Fallakten' : 'Fallakte'} ${result.caseNumbers?.length ? result.caseNumbers.join(', ') : result.caseNumber}`
+                  : ' · Ohne Fallaktenbezug'}
                 {result.extractionQuality === 'ocr' ? ' · OCR-Text' : ''}
               </span>
               <strong>{result.title}</strong>
-              <p>{renderExcerpt(result.excerptSegments, result.excerpt)}</p>
+              <p><SearchSnippet excerpt={result.excerpt} /></p>
             </button>
           ))}
+          {searchResults.length < searchTotal && <ToolbarButton onClick={() => void onLoadMoreSearchResults()} disabled={isSearching}>
+            {isSearching ? 'Lade weitere Treffer …' : 'Weitere Treffer laden'}
+          </ToolbarButton>}
         </div>
       )}
 

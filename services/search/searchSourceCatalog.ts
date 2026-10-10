@@ -5,7 +5,8 @@
  */
 export type SearchSourceScope = 'case' | 'standalone' | 'linked';
 export type SearchSourceState = 'indexed' | 'planned' | 'legacy';
-export type SearchArea = 'current_case' | 'all_cases' | 'all_data';
+export type { SearchArea } from '../../src/domain/models/unified-search.model.js';
+import type { SearchArea } from '../../src/domain/models/unified-search.model.js';
 export type SearchLifecycleEvent = 'source_change' | 'source_delete' | 'case_link_change' | 'case_delete' | 'case_anonymize' | 'retention';
 
 export const SEARCH_AREAS = [

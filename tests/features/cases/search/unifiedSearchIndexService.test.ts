@@ -78,7 +78,13 @@ describe('unified search index', () => {
       db.prepare("INSERT INTO case_contacts(case_id, contact_id) VALUES ('case-a', 'contact-1')").run();
       expect(search.search({ query: 'Fallkontakt', area: 'current_case', currentCaseId: 'case-a' }).total).toBe(1);
       expect(search.search({ query: 'Fallkontakt', area: 'current_case', currentCaseId: 'case-b' }).total).toBe(0);
+      db.prepare("INSERT INTO case_contacts(case_id, contact_id) VALUES ('case-b', 'contact-1')").run();
+      expect(search.search({ query: 'Fallkontakt', area: 'current_case', currentCaseId: 'case-b' }).hits[0])
+        .toMatchObject({ caseId: 'case-b', caseNumber: 'B-1' });
+      expect(search.search({ query: 'Fallkontakt', area: 'all_cases' }).hits[0].caseNumbers).toEqual(['A-1', 'B-1']);
       db.prepare("DELETE FROM case_contacts WHERE case_id = 'case-a' AND contact_id = 'contact-1'").run();
+      expect(search.search({ query: 'Fallkontakt', area: 'all_cases' }).total).toBe(1);
+      db.prepare("DELETE FROM case_contacts WHERE case_id = 'case-b' AND contact_id = 'contact-1'").run();
       expect(search.search({ query: 'Fallkontakt', area: 'all_cases' }).total).toBe(0);
       expect(search.search({ query: 'Fallkontakt', area: 'all_data' }).total).toBe(1);
     } finally {

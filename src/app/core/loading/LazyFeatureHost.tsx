@@ -78,7 +78,7 @@ export function LazyFeatureHost({ view, cases, measures = [], persons = [], them
   return (
     <LazyFeatureBoundary view={view} onRetry={() => { void preloadLazyFeature(view).catch(() => undefined); }}>
       {view === "cases" && caseFeatureProps ? (
-        <CaseWorkbenchFeature {...caseFeatureProps} />
+        <CaseWorkbenchFeature {...caseFeatureProps} onNavigate={onNavigate} />
       ) : view === "case_handover" && onRecordsChanged ? (
         <HandoverFeature cases={cases} measures={measures} onRecordsChanged={onRecordsChanged} />
       ) : view === "knowledge" ? (

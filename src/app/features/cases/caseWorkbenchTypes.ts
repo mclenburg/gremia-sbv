@@ -1,5 +1,6 @@
 import type { CaseDocumentRecord } from '../../../domain/models/case-document.model';
-import type { CaseNoteRecord, CaseSearchResult, CaseSearchSourceType } from '../../../domain/models/case-note.model';
+import type { CaseNoteRecord } from '../../../domain/models/case-note.model';
+import type { SearchArea, UnifiedSearchHit } from '../../../domain/models/unified-search.model';
 import type { FormEvent } from 'react';
 import type { PreventionProcessRecord } from '../../../domain/models/prevention.model';
 import type { BemProcessRecord } from '../../../domain/models/bem.model';
@@ -39,15 +40,17 @@ export type CaseTreePanelProps = {
 
 export type CaseDetailPanelSearchProps = {
   searchQuery: string;
-  searchOnlySelectedCase: boolean;
-  searchResults: CaseSearchResult[];
+  searchArea: SearchArea;
+  searchResults: UnifiedSearchHit[];
+  searchTotal: number;
   searchError: string;
   searchInfo: string;
   isSearching: boolean;
-  selectedSearchSourceTypes: CaseSearchSourceType[];
+  selectedSearchSourceTypes: string[];
   onSearchSubmit: (event?: FormEvent<HTMLFormElement>) => void | Promise<void>;
   onSearchQueryChange: (value: string) => void;
-  onSearchOnlySelectedCaseChange: (value: boolean) => void;
-  onSearchSourceTypesChange: (value: CaseSearchSourceType[]) => void;
-  onSelectSearchResult: (result: CaseSearchResult) => void;
+  onSearchAreaChange: (value: SearchArea) => void;
+  onSearchSourceTypesChange: (value: string[]) => void;
+  onSelectSearchResult: (result: UnifiedSearchHit) => void;
+  onLoadMoreSearchResults: () => void | Promise<void>;
 };
