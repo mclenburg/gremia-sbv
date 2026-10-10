@@ -81,8 +81,8 @@ function SearchResultDetail({ result }: { result: UnifiedSearchHit }) {
   }, [result.sourceType, result.sourceId]);
   return <>
     <h2>{result.title}</h2>
-    {error ? <p role="alert">{error}</p> : detail ? <p className="case-note-content">{detail.content}</p>
-      : <p role="status">Datensatz wird geladen …</p>}
+    {error ? <p className="industrial-message industrial-message-warning" role="alert">{error}</p> : detail ? <p className="case-note-content">{detail.content}</p>
+      : <p className="industrial-field-help" role="status">Datensatz wird geladen …</p>}
   </>;
 }
 
