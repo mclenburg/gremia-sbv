@@ -28,47 +28,47 @@ function entryId(sourceType: string, sourceId: string): string {
 
 /** New read model. The legacy case index remains available until the UI switches. */
 export class UnifiedSearchIndexService {
-  constructor(private readonly db: DatabaseAdapter) {}
+  constructor(private readonly database: DatabaseAdapter) {}
 
   /** Purges every copy associated with a case inside the caller's transaction. */
   purgeCase(caseId: string): number {
-    const result = this.db.prepare(`DELETE FROM search_entries WHERE id IN (
+    const result = this.database.prepare(`DELETE FROM search_entries WHERE id IN (
       SELECT entry_id FROM search_entry_cases WHERE case_id = ?
     ) OR (source_type = 'case' AND source_id = ?)`).run(caseId, caseId) as { changes?: number };
     return Number(result.changes ?? 0);
   }
 
   rebuild(): number {
-    const documents = collectUnifiedSearchDocuments(this.db);
-    this.db.exec('BEGIN IMMEDIATE');
+    const documents = collectUnifiedSearchDocuments(this.database);
+    this.database.exec('BEGIN IMMEDIATE');
     try {
       const revision = this.currentRevision();
-      this.db.prepare('DELETE FROM search_entries').run();
+      this.database.prepare('DELETE FROM search_entries').run();
       // The delete trigger removes FTS rows; a separate wipe repairs any old orphan.
-      this.db.prepare('DELETE FROM search_entries_fts').run();
+      this.database.prepare('DELETE FROM search_entries_fts').run();
       for (const document of documents) this.insert(document);
-      this.db.prepare(`INSERT INTO search_index_build_state (id, built_revision, built_at, entry_count)
+      this.database.prepare(`INSERT INTO search_index_build_state (id, built_revision, built_at, entry_count)
         VALUES (1, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET built_revision = excluded.built_revision,
           built_at = excluded.built_at, entry_count = excluded.entry_count`).run(revision, nowIso(), documents.length);
-      this.db.prepare('DELETE FROM search_dirty_tables WHERE revision <= ?').run(revision);
-      this.db.exec('COMMIT');
+      this.database.prepare('DELETE FROM search_dirty_tables WHERE revision <= ?').run(revision);
+      this.database.exec('COMMIT');
       return documents.length;
     } catch (error) {
-      this.db.exec('ROLLBACK');
+      this.database.exec('ROLLBACK');
       throw error;
     }
   }
 
   ensureFresh(): void {
-    const built = this.db.prepare<{ built_revision: number }>('SELECT built_revision FROM search_index_build_state WHERE id = 1').get();
+    const built = this.database.prepare<{ built_revision: number }>('SELECT built_revision FROM search_index_build_state WHERE id = 1').get();
     if (!built) {
       this.rebuild();
       return;
     }
     const revision = this.currentRevision();
     if (built.built_revision === revision) return;
-    const dirty = this.db.prepare<{ table_name: string }>('SELECT table_name FROM search_dirty_tables WHERE revision > ?').all(built.built_revision)
+    const dirty = this.database.prepare<{ table_name: string }>('SELECT table_name FROM search_dirty_tables WHERE revision > ?').all(built.built_revision)
       .map((row) => row.table_name);
     if (!dirty.length || dirty.some((table) => SHARED_RELATION_TABLES.has(table))) {
       this.rebuild();
@@ -80,18 +80,18 @@ export class UnifiedSearchIndexService {
       this.rebuild();
       return;
     }
-    const documents = collectUnifiedSearchDocuments(this.db, affected);
-    this.db.exec('BEGIN IMMEDIATE');
+    const documents = collectUnifiedSearchDocuments(this.database, affected);
+    this.database.exec('BEGIN IMMEDIATE');
     try {
-      for (const sourceType of affected) this.db.prepare('DELETE FROM search_entries WHERE source_type = ?').run(sourceType);
+      for (const sourceType of affected) this.database.prepare('DELETE FROM search_entries WHERE source_type = ?').run(sourceType);
       for (const document of documents) this.insert(document);
-      const count = Number(this.db.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM search_entries').get()?.count ?? 0);
-      this.db.prepare('UPDATE search_index_build_state SET built_revision = ?, built_at = ?, entry_count = ? WHERE id = 1')
+      const count = Number(this.database.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM search_entries').get()?.count ?? 0);
+      this.database.prepare('UPDATE search_index_build_state SET built_revision = ?, built_at = ?, entry_count = ? WHERE id = 1')
         .run(revision, nowIso(), count);
-      this.db.prepare('DELETE FROM search_dirty_tables WHERE revision <= ?').run(revision);
-      this.db.exec('COMMIT');
+      this.database.prepare('DELETE FROM search_dirty_tables WHERE revision <= ?').run(revision);
+      this.database.exec('COMMIT');
     } catch (error) {
-      this.db.exec('ROLLBACK');
+      this.database.exec('ROLLBACK');
       throw error;
     }
   }
@@ -109,10 +109,10 @@ export class UnifiedSearchIndexService {
     const params = [escapeFtsQuery(query), ...areaParams, ...sourceTypes];
     const from = `FROM search_entries_fts f JOIN search_entries e ON e.id = f.entry_id
       WHERE search_entries_fts MATCH ?${areaFilter}${typeFilter}`;
-    const total = Number(this.db.prepare<{ count: number }>(`SELECT COUNT(*) AS count ${from}`).get(...params)?.count ?? 0);
+    const total = Number(this.database.prepare<{ count: number }>(`SELECT COUNT(*) AS count ${from}`).get(...params)?.count ?? 0);
     const limit = Math.min(Math.max(Math.trunc(input.limit ?? 50), 1), 100);
     const offset = Math.max(Math.trunc(input.offset ?? 0), 0);
-    const rows = this.db.prepare<StoredHit>(`SELECT e.id AS entryId, e.source_type AS sourceType, e.source_id AS sourceId,
+    const rows = this.database.prepare<StoredHit>(`SELECT e.id AS entryId, e.source_type AS sourceType, e.source_id AS sourceId,
       e.module, e.source_label AS sourceLabel, e.title,
       snippet(search_entries_fts, 2, '[', ']', ' … ', 20) AS excerpt,
       e.case_id, e.case_number, e.navigation_kind AS navigationKind,
@@ -120,7 +120,7 @@ export class UnifiedSearchIndexService {
       e.extraction_quality AS extractionQuality, e.occurred_at
       ${from} ORDER BY bm25(search_entries_fts), e.updated_at DESC, e.id LIMIT ? OFFSET ?`)
       .all(...params, limit, offset);
-    const links = rows.length ? this.db.prepare<{ entry_id: string; case_id: string; case_number: string }>(`
+    const links = rows.length ? this.database.prepare<{ entry_id: string; case_id: string; case_number: string }>(`
       SELECT ec.entry_id, ec.case_id, c.case_number FROM search_entry_cases ec
       JOIN cases c ON c.id = ec.case_id
       WHERE ec.entry_id IN (${rows.map(() => '?').join(',')}) ORDER BY c.case_number`)
@@ -131,7 +131,7 @@ export class UnifiedSearchIndexService {
       group.push(link);
       linksByEntry.set(link.entry_id, group);
     }
-    const state = this.db.prepare<{ built_at: string }>('SELECT built_at FROM search_index_build_state WHERE id = 1').get();
+    const state = this.database.prepare<{ built_at: string }>('SELECT built_at FROM search_index_build_state WHERE id = 1').get();
     return {
       total,
       hits: rows.map((row) => ({
@@ -153,22 +153,22 @@ export class UnifiedSearchIndexService {
 
   detail(sourceType: string, sourceId: string): UnifiedSearchDetail | null {
     this.ensureFresh();
-    return this.db.prepare<UnifiedSearchDetail>(`SELECT source_type AS sourceType, source_id AS sourceId, title, content
+    return this.database.prepare<UnifiedSearchDetail>(`SELECT source_type AS sourceType, source_id AS sourceId, title, content
       FROM search_entries WHERE source_type = ? AND source_id = ?`).get(sourceType, sourceId) ?? null;
   }
 
   private currentRevision(): number {
-    return Number(this.db.prepare<{ revision: number }>('SELECT revision FROM search_change_clock WHERE id = 1').get()?.revision ?? 0);
+    return Number(this.database.prepare<{ revision: number }>('SELECT revision FROM search_change_clock WHERE id = 1').get()?.revision ?? 0);
   }
 
   private insert(document: UnifiedSearchDocument): void {
     const id = entryId(document.sourceType, document.sourceId);
-    const validCases = document.caseIds.filter((caseId) => Boolean(this.db.prepare('SELECT 1 FROM cases WHERE id = ?').get(caseId)));
+    const validCases = document.caseIds.filter((caseId) => Boolean(this.database.prepare('SELECT 1 FROM cases WHERE id = ?').get(caseId)));
     const primaryCaseId = validCases[0] ?? null;
     const caseNumber = primaryCaseId
-      ? this.db.prepare<{ case_number: string }>('SELECT case_number FROM cases WHERE id = ?').get(primaryCaseId)?.case_number ?? null
+      ? this.database.prepare<{ case_number: string }>('SELECT case_number FROM cases WHERE id = ?').get(primaryCaseId)?.case_number ?? null
       : null;
-    this.db.prepare(`INSERT INTO search_entries
+    this.database.prepare(`INSERT INTO search_entries
       (id, source_type, source_id, case_id, case_number, module, source_label, title, content, keywords,
        occurred_at, updated_at, extraction_quality, navigation_kind, navigation_id, navigation_sub_id, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
@@ -177,8 +177,8 @@ export class UnifiedSearchIndexService {
       document.occurredAt ?? null, document.updatedAt, document.extractionQuality,
       document.navigationKind, document.navigationId, document.navigationSubId ?? null, nowIso(),
     );
-    this.db.prepare('INSERT INTO search_entries_fts(entry_id, title, content, keywords, source_label) VALUES (?, ?, ?, ?, ?)')
+    this.database.prepare('INSERT INTO search_entries_fts(entry_id, title, content, keywords, source_label) VALUES (?, ?, ?, ?, ?)')
       .run(id, document.title, document.content, document.keywords, document.sourceLabel);
-    for (const caseId of validCases) this.db.prepare('INSERT OR IGNORE INTO search_entry_cases(entry_id, case_id) VALUES (?, ?)').run(id, caseId);
+    for (const caseId of validCases) this.database.prepare('INSERT OR IGNORE INTO search_entry_cases(entry_id, case_id) VALUES (?, ?)').run(id, caseId);
   }
 }
