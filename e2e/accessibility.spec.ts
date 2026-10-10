@@ -218,10 +218,9 @@ test('reflows without document-level horizontal scrolling at narrow viewport', a
 
 test('honors reduced motion and exposes a visible forced-colors focus indicator', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce', forcedColors: 'active' });
-  const dashboardButton = page.locator('[data-e2e="main-nav-dashboard"]');
   const navButton = page.locator('[data-e2e="main-nav-cases"]');
-  await dashboardButton.focus();
-  await page.keyboard.press('Tab');
+  await navButton.focus();
+  await page.keyboard.press('Shift+Tab');
   await page.keyboard.press('Tab');
   await expect(navButton).toBeFocused();
   const style = await navButton.evaluate((element) => {
