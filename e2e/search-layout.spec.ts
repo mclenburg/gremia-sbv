@@ -48,13 +48,24 @@ test('keeps search controls compact and within the panel in both entry points', 
     const panel = page.locator('.case-detail-panel').first();
     const layout = await panel.evaluate((element) => {
       const input = element.querySelector<HTMLInputElement>('[data-global-search-target="case-fulltext"]')!;
+      const choices = [...element.querySelectorAll<HTMLInputElement>('.industrial-choice-input')];
       const panelBox = element.getBoundingClientRect();
       const inputBox = input.getBoundingClientRect();
+      const probe = document.createElement('span');
+      probe.style.color = 'var(--industrial-accent)';
+      element.append(probe);
+      const accent = getComputedStyle(probe).color;
+      probe.remove();
       return { overflow: element.scrollWidth > element.clientWidth + 1, inputWidth: inputBox.width,
-        inputWithinPanel: inputBox.right <= panelBox.right };
+        inputWithinPanel: inputBox.right <= panelBox.right,
+        choiceWidths: choices.map((choice) => choice.getBoundingClientRect().width),
+        choiceAccents: choices.map((choice) => getComputedStyle(choice).accentColor), accent };
     });
     expect(layout.overflow).toBe(false);
     expect(layout.inputWithinPanel).toBe(true);
     expect(layout.inputWidth).toBeGreaterThan(250);
+    expect(layout.choiceWidths.length).toBeGreaterThan(3);
+    expect(layout.choiceWidths.every((width) => width <= 20)).toBe(true);
+    expect(layout.choiceAccents.every((accent) => accent === layout.accent)).toBe(true);
   }
 });

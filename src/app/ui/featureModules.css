@@ -758,9 +758,9 @@ html[data-theme='light'] .case-tree-node.active {
 }
 
 .knowledge-search-bar.case-detail-search-bar {
-  grid-template-columns: 1.25rem minmax(0, 1fr);
+  grid-template-columns: var(--space-5) minmax(0, 1fr);
   align-items: start;
-  padding-bottom: 0.9rem;
+  padding-bottom: var(--space-4);
 }
 
 .case-detail-search-icon {
@@ -940,7 +940,7 @@ html[data-theme='light'] .case-search-result:focus {
   flex-wrap: wrap;
   justify-content: flex-start;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
   min-width: 0;
 }
 
@@ -2369,7 +2369,7 @@ button.dashboard-focus-card:hover {
   resize: vertical;
 }
 
-.knowledge-search-bar input,
+.knowledge-search-bar input:not([type='radio']):not([type='checkbox']),
 .knowledge-search-bar select {
   width: 100%;
   min-width: 0;
@@ -2429,7 +2429,7 @@ html[data-theme='light'] .industrial-record-card.is-active {
   box-shadow: inset 3px 0 0 var(--industrial-accent);
 }
 
-html[data-theme='light'] .knowledge-search-bar input,
+html[data-theme='light'] .knowledge-search-bar input:not([type='radio']):not([type='checkbox']),
 html[data-theme='light'] .knowledge-search-bar select {
   border-color: var(--industrial-border-strong);
   background: var(--industrial-light-control);

@@ -128,10 +128,10 @@
 
 .industrial-choice-input[type='radio'],
 .industrial-choice-input[type='checkbox'] {
-  width: 1rem;
-  height: 1rem;
-  min-width: 1rem;
-  min-height: 1rem;
+  width: var(--space-4);
+  height: var(--space-4);
+  min-width: var(--space-4);
+  min-height: var(--space-4);
   margin: 0;
   padding: var(--space-0);
   accent-color: var(--industrial-accent);
