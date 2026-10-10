@@ -73,17 +73,30 @@ const child = spawn(artifact, ['--startup-smoke-test'], {
   windowsHide: true,
 });
 let output = '';
-child.stdout.on('data', (chunk) => { output += chunk.toString(); });
-child.stderr.on('data', (chunk) => { output += chunk.toString(); });
+const appendOutput = (chunk) => { output = (output + chunk.toString()).slice(-4000); };
+child.stdout.on('data', appendOutput);
+child.stderr.on('data', appendOutput);
 
+// Der Windows-Portable-Launcher entpackt die App vor dem Start und räumt sie nach dem Ende auf.
+const defaultTimeoutMs = isWindowsTarget ? 180_000 : 45_000;
+const configuredTimeoutMs = Number(process.env.GREMIA_SBV_STARTUP_SMOKE_TIMEOUT_MS);
+const timeoutMs = Number.isInteger(configuredTimeoutMs) && configuredTimeoutMs >= 100
+  ? configuredTimeoutMs
+  : defaultTimeoutMs;
+const startedAt = Date.now();
+let timedOut = false;
+let spawnFailed = false;
 const timeout = setTimeout(() => {
-  child.kill('SIGKILL');
-  console.error(`Startup-Smoke-Test überschritt 45 Sekunden.\n${output.slice(-4000)}`);
+  timedOut = true;
+  console.error(`Startup-Smoke-Test überschritt ${timeoutMs / 1000} Sekunden (Marker: ${fs.existsSync(marker) ? 'vorhanden' : 'fehlt'}, Laufzeit: ${Math.round((Date.now() - startedAt) / 1000)} Sekunden).\n${output}`);
   process.exitCode = 4;
-}, 45_000);
+  child.kill('SIGKILL');
+}, timeoutMs);
 
 child.on('error', (error) => {
   clearTimeout(timeout);
+  if (timedOut) return;
+  spawnFailed = true;
   console.error(`Artefakt konnte nicht gestartet werden: ${error.message}`);
   process.exitCode = 5;
 });
@@ -91,8 +104,9 @@ child.on('error', (error) => {
 child.on('close', (code) => {
   clearTimeout(timeout);
   try {
-    if (code !== 0) throw new Error(`Artefakt endete mit Exitcode ${String(code)}.\n${output.slice(-4000)}`);
-    if (!fs.existsSync(marker)) throw new Error(`Startup-Marker fehlt.\n${output.slice(-4000)}`);
+    if (timedOut || spawnFailed) return;
+    if (code !== 0) throw new Error(`Artefakt endete mit Exitcode ${String(code)}.\n${output}`);
+    if (!fs.existsSync(marker)) throw new Error(`Startup-Marker fehlt.\n${output}`);
     const result = JSON.parse(fs.readFileSync(marker, 'utf8'));
     if (result.ok !== true) throw new Error('Startup-Marker meldet keinen Erfolg.');
     if (path.normalize(result.dataDirectory) !== path.normalize(dataDirectory)) {
