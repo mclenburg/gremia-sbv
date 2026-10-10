@@ -3,6 +3,7 @@ import yauzl from 'yauzl';
 import type { Entry, ZipFile } from 'yauzl';
 import type { Readable } from 'node:stream';
 import type { CaseSearchExtractionQuality } from '../search/searchTypes.js';
+import { readPdfPages } from './pdfPageTextService.js';
 
 const TEXT_EXTRACTION_LIMIT = 300_000;
 const EXTRACTION_ERROR_LIMIT = 1_000;
@@ -25,6 +26,7 @@ export interface DocumentTextExtractionResult {
   status: DocumentTextExtractionStatus;
   extractorId: string;
   errorMessage?: string;
+  pdfPages?: { pageNumber: number; text: string; needsOcr: boolean }[];
 }
 
 interface DocumentTextExtractor {
@@ -92,6 +94,7 @@ function extractionResult(
     status,
     extractorId: input.extractorId,
     ...(input.errorMessage ? { errorMessage: input.errorMessage.slice(0, EXTRACTION_ERROR_LIMIT) } : {}),
+    ...(input.pdfPages ? { pdfPages: input.pdfPages } : {}),
   };
 }
 
@@ -112,14 +115,6 @@ async function safeExtract(
       errorMessage: normalizeErrorMessage(error),
     });
   }
-}
-
-function extractPdfTextBestEffort(buffer: Buffer): string {
-  const raw = buffer.toString('latin1');
-  const matches = [...raw.matchAll(/\(([^()]|\\.){3,}\)/g)]
-    .map((match) => match[0].slice(1, -1).replace(/\\([\\()])/g, '$1'))
-    .filter((text) => /[A-Za-zÄÖÜäöüß0-9]{3}/.test(text));
-  return normalizeText(matches.join(' '));
 }
 
 function readZipTextEntries(
@@ -209,17 +204,19 @@ const plainTextExtractor: DocumentTextExtractor = {
   },
 };
 
-const pdfBestEffortExtractor: DocumentTextExtractor = {
-  id: 'pdf-best-effort',
+const pdfTextLayerExtractor: DocumentTextExtractor = {
+  id: 'pdf-text-layer',
   canHandle: (input) => path.extname(input.filename).toLowerCase() === '.pdf',
   async extract(input, mimeType) {
-    const text = extractPdfTextBestEffort(input.buffer);
+    const pages = await readPdfPages(input.buffer);
+    const text = pages.map((page) => page.text).filter(Boolean).join('\n');
     return extractionResult({
       text,
       mimeType,
       quality: text ? 'native_text' : 'unknown',
       status: text ? 'extracted' : 'empty',
-      extractorId: 'pdf-best-effort',
+      extractorId: 'pdf-text-layer',
+      pdfPages: pages,
     });
   },
 };
@@ -268,7 +265,7 @@ const xlsxOpenXmlExtractor: DocumentTextExtractor = {
 
 const DOCUMENT_TEXT_EXTRACTORS: readonly DocumentTextExtractor[] = [
   plainTextExtractor,
-  pdfBestEffortExtractor,
+  pdfTextLayerExtractor,
   docxOpenXmlExtractor,
   xlsxOpenXmlExtractor,
 ];

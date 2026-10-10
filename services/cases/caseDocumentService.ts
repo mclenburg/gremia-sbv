@@ -112,7 +112,7 @@ export class CaseDocumentService extends CaseNoteService {
 
         this.indexDocument(db, id);
         new SearchIndexService(db).reindexSource("document", id);
-        this.scheduleDocumentOcrIfUseful(db, id);
+        this.scheduleDocumentOcrIfUseful(db, id, extraction.pdfPages?.some((page) => page.needsOcr));
         const created = db
           .prepare<DatabaseRow>(
             `
@@ -137,9 +137,9 @@ export class CaseDocumentService extends CaseNoteService {
       }
     }
 
-  protected scheduleDocumentOcrIfUseful(db: DatabaseAdapter, documentId: string): void {
+  protected scheduleDocumentOcrIfUseful(db: DatabaseAdapter, documentId: string, pdfNeedsOcr?: boolean): void {
       const ocr = new DocumentOcrService(db, undefined, this.dataDirProvider);
-      if (!ocr.enqueueIfUseful(documentId)) return;
+      if (!ocr.enqueueIfUseful(documentId, pdfNeedsOcr)) return;
       setTimeout(() => {
         void new DocumentOcrService(db, undefined, this.dataDirProvider).runPending().catch(() => undefined);
       }, 0);
