@@ -1,5 +1,4 @@
 import { AlertTriangle, CheckCircle2, Plus, Trash2 } from "lucide-react";
-import { useEffect, useState } from 'react';
 import { ModuleFrame } from "../../shared/components/ModuleFrame";
 import { DangerButton, IndustrialButton, ToolbarButton } from "../../shared/components/IndustrialButton";
 import { CaseRegister } from "./CaseRegister";
@@ -25,11 +24,11 @@ import { ParticipationProcessDetail } from "../participation/ParticipationProces
 import { WorkplaceAccommodationProcessDetail } from "../workplace-accommodation/WorkplaceAccommodationProcessDetail";
 import { resolveContextualTemplateAction } from "@/domain/templates/templateContextPolicy";
 import { formatBytes, formatNoteDate, formatProcessNodeSubtitle } from "./caseWorkbenchFormat";
-import type { UnifiedSearchDetail, UnifiedSearchHit } from '../../../domain/models/unified-search.model';
-import { waitForBridge } from '../../core/bridge/waitForBridge';
+import type { UnifiedSearchHit } from '../../../domain/models/unified-search.model';
 import { SearchSnippet } from './SearchSnippet';
+import { SearchResultDetail } from './SearchResultDetail';
+import { resolveSearchCaseNodeTarget } from '../../core/navigation/searchRecordTarget';
 import type { ViewId } from '../../core/navigation/modules';
-import type { CaseProcessType } from './caseWorkbenchTypes';
 import type { CasesViewRenderProps } from './casesViewRenderTypes';
 const SEARCH_MODULE_VIEWS: Readonly<Record<string, ViewId>> = {
   Personen: 'persons', Kontakte: 'contacts', Tätigkeitsjournal: 'activity_journal',
@@ -40,50 +39,10 @@ const SEARCH_MODULE_VIEWS: Readonly<Record<string, ViewId>> = {
   'SBV-Amtsarbeit': 'sbv_control',
 };
 function selectSearchResult(result: UnifiedSearchHit, props: CasesViewRenderProps) {
-  const targetId = result.navigationId ?? result.sourceId;
-  if (result.caseId && result.navigationKind === 'case') return props.selectCaseNodeTarget({ caseId: result.caseId, nodeType: 'overview' });
-  if (result.caseId && result.navigationKind === "note") return props.selectCaseNodeTarget({ caseId: result.caseId, nodeType: 'note', nodeId: targetId });
-  if (result.caseId && result.navigationKind === "document") return props.selectCaseNodeTarget({ caseId: result.caseId, nodeType: 'document', nodeId: targetId });
-  const processTypeBySource: Partial<Record<string, CaseProcessType>> = {
-    bem: "bem", bem_event: "bem", prevention: "prevention", prevention_event: "prevention",
-    termination: "termination_hearing", equalization: "equalization", participation: "participation",
-    participation_event: "participation", workplace_accommodation: "workplace_accommodation",
-  };
-  const processType = processTypeBySource[result.sourceType];
-  if (result.caseId && result.navigationKind === "process" && processType) {
-    props.selectCaseNodeTarget({ caseId: result.caseId, nodeType: processType, nodeId: targetId });
-    return;
-  }
+  const caseTarget = resolveSearchCaseNodeTarget(result);
+  if (caseTarget) return props.selectCaseNodeTarget(caseTarget);
   if (props.onOpenSearchRecord?.(result)) return;
   props.setSelection({ type: "search", id: `${result.sourceType}:${result.sourceId}` });
-}
-
-function SearchResultDetail({ result }: { result: UnifiedSearchHit }) {
-  const [detail, setDetail] = useState<UnifiedSearchDetail | null>(null);
-  const [error, setError] = useState('');
-  useEffect(() => {
-    let active = true;
-    setDetail(null);
-    setError('');
-    void (async () => {
-      try {
-        const bridge = await waitForBridge();
-        if (!bridge?.cases) throw new Error('Falldienst ist nicht erreichbar.');
-        const loaded = await bridge.cases.searchDetail(result.sourceType, result.sourceId);
-        if (!active) return;
-        if (loaded) setDetail(loaded);
-        else setError('Der Datensatz ist nicht mehr vorhanden. Bitte die Suche aktualisieren.');
-      } catch (cause) {
-        if (active) setError(cause instanceof Error ? cause.message : 'Der Datensatz konnte nicht geöffnet werden.');
-      }
-    })();
-    return () => { active = false; };
-  }, [result.sourceType, result.sourceId]);
-  return <>
-    <h2>{result.title}</h2>
-    {error ? <p className="industrial-message industrial-message-warning" role="alert">{error}</p> : detail ? <p className="case-note-content">{detail.content}</p>
-      : <p className="industrial-field-help" role="status">Datensatz wird geladen …</p>}
-  </>;
 }
 
 function CaseOverviewContent({ props }: { props: CasesViewRenderProps }) {

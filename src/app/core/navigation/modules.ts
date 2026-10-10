@@ -19,12 +19,14 @@ import {
   UserRoundCheck,
   Users,
   Wrench,
-  Vote
+  Vote,
+  Search
 } from 'lucide-react';
 
 export type ViewId =
   | 'dashboard'
   | 'cases'
+  | 'search'
   | 'case_handover'
   | 'deadlines'
   | 'activity_journal'
@@ -80,6 +82,14 @@ export const moduleGroups: ModuleGroupDefinition[] = [
 ];
 
 export const modules: ModuleDefinition[] = [
+  {
+    id: 'search',
+    title: 'Suche',
+    shortTitle: 'Suche',
+    text: 'Fallakten, Dokumente und den gesamten Datenbestand durchsuchen.',
+    icon: Search,
+    group: 'core'
+  },
   {
     id: 'persons',
     title: 'Personenverzeichnis',

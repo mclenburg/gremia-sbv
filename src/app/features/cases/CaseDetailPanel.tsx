@@ -33,6 +33,7 @@ const SOURCE_FILTERS: readonly { type: string; label: string }[] = [
 
 type CaseDetailPanelProps = CaseDetailPanelSearchProps & {
   children: ReactNode;
+  casePicker?: ReactNode;
   onExportHandover?: () => void;
   canExportHandover?: boolean;
 };
@@ -43,6 +44,7 @@ function toggleSourceType(values: string[], type: string): string[] {
 
 export function CaseDetailPanel({
   children,
+  casePicker,
   searchQuery,
   searchArea,
   searchResults,
@@ -82,6 +84,7 @@ export function CaseDetailPanel({
             <span>{area.label}</span>
           </label>)}
         </fieldset>
+        {casePicker}
         <div className="case-detail-search-actions">
           <ToolbarButton
             type="submit" className="case-detail-search-button"

@@ -131,13 +131,12 @@ export function useModalKeyboardShortcuts({ setCurrentView }: { setCurrentView: 
 
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'f') {
         event.preventDefault();
-        const target = document.querySelector<HTMLInputElement>('[data-global-search-target]');
-        if (target) {
-          target.focus();
-          target.select();
-          return;
-        }
-        window.dispatchEvent(new CustomEvent('gremia-sbv:focus-search'));
+        setCurrentView('search');
+        window.setTimeout(() => {
+          const target = document.querySelector<HTMLInputElement>('[data-global-search-target="case-fulltext"]');
+          target?.focus();
+          target?.select();
+        }, 0);
       }
     }
 
