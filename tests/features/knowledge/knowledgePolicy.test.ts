@@ -18,6 +18,7 @@ describe('knowledgePolicy', () => {
     expect(normMatchesQuery(prevention!, '167 Prävention')).toBe(true);
     expect(normMatchesQuery(prevention!, 'Inklusionsamt')).toBe(true);
     expect(normMatchesQuery(prevention!, 'Kündigungsschutzklage')).toBe(false);
+    expect(normMatchesQuery(prevention!, '   ')).toBe(true);
   });
 
   it('erstellt lesbare Einfügetexte für das §§ Overlay', () => {

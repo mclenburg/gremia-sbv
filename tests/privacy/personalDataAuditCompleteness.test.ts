@@ -15,6 +15,7 @@ const require = createRequire(import.meta.url);
 const zeroCoverage = require('../../scripts/check-no-zero-coverage.cjs') as {
   defaultCoverageReportPath(): string;
   findZeroCoveredFiles(coverage: Record<string, unknown>): string[];
+  findCoverageViolations(coverage: Record<string, unknown>, minimumPercent?: number): string[];
 };
 
 const auditChecker = require('../../scripts/check-personal-data-audit-completeness.cjs') as {
@@ -47,6 +48,23 @@ describe('Phase 4 – personenbezogene Audit-Vollständigkeit', () => {
       '/tested.ts': { s: { 0: 1, 1: 0 } },
       '/untested.ts': { s: { 0: 0, 1: 0 } },
     })).toEqual(['/untested.ts']);
+  });
+
+  it('verlangt mindestens 60 Prozent pro messbarer Datei und Metrik', () => {
+    const entry = (covered: number, total: number) => Object.fromEntries(
+      Array.from({ length: total }, (_, index) => [index, index < covered ? 1 : 0]),
+    );
+    const violations = zeroCoverage.findCoverageViolations({
+      '/exactly-60.ts': { s: entry(3, 5), f: entry(3, 5), b: { 0: [1, 1, 1, 0, 0] }, l: entry(3, 5) },
+      '/below-60.ts': { s: entry(2, 5), f: entry(3, 5), b: {}, l: entry(3, 5) },
+      '/low-branch.ts': { s: entry(5, 5), f: entry(1, 1), b: { 0: [1, 0] }, l: entry(5, 5) },
+      '/empty.ts': { s: {}, f: {}, b: {}, l: {} },
+    });
+    expect(violations).toEqual([
+      expect.stringContaining('/below-60.ts: Statements 40.0 % < 60 %'),
+      expect.stringContaining('/empty.ts: keine ausführbaren Statements im Coverage-Report'),
+      expect.stringContaining('/low-branch.ts: Branches 50.0 % < 60 %'),
+    ]);
   });
 
   it('erkennt personenbezogene Mutationen ohne Audit und akzeptiert direkte Audit-Owner', () => {
