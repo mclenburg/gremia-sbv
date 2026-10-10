@@ -17,12 +17,16 @@ describe('Coverage für kritische Services', () => {
         'services/securityService.ts',
         'services/security/**/*.ts',
         'services/backupService.ts',
-        'services/terminationWorkflowPolicy.ts',
+        'src/domain/termination/terminationWorkflowPolicy.ts',
         'services/preventionWorkflowPolicy.ts',
         'services/retentionPolicy.ts',
+        'src/domain/templates/templateContextPolicy.ts',
+        'src/domain/termination/terminationPrivacyPolicy.ts',
+        'src/domain/textCommands/textCommandPolicy.ts',
       ]),
     });
     expect(coverage?.include).not.toContain('services/**/*.ts');
     expect(coverage?.include).not.toContain('services/caseService.ts');
+    expect(coverage?.include).not.toContain('services/templateContextPolicy.ts');
   });
 });

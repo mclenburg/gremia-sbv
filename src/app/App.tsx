@@ -36,6 +36,7 @@ import { useGremiaBrStartupRefresh, type GremiaBrStartupNotice } from './core/se
 const IMPLEMENTED_VIEW_IDS = new Set<ViewId>([
   "dashboard",
   "cases",
+  "search",
   "case_handover",
   "deadlines",
   "activity_journal",
@@ -286,7 +287,7 @@ function ProcessViews({ currentView, setCurrentView, work, caseNodeTarget, setCa
   return <LazyFeatureHost view={currentView} cases={cases} persons={persons} theme={theme} onThemeChange={setTheme} onCreateDeadline={createDeadline}
     recordTarget={recordTarget?.view === currentView ? recordTarget : null} onRecordTargetConsumed={() => setRecordTarget(null)}
     measures={work.caseMeasures}
-    onOpenCaseNode={openCaseNode} deadlines={deadlines} onNavigate={setCurrentView}
+    onOpenCaseNode={openCaseNode} onOpenSearchRecord={onOpenSearchRecord} deadlines={deadlines} onNavigate={setCurrentView}
     onRecordsChanged={reloadWorkData}
     caseFeatureProps={{
       cases,

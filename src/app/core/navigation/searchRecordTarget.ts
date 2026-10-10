@@ -1,9 +1,29 @@
 import type { UnifiedSearchHit } from '../../../domain/models/unified-search.model';
 import type { DeadlineOpenTarget } from '../../features/deadlines/deadlineContext';
+import type { CaseNodeTarget } from './caseNodeTarget';
+import type { CaseProcessType } from '../../features/cases/caseWorkbenchTypes';
 
 export type SearchRecordTarget =
   | Extract<DeadlineOpenTarget, { kind: 'record' | 'deadline' }>
   | { kind: 'person' | 'contact'; id: string };
+
+const processTypeBySource: Partial<Record<string, CaseProcessType>> = {
+  bem: 'bem', bem_event: 'bem', prevention: 'prevention', prevention_event: 'prevention',
+  termination: 'termination_hearing', equalization: 'equalization', participation: 'participation',
+  participation_event: 'participation', workplace_accommodation: 'workplace_accommodation',
+};
+
+export function resolveSearchCaseNodeTarget(hit: UnifiedSearchHit): CaseNodeTarget | null {
+  if (!hit.caseId) return null;
+  const nodeId = hit.navigationId || hit.sourceId;
+  if (hit.navigationKind === 'case') return { caseId: hit.caseId, nodeType: 'overview' };
+  if (hit.navigationKind === 'note' || hit.navigationKind === 'document') {
+    return { caseId: hit.caseId, nodeType: hit.navigationKind, nodeId };
+  }
+  const processType = processTypeBySource[hit.sourceType];
+  if (hit.navigationKind === 'process' && processType) return { caseId: hit.caseId, nodeType: processType, nodeId };
+  return null;
+}
 
 export function resolveSearchRecordTarget(hit: UnifiedSearchHit): SearchRecordTarget | null {
   const id = hit.navigationId || hit.sourceId;

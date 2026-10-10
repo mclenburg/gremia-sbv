@@ -8,6 +8,7 @@ export type VisualQaRoute = {
 
 export const VISUAL_QA_ROUTES: readonly VisualQaRoute[] = [
   { id: 'dashboard', navName: 'Dashboard', heading: /Dashboard/i },
+  { id: 'search', navName: 'Suche', heading: /Suche/i },
   { id: 'persons', navName: 'Personen', heading: /Personenverzeichnis/i },
   { id: 'cases', navName: 'Fallakte', heading: /Fälle/i },
   { id: 'deadlines', navName: 'Fristen', heading: /Fristen/i },

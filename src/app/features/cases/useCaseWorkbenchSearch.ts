@@ -25,12 +25,13 @@ export function buildCaseSearchInput({ query, selectedCaseId, searchArea, select
   };
 }
 
-export function useCaseWorkbenchSearch({ selectedCaseId, onSelect }: {
+export function useCaseWorkbenchSearch({ selectedCaseId, onSelect, initialArea = 'current_case' }: {
   selectedCaseId: string;
-  onSelect: (selection: CaseExplorerSelection) => void;
+  onSelect?: (selection: CaseExplorerSelection) => void;
+  initialArea?: SearchArea;
 }) {
   const [searchQuery, setSearchQueryState] = useState('');
-  const [searchArea, setSearchAreaState] = useState<SearchArea>('current_case');
+  const [searchArea, setSearchAreaState] = useState<SearchArea>(initialArea);
   const [searchResults, setSearchResults] = useState<UnifiedSearchHit[]>([]);
   const [searchTotal, setSearchTotal] = useState(0);
   const [selectedSearchSourceTypes, setSelectedSearchSourceTypesState] = useState<string[]>([]);
@@ -91,7 +92,7 @@ export function useCaseWorkbenchSearch({ selectedCaseId, onSelect }: {
       const message = page.total === 1 ? 'Ein Suchtreffer gefunden.' : `${page.total} Suchtreffer gefunden.`;
       setSearchInfo(message);
       announce(message, 'polite');
-      if (page.hits.length) onSelect({ type: 'search', id: `${page.hits[0].sourceType}:${page.hits[0].sourceId}` });
+      if (page.hits.length) onSelect?.({ type: 'search', id: `${page.hits[0].sourceType}:${page.hits[0].sourceId}` });
     } catch (error) {
       if (currentRequest !== requestId.current) return;
       const message = error instanceof Error ? error.message : 'Volltextsuche konnte nicht ausgeführt werden.';

@@ -6,12 +6,22 @@ function navigation(page: import('@playwright/test').Page) {
   return page.getByRole('navigation', { name: 'Hauptnavigation' });
 }
 
-async function openSearch(page: import('@playwright/test').Page) {
+async function openCase(page: import('@playwright/test').Page) {
   await navigation(page).getByRole('button', { name: 'Fallakte', exact: true }).click();
-  await expect(page.getByRole('heading', { name: /TEST-0001\s*·\s*Testperson Alpha/ })).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Diese Fallakte durchsuchen' })).toBeVisible();
 }
 
-async function search(page: import('@playwright/test').Page, query: string, area: string) {
+async function openGlobalSearch(page: import('@playwright/test').Page) {
+  await navigation(page).getByRole('button', { name: 'Suche', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Suche', level: 1 })).toBeVisible();
+}
+
+async function searchInCase(page: import('@playwright/test').Page, query: string) {
+  await page.getByRole('textbox', { name: 'Diese Fallakte durchsuchen' }).fill(query);
+  await page.getByRole('button', { name: 'Suchen', exact: true }).click();
+}
+
+async function searchGlobally(page: import('@playwright/test').Page, query: string, area: string) {
   await page.getByRole('radio', { name: area }).check();
   await page.getByRole('textbox', { name: 'Volltextsuche' }).fill(query);
   await page.getByRole('button', { name: 'Suchen', exact: true }).click();
@@ -26,8 +36,8 @@ async function lastSearchCall(page: import('@playwright/test').Page): Promise<Se
 }
 
 test('zeigt Fallnotiz mit hervorgehobener Fundstelle und öffnet sie per Tastatur', async ({ page }) => {
-  await openSearch(page);
-  await search(page, 'BEM-Aktenbezug', 'Diese Fallakte');
+  await openCase(page);
+  await searchInCase(page, 'BEM-Aktenbezug');
   const result = hit(page, 'Synthetische Notiz mit Aktenbezug');
   await expect(result).toContainText('Fallakten · Fallnotiz · Fallakte TEST-0001');
   await expect(result.locator('mark')).toHaveText('BEM-Aktenbezug');
@@ -38,9 +48,9 @@ test('zeigt Fallnotiz mit hervorgehobener Fundstelle und öffnet sie per Tastatu
 });
 
 test('filtert Quelltypen und wechselt mit einem Treffer genau zum anderen Fallprozess', async ({ page }) => {
-  await openSearch(page);
+  await openGlobalSearch(page);
   await page.getByRole('group', { name: 'Inhaltstypen einschränken' }).getByLabel('BEM').check();
-  await search(page, 'BEM-Anlass Beta', 'Alle Fallakten');
+  await searchGlobally(page, 'BEM-Anlass Beta', 'Alle Fallakten');
   const result = hit(page, 'BEM-Testvorgang Beta');
   await expect(result).toContainText('Fallakte TEST-0002');
   await result.click();
@@ -50,34 +60,35 @@ test('filtert Quelltypen und wechselt mit einem Treffer genau zum anderen Fallpr
 });
 
 test('trennt Fallakten vom gesamten Datenbestand', async ({ page }) => {
-  await openSearch(page);
-  await search(page, 'BEM-Anlass Beta', 'Diese Fallakte');
+  await openCase(page);
+  await searchInCase(page, 'BEM-Anlass Beta');
   await expect(hit(page, 'BEM-Testvorgang Beta')).toHaveCount(0);
-  await search(page, 'BEM-Anlass Beta', 'Gesamter Datenbestand');
+  await openGlobalSearch(page);
+  await searchGlobally(page, 'BEM-Anlass Beta', 'Gesamter Datenbestand');
   await expect(hit(page, 'BEM-Testvorgang Beta')).toBeVisible();
   expect((await lastSearchCall(page)).area).toBe('all_data');
 });
 
 test('findet indizierten OCR-Text ohne Onlinefunktion', async ({ page }) => {
-  await openSearch(page);
+  await openCase(page);
   await page.getByRole('group', { name: 'Inhaltstypen einschränken' }).getByLabel('Dokumente').check();
-  await search(page, 'ScanFund', 'Diese Fallakte');
+  await searchInCase(page, 'ScanFund');
   const result = hit(page, 'Scan mit OCR');
   await expect(result).toContainText('Dokument · Fallakte TEST-0001 · OCR-Text');
   await expect(result.locator('mark')).toHaveText('ScanFund');
 });
 
 test('öffnet einen Treffer der Wissensbasis direkt am passenden Datensatz', async ({ page }) => {
-  await openSearch(page);
-  await search(page, 'Zentrale Beteiligungs', 'Gesamter Datenbestand');
+  await openGlobalSearch(page);
+  await searchGlobally(page, 'Zentrale Beteiligungs', 'Gesamter Datenbestand');
   await hit(page, 'Aufgaben der Schwerbehindertenvertretung').click();
   await expect(page.getByRole('heading', { name: 'Wissensdatenbank' })).toBeVisible();
   await expect(page.locator('.knowledge-layout')).toContainText('Aufgaben der Schwerbehindertenvertretung');
 });
 
 test('zeigt bei Quellen ohne eigene Datensatzansicht den vollständigen indizierten Inhalt', async ({ page }) => {
-  await openSearch(page);
-  await search(page, 'BudgetStichwort', 'Gesamter Datenbestand');
+  await openGlobalSearch(page);
+  await searchGlobally(page, 'BudgetStichwort', 'Gesamter Datenbestand');
   await hit(page, 'SBV-Ressource').click();
   await expect(page.locator('.case-detail-content')).toContainText('Vollständiger synthetischer Ressourceninhalt mit BudgetStichwort und weiteren Angaben.');
 });

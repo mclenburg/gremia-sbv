@@ -314,31 +314,7 @@
   }
 }
 
-@media (max-width: 1250px) {
-  .case-detail-search-bar {
-    grid-template-columns: auto minmax(16rem, 1fr) auto;
-  }
-
-  .case-detail-search-bar .industrial-checkbox-row.compact {
-    grid-column: 2 / 4;
-  }
-}
-
 @media (max-width: 900px) {
-  .case-detail-search-bar {
-    grid-template-columns: 1fr;
-  }
-
-  .case-search-area-options {
-    grid-column: 1 / -1;
-  }
-
-  .case-detail-search-bar .industrial-checkbox-row.compact,
-  .case-detail-search-button {
-    grid-column: auto;
-    width: 100%;
-  }
-
   .case-workbench-footer-heading small {
     max-width: 100%;
   }
@@ -351,53 +327,6 @@
 
   .case-workbench-footer-action-label small {
     display: none;
-  }
-}
-
-@media (max-width: 1250px) {
-  .case-detail-search-bar {
-    grid-template-columns: auto minmax(16rem, 1fr) auto;
-  }
-
-  .case-detail-handover-export-button {
-    grid-column: 2 / 4;
-    justify-self: start;
-  }
-}
-
-@media (max-width: 900px) {
-  .case-detail-handover-export-button {
-    grid-column: auto;
-    width: 100%;
-  }
-}
-
-@media (max-width: 1250px) {
-  .case-detail-search-bar {
-    grid-template-columns: auto minmax(14rem, 1fr) auto;
-  }
-
-  .case-detail-search-bar .industrial-checkbox-row.compact {
-    grid-column: 2 / 4;
-  }
-
-  .case-detail-search-actions {
-    grid-column: 2 / 4;
-    justify-content: flex-end;
-  }
-}
-
-@media (max-width: 900px) {
-  .case-detail-search-actions {
-    grid-column: auto;
-    display: grid;
-    grid-template-columns: 1fr;
-    width: 100%;
-  }
-
-  .case-detail-search-actions .industrial-secondary-button {
-    width: 100%;
-    justify-content: center;
   }
 }
 
