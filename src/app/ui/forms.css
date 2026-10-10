@@ -126,6 +126,17 @@
   grid-row: 1 / span 3;
 }
 
+.industrial-choice-input[type='radio'],
+.industrial-choice-input[type='checkbox'] {
+  width: 1rem;
+  height: 1rem;
+  min-width: 1rem;
+  min-height: 1rem;
+  margin: 0;
+  padding: var(--space-0);
+  accent-color: var(--industrial-accent);
+}
+
 .industrial-checkbox-field .industrial-field-label {
   color: var(--industrial-text);
   font-size: var(--font-size-sm);
@@ -276,6 +287,7 @@
 }
 
 .industrial-input:focus,
+.industrial-choice-input:focus,
 .industrial-select:focus,
 .industrial-text-input:focus,
 .industrial-textarea-input:focus,

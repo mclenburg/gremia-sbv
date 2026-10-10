@@ -80,7 +80,7 @@ export function CaseDetailPanel({
           <legend>Suchbereich</legend>
           {SEARCH_AREAS.map((area) => <label key={area.id} className="industrial-checkbox-row compact">
             <input type="radio" name="case-search-area" value={area.id} checked={searchArea === area.id}
-              onChange={() => onSearchAreaChange(area.id)} className="industrial-input" />
+              onChange={() => onSearchAreaChange(area.id)} className="industrial-choice-input" />
             <span>{area.label}</span>
           </label>)}
         </fieldset>
@@ -128,8 +128,9 @@ export function CaseDetailPanel({
           <label key={filter.type} className="industrial-checkbox-row compact">
             <input
               type="checkbox"
+              className="industrial-choice-input"
               checked={selectedSearchSourceTypes.includes(filter.type)}
-              onChange={() => onSearchSourceTypesChange(toggleSourceType(selectedSearchSourceTypes, filter.type))} className="industrial-input" />
+              onChange={() => onSearchSourceTypesChange(toggleSourceType(selectedSearchSourceTypes, filter.type))} />
             <span>{filter.label}</span>
           </label>
         ))}
