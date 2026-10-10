@@ -1,6 +1,7 @@
 import { AlertTriangle, CheckCircle2, Plus, Trash2 } from "lucide-react";
 import { ModuleFrame } from "../../shared/components/ModuleFrame";
 import { DangerButton, IndustrialButton, ToolbarButton } from "../../shared/components/IndustrialButton";
+import { IndustrialActionRow } from "../../shared/components/WorkbenchLayout";
 import { CaseRegister } from "./CaseRegister";
 import { CaseTreePanel } from "./CaseTreePanel";
 import { CaseDetailPanel } from "./CaseDetailPanel";
@@ -135,11 +136,11 @@ function CaseResourceContent({ props }: { props: CasesViewRenderProps }) {
       <p className="case-note-content">{selectedNote.content}</p>
       <CaseNoteEntityLinks links={selectedNote.links} onSelect={setSelection} />
       {selectedNote.nextSteps && <p className="case-note-next"><strong>Nächste Schritte:</strong> {selectedNote.nextSteps}</p>}
-      <div className="industrial-card-actions">
+      <IndustrialActionRow>
         <ToolbarButton onClick={() => startEditNote(selectedNote)}>Bearbeiten</ToolbarButton>
         <DangerButton compact onClick={() => void deleteNote(selectedNote)}>
           <Trash2 className="industrial-icon" /> Löschen</DangerButton>
-      </div>
+      </IndustrialActionRow>
     </article>}
     <CaseDocumentDetail document={selectedDocument} formatNoteDate={formatNoteDate} formatBytes={formatBytes}
       onOpen={(document) => void documentActions.openDocument(document)}

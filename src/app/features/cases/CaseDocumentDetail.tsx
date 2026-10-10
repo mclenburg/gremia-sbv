@@ -1,6 +1,7 @@
 import { FileText, Trash2 } from 'lucide-react';
 import type { CaseDocumentRecord } from '../../../domain/models/case-document.model';
 import { DangerButton, ToolbarButton } from '../../shared/components/IndustrialButton';
+import { IndustrialActionRow } from '../../shared/components/WorkbenchLayout';
 
 export function CaseDocumentDetail({
   document,
@@ -41,11 +42,11 @@ export function CaseDocumentDetail({
         {document.ocrText && document.ocrText !== document.extractedText ? <p><strong>OCR-Text:</strong> {document.ocrText.slice(0, 2000)}</p> : null}
       </div> : <p className="industrial-empty">Für dieses Dokument wurde kein lesbarer Volltext extrahiert. Dateiname und Metadaten sind trotzdem suchbar.</p>}
       <div className="industrial-message industrial-message-warning">Beim Öffnen oder Exportieren entsteht temporär bzw. bewusst eine Klartextkopie außerhalb des verschlüsselten Dokumentenspeichers.</div>
-      <div className="industrial-card-actions">
+      <IndustrialActionRow>
         <ToolbarButton onClick={() => onOpen(document)}><FileText className="industrial-icon" /> Öffnen</ToolbarButton>
         <ToolbarButton onClick={() => onExport(document)}>Exportieren</ToolbarButton>
         <DangerButton compact onClick={() => onDelete(document)}><Trash2 className="industrial-icon" /> Löschen</DangerButton>
-      </div>
+      </IndustrialActionRow>
     </article>
   );
 }
