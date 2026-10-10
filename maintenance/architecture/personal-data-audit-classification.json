@@ -73,6 +73,11 @@
     "sbv_retention_legal_holds"
   ],
   "exceptions": {
+    "services/retentionCaseDependents.ts#<module>.deleteRetentionCaseDependents": {
+      "classification": "delegated",
+      "owner": "RetentionService.deleteCase",
+      "reason": "Löscht abhängige Fall- und OCR-Daten innerhalb derselben Falllösch-Transaktion; RetentionService.deleteCase schreibt darin den verpflichtenden CaseLifecycleAuditService.deleted-Eintrag und die Retention-Aktion."
+    },
     "services/mobileCompanionReturnImportApplier.ts#MobileCompanionReturnImportApplier.insertImport": {
       "classification": "delegated",
       "owner": "MobileCompanionReturnImportApplier.apply",
