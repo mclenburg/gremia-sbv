@@ -49,6 +49,22 @@ async function openCaseDocumentPreview(
   });
 }
 
+function registerCaseSearchIpc(ipcMain: IpcMain, services: ApplicationServices): void {
+  registerIpcHandler(ipcMain, IPC_CHANNELS.casesSearch, async (_event, input: unknown) =>
+    services.cases.searchContent(assertRecordInput<CaseContentSearchInput>(input, "cases:search")),
+  );
+  registerIpcHandler(ipcMain, IPC_CHANNELS.casesSearchUnified, async (_event, input: unknown) =>
+    services.unifiedSearchIndex().search(validateUnifiedSearchInput(input)),
+  );
+  registerIpcHandler(ipcMain, IPC_CHANNELS.casesSearchDetail, async (_event, input: unknown) => {
+    const detail = assertRecordInput<{ sourceType: unknown; sourceId: unknown }>(input, 'cases:search-detail');
+    const sourceType = assertString(detail.sourceType, 'cases:search-detail', 'Quelltyp', { maxLength: 80 });
+    const sourceId = assertString(detail.sourceId, 'cases:search-detail', 'Datensatz-ID', { maxLength: 120 });
+    if (!SEARCH_SOURCE_CATALOG.some((source) => source.sourceType === sourceType)) return null;
+    return services.unifiedSearchIndex().detail(sourceType, sourceId);
+  });
+}
+
 export function registerCaseIpc(
   ipcMain: IpcMain,
   security: SecurityService,
@@ -155,19 +171,5 @@ export function registerCaseIpc(
       return imported;
     },
   );
-  registerIpcHandler(ipcMain, IPC_CHANNELS.casesSearch, async (_event, input: unknown) =>
-    cases.searchContent(
-      assertRecordInput<CaseContentSearchInput>(input, "cases:search"),
-    ),
-  );
-  registerIpcHandler(ipcMain, IPC_CHANNELS.casesSearchUnified, async (_event, input: unknown) =>
-    services.unifiedSearchIndex().search(validateUnifiedSearchInput(input)),
-  );
-  registerIpcHandler(ipcMain, IPC_CHANNELS.casesSearchDetail, async (_event, input: unknown) => {
-    const detail = assertRecordInput<{ sourceType: unknown; sourceId: unknown }>(input, 'cases:search-detail');
-    const sourceType = assertString(detail.sourceType, 'cases:search-detail', 'Quelltyp', { maxLength: 80 });
-    const sourceId = assertString(detail.sourceId, 'cases:search-detail', 'Datensatz-ID', { maxLength: 120 });
-    if (!SEARCH_SOURCE_CATALOG.some((source) => source.sourceType === sourceType)) return null;
-    return services.unifiedSearchIndex().detail(sourceType, sourceId);
-  });
+  registerCaseSearchIpc(ipcMain, services);
 }

@@ -16,6 +16,19 @@ import type { ContactRecord, CreateContactInput, DeleteContactResult } from '../
 import { filterContactsForQuery, formatContactReference } from './contactDisplay';
 import { ContactCreateModal } from './ContactCreateModal';
 
+function useContactTargetFocus(targetContactId: string | null | undefined, contacts: ContactRecord[]): void {
+  useEffect(() => {
+    if (!targetContactId) return;
+    const frame = window.requestAnimationFrame(() => {
+      const card = [...document.querySelectorAll<HTMLElement>('.industrial-record-card[aria-current="true"]')]
+        .find((element) => element.querySelector('[data-contact-id]')?.getAttribute('data-contact-id') === targetContactId);
+      card?.scrollIntoView({ block: 'center' });
+      card?.focus();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [targetContactId, contacts]);
+}
+
 export function ContactsView({
   contacts,
   targetContactId,
@@ -36,17 +49,8 @@ export function ContactsView({
 
   const filteredContacts = useMemo(() => filterContactsForQuery(contacts, query), [contacts, query]);
 
-  useEffect(() => {
-    if (!targetContactId) return;
-    setQuery('');
-    const frame = window.requestAnimationFrame(() => {
-      const card = [...document.querySelectorAll<HTMLElement>('.industrial-record-card[aria-current="true"]')]
-        .find((element) => element.querySelector('[data-contact-id]')?.getAttribute('data-contact-id') === targetContactId);
-      card?.scrollIntoView({ block: 'center' });
-      card?.focus();
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [targetContactId, contacts]);
+  useEffect(() => { if (targetContactId) setQuery(''); }, [targetContactId]);
+  useContactTargetFocus(targetContactId, contacts);
 
   function handleCreated(nextMessage: string) {
     setError('');

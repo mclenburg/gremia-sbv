@@ -4,13 +4,12 @@ import { PlaceholderView } from "./shared/components/PlaceholderView";
 import { ShellNav } from "./shell/ShellNav";
 import { LazyFeatureHost } from "./core/loading/LazyFeatureHost";
 import { preloadLazyFeature } from "./core/loading/lazyFeatureViews";
-import { modules, type ViewId } from "./core/navigation/modules";
+import { modules, resolveSearchRecordTarget, useGremiaBrNavigationVisibility, type ViewId } from "./core/navigation";
 import { useModalKeyboardShortcuts } from "./core/keyboard/useModalKeyboardShortcuts";
 import { AUTO_LOCK_TIMEOUT_MS, useAutoLock } from "./core/security/useAutoLock";
 import { INITIAL_SESSION_VIEW, toLockedSessionState } from "./core/security/sessionLockState";
 import { requestSecurityLock } from "./core/security/requestSecurityLock";
-import type { UnifiedSearchHit } from '../domain/models/unified-search.model';
-import type { CaseCategory, CaseRecord, WorkplaceAccommodationRecord, CaseMeasureRecord, ProtectedPersonRecord, ContactRecord, CreateContactInput, DeleteContactResult, CreateDeadlineInput, DeadlineDashboardItem, DeadlineRecord, DeadlineSeverity, SbvParticipationViolationPrefill, ActivityJournalPrefill, AuthMode, CaseNodeTarget } from "./appTypes";
+import type { CaseCategory, CaseRecord, WorkplaceAccommodationRecord, CaseMeasureRecord, ProtectedPersonRecord, ContactRecord, CreateContactInput, DeleteContactResult, CreateDeadlineInput, DeadlineDashboardItem, DeadlineRecord, DeadlineSeverity, SbvParticipationViolationPrefill, ActivityJournalPrefill, AuthMode, CaseNodeTarget, UnifiedSearchHit } from "./appTypes";
 import "./appStyles";
 import { APP_VERSION } from "./generated/appVersion";
 import { ConfirmDialogProvider } from "./shared/dialogs/ConfirmDialogProvider";
@@ -227,45 +226,6 @@ function useWorkData(unlocked: boolean, setCurrentView: (view: ViewId) => void, 
     reloadWorkData, createCase, createContact, deleteContact, createDeadline, updateDeadline, completeDeadline };
 }
 
-const GREMIA_BR_SETTINGS_CHANGED_EVENT = "gremia-sbv:gremia-br-settings-changed";
-
-function isConfiguredGremiaBrNavigationTarget(settings?: { enabled?: boolean; serverUrl?: string; username?: string; hasStoredCredentials?: boolean }): boolean {
-  return Boolean(settings?.enabled && settings.serverUrl?.trim() && settings.username?.trim() && settings.hasStoredCredentials);
-}
-
-function useGremiaBrNavigationVisibility(unlocked: boolean, currentView: ViewId, setCurrentView: (view: ViewId) => void): boolean {
-  const [configured, setConfigured] = useState(false);
-  const reload = useCallback(async () => {
-    try {
-      const bridge = await waitForBridge();
-      if (!bridge?.gremiaBr) {
-        setConfigured(false);
-        return;
-      }
-      setConfigured(isConfiguredGremiaBrNavigationTarget(await bridge.gremiaBr.getSettings()));
-    } catch (error) {
-      recordRendererDiagnostic("warning", "Gremia.BR-Navigation konnte nicht aktualisiert werden.", error);
-      setConfigured(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!unlocked) {
-      setConfigured(false);
-      return;
-    }
-    void reload();
-    window.addEventListener(GREMIA_BR_SETTINGS_CHANGED_EVENT, reload);
-    return () => window.removeEventListener(GREMIA_BR_SETTINGS_CHANGED_EVENT, reload);
-  }, [reload, unlocked]);
-
-  useEffect(() => {
-    if (currentView === "gremia_br" && !configured) setCurrentView("dashboard");
-  }, [configured, currentView, setCurrentView]);
-
-  return configured;
-}
-
 type WorkData = ReturnType<typeof useWorkData>;
 type SearchRecordOpener = (hit: UnifiedSearchHit) => boolean;
 type PrimaryViewsProps = { currentView: ViewId; setCurrentView: (view: ViewId) => void; work: WorkData; caseNodeTarget: CaseNodeTarget | null;
@@ -407,25 +367,18 @@ export function App() {
   const currentModule = useMemo(() => modules.find((module) => module.id === currentView), [currentView]);
   const openCaseNode = (target: CaseNodeTarget) => { setCaseNodeTarget(target); setCurrentView("cases"); };
   const openSearchRecord: SearchRecordOpener = (hit) => {
-    const id = hit.navigationId || hit.sourceId;
-    if (hit.sourceType === 'person') { setPersonTargetId(id); setCurrentView('persons'); return true; }
-    if (hit.sourceType === 'contact') { setContactTargetId(id); setCurrentView('contacts'); return true; }
-    if (hit.sourceType === 'legal_norm') { setRecordTarget({ kind: 'record', view: 'knowledge', recordId: id }); setCurrentView('knowledge'); return true; }
-    if (hit.sourceType === 'template') { setRecordTarget({ kind: 'record', view: 'templates', recordId: id }); setCurrentView('templates'); return true; }
-    if (hit.sourceType === 'journal') { setRecordTarget({ kind: 'record', view: 'activity_journal', recordId: id }); setCurrentView('activity_journal'); return true; }
-    if (hit.sourceType === 'participation_violation') { setRecordTarget({ kind: 'record', view: 'participation_violations', recordId: id }); setCurrentView('participation_violations'); return true; }
-    if (hit.sourceType === 'recruiting') { setRecordTarget({ kind: 'record', view: 'recruiting_participations', recordId: id }); setCurrentView('recruiting_participations'); return true; }
-    if (hit.sourceType === 'election') { setRecordTarget({ kind: 'record', view: 'elections', recordId: id }); setCurrentView('elections'); return true; }
-    if (hit.sourceType === 'control_protocol') { setRecordTarget({ kind: 'record', view: 'sbv_control', processType: 'sbv_control_protocol', recordId: id }); setCurrentView('sbv_control'); return true; }
-    if (hit.sourceType === 'meeting') { setRecordTarget({ kind: 'record', view: 'meetings', processType: 'sbv_meeting', recordId: id }); setCurrentView('meetings'); return true; }
-    if (hit.sourceType === 'assembly') { setRecordTarget({ kind: 'record', view: 'sbv_control', processType: 'sbv_assembly', recordId: id }); setCurrentView('sbv_control'); return true; }
-    if (hit.sourceType === 'employer_obligation') { setRecordTarget({ kind: 'record', view: 'sbv_control', processType: 'employer_obligation_review', recordId: id }); setCurrentView('sbv_control'); return true; }
-    if (hit.sourceType === 'inclusion_agreement') { setRecordTarget({ kind: 'record', view: 'sbv_control', processType: 'inclusion_agreement', recordId: id }); setCurrentView('sbv_control'); return true; }
-    if (hit.sourceType === 'deadline') {
-      const deadline = work.deadlines.find((item) => item.id === id);
+    const target = resolveSearchRecordTarget(hit);
+    if (!target) return false;
+    if (target.kind === 'person') { setPersonTargetId(target.id); setCurrentView('persons'); return true; }
+    if (target.kind === 'contact') { setContactTargetId(target.id); setCurrentView('contacts'); return true; }
+    if (target.kind === 'deadline') {
+      const deadline = work.deadlines.find((item) => item.id === target.deadlineId);
       if (deadline) { work.setSelectedDeadline(deadline); setCurrentView('deadlines'); return true; }
     }
-    return false;
+    if (target.kind !== 'record') return false;
+    setRecordTarget(target);
+    setCurrentView(target.view);
+    return true;
   };
   useModalKeyboardShortcuts({ setCurrentView });
   useEffect(() => { applyTheme(theme); }, [theme]);

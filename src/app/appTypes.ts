@@ -8,3 +8,4 @@ export type { SbvParticipationViolationPrefill } from "./features/participation-
 export type { ActivityJournalPrefill } from "../domain/models/activity-journal.model";
 export type { AuthMode } from "./core/auth/authTypes";
 export type { CaseNodeTarget } from "./core/navigation/caseNodeTarget";
+export type { UnifiedSearchHit } from "../domain/models/unified-search.model";
