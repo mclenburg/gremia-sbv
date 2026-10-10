@@ -5,6 +5,7 @@ import type { CreateDeadlineInput } from "../../../domain/models/deadline.model"
 import type { CaseNodeTarget } from "../../core/navigation/caseNodeTarget";
 import type { ViewId } from '../../core/navigation/modules';
 import type { SbvParticipationViolationPrefill } from "../participation-violations/sbvParticipationViolationViewLogic";
+import type { UnifiedSearchHit } from '../../../domain/models/unified-search.model';
 
 export type CasesViewProps = {
   cases: CaseRecord[];
@@ -26,6 +27,7 @@ export type CasesViewProps = {
   onTargetConsumed?: () => void;
   onOpenParticipationViolationPrefill?: (prefill: SbvParticipationViolationPrefill) => void;
   onNavigate?: (view: ViewId) => void;
+  onOpenSearchRecord?: (hit: UnifiedSearchHit) => boolean;
 };
 
 export type CaseToast = {

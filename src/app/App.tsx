@@ -9,6 +9,7 @@ import { useModalKeyboardShortcuts } from "./core/keyboard/useModalKeyboardShort
 import { AUTO_LOCK_TIMEOUT_MS, useAutoLock } from "./core/security/useAutoLock";
 import { INITIAL_SESSION_VIEW, toLockedSessionState } from "./core/security/sessionLockState";
 import { requestSecurityLock } from "./core/security/requestSecurityLock";
+import type { UnifiedSearchHit } from '../domain/models/unified-search.model';
 import type { CaseCategory, CaseRecord, WorkplaceAccommodationRecord, CaseMeasureRecord, ProtectedPersonRecord, ContactRecord, CreateContactInput, DeleteContactResult, CreateDeadlineInput, DeadlineDashboardItem, DeadlineRecord, DeadlineSeverity, SbvParticipationViolationPrefill, ActivityJournalPrefill, AuthMode, CaseNodeTarget } from "./appTypes";
 import "./appStyles";
 import { APP_VERSION } from "./generated/appVersion";
@@ -266,14 +267,15 @@ function useGremiaBrNavigationVisibility(unlocked: boolean, currentView: ViewId,
 }
 
 type WorkData = ReturnType<typeof useWorkData>;
+type SearchRecordOpener = (hit: UnifiedSearchHit) => boolean;
 type PrimaryViewsProps = { currentView: ViewId; setCurrentView: (view: ViewId) => void; work: WorkData; caseNodeTarget: CaseNodeTarget | null;
-  setCaseNodeTarget: (target: CaseNodeTarget | null) => void; personTargetId: string | null; setPersonTargetId: (id: string | null) => void; activityJournalPrefill: ActivityJournalPrefill | null;
+  setCaseNodeTarget: (target: CaseNodeTarget | null) => void; personTargetId: string | null; setPersonTargetId: (id: string | null) => void; contactTargetId: string | null; activityJournalPrefill: ActivityJournalPrefill | null;
   recordTarget: Extract<DeadlineOpenTarget, { kind: 'record' }> | null; setRecordTarget: (target: Extract<DeadlineOpenTarget, { kind: 'record' }> | null) => void;
   setActivityJournalPrefill: (prefill: ActivityJournalPrefill | null) => void; participationViolationPrefill: SbvParticipationViolationPrefill | null;
   setParticipationViolationPrefill: (prefill: SbvParticipationViolationPrefill | null) => void; };
 
 function PrimaryViews(props: PrimaryViewsProps & { openCaseNode: (target: CaseNodeTarget) => void }) {
-  const { currentView, setCurrentView, work, personTargetId, setPersonTargetId, recordTarget, setRecordTarget, activityJournalPrefill, setActivityJournalPrefill,
+  const { currentView, setCurrentView, work, personTargetId, setPersonTargetId, contactTargetId, recordTarget, setRecordTarget, activityJournalPrefill, setActivityJournalPrefill,
     participationViolationPrefill, setParticipationViolationPrefill } = props;
   const { cases, contacts, deadlines, persons, caseMeasures, dashboardDeadlines, setSelectedDeadline, createCase, createContact,
     deleteContact, createDeadline, completeDeadline, reloadWorkData, setDeadlineExtensionTarget } = work;
@@ -308,13 +310,14 @@ function PrimaryViews(props: PrimaryViewsProps & { openCaseNode: (target: CaseNo
     onClearReview={personHandlers.clearPrivacyReview} onAnonymizeReviewCase={personHandlers.anonymizePrivacyReviewCase}
     onDeleteReviewCase={personHandlers.deletePrivacyReviewCase} onAnonymizePerson={personHandlers.anonymizeProtectedPerson}
     onDeletePerson={personHandlers.deleteProtectedPerson} />;
-  if (currentView === "contacts") return <ContactsView contacts={contacts} onCreateContact={createContact} onDeleteContact={deleteContact} />;
+  if (currentView === "contacts") return <ContactsView contacts={contacts} targetContactId={contactTargetId} onCreateContact={createContact} onDeleteContact={deleteContact} />;
   return null;
 }
 
-function ProcessViews({ currentView, setCurrentView, work, caseNodeTarget, setCaseNodeTarget, recordTarget, setRecordTarget, openCaseNode, theme, setTheme, setParticipationViolationPrefill }: {
+function ProcessViews({ currentView, setCurrentView, work, caseNodeTarget, setCaseNodeTarget, recordTarget, setRecordTarget, openCaseNode, onOpenSearchRecord, theme, setTheme, setParticipationViolationPrefill }: {
   currentView: ViewId; setCurrentView: (view: ViewId) => void; work: WorkData; caseNodeTarget: CaseNodeTarget | null;
   setCaseNodeTarget: (target: CaseNodeTarget | null) => void; openCaseNode: (target: CaseNodeTarget) => void;
+  onOpenSearchRecord: SearchRecordOpener;
   recordTarget: Extract<DeadlineOpenTarget, { kind: 'record' }> | null; setRecordTarget: (target: Extract<DeadlineOpenTarget, { kind: 'record' }> | null) => void;
   theme: ThemeMode; setTheme: (theme: ThemeMode) => void; setParticipationViolationPrefill: (prefill: SbvParticipationViolationPrefill | null) => void;
 }) {
@@ -335,12 +338,14 @@ function ProcessViews({ currentView, setCurrentView, work, caseNodeTarget, setCa
       onCreateContact: createContact,
       onCasesChanged: reloadWorkData,
       onTargetConsumed: () => setCaseNodeTarget(null),
+      onOpenSearchRecord,
       onOpenParticipationViolationPrefill: (prefill) => { setParticipationViolationPrefill(prefill); setCurrentView("participation_violations"); },
     }}
     onOpenParticipationViolationPrefill={(prefill) => { setParticipationViolationPrefill(prefill); setCurrentView("participation_violations"); }} />;
 }
 
 function WorkspaceMain(props: PrimaryViewsProps & { currentModule?: (typeof modules)[number]; openCaseNode: (target: CaseNodeTarget) => void;
+  onOpenSearchRecord: SearchRecordOpener;
   theme: ThemeMode; setTheme: (theme: ThemeMode) => void; securityWarning?: string; onDismissSecurityWarning: () => void;
   startupNotice: GremiaBrStartupNotice | null; onDismissStartupNotice: () => void; }) {
   const { currentView, currentModule, setCurrentView, work } = props;
@@ -363,7 +368,7 @@ function WorkspaceMain(props: PrimaryViewsProps & { currentModule?: (typeof modu
     {work.dataError && <div className="industrial-message industrial-message-warning" role="alert">{work.dataError}</div>}
     <PrimaryViews {...props} />
     <ProcessViews currentView={currentView} setCurrentView={setCurrentView} work={work} caseNodeTarget={props.caseNodeTarget}
-      setCaseNodeTarget={props.setCaseNodeTarget} recordTarget={props.recordTarget} setRecordTarget={props.setRecordTarget} openCaseNode={props.openCaseNode} theme={props.theme} setTheme={props.setTheme}
+      setCaseNodeTarget={props.setCaseNodeTarget} recordTarget={props.recordTarget} setRecordTarget={props.setRecordTarget} openCaseNode={props.openCaseNode} onOpenSearchRecord={props.onOpenSearchRecord} theme={props.theme} setTheme={props.setTheme}
       setParticipationViolationPrefill={props.setParticipationViolationPrefill} />
     {!isImplementedView(currentView) && currentModule && <PlaceholderView view={currentModule} />}
     <GlobalTextCommandController cases={work.cases} contacts={work.contacts} persons={work.persons} onCreateDeadline={work.createDeadline} /><TextCommandHelpModal />
@@ -393,6 +398,7 @@ export function App() {
   const [theme, setTheme] = useState<ThemeMode>(() => getInitialTheme());
   const [caseNodeTarget, setCaseNodeTarget] = useState<CaseNodeTarget | null>(null);
   const [personTargetId, setPersonTargetId] = useState<string | null>(null);
+  const [contactTargetId, setContactTargetId] = useState<string | null>(null);
   const [recordTarget, setRecordTarget] = useState<Extract<DeadlineOpenTarget, { kind: 'record' }> | null>(null);
   const [participationViolationPrefill, setParticipationViolationPrefill] = useState<SbvParticipationViolationPrefill | null>(null);
   const journal = useActivityJournalNavigation(setCurrentView);
@@ -400,11 +406,32 @@ export function App() {
   const gremiaBrConfigured = useGremiaBrNavigationVisibility(security.unlocked, currentView, setCurrentView);
   const currentModule = useMemo(() => modules.find((module) => module.id === currentView), [currentView]);
   const openCaseNode = (target: CaseNodeTarget) => { setCaseNodeTarget(target); setCurrentView("cases"); };
+  const openSearchRecord: SearchRecordOpener = (hit) => {
+    const id = hit.navigationId || hit.sourceId;
+    if (hit.sourceType === 'person') { setPersonTargetId(id); setCurrentView('persons'); return true; }
+    if (hit.sourceType === 'contact') { setContactTargetId(id); setCurrentView('contacts'); return true; }
+    if (hit.sourceType === 'legal_norm') { setRecordTarget({ kind: 'record', view: 'knowledge', recordId: id }); setCurrentView('knowledge'); return true; }
+    if (hit.sourceType === 'template') { setRecordTarget({ kind: 'record', view: 'templates', recordId: id }); setCurrentView('templates'); return true; }
+    if (hit.sourceType === 'journal') { setRecordTarget({ kind: 'record', view: 'activity_journal', recordId: id }); setCurrentView('activity_journal'); return true; }
+    if (hit.sourceType === 'participation_violation') { setRecordTarget({ kind: 'record', view: 'participation_violations', recordId: id }); setCurrentView('participation_violations'); return true; }
+    if (hit.sourceType === 'recruiting') { setRecordTarget({ kind: 'record', view: 'recruiting_participations', recordId: id }); setCurrentView('recruiting_participations'); return true; }
+    if (hit.sourceType === 'election') { setRecordTarget({ kind: 'record', view: 'elections', recordId: id }); setCurrentView('elections'); return true; }
+    if (hit.sourceType === 'control_protocol') { setRecordTarget({ kind: 'record', view: 'sbv_control', processType: 'sbv_control_protocol', recordId: id }); setCurrentView('sbv_control'); return true; }
+    if (hit.sourceType === 'meeting') { setRecordTarget({ kind: 'record', view: 'meetings', processType: 'sbv_meeting', recordId: id }); setCurrentView('meetings'); return true; }
+    if (hit.sourceType === 'assembly') { setRecordTarget({ kind: 'record', view: 'sbv_control', processType: 'sbv_assembly', recordId: id }); setCurrentView('sbv_control'); return true; }
+    if (hit.sourceType === 'employer_obligation') { setRecordTarget({ kind: 'record', view: 'sbv_control', processType: 'employer_obligation_review', recordId: id }); setCurrentView('sbv_control'); return true; }
+    if (hit.sourceType === 'inclusion_agreement') { setRecordTarget({ kind: 'record', view: 'sbv_control', processType: 'inclusion_agreement', recordId: id }); setCurrentView('sbv_control'); return true; }
+    if (hit.sourceType === 'deadline') {
+      const deadline = work.deadlines.find((item) => item.id === id);
+      if (deadline) { work.setSelectedDeadline(deadline); setCurrentView('deadlines'); return true; }
+    }
+    return false;
+  };
   useModalKeyboardShortcuts({ setCurrentView });
   useEffect(() => { applyTheme(theme); }, [theme]);
   if (!security.unlocked) return <LoginGate mode={security.authMode} onUnlock={security.completeUnlock}
     onResetToSetup={() => { security.setUnlocked(false); security.setAuthMode("setup"); }} />;
-  const viewProps: PrimaryViewsProps = { currentView, setCurrentView, work, caseNodeTarget, setCaseNodeTarget, personTargetId, setPersonTargetId, recordTarget, setRecordTarget,
+  const viewProps: PrimaryViewsProps = { currentView, setCurrentView, work, caseNodeTarget, setCaseNodeTarget, personTargetId, setPersonTargetId, contactTargetId, recordTarget, setRecordTarget,
     activityJournalPrefill: journal.activityJournalPrefill, setActivityJournalPrefill: journal.setActivityJournalPrefill,
     participationViolationPrefill, setParticipationViolationPrefill };
   return <AppShell
@@ -417,7 +444,7 @@ export function App() {
       else security.switchToUnavailableSession();
     }}
   >
-    <WorkspaceMain {...viewProps} currentModule={currentModule} openCaseNode={openCaseNode} theme={theme} setTheme={setTheme}
+    <WorkspaceMain {...viewProps} currentModule={currentModule} openCaseNode={openCaseNode} onOpenSearchRecord={openSearchRecord} theme={theme} setTheme={setTheme}
       securityWarning={security.maintenanceWarning} onDismissSecurityWarning={security.dismissMaintenanceWarning}
       startupNotice={startupRefresh.notice} onDismissStartupNotice={startupRefresh.dismissNotice} />
   </AppShell>;

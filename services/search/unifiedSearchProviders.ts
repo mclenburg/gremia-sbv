@@ -156,6 +156,7 @@ export function collectUnifiedSearchDocuments(db: DatabaseAdapter, sourceTypes?:
   const documents = new Map<string, UnifiedSearchDocument>();
   for (const provider of CASE_SEARCH_PROVIDERS) {
     if (sourceTypes && !sourceTypes.has(provider.sourceType)) continue;
+    if (SEARCH_SOURCE_CATALOG.find((source) => source.sourceType === provider.sourceType)?.state === 'legacy') continue;
     if (!provider.requiredTables.every((table) => tableExists(db, table))) continue;
     for (const item of provider.collectAll(db)) {
       const key = JSON.stringify([item.sourceType, item.sourceId]);

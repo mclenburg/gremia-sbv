@@ -210,6 +210,8 @@ export function CasesView(props: CasesViewProps) {
       onContinueExpiredHandover={() => handover.setContinueExpiredOpen(true)} closeLegacyBindingDialog={() => form.setLegacyBindingCase(null)} openLegacyBindingDialog={openLegacyBindingDialog}
       assignLegacyCase={assignLegacyCase} closedLegacyBulkCount={closedLegacyBulkCount} bulkMarkClosedLegacyCases={bulkMarkClosedLegacyCases}
       onOpenParticipationViolationPrefill={onOpenParticipationViolationPrefill} onNavigate={props.onNavigate}
+      onOpenSearchRecord={props.onOpenSearchRecord}
+      selectCaseNodeTarget={workbench.selectCaseNodeTarget}
       onOpenCasePrivacyAction={setCasePrivacyTarget} onOpenProcessDelete={setProcessDeleteTarget} />
     <CasePrivacyActionDialog open={Boolean(casePrivacyTarget)} record={casePrivacyTarget ?? undefined} onClose={() => setCasePrivacyTarget(null)} onSubmit={runCasePrivacyAction} />
     <CaseProcessDeleteDialog target={processDeleteTarget} onClose={() => setProcessDeleteTarget(null)} onSubmit={deleteCaseProcess} /></>;

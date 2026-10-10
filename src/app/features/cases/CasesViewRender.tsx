@@ -1,4 +1,5 @@
 import { AlertTriangle, CheckCircle2, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from 'react';
 import { ModuleFrame } from "../../shared/components/ModuleFrame";
 import { DangerButton, IndustrialButton, ToolbarButton } from "../../shared/components/IndustrialButton";
 import { CaseRegister } from "./CaseRegister";
@@ -24,7 +25,8 @@ import { ParticipationProcessDetail } from "../participation/ParticipationProces
 import { WorkplaceAccommodationProcessDetail } from "../workplace-accommodation/WorkplaceAccommodationProcessDetail";
 import { resolveContextualTemplateAction } from "@/domain/templates/templateContextPolicy";
 import { formatBytes, formatNoteDate, formatProcessNodeSubtitle } from "./caseWorkbenchFormat";
-import type { UnifiedSearchHit } from '../../../domain/models/unified-search.model';
+import type { UnifiedSearchDetail, UnifiedSearchHit } from '../../../domain/models/unified-search.model';
+import { waitForBridge } from '../../core/bridge/waitForBridge';
 import { SearchSnippet } from './SearchSnippet';
 import type { ViewId } from '../../core/navigation/modules';
 import type { CaseProcessType } from './caseWorkbenchTypes';
@@ -38,21 +40,50 @@ const SEARCH_MODULE_VIEWS: Readonly<Record<string, ViewId>> = {
   'SBV-Amtsarbeit': 'sbv_control',
 };
 function selectSearchResult(result: UnifiedSearchHit, props: CasesViewRenderProps) {
-  if (result.caseId && result.caseId !== props.selectedCaseId) props.setSelectedCaseId(result.caseId);
   const targetId = result.navigationId ?? result.sourceId;
-  if (result.navigationKind === "note") return props.setSelection({ type: "note", id: targetId });
-  if (result.navigationKind === "document") return props.setSelection({ type: "document", id: targetId });
+  if (result.caseId && result.navigationKind === 'case') return props.selectCaseNodeTarget({ caseId: result.caseId, nodeType: 'overview' });
+  if (result.caseId && result.navigationKind === "note") return props.selectCaseNodeTarget({ caseId: result.caseId, nodeType: 'note', nodeId: targetId });
+  if (result.caseId && result.navigationKind === "document") return props.selectCaseNodeTarget({ caseId: result.caseId, nodeType: 'document', nodeId: targetId });
   const processTypeBySource: Partial<Record<string, CaseProcessType>> = {
     bem: "bem", bem_event: "bem", prevention: "prevention", prevention_event: "prevention",
     termination: "termination_hearing", equalization: "equalization", participation: "participation",
     participation_event: "participation", workplace_accommodation: "workplace_accommodation",
   };
   const processType = processTypeBySource[result.sourceType];
-  if (result.navigationKind === "process" && processType) {
-    props.setSelection({ type: "process", processType, id: targetId });
+  if (result.caseId && result.navigationKind === "process" && processType) {
+    props.selectCaseNodeTarget({ caseId: result.caseId, nodeType: processType, nodeId: targetId });
     return;
   }
+  if (props.onOpenSearchRecord?.(result)) return;
   props.setSelection({ type: "search", id: `${result.sourceType}:${result.sourceId}` });
+}
+
+function SearchResultDetail({ result }: { result: UnifiedSearchHit }) {
+  const [detail, setDetail] = useState<UnifiedSearchDetail | null>(null);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    let active = true;
+    setDetail(null);
+    setError('');
+    void (async () => {
+      try {
+        const bridge = await waitForBridge();
+        if (!bridge?.cases) throw new Error('Falldienst ist nicht erreichbar.');
+        const loaded = await bridge.cases.searchDetail(result.sourceType, result.sourceId);
+        if (!active) return;
+        if (loaded) setDetail(loaded);
+        else setError('Der Datensatz ist nicht mehr vorhanden. Bitte die Suche aktualisieren.');
+      } catch (cause) {
+        if (active) setError(cause instanceof Error ? cause.message : 'Der Datensatz konnte nicht geöffnet werden.');
+      }
+    })();
+    return () => { active = false; };
+  }, [result.sourceType, result.sourceId]);
+  return <>
+    <h2>{result.title}</h2>
+    {error ? <p role="alert">{error}</p> : detail ? <p className="case-note-content">{detail.content}</p>
+      : <p role="status">Datensatz wird geladen …</p>}
+  </>;
 }
 
 function CaseOverviewContent({ props }: { props: CasesViewRenderProps }) {
@@ -161,7 +192,7 @@ function CaseResourceContent({ props }: { props: CasesViewRenderProps }) {
           ? ` · ${selectedSearchResult.caseNumbers && selectedSearchResult.caseNumbers.length > 1 ? 'Fallakten' : 'Fallakte'} ${selectedSearchResult.caseNumbers?.length ? selectedSearchResult.caseNumbers.join(', ') : selectedSearchResult.caseNumber}`
           : ' · Ohne Fallaktenbezug'}
         {selectedSearchResult.extractionQuality === 'ocr' ? ' · OCR-Text' : ''}</p>
-      <h2>{selectedSearchResult.title}</h2><p><SearchSnippet excerpt={selectedSearchResult.excerpt} /></p>
+      <SearchResultDetail result={selectedSearchResult} />
       {selectedSearchResult.caseId && <button type="button" className="industrial-secondary-button"
         onClick={() => {
           if (selectedSearchResult.caseId) setSelectedCaseId(selectedSearchResult.caseId);

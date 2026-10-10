@@ -2,7 +2,7 @@ import type { DatabaseAdapter } from '../databaseService.js';
 import { escapeFtsQuery } from './searchIndexSupport.js';
 import { SEARCH_SOURCE_CATALOG } from './searchSourceCatalog.js';
 import { collectUnifiedSearchDocuments, type UnifiedSearchDocument } from './unifiedSearchProviders.js';
-import type { UnifiedSearchHit, UnifiedSearchPage, UnifiedSearchQuery } from '../../src/domain/models/unified-search.model.js';
+import type { UnifiedSearchDetail, UnifiedSearchHit, UnifiedSearchPage, UnifiedSearchQuery } from '../../src/domain/models/unified-search.model.js';
 export type { UnifiedSearchHit, UnifiedSearchPage, UnifiedSearchQuery } from '../../src/domain/models/unified-search.model.js';
 
 interface StoredHit extends Omit<UnifiedSearchHit, 'excerpt' | 'caseId' | 'caseNumber' | 'navigationSubId' | 'occurredAt'> {
@@ -149,6 +149,12 @@ export class UnifiedSearchIndexService {
       })),
       indexedAt: state?.built_at,
     };
+  }
+
+  detail(sourceType: string, sourceId: string): UnifiedSearchDetail | null {
+    this.ensureFresh();
+    return this.db.prepare<UnifiedSearchDetail>(`SELECT source_type AS sourceType, source_id AS sourceId, title, content
+      FROM search_entries WHERE source_type = ? AND source_id = ?`).get(sourceType, sourceId) ?? null;
   }
 
   private currentRevision(): number {

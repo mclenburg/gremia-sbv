@@ -66,6 +66,7 @@ export type CasesViewRenderProps = {
   isCaseChildrenLoading: boolean;
   selection: CaseExplorerSelection;
   setSelection: (selection: CaseExplorerSelection) => void;
+  selectCaseNodeTarget: (target: import('../../core/navigation/caseNodeTarget').CaseNodeTarget) => void;
   setSelectedCaseId: Dispatch<SetStateAction<string>>;
   searchQuery: SearchState["searchQuery"];
   searchArea: SearchState["searchArea"];
@@ -140,6 +141,7 @@ export type CasesViewRenderProps = {
   onContinueExpiredHandover: () => void;
   onOpenParticipationViolationPrefill: CasesViewProps["onOpenParticipationViolationPrefill"];
   onNavigate: CasesViewProps['onNavigate'];
+  onOpenSearchRecord: CasesViewProps['onOpenSearchRecord'];
   onOpenCasePrivacyAction: (record: CaseRecord) => void;
   onOpenProcessDelete: (target: { id: string; processType: CaseProcessType; label?: string }) => void;
 } & ProcessUpdateActions & Pick<TemplateActions, "openProcessTemplateModal"> & Pick<ProcessCreationActions, "openCaseProcessDraft"> & Pick<CrudActions, "deleteNote"> & Pick<NoteEditorActions, "startEditNote" | "openNewNoteModal">;

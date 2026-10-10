@@ -22,6 +22,15 @@ export function useCaseWorkbenchData({
   const [pendingCaseNodeTarget, setPendingCaseNodeTarget] = useState<CaseNodeTarget | null>(null);
   const [isCaseChildrenLoading, setIsCaseChildrenLoading] = useState(false);
 
+  function selectCaseNodeTarget(nextTarget: CaseNodeTarget): void {
+    if (nextTarget.caseId === selectedCaseId) {
+      setSelection(selectionForCaseNodeTarget(nextTarget, selectedCaseId) ?? { type: 'overview' });
+      return;
+    }
+    setPendingCaseNodeTarget(nextTarget);
+    setSelectedCaseId(nextTarget.caseId);
+  }
+
   useEffect(() => {
     if (!target) return;
     setPendingCaseNodeTarget(target);
@@ -117,6 +126,7 @@ export function useCaseWorkbenchData({
     isCaseChildrenLoading,
     selection,
     setSelection,
+    selectCaseNodeTarget,
     reloadSelectedCaseChildren
   };
 }

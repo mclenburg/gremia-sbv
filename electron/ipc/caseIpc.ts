@@ -17,6 +17,7 @@ import {
 } from "./ipcValidation.js";
 import { requestPlainDocumentPreview } from "./documentPreviewWorkflow.js";
 import { validateUnifiedSearchInput } from './unifiedSearchInput.js';
+import { SEARCH_SOURCE_CATALOG } from '../../services/search/searchSourceCatalog.js';
 
 const DOCUMENT_IMPORT_EXTENSIONS = [
   "pdf",
@@ -162,4 +163,11 @@ export function registerCaseIpc(
   registerIpcHandler(ipcMain, IPC_CHANNELS.casesSearchUnified, async (_event, input: unknown) =>
     services.unifiedSearchIndex().search(validateUnifiedSearchInput(input)),
   );
+  registerIpcHandler(ipcMain, IPC_CHANNELS.casesSearchDetail, async (_event, input: unknown) => {
+    const detail = assertRecordInput<{ sourceType: unknown; sourceId: unknown }>(input, 'cases:search-detail');
+    const sourceType = assertString(detail.sourceType, 'cases:search-detail', 'Quelltyp', { maxLength: 80 });
+    const sourceId = assertString(detail.sourceId, 'cases:search-detail', 'Datensatz-ID', { maxLength: 120 });
+    if (!SEARCH_SOURCE_CATALOG.some((source) => source.sourceType === sourceType)) return null;
+    return services.unifiedSearchIndex().detail(sourceType, sourceId);
+  });
 }

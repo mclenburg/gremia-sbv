@@ -2,7 +2,7 @@
 import type { ComplianceAuditChainStatus, ComplianceDatabaseIntegrityStatus, ComplianceIncidentRecord, ComplianceSelfCheckResult, CreateComplianceIncidentInput, DataSubjectAccessPrefill, DataSubjectAccessRequestInput, UpdateComplianceIncidentInput } from "./domain/models/compliance.model";
 
 import type { CaseDocumentRecord } from "./domain/models/case-document.model";
-import type { UnifiedSearchPage, UnifiedSearchQuery } from './domain/models/unified-search.model';
+import type { UnifiedSearchDetail, UnifiedSearchPage, UnifiedSearchQuery } from './domain/models/unified-search.model';
 import type { CaseHandoverChecklist, CaseHandoverChecklistInput, CaseHandoverCockpit, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult, CaseHandoverReturnDeltaExportInput } from "./domain/models/case-handover.model";
 import type { TransferInstanceIdentity } from "./domain/models/transfer-identity.model";
 import type { EmployerQuotaSettings } from "./domain/models/employer-quota.model";
@@ -265,6 +265,7 @@ declare global {
         ): Promise<{ exported: boolean; filePath: string }>;
         search(input: CaseContentSearchInput): Promise<CaseSearchResult[]>;
         searchUnified(input: UnifiedSearchQuery): Promise<UnifiedSearchPage>;
+        searchDetail(sourceType: string, sourceId: string): Promise<UnifiedSearchDetail | null>;
       };
 
       caseHandover: {

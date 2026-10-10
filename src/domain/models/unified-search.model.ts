@@ -31,3 +31,10 @@ export interface UnifiedSearchPage {
   hits: UnifiedSearchHit[];
   indexedAt?: string;
 }
+
+export interface UnifiedSearchDetail {
+  sourceType: string;
+  sourceId: string;
+  title: string;
+  content: string;
+}

@@ -43,6 +43,7 @@ describe('unified search index', () => {
       const global = search.search({ query: 'Globalkontakt', area: 'all_data' });
       expect(global.total).toBe(1);
       expect(global.hits[0]).toMatchObject({ sourceType: 'contact', module: 'Kontakte', navigationId: 'contact-1' });
+      expect(search.detail('contact', 'contact-1')).toMatchObject({ sourceType: 'contact', sourceId: 'contact-1', title: 'Else Globalkontakt' });
       db.prepare("UPDATE contacts SET notes = 'Zusatztext' WHERE id = 'contact-1'").run();
       expect(search.search({ query: 'Zusatztext', area: 'all_data' }).total).toBe(1);
       expect(db.prepare("SELECT rowid FROM search_entries WHERE source_type = 'case' AND source_id = 'case-a'").get()).toEqual({ rowid: caseRowId });
@@ -62,8 +63,28 @@ describe('unified search index', () => {
       expect(search.search({ query: 'SeltenesWort', area: 'all_data' }).total).toBe(1);
       db.prepare("DELETE FROM contacts WHERE id = 'old'").run();
       expect(db.prepare("SELECT COUNT(*) AS count FROM search_entries_fts WHERE search_entries_fts MATCH 'SeltenesWort'").get()).toEqual({ count: 0 });
+      expect(search.detail('contact', 'old')).toBeNull();
       expect(search.search({ query: 'SeltenesWort', area: 'all_data' }).total).toBe(0);
       expect(db.prepare("SELECT COUNT(*) AS count FROM search_entries_fts WHERE search_entries_fts MATCH 'SeltenesWort'").get()).toEqual({ count: 0 });
+    } finally {
+      db.close();
+    }
+  });
+
+  it('searches native PDF text and offline OCR text through one document hit each', () => {
+    const db = open();
+    try {
+      insertCase(db, 'case-a', 'A-1', 'Dokumentfall');
+      db.prepare(`INSERT INTO case_documents(id, case_id, filename, storage_path, sha256, extracted_text,
+        extraction_quality, created_at) VALUES ('native', 'case-a', 'text.pdf', 'encrypted-native', 'sha',
+        'NativerPDFFund', 'native_text', '2026-01-01')`).run();
+      db.prepare(`INSERT INTO case_documents(id, case_id, filename, storage_path, sha256, ocr_text,
+        ocr_status, ocr_completed_at, created_at) VALUES ('scan', 'case-a', 'scan.pdf', 'encrypted-scan', 'sha',
+        'OfflineOCRFund', 'completed', '2026-01-02', '2026-01-01')`).run();
+      const search = new UnifiedSearchIndexService(db);
+      expect(search.search({ query: 'NativerPDFFund', area: 'all_data' }).hits).toMatchObject([{ sourceType: 'document', sourceId: 'native' }]);
+      expect(search.search({ query: 'OfflineOCRFund', area: 'all_data' }).hits).toMatchObject([{ sourceType: 'document', sourceId: 'scan', extractionQuality: 'ocr' }]);
+      expect(db.prepare("SELECT COUNT(*) AS count FROM search_entries WHERE source_type = 'document_ocr'").get()).toEqual({ count: 0 });
     } finally {
       db.close();
     }

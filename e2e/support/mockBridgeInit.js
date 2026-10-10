@@ -399,8 +399,8 @@
       caseNumber: 'TEST-0001',
       title: 'Scan mit OCR',
       content: 'Synthetischer OCR-Text mit eindeutigem ScanFund.',
-      sourceType: 'document_ocr',
-      sourceLabel: 'OCR-Text',
+      sourceType: 'document',
+      sourceLabel: 'Dokument',
       extractionQuality: 'ocr',
     },
   ];
@@ -418,6 +418,7 @@
   };
 
   const toSearchResult = (item, query, rank) => ({
+    module: item.module || (item.sourceType === 'contact' ? 'Kontakte' : 'Fallakten'),
     sourceType: item.sourceType,
     sourceId: item.id,
     sourceLabel: item.sourceLabel,
@@ -425,11 +426,14 @@
     caseNumber: item.caseNumber,
     caseNumbers: item.caseNumber ? [item.caseNumber] : undefined,
     title: item.title,
-    excerpt: item.content,
+    excerpt: (() => {
+      const index = String(item.content).toLowerCase().indexOf(String(query).toLowerCase());
+      return index < 0 ? item.content : `${item.content.slice(0, index)}[${item.content.slice(index, index + String(query).length)}]${item.content.slice(index + String(query).length)}`;
+    })(),
     excerptSegments: createExcerptSegments(item.content, query),
     extractionQuality: item.extractionQuality || 'structured',
     navigationKind: item.navigationKind || 'process',
-    navigationId: item.id,
+    navigationId: item.navigationId || item.id,
     rank,
   });
 
@@ -455,24 +459,33 @@
       navigationKind: 'process',
     })),
     ...ocrTexts,
+    ...knowledgeNorms.map((norm) => ({ id: norm.id, title: norm.title, content: norm.shortText,
+      sourceType: 'legal_norm', sourceLabel: 'Wissensbasis', module: 'Wissensbasis', navigationKind: 'knowledge' })),
+    { id: 'resource-search-1', title: 'SBV-Ressource', content: 'Vollständiger synthetischer Ressourceninhalt mit BudgetStichwort und weiteren Angaben.',
+      sourceType: 'resource', sourceLabel: 'SBV-Steuerung', module: 'SBV-Steuerung', navigationKind: 'resource' },
+    ...contacts.map((contact) => ({
+      id: contact.id, title: [contact.firstName, contact.lastName].filter(Boolean).join(' '),
+      content: contact.notes || '', sourceType: 'contact', sourceLabel: 'Kontakt', module: 'Kontakte', navigationKind: 'contact',
+    })),
   ];
 
   const searchSyntheticCaseContent = async (input) => {
     window.__GREMIA_SBV_E2E_SEARCH_CALLS = window.__GREMIA_SBV_E2E_SEARCH_CALLS || [];
     const call = {
       query: input.query,
-      caseId: input.caseId,
+      area: input.area,
+      currentCaseId: input.currentCaseId,
       sourceTypes: input.sourceTypes,
     };
     window.__GREMIA_SBV_E2E_SEARCH_CALLS.push(call);
     const query = String(input.query || '').trim().toLowerCase();
     const sourceTypes = Array.isArray(input.sourceTypes) ? input.sourceTypes : [];
-    return syntheticSearchDocuments()
-      .filter((item) => !input.caseId || item.caseId === input.caseId)
+    const hits = syntheticSearchDocuments()
+      .filter((item) => input.area === 'all_data' || (input.area === 'all_cases' ? Boolean(item.caseId) : item.caseId === input.currentCaseId))
       .filter((item) => !sourceTypes.length || sourceTypes.includes(item.sourceType))
       .filter((item) => `${item.title} ${item.content}`.toLowerCase().includes(query))
-      .slice(0, input.limit || 80)
       .map((item, index) => toSearchResult(item, input.query, index + 1));
+    return { total: hits.length, hits: hits.slice(input.offset || 0, (input.offset || 0) + (input.limit || 50)), indexedAt: now };
   };
 
   const defaultGremiaBrSettings = { enabled: false, autoRefreshOnStartup: false, serverUrl: '', username: '', hasStoredCredentials: false, apiMode: 'gremia_br_v2', relevanceSettings: { groups: [] } };
@@ -807,6 +820,11 @@
       exportDocument: async () => ({ exported: true }),
       deleteDocument: async () => ({ deleted: true }),
       search: searchSyntheticCaseContent,
+      searchUnified: searchSyntheticCaseContent,
+      searchDetail: async (sourceType, sourceId) => {
+        const item = syntheticSearchDocuments().find((record) => record.sourceType === sourceType && record.id === sourceId);
+        return item ? { sourceType, sourceId, title: item.title, content: item.content } : null;
+      },
     },
 
     caseHandover: {

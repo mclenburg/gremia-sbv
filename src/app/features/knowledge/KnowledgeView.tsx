@@ -8,7 +8,7 @@ import { createKnowledgeDataActions, createKnowledgeEditActions } from './knowle
 import { KnowledgeDetailPanel, KnowledgeRegisterPanel, KnowledgeSearchPanel } from './KnowledgePanels';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 
-export function KnowledgeView({ cases }: { cases: CaseRecord[] }) {
+export function KnowledgeView({ cases, targetId, onTargetConsumed }: { cases: CaseRecord[]; targetId?: string; onTargetConsumed?: () => void }) {
   const [query, setQuery] = useState('');
   const [source, setSource] = useState('');
   const [norms, setNorms] = useState<LegalNormRecord[]>([]);
@@ -58,6 +58,12 @@ export function KnowledgeView({ cases }: { cases: CaseRecord[] }) {
     void loadDetails(selectedNormId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedNormId, cases.length]);
+
+  useEffect(() => {
+    if (!targetId || !norms.some((norm) => norm.id === targetId)) return;
+    setSelectedNormId(targetId);
+    onTargetConsumed?.();
+  }, [targetId, norms, onTargetConsumed]);
 
   async function runSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

@@ -14,7 +14,7 @@ import type {
   UpdateCaseNoteInput,
 } from "../../src/domain/models/case-note.model.js";
 import type { CaseDocumentRecord } from "../../src/domain/models/case-document.model.js";
-import type { UnifiedSearchPage, UnifiedSearchQuery } from '../../src/domain/models/unified-search.model.js';
+import type { UnifiedSearchDetail, UnifiedSearchPage, UnifiedSearchQuery } from '../../src/domain/models/unified-search.model.js';
 import type { CaseHandoverChecklist, CaseHandoverChecklistInput, CaseHandoverCockpit, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult, CaseHandoverReturnDeltaExportInput } from "../../src/domain/models/case-handover.model.js";
 import type { MobileCompanionDevice, MobileCompanionDeviceStatus, MobileCompanionPairingRequestResult, MobileCompanionReturnImportInput, MobileCompanionReturnImportResult, MobileCompanionReturnInspectResult, MobileCompanionSnapshotInput, MobileCompanionSnapshotResult, SaveMobileCompanionDeviceInput } from "../../src/domain/models/mobile-companion.model.js";
 import type {
@@ -132,6 +132,8 @@ export function createCasesApi(invokeIpc: IpcInvoker) {
         invokeIpc(IPC_CHANNELS.casesSearch, input),
       searchUnified: (input: UnifiedSearchQuery): Promise<UnifiedSearchPage> =>
         invokeIpc(IPC_CHANNELS.casesSearchUnified, input),
+      searchDetail: (sourceType: string, sourceId: string): Promise<UnifiedSearchDetail | null> =>
+        invokeIpc(IPC_CHANNELS.casesSearchDetail, { sourceType, sourceId }),
     },
   caseHandover: createCaseHandoverApi(invokeIpc),
   caseMeasures: {

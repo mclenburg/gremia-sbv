@@ -15,7 +15,6 @@ const SOURCE_FILTERS: readonly { type: string; label: string }[] = [
   { type: 'case', label: 'Fallakte' },
   { type: 'note', label: 'Fallnotizen' },
   { type: 'document', label: 'Dokumente' },
-  { type: 'document_ocr', label: 'OCR-Texte' },
   { type: 'measure_note', label: 'Maßnahmennotizen' },
   { type: 'bem', label: 'BEM' },
   { type: 'prevention', label: 'Prävention' },
