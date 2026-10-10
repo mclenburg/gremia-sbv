@@ -3,7 +3,7 @@ import { Download, Search } from 'lucide-react';
 import { ToolbarButton } from '../../shared/components/IndustrialButton';
 import type { SearchArea } from '../../../domain/models/unified-search.model';
 import type { CaseDetailPanelSearchProps } from './caseWorkbenchTypes';
-import { SearchSnippet } from './SearchSnippet';
+import { SearchResultsPanel } from './SearchResultsPanel';
 
 const SEARCH_AREAS: readonly { id: SearchArea; label: string }[] = [
   { id: 'current_case', label: 'Diese Fallakte' },
@@ -135,30 +135,8 @@ export function CaseDetailPanel({
         ))}
       </fieldset>
 
-      {!!searchResults.length && (
-        <div className="case-search-results" aria-label="Suchtreffer">
-          <p className="industrial-meta">{searchResults.length} von {searchTotal} Treffern angezeigt</p>
-          {searchResults.map((result) => (
-            <button
-              key={`${result.sourceType}-${result.sourceId}`}
-              type="button" className="case-search-result"
-              onClick={() => onSelectSearchResult(result)}
-            >
-              <span>
-                {result.module} · {result.sourceLabel}{result.caseNumber
-                  ? ` · ${result.caseNumbers && result.caseNumbers.length > 1 ? 'Fallakten' : 'Fallakte'} ${result.caseNumbers?.length ? result.caseNumbers.join(', ') : result.caseNumber}`
-                  : ' · Ohne Fallaktenbezug'}
-                {result.extractionQuality === 'ocr' ? ' · OCR-Text' : ''}
-              </span>
-              <strong>{result.title}</strong>
-              <p><SearchSnippet excerpt={result.excerpt} /></p>
-            </button>
-          ))}
-          {searchResults.length < searchTotal && <ToolbarButton onClick={() => void onLoadMoreSearchResults()} disabled={isSearching}>
-            {isSearching ? 'Lade weitere Treffer …' : 'Weitere Treffer laden'}
-          </ToolbarButton>}
-        </div>
-      )}
+      <SearchResultsPanel results={searchResults} total={searchTotal} isSearching={isSearching}
+        onSelect={onSelectSearchResult} onLoadMore={onLoadMoreSearchResults} />
 
       {children}
     </section>

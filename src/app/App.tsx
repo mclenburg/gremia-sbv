@@ -22,7 +22,6 @@ import { ActivityJournalView } from "./features/activity-journal/ActivityJournal
 import { SbvParticipationViolationsView } from "./features/participation-violations/SbvParticipationViolationsView";
 import { ACTIVITY_JOURNAL_PREFILL_EVENT, type ActivityJournalPrefillEventDetail } from "./features/activity-journal/activityJournalEvents";
 import { PersonsView } from "./features/persons/PersonsView";
-import { SearchView } from "./features/search/SearchView";
 import { usePersonsHandlers } from "./features/persons/usePersonsHandlers";
 import { useIcalExportHandlers } from "./features/deadlines/useIcalExportHandlers";
 import { DashboardFocusOverview } from "./features/dashboard/DashboardFocusOverview";
@@ -288,7 +287,7 @@ function ProcessViews({ currentView, setCurrentView, work, caseNodeTarget, setCa
   return <LazyFeatureHost view={currentView} cases={cases} persons={persons} theme={theme} onThemeChange={setTheme} onCreateDeadline={createDeadline}
     recordTarget={recordTarget?.view === currentView ? recordTarget : null} onRecordTargetConsumed={() => setRecordTarget(null)}
     measures={work.caseMeasures}
-    onOpenCaseNode={openCaseNode} deadlines={deadlines} onNavigate={setCurrentView}
+    onOpenCaseNode={openCaseNode} onOpenSearchRecord={onOpenSearchRecord} deadlines={deadlines} onNavigate={setCurrentView}
     onRecordsChanged={reloadWorkData}
     caseFeatureProps={{
       cases,
@@ -328,7 +327,6 @@ function WorkspaceMain(props: PrimaryViewsProps & { currentModule?: (typeof modu
       {props.startupNotice.kind !== 'loading' ? <ToolbarButton onClick={props.onDismissStartupNotice}>Hinweis schließen</ToolbarButton> : null}
     </div>}
     {work.dataError && <div className="industrial-message industrial-message-warning" role="alert">{work.dataError}</div>}
-    {currentView === "search" && <SearchView cases={work.cases} onOpenCaseNode={props.openCaseNode} onOpenSearchRecord={props.onOpenSearchRecord} />}
     <PrimaryViews {...props} />
     <ProcessViews currentView={currentView} setCurrentView={setCurrentView} work={work} caseNodeTarget={props.caseNodeTarget}
       setCaseNodeTarget={props.setCaseNodeTarget} recordTarget={props.recordTarget} setRecordTarget={props.setRecordTarget} openCaseNode={props.openCaseNode} onOpenSearchRecord={props.onOpenSearchRecord} theme={props.theme} setTheme={props.setTheme}

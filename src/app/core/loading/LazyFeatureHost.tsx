@@ -9,6 +9,7 @@ import type { SbvParticipationViolationPrefill } from "../../features/participat
 import type { CaseNodeTarget } from "../navigation/caseNodeTarget";
 import type { DeadlineOpenTarget } from "../../features/deadlines/deadlineContext";
 import type { CasesViewProps } from "../../features/cases/casesViewTypes";
+import type { UnifiedSearchHit } from "../../../domain/models/unified-search.model";
 import { LazyFeatureBoundary } from "./LazyFeatureBoundary";
 import { getLazyFeatureComponent, preloadLazyFeature } from "./lazyFeatureViews";
 
@@ -22,6 +23,7 @@ type LazyFeatureHostProps = {
   onCreateDeadline: (input: CreateDeadlineInput) => Promise<void>;
   onOpenParticipationViolationPrefill: (prefill: SbvParticipationViolationPrefill) => void;
   onOpenCaseNode?: (target: CaseNodeTarget) => void;
+  onOpenSearchRecord?: (hit: UnifiedSearchHit) => boolean;
   deadlines?: DeadlineRecord[];
   onNavigate?: (view: ViewId) => void;
   caseFeatureProps?: CasesViewProps;
@@ -30,12 +32,17 @@ type LazyFeatureHostProps = {
   onRecordTargetConsumed?: () => void;
 };
 
-export function LazyFeatureHost({ view, cases, measures = [], persons = [], theme, onThemeChange, onCreateDeadline, onOpenParticipationViolationPrefill, onOpenCaseNode, deadlines = [], onNavigate, caseFeatureProps, onRecordsChanged, recordTarget, onRecordTargetConsumed }: LazyFeatureHostProps) {
+export function LazyFeatureHost({ view, cases, measures = [], persons = [], theme, onThemeChange, onCreateDeadline, onOpenParticipationViolationPrefill, onOpenCaseNode, onOpenSearchRecord, deadlines = [], onNavigate, caseFeatureProps, onRecordsChanged, recordTarget, onRecordTargetConsumed }: LazyFeatureHostProps) {
   const Feature = useMemo(() => getLazyFeatureComponent(view), [view]);
   if (!Feature) return null;
 
   const CasesFeature = Feature as LazyExoticComponent<ComponentType<{ cases: CaseRecord[]; targetId?: string; onTargetConsumed?: () => void }>>;
   const CaseWorkbenchFeature = Feature as LazyExoticComponent<ComponentType<CasesViewProps>>;
+  const SearchFeature = Feature as LazyExoticComponent<ComponentType<{
+    cases: CaseRecord[];
+    onOpenCaseNode: (target: CaseNodeTarget) => void;
+    onOpenSearchRecord: (hit: UnifiedSearchHit) => boolean;
+  }>>;
   const TemplatesFeature = Feature as LazyExoticComponent<ComponentType<{ targetId?: string; onTargetConsumed?: () => void }>>;
   const HandoverFeature = Feature as LazyExoticComponent<ComponentType<{
     cases: CaseRecord[];
@@ -78,7 +85,9 @@ export function LazyFeatureHost({ view, cases, measures = [], persons = [], them
   }>>;
   return (
     <LazyFeatureBoundary view={view} onRetry={() => { void preloadLazyFeature(view).catch(() => undefined); }}>
-      {view === "cases" && caseFeatureProps ? (
+      {view === "search" && onOpenCaseNode && onOpenSearchRecord ? (
+        <SearchFeature cases={cases} onOpenCaseNode={onOpenCaseNode} onOpenSearchRecord={onOpenSearchRecord} />
+      ) : view === "cases" && caseFeatureProps ? (
         <CaseWorkbenchFeature {...caseFeatureProps} onNavigate={onNavigate} />
       ) : view === "case_handover" && onRecordsChanged ? (
         <HandoverFeature cases={cases} measures={measures} onRecordsChanged={onRecordsChanged} />

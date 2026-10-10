@@ -10,6 +10,13 @@ type LazyFeatureDefinition = {
 
 const definitions: Partial<Record<ViewId, LazyFeatureDefinition>> = {
 
+  search: {
+    label: "Suche",
+    load: async () => {
+      const module = await import("../../features/search/SearchView");
+      return { default: module.SearchView as ComponentType<object> };
+    },
+  },
   cases: {
     label: "Fallakten",
     load: async () => {
