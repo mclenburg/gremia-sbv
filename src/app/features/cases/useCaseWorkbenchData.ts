@@ -1,9 +1,24 @@
-import { useCallback, useEffect, useMemo, useReducer, useState, type SetStateAction } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useState, type Dispatch, type SetStateAction } from 'react';
 import type { CaseRecord } from '../../../domain/models/case.model';
 import type { CaseNodeTarget } from '../../core/navigation/caseNodeTarget';
 import type { CaseExplorerSelection } from './caseWorkbenchTypes';
 import { caseChildrenReducer, emptyCaseChildren, loadCaseChildren, type CaseChildren } from './caseChildrenData';
 import { selectionForCaseNodeTarget, shouldAutoSelectFirstCase } from './caseNodeTargetSelection';
+
+function selectCaseNode(
+  target: CaseNodeTarget,
+  selectedCaseId: string,
+  setSelection: Dispatch<SetStateAction<CaseExplorerSelection>>,
+  setPendingTarget: Dispatch<SetStateAction<CaseNodeTarget | null>>,
+  setSelectedCaseId: Dispatch<SetStateAction<string>>,
+): void {
+  if (target.caseId === selectedCaseId) {
+    setSelection(selectionForCaseNodeTarget(target, selectedCaseId) ?? { type: 'overview' });
+    return;
+  }
+  setPendingTarget(target);
+  setSelectedCaseId(target.caseId);
+}
 
 export function useCaseWorkbenchData({
   cases,
@@ -21,6 +36,9 @@ export function useCaseWorkbenchData({
   const [selection, setSelection] = useState<CaseExplorerSelection>({ type: 'overview' });
   const [pendingCaseNodeTarget, setPendingCaseNodeTarget] = useState<CaseNodeTarget | null>(null);
   const [isCaseChildrenLoading, setIsCaseChildrenLoading] = useState(false);
+
+  const selectCaseNodeTarget = (nextTarget: CaseNodeTarget): void =>
+    selectCaseNode(nextTarget, selectedCaseId, setSelection, setPendingCaseNodeTarget, setSelectedCaseId);
 
   useEffect(() => {
     if (!target) return;
@@ -117,6 +135,7 @@ export function useCaseWorkbenchData({
     isCaseChildrenLoading,
     selection,
     setSelection,
+    selectCaseNodeTarget,
     reloadSelectedCaseChildren
   };
 }

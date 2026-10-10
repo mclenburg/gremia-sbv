@@ -68,6 +68,7 @@ export function IndustrialRecordCard({
       )}
       aria-label={ariaLabel}
       aria-current={selected ? "true" : undefined}
+      tabIndex={selected ? -1 : undefined}
     >
       {children}
     </article>

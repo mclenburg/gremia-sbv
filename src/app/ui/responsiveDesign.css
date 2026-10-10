@@ -329,6 +329,10 @@
     grid-template-columns: 1fr;
   }
 
+  .case-search-area-options {
+    grid-column: 1 / -1;
+  }
+
   .case-detail-search-bar .industrial-checkbox-row.compact,
   .case-detail-search-button {
     grid-column: auto;

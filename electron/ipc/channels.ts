@@ -64,6 +64,8 @@ export const IPC_CHANNELS = Object.freeze({
   casesNotesList: "cases:notes:list",
   casesNotesUpdate: "cases:notes:update",
   casesSearch: "cases:search",
+  casesSearchUnified: "cases:search-unified",
+  casesSearchDetail: "cases:search-detail",
   complianceAuditChainStatus: "compliance:audit-chain-status",
   complianceDatabaseIntegrityStatus: "compliance:database-integrity-status",
   complianceDsarPrefill: "compliance:dsar-prefill",

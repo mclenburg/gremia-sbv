@@ -8,14 +8,16 @@ describe('Fallakten-Suche UI-Verhalten 0.9.1l', () => {
     const input = buildCaseSearchInput({
       query: '  Arbeitsplatz  ',
       selectedCaseId,
-      searchOnlySelectedCase: true,
+      searchArea: 'current_case',
       selectedSearchSourceTypes: [],
     });
 
     expect(input).toEqual({
       query: 'Arbeitsplatz',
-      caseId: selectedCaseId,
-      limit: 80,
+      area: 'current_case',
+      currentCaseId: selectedCaseId,
+      limit: 50,
+      offset: 0,
       sourceTypes: undefined,
     });
   });
@@ -24,16 +26,23 @@ describe('Fallakten-Suche UI-Verhalten 0.9.1l', () => {
     const input = buildCaseSearchInput({
       query: 'BEM',
       selectedCaseId,
-      searchOnlySelectedCase: false,
+      searchArea: 'all_data',
       selectedSearchSourceTypes: ['bem', 'measure_note'],
     });
 
     expect(input).toEqual({
       query: 'BEM',
-      caseId: undefined,
-      limit: 80,
+      area: 'all_data',
+      currentCaseId: undefined,
+      limit: 50,
+      offset: 0,
       sourceTypes: ['bem', 'measure_note'],
     });
+  });
+
+  it('unterscheidet alle Fallakten vom gesamten Datenbestand', () => {
+    expect(buildCaseSearchInput({ query: 'Bescheid', selectedCaseId, searchArea: 'all_cases', selectedSearchSourceTypes: [] }))
+      .toMatchObject({ area: 'all_cases', currentCaseId: undefined });
   });
 
   it('documents the minimum query length used for visible search feedback', () => {

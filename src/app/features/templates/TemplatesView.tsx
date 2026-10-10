@@ -10,7 +10,7 @@ import { createTemplateCatalogActions, createTemplateEditorActions, EMPTY_TEMPLA
 import { TemplateEditorModal } from './TemplateEditorModal';
 import { TemplateCatalogToolbar, TemplateDetailPanel, TemplateFilterForm, TemplateListPanel } from './TemplateCatalogPanels';
 
-export function TemplatesView() {
+export function TemplatesView({ targetId, onTargetConsumed }: { targetId?: string; onTargetConsumed?: () => void } = {}) {
   const [templates, setTemplates] = useState<TemplateRecord[]>([]);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<TemplateCategory | ''>('');
@@ -51,6 +51,15 @@ export function TemplatesView() {
     return categories.indexOf(left.category) - categories.indexOf(right.category) || compareTemplatesByTitle(left, right);
   }), [templates, sortMode, categories]);
 
+  useEffect(() => {
+    if (!targetId) return;
+    const index = sortedTemplates.findIndex((template) => template.id === targetId);
+    if (index < 0) return;
+    setCurrentPage(Math.floor(index / pageSize) + 1);
+    setSelectedTemplateId(targetId);
+    onTargetConsumed?.();
+  }, [targetId, sortedTemplates, pageSize, onTargetConsumed]);
+
   const pageCount = Math.max(1, Math.ceil(sortedTemplates.length / pageSize));
   const safeCurrentPage = clampTemplatePage(currentPage, pageCount);
   const pageStart = (safeCurrentPage - 1) * pageSize;
@@ -61,10 +70,11 @@ export function TemplatesView() {
 
   useEffect(() => { if (currentPage !== safeCurrentPage) setCurrentPage(safeCurrentPage); }, [currentPage, safeCurrentPage]);
   useEffect(() => {
+    if (targetId) return;
     if (pagedTemplates.length && (!selectedTemplateId || !pagedTemplates.some((template) => template.id === selectedTemplateId))) {
       setSelectedTemplateId(pagedTemplates[0].id);
     }
-  }, [pagedTemplates, selectedTemplateId]);
+  }, [pagedTemplates, selectedTemplateId, targetId]);
 
   return (
     <ModuleFrame title="Vorlagen" kicker="Schriftverkehr" description="Standardschreiben mit Platzhaltern. Tonalität: freundlich, rechtlich klar, verbindlich und ohne unnötige Diskussionsöffnung." helpId="templates.overview" actions={<TemplateCatalogToolbar onCreate={() => setIsCreateTemplateModalOpen(true)} />}>

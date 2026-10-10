@@ -6,6 +6,7 @@ import type { DatabaseAdapter } from '../../../services/databaseService';
 import { CaseService } from '../../../services/caseService';
 import { MigrationService } from '../../../services/migrationService';
 import { openTestDatabase } from '../../helpers/openTestDatabase';
+import { UnifiedSearchIndexService } from '../../../services/search/unifiedSearchIndexService';
 
 let database: DatabaseAdapter;
 let temporaryRoot: string;
@@ -59,11 +60,14 @@ function insertDocumentFixture(): void {
     INSERT INTO case_documents_fts (id, case_id, case_number, title, filename, extracted_text)
     VALUES (?, ?, ?, ?, ?, ?)
   `).run('doc-1', 'case-1', 'SBV-2026-DOC-DEL', 'Nachweis', 'nachweis.pdf', 'OCR-Inhalt');
+  database.prepare("UPDATE case_documents SET extracted_text = 'OCRGeheimwort' WHERE id = 'doc-1'").run();
 }
 
 describe('Falldokumente transaktional löschen', () => {
   it('rollt Dokument-, OCR- und FTS-Löschung zurück, wenn die verpflichtende Auditierung fehlschlägt', async () => {
     insertDocumentFixture();
+    const search = new UnifiedSearchIndexService(database);
+    expect(search.search({ query: 'OCRGeheimwort', area: 'all_data' }).total).toBe(1);
     database.exec(`
       CREATE TRIGGER reject_document_delete_audit
       BEFORE INSERT ON personal_data_audit_log
@@ -79,6 +83,7 @@ describe('Falldokumente transaktional löschen', () => {
     expect(countRows('case_documents')).toBe(1);
     expect(countRows('case_document_ocr_jobs')).toBe(1);
     expect(countRows('case_documents_fts')).toBe(1);
+    expect(database.prepare("SELECT COUNT(*) AS count FROM search_entries_fts WHERE search_entries_fts MATCH 'OCRGeheimwort'").get()).toEqual({ count: 1 });
     expect(fs.existsSync(documentPath)).toBe(true);
 
     database.exec('DROP TRIGGER reject_document_delete_audit');
@@ -87,6 +92,7 @@ describe('Falldokumente transaktional löschen', () => {
     expect(countRows('case_documents')).toBe(0);
     expect(countRows('case_document_ocr_jobs')).toBe(0);
     expect(countRows('case_documents_fts')).toBe(0);
+    expect(database.prepare("SELECT COUNT(*) AS count FROM search_entries_fts WHERE search_entries_fts MATCH 'OCRGeheimwort'").get()).toEqual({ count: 0 });
     expect(countRows('personal_data_audit_log')).toBe(1);
     expect(fs.existsSync(documentPath)).toBe(false);
   });

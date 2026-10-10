@@ -167,6 +167,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.electron.json --noEmit"
   },
   "dependencies": {
+    "@napi-rs/canvas": "^1.0.10",
     "better-sqlite3-multiple-ciphers": "^13.0.3",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
@@ -175,38 +176,39 @@
     "fontkit": "^2.0.4",
     "ical-generator": "^11.0.0",
     "lucide-react": "^1.31.0",
+    "pdfjs-dist": "^6.4.299",
     "pdfkit": "^0.19.1",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "tesseract.js": "^6.0.1",
     "yauzl": "^3.3.2",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.1",
-    "@types/node": "^24.19.0",
+    "@types/node": "^24.19.1",
     "@types/pdfkit": "^0.17.6",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@types/yauzl": "^2.10.3",
-    "@typescript-eslint/eslint-plugin": "^8.71.0",
+    "@typescript-eslint/eslint-plugin": "^8.71.1",
     "@typescript-eslint/parser": "^8.61.1",
-    "@vitejs/plugin-react": "^6.1.1",
+    "@vitejs/plugin-react": "^6.1.2",
     "@vitest/coverage-v8": "^5.0.1",
     "autoprefixer": "^10.6.1",
     "concurrently": "^9.2.1",
-    "electron": "^43.7.7",
+    "electron": "^43.7.8",
     "electron-builder": "^26.5.0",
-    "eslint": "^10.11.0",
+    "eslint": "^10.12.0",
     "eslint-plugin-react-hooks": "^7.1.1",
-    "js-yaml": "^5.4.2",
+    "js-yaml": "^5.4.3",
     "lightningcss": "^1.33.0",
-    "pdfjs-dist": "^6.3.289",
-    "postcss": "^8.5.28",
+    "postcss": "^8.5.29",
     "tailwindcss": "^4.3.0",
     "tsx": "^4.23.15",
     "typescript": "^6.0.3",
-    "vite": "^8.3.2",
+    "vite": "^8.3.3",
     "vitest": "^5.0.3",
     "wait-on": "^9.5.1"
   },
@@ -235,7 +237,13 @@
       "output": "release"
     },
     "asarUnpack": [
-      "**/*.node"
+      "**/*.node",
+      "node_modules/tesseract.js/**",
+      "node_modules/tesseract.js-core/**",
+      "node_modules/wasm-feature-detect/**",
+      "node_modules/regenerator-runtime/**",
+      "node_modules/is-url/**",
+      "node_modules/bmp-js/**"
     ],
     "linux": {
       "target": [

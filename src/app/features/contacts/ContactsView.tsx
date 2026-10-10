@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { ModuleFeedback } from '../../shared/components/ModuleFeedback';
 import { DangerButton, IndustrialButton } from '../../shared/components/IndustrialButton';
@@ -16,12 +16,27 @@ import type { ContactRecord, CreateContactInput, DeleteContactResult } from '../
 import { filterContactsForQuery, formatContactReference } from './contactDisplay';
 import { ContactCreateModal } from './ContactCreateModal';
 
+function useContactTargetFocus(targetContactId: string | null | undefined, contacts: ContactRecord[]): void {
+  useEffect(() => {
+    if (!targetContactId) return;
+    const frame = window.requestAnimationFrame(() => {
+      const card = [...document.querySelectorAll<HTMLElement>('.industrial-record-card[aria-current="true"]')]
+        .find((element) => element.querySelector('[data-contact-id]')?.getAttribute('data-contact-id') === targetContactId);
+      card?.scrollIntoView({ block: 'center' });
+      card?.focus();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [targetContactId, contacts]);
+}
+
 export function ContactsView({
   contacts,
+  targetContactId,
   onCreateContact,
   onDeleteContact
 }: {
   contacts: ContactRecord[];
+  targetContactId?: string | null;
   onCreateContact: (input: CreateContactInput) => Promise<ContactRecord>;
   onDeleteContact: (contact: ContactRecord) => Promise<DeleteContactResult>;
 }) {
@@ -33,6 +48,9 @@ export function ContactsView({
   const announce = useAnnouncer();
 
   const filteredContacts = useMemo(() => filterContactsForQuery(contacts, query), [contacts, query]);
+
+  useEffect(() => { if (targetContactId) setQuery(''); }, [targetContactId]);
+  useContactTargetFocus(targetContactId, contacts);
 
   function handleCreated(nextMessage: string) {
     setError('');
@@ -92,7 +110,8 @@ export function ContactsView({
           ariaLabel="Kontaktliste"
           empty={<EmptyState title="Keine Treffer" text="Noch keine passenden Kontakte vorhanden." />}
           renderItem={(contact) => (
-            <IndustrialRecordCard ariaLabel={formatContactReference(contact)}>
+            <IndustrialRecordCard ariaLabel={formatContactReference(contact)} selected={contact.id === targetContactId}>
+              <span data-contact-id={contact.id} hidden />
               <div className="industrial-record-card-header">
                 <div>
                   <strong>{formatContactReference(contact)}</strong>

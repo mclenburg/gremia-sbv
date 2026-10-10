@@ -4,10 +4,10 @@ import type { RetentionDashboard, RetentionModuleRuleOverrides, RetentionModuleS
 import type { DatabaseAdapter } from './databaseService.js';
 import { DEFAULT_RETENTION_SETTINGS, buildRetentionDashboard, normalizeRetentionSettings, type RetentionActivityJournalSnapshot, type RetentionCaseSnapshot, type RetentionContactSnapshot, type RetentionDeadlineSnapshot, type RetentionDocumentSnapshot, type RetentionParticipationViolationSnapshot } from './retentionPolicy.js';
 import { SearchIndexService } from './search/searchIndexService.js';
-import { MeasureLifecycleAuditService } from './measureLifecycleAuditService.js';
 import { CaseLifecycleAuditService } from './caseLifecycleAuditService.js';
 import { runCaseDeletionTransaction } from './caseDeletionTransaction.js';
 import { TextEntityReferenceService } from './textEntityReferenceService.js';
+import { deleteRetentionCaseDependents } from './retentionCaseDependents.js';
 import { RetentionOwnerRegistry } from './retentionOwnerRegistry.js';
 import { CASE_DELETE_CONFIRMATION, DatabaseRow, nowIso, bool, readNumberSetting, readTextSetting, writeSetting, safeRun, tableExists, getColumns, latestActivityExpression, CaseDocumentFileRow, removeCaseDocumentFiles, lifecycleRowsForCase } from './retentionSupport.js';
 import { ensureRetentionRuntimeSchema } from './runtimeSchemaCompatibility.js';
@@ -378,27 +378,7 @@ export class RetentionService {
 
     runCaseDeletionTransaction(db, {
       deleteDependentData: () => {
-        affectedRows += new TextEntityReferenceService(db).redact('case', caseId);
-        const lifecycle = new MeasureLifecycleAuditService(db);
-        for (const measure of lifecycleRows) {
-          lifecycle.deleted(measure.measureType, measure.id, measure.caseId, measure.status, 'case_cascade');
-        }
-        affectedRows += safeRun(db, `DELETE FROM case_documents_fts WHERE case_id = ?`, caseId);
-        if (tableExists(db, 'case_document_ocr_jobs')) {
-          affectedRows += safeRun(db, `DELETE FROM case_document_ocr_jobs WHERE document_id IN (SELECT id FROM case_documents WHERE case_id = ?)`, caseId);
-        }
-        affectedRows += safeRun(db, `DELETE FROM case_documents WHERE case_id = ?`, caseId);
-        const noteIds = db.prepare<DatabaseRow>('SELECT id FROM case_notes WHERE case_id = ?').all(caseId).map((note) => note.id);
-        for (const noteId of noteIds) {
-          affectedRows += safeRun(db, `DELETE FROM contact_text_references WHERE source_type = 'case_note' AND source_id = ?`, noteId);
-          affectedRows += safeRun(db, `DELETE FROM case_notes_fts WHERE id = ?`, noteId);
-        }
-        affectedRows += safeRun(db, `DELETE FROM case_note_cases WHERE case_id = ?`, caseId);
-        affectedRows += safeRun(db, `DELETE FROM case_notes WHERE case_id = ?`, caseId);
-        if (tableExists(db, 'case_measure_notes')) {
-          affectedRows += safeRun(db, `DELETE FROM case_measure_notes WHERE case_id = ?`, caseId);
-        }
-        affectedRows += safeRun(db, `DELETE FROM deadlines WHERE case_id = ?`, caseId);
+        affectedRows += deleteRetentionCaseDependents(db, caseId, lifecycleRows);
       },
       appendMandatoryCaseAudit: () => {
         new CaseLifecycleAuditService(db).deleted({

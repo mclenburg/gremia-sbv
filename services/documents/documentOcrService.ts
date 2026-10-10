@@ -1,13 +1,13 @@
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
+import { createWorker } from 'tesseract.js';
 import type { DatabaseAdapter } from '../databaseService.js';
 import { SearchIndexService } from '../search/searchIndexService.js';
 import { inferMimeType } from './documentTextExtractionService.js';
 import { DocumentContainerService } from '../documentContainerService.js';
 import { ensureDocumentOcrRuntimeSchema } from '../runtimeSchemaCompatibility.js';
+import { readPdfPages, renderPdfPageForOcr } from './pdfPageTextService.js';
 
 const OCR_ERROR_LIMIT = 1_000;
 const OCR_TEXT_LIMIT = 300_000;
@@ -54,56 +54,55 @@ function normalizeText(text: string): string {
 }
 
 export function isOcrCandidate(filename: string, mimeType: string | undefined, extractedText: string | undefined): boolean {
-  if (extractedText?.trim()) return false;
   const normalizedMime = (mimeType || inferMimeType(filename)).toLowerCase();
-  return normalizedMime.startsWith('image/') || normalizedMime === 'application/pdf';
+  if (normalizedMime === 'application/pdf') return true;
+  return normalizedMime.startsWith('image/') && !extractedText?.trim();
 }
 
-class LocalTesseractOcrRunner implements DocumentOcrRunner {
-  readonly id = 'local-tesseract';
+export class LocalTesseractOcrRunner implements DocumentOcrRunner {
+  readonly id = 'bundled-tesseract';
 
   canRun(row: DocumentOcrRow): boolean {
     const mimeType = (row.mime_type || inferMimeType(row.filename)).toLowerCase();
-    return mimeType.startsWith('image/');
+    return mimeType.startsWith('image/') || mimeType === 'application/pdf';
   }
 
   async run(row: DocumentOcrRow, buffer: Buffer): Promise<DocumentOcrResult> {
-    if (!this.canRun(row)) {
-      return { status: 'unsupported', text: '', engine: this.id, error: 'OCR wird aktuell nur für lokal lesbare Bilddateien ausgeführt.' };
-    }
-    const dir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'gremia-sbv-ocr-'));
-    const extension = path.extname(row.filename) || '.img';
-    const inputPath = path.join(dir, `source${extension}`);
-    await fs.promises.writeFile(inputPath, buffer);
+    if (!this.canRun(row)) return { status: 'unsupported', text: '', engine: this.id };
+    const pdf = (row.mime_type || inferMimeType(row.filename)).toLowerCase() === 'application/pdf';
+    const pages = pdf ? await readPdfPages(buffer) : [];
+    const missing = pages.filter((page) => page.needsOcr);
+    if (pdf && !missing.length) return { status: 'unsupported', text: '', engine: this.id, error: 'Alle PDF-Seiten enthalten bereits Text.' };
+    const languagePath = [
+      ...(process.resourcesPath ? [path.join(process.resourcesPath, 'assets', 'ocr')] : []),
+      path.join(process.cwd(), 'assets', 'ocr'),
+    ]
+      .find((candidate) => fs.existsSync(path.join(candidate, 'deu.traineddata')) && fs.existsSync(path.join(candidate, 'eng.traineddata')));
+    if (!languagePath) throw new Error('Gebündelte OCR-Sprachdaten fehlen.');
+    const workerScript = require.resolve('tesseract.js/src/worker-script/node/index.js')
+      .replace(/app\.asar([/\\])/, 'app.asar.unpacked$1');
+    const worker = await createWorker('deu+eng', 1, {
+      workerPath: workerScript, langPath: languagePath, gzip: false, cacheMethod: 'none',
+    });
     try {
-      const executable = process.env.GREMIA_SBV_TESSERACT_PATH || 'tesseract';
-      const languages = process.env.GREMIA_SBV_TESSERACT_LANG || 'deu+eng';
-      const text = await runTesseract(executable, [inputPath, 'stdout', '-l', languages]);
-      const normalized = normalizeText(text);
+      const texts: string[] = [];
+      if (pdf) {
+        for (const page of missing) {
+          const image = await renderPdfPageForOcr(buffer, page.pageNumber);
+          try { texts.push((await worker.recognize(image)).data.text); }
+          finally { image.fill(0); }
+        }
+      } else {
+        texts.push((await worker.recognize(buffer)).data.text);
+      }
+      const normalized = normalizeText(texts.join('\n'));
       return normalized
         ? { status: 'completed', text: normalized, engine: this.id }
         : { status: 'unsupported', text: '', engine: this.id, error: 'Lokale OCR hat keinen Text erkannt.' };
-    } catch (error) {
-      return { status: 'unsupported', text: '', engine: this.id, error: normalizeError(error) };
     } finally {
-      await fs.promises.rm(dir, { recursive: true, force: true }).catch(() => undefined);
+      await worker.terminate();
     }
   }
-}
-
-function runTesseract(command: string, args: string[]): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const child = spawn(command, args, { windowsHide: true });
-    const stdout: Buffer[] = [];
-    const stderr: Buffer[] = [];
-    child.stdout?.on('data', (part: Buffer | string | Uint8Array) => stdout.push(Buffer.isBuffer(part) ? part : Buffer.from(part)));
-    child.stderr?.on('data', (part: Buffer | string | Uint8Array) => stderr.push(Buffer.isBuffer(part) ? part : Buffer.from(part)));
-    child.on('error', reject);
-    child.on('close', (code: number | null) => {
-      if (code === 0) resolve(Buffer.concat(stdout).toString('utf8'));
-      else reject(new Error(Buffer.concat(stderr).toString('utf8') || `OCR-Prozess endete mit Code ${code}.`));
-    });
-  });
 }
 
 export class DocumentOcrService {
@@ -117,10 +116,11 @@ export class DocumentOcrService {
     ensureDocumentOcrRuntimeSchema(this.database);
   }
 
-  enqueueIfUseful(documentId: string): boolean {
+  enqueueIfUseful(documentId: string, pdfNeedsOcr?: boolean): boolean {
     const row = this.database.prepare<DocumentOcrRow>('SELECT id, case_id, filename, mime_type, storage_path, document_key, iv, auth_tag, extracted_text, ocr_status FROM case_documents WHERE id = ?').get(documentId);
     if (!row) return false;
-    if (!isOcrCandidate(row.filename, row.mime_type ?? undefined, row.extracted_text ?? undefined)) {
+    if ((pdfNeedsOcr === false && (row.mime_type || inferMimeType(row.filename)) === 'application/pdf')
+      || !isOcrCandidate(row.filename, row.mime_type ?? undefined, row.extracted_text ?? undefined)) {
       this.database.prepare("UPDATE case_documents SET ocr_status = 'not_required' WHERE id = ? AND COALESCE(ocr_status, '') <> 'not_required'").run(documentId);
       return false;
     }

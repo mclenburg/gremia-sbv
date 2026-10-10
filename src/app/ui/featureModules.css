@@ -903,7 +903,22 @@ html[data-theme='light'] .case-search-result:focus {
 }
 
 .case-detail-search-bar {
-  grid-template-columns: auto minmax(14rem, 1fr) minmax(10rem, auto) minmax(15rem, auto);
+  grid-template-columns: auto minmax(14rem, 1fr) auto;
+}
+
+.case-search-area-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  grid-column: 2 / -1;
+  margin: 0;
+  padding: var(--space-0);
+  border: 0;
+}
+
+.case-search-area-options legend {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
 }
 
 .case-detail-search-actions {

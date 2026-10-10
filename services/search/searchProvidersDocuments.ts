@@ -58,12 +58,12 @@ export const caseDocumentsSearchProvider = makeSqlProvider({
   label: 'Dokument',
   requiredTables: ['case_documents', 'cases'],
   allSql: `
-    SELECT d.id, d.id AS source_id, d.case_id, c.case_number, d.display_title, d.filename, d.extracted_text, d.mime_type, d.created_at AS occurred_at, d.imported_at AS updated_at, d.contains_health_data, d.extraction_quality, d.text_extraction_status, d.text_extractor_id, d.ocr_status, d.ocr_engine
+    SELECT d.id, d.id AS source_id, d.case_id, c.case_number, d.display_title, d.filename, d.extracted_text, d.ocr_text, d.mime_type, d.created_at AS occurred_at, COALESCE(d.ocr_completed_at, d.imported_at) AS updated_at, d.contains_health_data, d.extraction_quality, d.text_extraction_status, d.text_extractor_id, d.ocr_status, d.ocr_engine
     FROM case_documents d
     JOIN cases c ON c.id = d.case_id
   `,
   caseSql: `
-    SELECT d.id, d.id AS source_id, d.case_id, c.case_number, d.display_title, d.filename, d.extracted_text, d.mime_type, d.created_at AS occurred_at, d.imported_at AS updated_at, d.contains_health_data, d.extraction_quality, d.text_extraction_status, d.text_extractor_id, d.ocr_status, d.ocr_engine
+    SELECT d.id, d.id AS source_id, d.case_id, c.case_number, d.display_title, d.filename, d.extracted_text, d.ocr_text, d.mime_type, d.created_at AS occurred_at, COALESCE(d.ocr_completed_at, d.imported_at) AS updated_at, d.contains_health_data, d.extraction_quality, d.text_extraction_status, d.text_extractor_id, d.ocr_status, d.ocr_engine
     FROM case_documents d
     JOIN cases c ON c.id = d.case_id
     WHERE d.case_id = ?
@@ -73,7 +73,7 @@ export const caseDocumentsSearchProvider = makeSqlProvider({
     'document',
     'Dokument',
     row.display_title ?? row.filename ?? 'Dokument',
-    text(row.filename, row.extracted_text),
+    text(row.filename, row.extracted_text, row.ocr_text !== row.extracted_text ? row.ocr_text : undefined),
     'document',
     row.id,
     {
@@ -81,7 +81,7 @@ export const caseDocumentsSearchProvider = makeSqlProvider({
       occurredAt: row.occurred_at ?? undefined,
       containsHealthData: bool(row.contains_health_data),
       confidentiality: 'sensibel',
-      extractionQuality: (row.extraction_quality ?? (row.extracted_text ? 'native_text' : 'unknown')) as CaseSearchExtractionQuality,
+      extractionQuality: (row.ocr_text && !row.extracted_text ? 'ocr' : row.extraction_quality ?? (row.extracted_text ? 'native_text' : 'unknown')) as CaseSearchExtractionQuality,
     },
   ),
 });

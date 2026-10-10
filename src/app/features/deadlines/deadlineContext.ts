@@ -27,6 +27,7 @@ export type DeadlineOpenTarget =
   | { kind: 'person'; personId: string }
   | { kind: 'deadline'; deadlineId: string }
   | { kind: 'record'; view: 'recruiting_participations' | 'elections' | 'activity_journal' | 'participation_violations'; recordId: string; sourceEvent?: string }
+  | { kind: 'record'; view: 'knowledge' | 'templates'; recordId: string }
   | { kind: 'record'; view: 'meetings'; recordId: string; processType: 'sbv_meeting'; sourceEvent?: string }
   | { kind: 'record'; view: 'sbv_control'; recordId: string; processType: 'sbv_control_protocol' | 'employer_obligation_review' | 'inclusion_agreement' | 'sbv_assembly'; sourceEvent?: string };
 

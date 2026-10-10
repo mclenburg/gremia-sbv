@@ -1,4 +1,5 @@
 import { AlertTriangle, CheckCircle2, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from 'react';
 import { ModuleFrame } from "../../shared/components/ModuleFrame";
 import { DangerButton, IndustrialButton, ToolbarButton } from "../../shared/components/IndustrialButton";
 import { CaseRegister } from "./CaseRegister";
@@ -24,32 +25,65 @@ import { ParticipationProcessDetail } from "../participation/ParticipationProces
 import { WorkplaceAccommodationProcessDetail } from "../workplace-accommodation/WorkplaceAccommodationProcessDetail";
 import { resolveContextualTemplateAction } from "@/domain/templates/templateContextPolicy";
 import { formatBytes, formatNoteDate, formatProcessNodeSubtitle } from "./caseWorkbenchFormat";
-import type { CaseSearchResult } from '../../../domain/models/case-note.model';
+import type { UnifiedSearchDetail, UnifiedSearchHit } from '../../../domain/models/unified-search.model';
+import { waitForBridge } from '../../core/bridge/waitForBridge';
+import { SearchSnippet } from './SearchSnippet';
+import type { ViewId } from '../../core/navigation/modules';
 import type { CaseProcessType } from './caseWorkbenchTypes';
 import type { CasesViewRenderProps } from './casesViewRenderTypes';
-function renderSearchExcerpt(result: CaseSearchResult) {
-  const segments = result.excerptSegments?.length ? result.excerptSegments : [{ text: result.excerpt, match: false }];
-  return segments.map((segment, index) => segment.match
-    ? <mark key={`${segment.text}-${index}`}>{segment.text}</mark>
-    : <span key={`${segment.text}-${index}`} className="industrial-text-fragment">{segment.text}</span>);
-}
-
-function selectSearchResult(result: CaseSearchResult, props: CasesViewRenderProps) {
-  if (result.caseId && result.caseId !== props.selectedCaseId) props.setSelectedCaseId(result.caseId);
+const SEARCH_MODULE_VIEWS: Readonly<Record<string, ViewId>> = {
+  Personen: 'persons', Kontakte: 'contacts', Tätigkeitsjournal: 'activity_journal',
+  Wissensbasis: 'knowledge', Vorlagen: 'templates', Fristen: 'deadlines',
+  'SBV-Steuerung': 'sbv_control', Gremienarbeit: 'meetings',
+  Stellenbesetzung: 'recruiting_participations', 'SBV-Wahl': 'elections',
+  'Beteiligungsverstöße': 'participation_violations',
+  'SBV-Amtsarbeit': 'sbv_control',
+};
+function selectSearchResult(result: UnifiedSearchHit, props: CasesViewRenderProps) {
   const targetId = result.navigationId ?? result.sourceId;
-  if (result.navigationKind === "note") return props.setSelection({ type: "note", id: targetId });
-  if (result.navigationKind === "document") return props.setSelection({ type: "document", id: targetId });
-  const processTypeBySource: Partial<Record<CaseSearchResult["sourceType"], CaseProcessType>> = {
+  if (result.caseId && result.navigationKind === 'case') return props.selectCaseNodeTarget({ caseId: result.caseId, nodeType: 'overview' });
+  if (result.caseId && result.navigationKind === "note") return props.selectCaseNodeTarget({ caseId: result.caseId, nodeType: 'note', nodeId: targetId });
+  if (result.caseId && result.navigationKind === "document") return props.selectCaseNodeTarget({ caseId: result.caseId, nodeType: 'document', nodeId: targetId });
+  const processTypeBySource: Partial<Record<string, CaseProcessType>> = {
     bem: "bem", bem_event: "bem", prevention: "prevention", prevention_event: "prevention",
     termination: "termination_hearing", equalization: "equalization", participation: "participation",
     participation_event: "participation", workplace_accommodation: "workplace_accommodation",
   };
   const processType = processTypeBySource[result.sourceType];
-  if (result.navigationKind === "process" && processType) {
-    props.setSelection({ type: "process", processType, id: targetId });
+  if (result.caseId && result.navigationKind === "process" && processType) {
+    props.selectCaseNodeTarget({ caseId: result.caseId, nodeType: processType, nodeId: targetId });
     return;
   }
+  if (props.onOpenSearchRecord?.(result)) return;
   props.setSelection({ type: "search", id: `${result.sourceType}:${result.sourceId}` });
+}
+
+function SearchResultDetail({ result }: { result: UnifiedSearchHit }) {
+  const [detail, setDetail] = useState<UnifiedSearchDetail | null>(null);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    let active = true;
+    setDetail(null);
+    setError('');
+    void (async () => {
+      try {
+        const bridge = await waitForBridge();
+        if (!bridge?.cases) throw new Error('Falldienst ist nicht erreichbar.');
+        const loaded = await bridge.cases.searchDetail(result.sourceType, result.sourceId);
+        if (!active) return;
+        if (loaded) setDetail(loaded);
+        else setError('Der Datensatz ist nicht mehr vorhanden. Bitte die Suche aktualisieren.');
+      } catch (cause) {
+        if (active) setError(cause instanceof Error ? cause.message : 'Der Datensatz konnte nicht geöffnet werden.');
+      }
+    })();
+    return () => { active = false; };
+  }, [result.sourceType, result.sourceId]);
+  return <>
+    <h2>{result.title}</h2>
+    {error ? <p className="industrial-message industrial-message-warning" role="alert">{error}</p> : detail ? <p className="case-note-content">{detail.content}</p>
+      : <p className="industrial-field-help" role="status">Datensatz wird geladen …</p>}
+  </>;
 }
 
 function CaseOverviewContent({ props }: { props: CasesViewRenderProps }) {
@@ -130,7 +164,8 @@ function SecondaryProcessContent({ props }: { props: CasesViewRenderProps }) {
 
 function CaseResourceContent({ props }: { props: CasesViewRenderProps }) {
   const { selectedNote, selectedDocument, selectedSearchResult, setSelection, setSelectedCaseId, documentActions,
-    startEditNote, deleteNote } = props;
+    startEditNote, deleteNote, onNavigate } = props;
+  const moduleView = selectedSearchResult && SEARCH_MODULE_VIEWS[selectedSearchResult.module];
   return <>
     {selectedNote && <article className="case-detail-content">
       <div className="case-note-card-header"><span className="industrial-badge">{selectedNote.noteType}</span>
@@ -152,9 +187,21 @@ function CaseResourceContent({ props }: { props: CasesViewRenderProps }) {
       onExport={(document) => void documentActions.exportDocument(document)}
       onDelete={(document) => void documentActions.deleteDocument(document)} />
     {selectedSearchResult && !selectedNote && !selectedDocument && <article className="case-detail-content">
-      <h2>{selectedSearchResult.title}</h2><p>{renderSearchExcerpt(selectedSearchResult)}</p>
-      <button type="button" className="industrial-secondary-button" onClick={() => setSelectedCaseId(selectedSearchResult.caseId)}>
-        Fallakte öffnen</button>
+      <p className="industrial-meta">{selectedSearchResult.module} · {selectedSearchResult.sourceLabel}
+        {selectedSearchResult.caseNumber
+          ? ` · ${selectedSearchResult.caseNumbers && selectedSearchResult.caseNumbers.length > 1 ? 'Fallakten' : 'Fallakte'} ${selectedSearchResult.caseNumbers?.length ? selectedSearchResult.caseNumbers.join(', ') : selectedSearchResult.caseNumber}`
+          : ' · Ohne Fallaktenbezug'}
+        {selectedSearchResult.extractionQuality === 'ocr' ? ' · OCR-Text' : ''}</p>
+      <SearchResultDetail result={selectedSearchResult} />
+      {selectedSearchResult.caseId && <button type="button" className="industrial-secondary-button"
+        onClick={() => {
+          if (selectedSearchResult.caseId) setSelectedCaseId(selectedSearchResult.caseId);
+          setSelection({ type: 'overview' });
+        }}>Fallakte öffnen</button>}
+      {!selectedSearchResult.caseId && moduleView && onNavigate && <button type="button"
+        className="industrial-secondary-button" onClick={() => onNavigate(moduleView)}>
+        Zum Modul {selectedSearchResult.module} wechseln
+      </button>}
     </article>}
   </>;
 }
@@ -162,8 +209,8 @@ function CaseResourceContent({ props }: { props: CasesViewRenderProps }) {
 function CaseWorkbench({ props }: { props: CasesViewRenderProps }) {
   const { selectedCase, notes, documents, casePreventionProcesses, caseBemProcesses, caseEqualizationProcesses,
     caseTerminationProcesses, caseParticipationProcesses, caseWorkplaceAccommodationProcesses, isCaseChildrenLoading,
-    selection, setSelection, searchQuery, searchOnlySelectedCase, searchResults, searchError, searchInfo, isSearching,
-    selectedSearchSourceTypes, runSearch, setSearchQuery, setSearchOnlySelectedCase, setSelectedSearchSourceTypes,
+    selection, setSelection, searchQuery, searchArea, searchResults, searchTotal, searchError, searchInfo, isSearching,
+    selectedSearchSourceTypes, runSearch, setSearchQuery, setSearchArea, setSelectedSearchSourceTypes, loadMoreSearchResults,
     selectedCaseId, openNewNoteModal, documentActions, inlineCommands, openCaseProcessDraft } = props;
   return <section className="case-workbench">
     <CaseTreePanel selectedCase={selectedCase} notes={notes} documents={documents} preventionProcesses={casePreventionProcesses}
@@ -171,10 +218,11 @@ function CaseWorkbench({ props }: { props: CasesViewRenderProps }) {
       participationProcesses={caseParticipationProcesses} workplaceAccommodationProcesses={caseWorkplaceAccommodationProcesses}
       isLoading={isCaseChildrenLoading} selection={selection} onSelect={setSelection} onDeleteProcess={props.onOpenProcessDelete}
       formatProcessNodeSubtitle={formatProcessNodeSubtitle} formatNoteDate={formatNoteDate} formatBytes={formatBytes} />
-    <CaseDetailPanel searchQuery={searchQuery} searchOnlySelectedCase={searchOnlySelectedCase} searchResults={searchResults}
+    <CaseDetailPanel searchQuery={searchQuery} searchArea={searchArea} searchResults={searchResults} searchTotal={searchTotal}
       searchError={searchError} searchInfo={searchInfo} isSearching={isSearching} selectedSearchSourceTypes={selectedSearchSourceTypes}
-      onSearchSubmit={runSearch} onSearchQueryChange={setSearchQuery} onSearchOnlySelectedCaseChange={setSearchOnlySelectedCase}
+      onSearchSubmit={runSearch} onSearchQueryChange={setSearchQuery} onSearchAreaChange={setSearchArea}
       onSearchSourceTypesChange={setSelectedSearchSourceTypes} onSelectSearchResult={(result) => selectSearchResult(result, props)}
+      onLoadMoreSearchResults={loadMoreSearchResults}
       onExportHandover={props.onOpenExportHandover} canExportHandover={Boolean(selectedCase)}>
       <CaseOverviewContent props={props} />
       <PrimaryProcessContent props={props} />

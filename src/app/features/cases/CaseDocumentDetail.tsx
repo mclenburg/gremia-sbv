@@ -36,7 +36,10 @@ export function CaseDocumentDetail({
         </dl>
       </details> : null}
       <p className="industrial-meta">SHA-256: {document.sha256}</p>
-      {document.extractedText ? <p className="case-note-content">{document.extractedText.slice(0, 2000)}</p> : <p className="industrial-empty">Für dieses Dokument wurde kein lesbarer Volltext extrahiert. Dateiname und Metadaten sind trotzdem suchbar.</p>}
+      {document.extractedText || document.ocrText ? <div className="case-note-content">
+        {document.extractedText ? <p>{document.extractedText.slice(0, 2000)}</p> : null}
+        {document.ocrText && document.ocrText !== document.extractedText ? <p><strong>OCR-Text:</strong> {document.ocrText.slice(0, 2000)}</p> : null}
+      </div> : <p className="industrial-empty">Für dieses Dokument wurde kein lesbarer Volltext extrahiert. Dateiname und Metadaten sind trotzdem suchbar.</p>}
       <div className="industrial-message industrial-message-warning">Beim Öffnen oder Exportieren entsteht temporär bzw. bewusst eine Klartextkopie außerhalb des verschlüsselten Dokumentenspeichers.</div>
       <div className="industrial-card-actions">
         <ToolbarButton onClick={() => onOpen(document)}><FileText className="industrial-icon" /> Öffnen</ToolbarButton>

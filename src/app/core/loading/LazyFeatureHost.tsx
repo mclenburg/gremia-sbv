@@ -34,8 +34,9 @@ export function LazyFeatureHost({ view, cases, measures = [], persons = [], them
   const Feature = useMemo(() => getLazyFeatureComponent(view), [view]);
   if (!Feature) return null;
 
-  const CasesFeature = Feature as LazyExoticComponent<ComponentType<{ cases: CaseRecord[] }>>;
+  const CasesFeature = Feature as LazyExoticComponent<ComponentType<{ cases: CaseRecord[]; targetId?: string; onTargetConsumed?: () => void }>>;
   const CaseWorkbenchFeature = Feature as LazyExoticComponent<ComponentType<CasesViewProps>>;
+  const TemplatesFeature = Feature as LazyExoticComponent<ComponentType<{ targetId?: string; onTargetConsumed?: () => void }>>;
   const HandoverFeature = Feature as LazyExoticComponent<ComponentType<{
     cases: CaseRecord[];
     measures: CaseMeasureRecord[];
@@ -78,11 +79,13 @@ export function LazyFeatureHost({ view, cases, measures = [], persons = [], them
   return (
     <LazyFeatureBoundary view={view} onRetry={() => { void preloadLazyFeature(view).catch(() => undefined); }}>
       {view === "cases" && caseFeatureProps ? (
-        <CaseWorkbenchFeature {...caseFeatureProps} />
+        <CaseWorkbenchFeature {...caseFeatureProps} onNavigate={onNavigate} />
       ) : view === "case_handover" && onRecordsChanged ? (
         <HandoverFeature cases={cases} measures={measures} onRecordsChanged={onRecordsChanged} />
       ) : view === "knowledge" ? (
-        <CasesFeature cases={cases} />
+        <CasesFeature cases={cases} targetId={recordTarget?.view === 'knowledge' ? recordTarget.recordId : undefined} onTargetConsumed={onRecordTargetConsumed} />
+      ) : view === 'templates' ? (
+        <TemplatesFeature targetId={recordTarget?.view === 'templates' ? recordTarget.recordId : undefined} onTargetConsumed={onRecordTargetConsumed} />
       ) : view === "equalization" && onOpenCaseNode && onRecordsChanged ? (
         <EqualizationFeature cases={cases} persons={persons} onOpenCaseNode={onOpenCaseNode} onRecordsChanged={onRecordsChanged} />
       ) : ["bem", "prevention", "participation", "termination_hearing"].includes(view) && onOpenCaseNode ? (
@@ -107,7 +110,7 @@ export function LazyFeatureHost({ view, cases, measures = [], persons = [], them
           onTargetConsumed={onRecordTargetConsumed}
         />
       ) : view === "elections" ? (
-        <ElectionFeature targetId={recordTarget?.view === view ? recordTarget.recordId : undefined} sourceEvent={recordTarget?.sourceEvent} onTargetConsumed={onRecordTargetConsumed} />
+        <ElectionFeature targetId={recordTarget?.view === 'elections' ? recordTarget.recordId : undefined} sourceEvent={recordTarget?.view === 'elections' ? recordTarget.sourceEvent : undefined} onTargetConsumed={onRecordTargetConsumed} />
       ) : (
         <Feature />
       )}

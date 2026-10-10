@@ -1,97 +1,83 @@
 import { test, expect } from './support/test';
 
-interface CaseSearchDebugCall {
-  query?: string;
-  caseId?: string;
-  sourceTypes?: string[];
-}
+type SearchCall = { query?: string; area?: string; currentCaseId?: string; sourceTypes?: string[] };
 
-type CaseSearchDebugWindow = Window & {
-  __GREMIA_SBV_E2E_SEARCH_CALLS: CaseSearchDebugCall[];
-};
-
-function latestCaseSearchDebugCall() {
-  return (window as CaseSearchDebugWindow).__GREMIA_SBV_E2E_SEARCH_CALLS.at(-1);
-}
-
-function mainNavigation(page: import('@playwright/test').Page) {
+function navigation(page: import('@playwright/test').Page) {
   return page.getByRole('navigation', { name: 'Hauptnavigation' });
 }
 
-async function openCaseWorkbench(page: import('@playwright/test').Page) {
-  await mainNavigation(page).getByRole('button', { name: 'Fallakte', exact: true }).click();
+async function openSearch(page: import('@playwright/test').Page) {
+  await navigation(page).getByRole('button', { name: 'Fallakte', exact: true }).click();
   await expect(page.getByRole('heading', { name: /TEST-0001\s*·\s*Testperson Alpha/ })).toBeVisible();
 }
 
-async function runCaseSearch(page: import('@playwright/test').Page, query: string) {
-  await page.getByLabel('Volltextsuche in der Fallakte').fill(query);
+async function search(page: import('@playwright/test').Page, query: string, area: string) {
+  await page.getByRole('radio', { name: area }).check();
+  await page.getByRole('textbox', { name: 'Volltextsuche' }).fill(query);
   await page.getByRole('button', { name: 'Suchen', exact: true }).click();
 }
 
-function searchResults(page: import('@playwright/test').Page) {
-  return page.locator('[aria-label="Suchtreffer"]');
+function hit(page: import('@playwright/test').Page, value: string) {
+  return page.getByLabel('Suchtreffer').getByRole('button').filter({ hasText: value });
 }
 
-function searchResultByText(page: import('@playwright/test').Page, text: string) {
-  return searchResults(page).getByRole('button').filter({ hasText: text });
+async function lastSearchCall(page: import('@playwright/test').Page): Promise<SearchCall> {
+  return page.evaluate(() => (window as Window & { __GREMIA_SBV_E2E_SEARCH_CALLS: SearchCall[] }).__GREMIA_SBV_E2E_SEARCH_CALLS.at(-1) ?? {});
 }
 
-test('findet Fallnotizen über Alle Inhalte und hebt Treffer sicher hervor', async ({ page }) => {
-  await openCaseWorkbench(page);
-
-  await page.getByRole('group', { name: 'Suchbereich einschränken' }).getByRole('button', { name: 'Alle Inhalte', exact: true }).click();
-  await runCaseSearch(page, 'BEM-Aktenbezug');
-
-  const result = searchResultByText(page, 'Synthetische Notiz mit Aktenbezug');
-  await expect(result).toBeVisible();
-  await expect(result).toContainText('Fallnotiz · TEST-0001');
+test('zeigt Fallnotiz mit hervorgehobener Fundstelle und öffnet sie per Tastatur', async ({ page }) => {
+  await openSearch(page);
+  await search(page, 'BEM-Aktenbezug', 'Diese Fallakte');
+  const result = hit(page, 'Synthetische Notiz mit Aktenbezug');
+  await expect(result).toContainText('Fallakten · Fallnotiz · Fallakte TEST-0001');
   await expect(result.locator('mark')).toHaveText('BEM-Aktenbezug');
-
-  const latestCall = await page.evaluate(latestCaseSearchDebugCall);
-  expect(latestCall).toMatchObject({ query: 'BEM-Aktenbezug', caseId: 'case-test-0001' });
-  expect(latestCall.sourceTypes).toBeUndefined();
+  await result.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.case-detail-content').getByRole('heading', { name: 'Synthetische Notiz mit Aktenbezug' })).toBeVisible();
+  expect(await lastSearchCall(page)).toMatchObject({ query: 'BEM-Aktenbezug', area: 'current_case', currentCaseId: 'case-test-0001' });
 });
 
-test('wendet Suchbereichsfilter an und sucht nur im gewählten Quelltyp', async ({ page }) => {
-  await openCaseWorkbench(page);
-
-  await page.getByRole('group', { name: 'Suchbereich einschränken' }).getByLabel('BEM').check();
-  await runCaseSearch(page, 'BEM-Anlass');
-
-  const bemResult = searchResultByText(page, 'BEM-Testvorgang Alpha');
-  await expect(bemResult).toBeVisible();
-  await expect(bemResult).toContainText('BEM · TEST-0001');
-  await expect(searchResultByText(page, 'Synthetische Notiz')).toHaveCount(0);
-
-  const latestCall = await page.evaluate(latestCaseSearchDebugCall);
-  expect(latestCall.sourceTypes).toEqual(['bem']);
+test('filtert Quelltypen und wechselt mit einem Treffer genau zum anderen Fallprozess', async ({ page }) => {
+  await openSearch(page);
+  await page.getByRole('group', { name: 'Inhaltstypen einschränken' }).getByLabel('BEM').check();
+  await search(page, 'BEM-Anlass Beta', 'Alle Fallakten');
+  const result = hit(page, 'BEM-Testvorgang Beta');
+  await expect(result).toContainText('Fallakte TEST-0002');
+  await result.click();
+  await expect(page.locator('.case-tree-panel').getByRole('heading', { name: 'TEST-0002' })).toBeVisible();
+  await expect(page.locator('.case-detail-content')).toContainText('BEM-Anlass Beta');
+  expect((await lastSearchCall(page)).sourceTypes).toEqual(['bem']);
 });
 
-test('respektiert Fallaktenisolation und findet andere Fallakten erst bei globaler Suche', async ({ page }) => {
-  await openCaseWorkbench(page);
-
-  await runCaseSearch(page, 'BEM-Anlass Beta');
-  await expect(searchResultByText(page, 'BEM-Testvorgang Beta')).toHaveCount(0);
-
-  await page.getByLabel('nur diese Fallakte').uncheck();
-  await runCaseSearch(page, 'BEM-Anlass Beta');
-
-  const betaResult = searchResultByText(page, 'BEM-Testvorgang Beta');
-  await expect(betaResult).toBeVisible();
-  await expect(betaResult).toContainText('BEM · TEST-0002');
-
-  const latestCall = await page.evaluate(latestCaseSearchDebugCall);
-  expect(latestCall.caseId).toBeUndefined();
+test('trennt Fallakten vom gesamten Datenbestand', async ({ page }) => {
+  await openSearch(page);
+  await search(page, 'BEM-Anlass Beta', 'Diese Fallakte');
+  await expect(hit(page, 'BEM-Testvorgang Beta')).toHaveCount(0);
+  await search(page, 'BEM-Anlass Beta', 'Gesamter Datenbestand');
+  await expect(hit(page, 'BEM-Testvorgang Beta')).toBeVisible();
+  expect((await lastSearchCall(page)).area).toBe('all_data');
 });
 
-test('findet OCR-Texte als eigene Quelle ohne echten OCR-Prozess', async ({ page }) => {
-  await openCaseWorkbench(page);
-
-  await page.getByRole('group', { name: 'Suchbereich einschränken' }).getByLabel('OCR-Texte').check();
-  await runCaseSearch(page, 'ScanFund');
-
-  const result = searchResultByText(page, 'Scan mit OCR');
-  await expect(result).toBeVisible();
-  await expect(result).toContainText('OCR-Text · TEST-0001');
+test('findet indizierten OCR-Text ohne Onlinefunktion', async ({ page }) => {
+  await openSearch(page);
+  await page.getByRole('group', { name: 'Inhaltstypen einschränken' }).getByLabel('Dokumente').check();
+  await search(page, 'ScanFund', 'Diese Fallakte');
+  const result = hit(page, 'Scan mit OCR');
+  await expect(result).toContainText('Dokument · Fallakte TEST-0001 · OCR-Text');
   await expect(result.locator('mark')).toHaveText('ScanFund');
+});
+
+test('öffnet einen Treffer der Wissensbasis direkt am passenden Datensatz', async ({ page }) => {
+  await openSearch(page);
+  await search(page, 'Zentrale Beteiligungs', 'Gesamter Datenbestand');
+  await hit(page, 'Aufgaben der Schwerbehindertenvertretung').click();
+  await expect(page.getByRole('heading', { name: 'Wissensdatenbank' })).toBeVisible();
+  await expect(page.locator('.knowledge-layout')).toContainText('Aufgaben der Schwerbehindertenvertretung');
+});
+
+test('zeigt bei Quellen ohne eigene Datensatzansicht den vollständigen indizierten Inhalt', async ({ page }) => {
+  await openSearch(page);
+  await search(page, 'BudgetStichwort', 'Gesamter Datenbestand');
+  await hit(page, 'SBV-Ressource').click();
+  await expect(page.locator('.case-detail-content')).toContainText('Vollständiger synthetischer Ressourceninhalt mit BudgetStichwort und weiteren Angaben.');
 });

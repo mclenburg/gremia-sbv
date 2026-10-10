@@ -1,4 +1,4 @@
-import type { CaseSearchResult } from "../../../domain/models/case-note.model";
+import type { UnifiedSearchHit } from '../../../domain/models/unified-search.model';
 import type { Dispatch, FormEvent, SetStateAction } from "react";
 import type { CaseCategory, CaseRecord } from "../../../domain/models/case.model";
 import type { CaseDocumentRecord } from "../../../domain/models/case-document.model";
@@ -46,7 +46,7 @@ export type CasesViewRenderProps = {
   selectedCase?: CaseRecord;
   selectedNote?: CaseNoteRecord;
   selectedDocument?: CaseDocumentRecord;
-  selectedSearchResult?: CaseSearchResult;
+  selectedSearchResult?: UnifiedSearchHit;
   selectedPreventionProcess?: PreventionProcessRecord;
   selectedBemProcess?: BemProcessRecord;
   selectedTerminationProcess?: TerminationHearingRecord;
@@ -66,17 +66,20 @@ export type CasesViewRenderProps = {
   isCaseChildrenLoading: boolean;
   selection: CaseExplorerSelection;
   setSelection: (selection: CaseExplorerSelection) => void;
+  selectCaseNodeTarget: (target: import('../../core/navigation/caseNodeTarget').CaseNodeTarget) => void;
   setSelectedCaseId: Dispatch<SetStateAction<string>>;
   searchQuery: SearchState["searchQuery"];
-  searchOnlySelectedCase: SearchState["searchOnlySelectedCase"];
+  searchArea: SearchState["searchArea"];
   searchResults: SearchState["searchResults"];
+  searchTotal: SearchState["searchTotal"];
   selectedSearchSourceTypes: SearchState["selectedSearchSourceTypes"];
   searchError: SearchState["searchError"];
   searchInfo: SearchState["searchInfo"];
   isSearching: SearchState["isSearching"];
   runSearch: SearchState["runSearch"];
   setSearchQuery: SearchState["setSearchQuery"];
-  setSearchOnlySelectedCase: SearchState["setSearchOnlySelectedCase"];
+  setSearchArea: SearchState["setSearchArea"];
+  loadMoreSearchResults: SearchState["loadMoreSearchResults"];
   setSelectedSearchSourceTypes: SearchState["setSelectedSearchSourceTypes"];
   documentActions: CaseDocumentActions;
   inlineCommands: ReturnType<typeof useInlineCommands>;
@@ -137,6 +140,8 @@ export type CasesViewRenderProps = {
   onOpenImportHandover: () => void;
   onContinueExpiredHandover: () => void;
   onOpenParticipationViolationPrefill: CasesViewProps["onOpenParticipationViolationPrefill"];
+  onNavigate: CasesViewProps['onNavigate'];
+  onOpenSearchRecord: CasesViewProps['onOpenSearchRecord'];
   onOpenCasePrivacyAction: (record: CaseRecord) => void;
   onOpenProcessDelete: (target: { id: string; processType: CaseProcessType; label?: string }) => void;
 } & ProcessUpdateActions & Pick<TemplateActions, "openProcessTemplateModal"> & Pick<ProcessCreationActions, "openCaseProcessDraft"> & Pick<CrudActions, "deleteNote"> & Pick<NoteEditorActions, "startEditNote" | "openNewNoteModal">;
