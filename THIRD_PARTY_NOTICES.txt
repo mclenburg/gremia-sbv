@@ -1218,7 +1218,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@types/node@24.19.0
+@types/node@24.19.1
 License: MIT
 Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
 Homepage: https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/node
@@ -1278,7 +1278,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/eslint-plugin@8.71.0
+@typescript-eslint/eslint-plugin@8.71.1
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io/packages/eslint-plugin
@@ -1288,7 +1288,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/parser@8.71.0
+@typescript-eslint/parser@8.71.1
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io/packages/parser
@@ -1298,7 +1298,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/project-service@8.71.0
+@typescript-eslint/project-service@8.71.1
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io
@@ -1308,7 +1308,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/scope-manager@8.71.0
+@typescript-eslint/scope-manager@8.71.1
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io/packages/scope-manager
@@ -1318,7 +1318,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/tsconfig-utils@8.71.0
+@typescript-eslint/tsconfig-utils@8.71.1
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io
@@ -1328,7 +1328,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/type-utils@8.71.0
+@typescript-eslint/type-utils@8.71.1
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io
@@ -1338,7 +1338,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/types@8.71.0
+@typescript-eslint/types@8.71.1
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io
@@ -1348,7 +1348,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/typescript-estree@8.71.0
+@typescript-eslint/typescript-estree@8.71.1
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io/packages/typescript-estree
@@ -1358,7 +1358,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/utils@8.71.0
+@typescript-eslint/utils@8.71.1
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io/packages/utils
@@ -1368,7 +1368,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@typescript-eslint/visitor-keys@8.71.0
+@typescript-eslint/visitor-keys@8.71.1
 License: MIT
 Repository: https://github.com/typescript-eslint/typescript-eslint.git
 Homepage: https://typescript-eslint.io
@@ -1378,7 +1378,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@vitejs/plugin-react@6.1.1
+@vitejs/plugin-react@6.1.2
 License: MIT
 Repository: git+https://github.com/vitejs/vite-plugin-react.git
 Homepage: https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#readme
@@ -2276,7 +2276,7 @@ Copyright notices:
 - NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 License text: LICENSES/MIT.txt
 
-electron@43.7.7
+electron@43.7.8
 License: MIT
 Repository: https://github.com/electron/electron
 Copyright notices:
@@ -2456,7 +2456,7 @@ Copyright notices:
 - that You distribute, all copyright, patent, trademark, and
 License text: LICENSES/Apache-2.0.txt
 
-eslint@10.11.0
+eslint@10.12.0
 License: MIT
 Repository: eslint/eslint
 Homepage: https://eslint.org
@@ -3178,7 +3178,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-js-yaml@5.4.2
+js-yaml@5.4.3
 License: MIT
 Repository: nodeca/js-yaml
 Copyright notices:
@@ -3662,7 +3662,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-nanoid@3.3.18
+nanoid@3.3.20
 License: MIT
 Repository: ai/nanoid
 Copyright notices:
@@ -3961,7 +3961,7 @@ Copyright notices:
 - NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
 License text: LICENSES/MIT.txt
 
-postcss@8.5.28
+postcss@8.5.29
 License: MIT
 Repository: postcss/postcss
 Homepage: https://postcss.org/
@@ -4787,7 +4787,7 @@ Copyright notices:
 - NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
 License text: LICENSES/MIT.txt
 
-vite@8.3.2
+vite@8.3.3
 License: MIT
 Repository: git+https://github.com/vitejs/vite.git
 Homepage: https://vite.dev
