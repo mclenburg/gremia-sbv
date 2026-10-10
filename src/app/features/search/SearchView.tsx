@@ -45,7 +45,7 @@ export function SearchView({ cases, onOpenCaseNode, onOpenSearchRecord }: Search
       onLoadMoreSearchResults={search.loadMoreSearchResults}
       casePicker={search.searchArea === 'current_case' ? <label className="industrial-field">
         <span>Fallakte auswählen</span>
-        <select className="industrial-input" value={selectedCaseId}
+        <select className="industrial-select" value={selectedCaseId}
           onChange={(event) => { setSelectedHit(null); setSelectedCaseId(event.target.value); }}>
           <option value="">Bitte Fallakte auswählen</option>
           {cases.map((caseRecord) => <option key={caseRecord.id} value={caseRecord.id}>
