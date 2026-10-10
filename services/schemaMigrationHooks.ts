@@ -41,6 +41,28 @@ const CONSOLIDATED_COMPONENTS = [
 ] as const;
 
 const SCHEMA_MIGRATION_HOOKS: Readonly<Record<string, SchemaMigrationHook>> = {
+  '0068': {
+    version: '0068',
+    components: [],
+    apply(db) {
+      for (const source of SEARCH_SOURCE_CATALOG) {
+        const exists = db.prepare<{ found: number }>("SELECT 1 AS found FROM sqlite_master WHERE type = 'table' AND name = ?").get(source.table);
+        if (!exists) continue;
+        const columns = new Set(db.prepare<{ name: string }>(`PRAGMA table_info(${source.table})`).all().map((column) => column.name));
+        const key = columns.has('id') ? 'id' : columns.has('measure_id') ? 'measure_id' : null;
+        if (!key) continue;
+        // Every value comes from the static source catalog. Removing a derived row
+        // in the same transaction also removes its FTS copy via the 0067 trigger.
+        for (const [event, suffix] of [['UPDATE', 'update'], ['DELETE', 'delete']] as const) {
+          db.exec(`CREATE TRIGGER IF NOT EXISTS search_purge_${source.sourceType}_${suffix}
+            AFTER ${event} ON ${source.table}
+            BEGIN
+              DELETE FROM search_entries WHERE source_type = '${source.sourceType}' AND source_id = OLD.${key};
+            END;`);
+        }
+      }
+    },
+  },
   '0067': {
     version: '0067',
     components: [],

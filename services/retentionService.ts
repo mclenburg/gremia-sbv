@@ -4,6 +4,7 @@ import type { RetentionDashboard, RetentionModuleRuleOverrides, RetentionModuleS
 import type { DatabaseAdapter } from './databaseService.js';
 import { DEFAULT_RETENTION_SETTINGS, buildRetentionDashboard, normalizeRetentionSettings, type RetentionActivityJournalSnapshot, type RetentionCaseSnapshot, type RetentionContactSnapshot, type RetentionDeadlineSnapshot, type RetentionDocumentSnapshot, type RetentionParticipationViolationSnapshot } from './retentionPolicy.js';
 import { SearchIndexService } from './search/searchIndexService.js';
+import { UnifiedSearchIndexService } from './search/unifiedSearchIndexService.js';
 import { MeasureLifecycleAuditService } from './measureLifecycleAuditService.js';
 import { CaseLifecycleAuditService } from './caseLifecycleAuditService.js';
 import { runCaseDeletionTransaction } from './caseDeletionTransaction.js';
@@ -378,6 +379,7 @@ export class RetentionService {
 
     runCaseDeletionTransaction(db, {
       deleteDependentData: () => {
+        affectedRows += new UnifiedSearchIndexService(db).purgeCase(caseId);
         affectedRows += new TextEntityReferenceService(db).redact('case', caseId);
         const lifecycle = new MeasureLifecycleAuditService(db);
         for (const measure of lifecycleRows) {

@@ -167,6 +167,11 @@ describe('CaseAnonymizationService', () => {
     const dataDir = tempDir();
     try {
       await seedCase(db, dataDir, 'Fallnotiz');
+      db.prepare(`INSERT INTO search_entries
+        (id, source_type, source_id, case_id, case_number, module, source_label, title, content, updated_at, navigation_kind, navigation_id, created_at)
+        VALUES ('cached-case', 'case', 'case-1', 'case-1', 'SBV-2026-001', 'Fallakten', 'Fallakte', 'Alt', 'IndexGeheimwort', '2026-01-01', 'case', 'case-1', '2026-01-01')`).run();
+      db.prepare("INSERT INTO search_entry_cases(entry_id, case_id) VALUES ('cached-case', 'case-1')").run();
+      db.prepare("INSERT INTO search_entries_fts(entry_id, title, content, keywords, source_label) VALUES ('cached-case', 'Alt', 'IndexGeheimwort', '', 'Fallakte')").run();
       const marker = new TextEntityReferenceService(db).create('case', 'case-1');
       const now = '2026-08-15T12:00:00.000Z';
       db.prepare("INSERT INTO sbv_meetings (id, meeting_type, title, starts_at, notes, created_at, updated_at) VALUES ('meeting-1', 'works_council', 'Sitzung', ?, ?, ?, ?)")
@@ -177,6 +182,7 @@ describe('CaseAnonymizationService', () => {
         : await new RetentionService(db, () => dataDir).deleteCase('case-1', `Zweck entfallen: ${marker}`, 'FALL LÖSCHEN');
 
       expect(result.ok).toBe(true);
+      expect(db.prepare("SELECT COUNT(*) AS count FROM search_entries_fts WHERE search_entries_fts MATCH 'IndexGeheimwort'").get()).toEqual({ count: 0 });
       expect(db.prepare<{ notes: string }>("SELECT notes FROM sbv_meetings WHERE id = 'meeting-1'").get()!.notes)
         .toBe('Fall SBV-2026-001 wurde erwähnt. [anonymisiert]');
       expect(db.prepare<{ reason: string }>('SELECT reason FROM retention_actions WHERE entity_id = ? ORDER BY created_at DESC LIMIT 1').get('case-1')!.reason)

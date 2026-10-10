@@ -4,6 +4,7 @@ import type { RetentionOperationResult } from '../src/domain/models/retention.mo
 import { applyPendingAnonymizationMarkers } from './textCommandPolicy.js';
 import { DocumentContainerService } from './documentContainerService.js';
 import { SearchIndexService } from './search/searchIndexService.js';
+import { UnifiedSearchIndexService } from './search/unifiedSearchIndexService.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { CASE_ANONYMIZATION_MATRIX, type CaseAnonymizationMatrixEntry } from './caseAnonymizationMatrix.js';
 import { CASE_ANONYMIZATION_CONFIRMATION, REMOVED_PARTICIPANTS_TEXT, replaceFreeTextPreservingLength, type CaseAnonymizationMode } from './caseAnonymizationPolicy.js';
@@ -342,6 +343,7 @@ export class CaseAnonymizationService {
         }
         affected += new SearchIndexService(db).deleteCase(caseId);
         affected += new SearchIndexService(db).reindexCase(caseId);
+        affected += new UnifiedSearchIndexService(db).purgeCase(caseId);
 
         ensureRetentionRuntimeSchema(db);
         db.prepare(`INSERT INTO retention_actions (id, action_type, entity_type, entity_id, reference, reason, affected_rows, affected_files, created_at)

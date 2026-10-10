@@ -13,6 +13,7 @@ function open(): DatabaseAdapter {
   const db = new Database(':memory:');
   db.exec(snapshot);
   getSchemaMigrationHook('0067')?.apply(db);
+  getSchemaMigrationHook('0068')?.apply(db);
   return db;
 }
 
@@ -60,8 +61,26 @@ describe('unified search index', () => {
       db.prepare("UPDATE contacts SET notes = 'SeltenesWort', updated_at = '2026-02-01' WHERE id = 'old'").run();
       expect(search.search({ query: 'SeltenesWort', area: 'all_data' }).total).toBe(1);
       db.prepare("DELETE FROM contacts WHERE id = 'old'").run();
+      expect(db.prepare("SELECT COUNT(*) AS count FROM search_entries_fts WHERE search_entries_fts MATCH 'SeltenesWort'").get()).toEqual({ count: 0 });
       expect(search.search({ query: 'SeltenesWort', area: 'all_data' }).total).toBe(0);
       expect(db.prepare("SELECT COUNT(*) AS count FROM search_entries_fts WHERE search_entries_fts MATCH 'SeltenesWort'").get()).toEqual({ count: 0 });
+    } finally {
+      db.close();
+    }
+  });
+
+  it('purges a changed source in the same transaction and restores its copy on rollback', () => {
+    const db = open();
+    try {
+      insertContact(db, 'contact-1', 'Mira', 'Geheimwort');
+      const search = new UnifiedSearchIndexService(db);
+      expect(search.search({ query: 'Geheimwort', area: 'all_data' }).total).toBe(1);
+      db.exec('SAVEPOINT privacy_update');
+      db.prepare("UPDATE contacts SET last_name = 'Anonym' WHERE id = 'contact-1'").run();
+      expect(db.prepare("SELECT COUNT(*) AS count FROM search_entries_fts WHERE search_entries_fts MATCH 'Geheimwort'").get()).toEqual({ count: 0 });
+      db.exec('ROLLBACK TO SAVEPOINT privacy_update');
+      db.exec('RELEASE SAVEPOINT privacy_update');
+      expect(db.prepare("SELECT COUNT(*) AS count FROM search_entries_fts WHERE search_entries_fts MATCH 'Geheimwort'").get()).toEqual({ count: 1 });
     } finally {
       db.close();
     }

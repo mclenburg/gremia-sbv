@@ -77,12 +77,12 @@ describe('unified search migration', () => {
         DROP TABLE search_index_build_state;`);
       db.prepare("INSERT INTO cases(id, case_number, display_name, category, opened_at, created_at, updated_at) VALUES ('case-1', 'A-1', 'Bestand', 'beratung', '2026-01-01', '2026-01-01', '2026-01-01')").run();
       const migrationDir = new URL('../../../../database/migrations/', import.meta.url);
-      for (const filename of readdirSync(migrationDir).filter((name) => /^\d{4}_.+\.sql$/.test(name) && !name.startsWith('0067_'))) {
+      for (const filename of readdirSync(migrationDir).filter((name) => /^\d{4}_.+\.sql$/.test(name) && !name.startsWith('0067_') && !name.startsWith('0068_'))) {
         db.prepare(`INSERT OR IGNORE INTO schema_migrations(version, filename, checksum, applied_at, mode)
           VALUES (?, ?, 'fixture', '2026-01-01', 'sql')`).run(filename.slice(0, 4), filename);
       }
       const result = new MigrationService(db, new URL('../../../../database/schema.sql', import.meta.url).pathname, migrationDir.pathname).migrate();
-      expect(result.currentSchemaVersion).toBe('0067');
+      expect(result.currentSchemaVersion).toBe('0068');
       expect(db.prepare("SELECT display_name FROM cases WHERE id = 'case-1'").get()).toEqual({ display_name: 'Bestand' });
       expect(db.prepare("SELECT name FROM sqlite_master WHERE name = 'search_entries'").get()).toEqual({ name: 'search_entries' });
       const before = clock(db);
@@ -103,7 +103,7 @@ describe('unified search migration', () => {
     const second = new DatabaseService();
     try {
       const db = await first.open(file, key);
-      expect(new MigrationService(db, schemaPath, migrationDir).migrate().currentSchemaVersion).toBe('0067');
+      expect(new MigrationService(db, schemaPath, migrationDir).migrate().currentSchemaVersion).toBe('0068');
       db.prepare("INSERT INTO contacts(id, first_name, last_name, category, created_at, updated_at) VALUES ('contact-1', 'Lokaler', 'Tresortreffer', 'sonstiges', '2026-01-01', '2026-01-01')").run();
       expect(new UnifiedSearchIndexService(db).search({ query: 'Tresortreffer', area: 'all_data' }).total).toBe(1);
       first.close();

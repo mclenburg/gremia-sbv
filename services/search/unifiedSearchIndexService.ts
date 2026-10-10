@@ -30,6 +30,14 @@ function entryId(sourceType: string, sourceId: string): string {
 export class UnifiedSearchIndexService {
   constructor(private readonly db: DatabaseAdapter) {}
 
+  /** Purges every copy associated with a case inside the caller's transaction. */
+  purgeCase(caseId: string): number {
+    const result = this.db.prepare(`DELETE FROM search_entries WHERE id IN (
+      SELECT entry_id FROM search_entry_cases WHERE case_id = ?
+    ) OR (source_type = 'case' AND source_id = ?)`).run(caseId, caseId) as { changes?: number };
+    return Number(result.changes ?? 0);
+  }
+
   rebuild(): number {
     const documents = collectUnifiedSearchDocuments(this.db);
     this.db.exec('BEGIN IMMEDIATE');
