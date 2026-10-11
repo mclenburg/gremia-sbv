@@ -56,12 +56,17 @@ test('keeps search controls compact and within the panel in both entry points', 
       element.append(probe);
       const accent = getComputedStyle(probe).color;
       probe.remove();
-      return { overflow: element.scrollWidth > element.clientWidth + 1, inputWidth: inputBox.width,
+      return { overflow: element.scrollWidth > element.clientWidth + 1, scrollWidth: element.scrollWidth,
+        clientWidth: element.clientWidth, overflowing: [...element.querySelectorAll('*')]
+          .filter((child) => child.getBoundingClientRect().right > panelBox.left + element.clientWidth + 1)
+          .slice(0, 8).map((child) => ({ tag: child.tagName, className: String(child.className),
+            right: child.getBoundingClientRect().right, width: child.getBoundingClientRect().width })), inputWidth: inputBox.width,
         inputWithinPanel: inputBox.right <= panelBox.right,
         choiceWidths: choices.map((choice) => choice.getBoundingClientRect().width),
         choiceAccents: choices.map((choice) => getComputedStyle(choice).accentColor), accent };
     });
-    expect(layout.overflow).toBe(false);
+    expect(layout.overflow, JSON.stringify({ route, scrollWidth: layout.scrollWidth,
+      clientWidth: layout.clientWidth, overflowing: layout.overflowing })).toBe(false);
     expect(layout.inputWithinPanel).toBe(true);
     expect(layout.inputWidth).toBeGreaterThan(250);
     if (route === 'Suche') expect(layout.choiceWidths.length).toBeGreaterThan(3);
