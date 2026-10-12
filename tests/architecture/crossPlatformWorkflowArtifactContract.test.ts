@@ -23,6 +23,18 @@ function crossPlatformSteps(): WorkflowStep[] {
 }
 
 describe('Cross-Platform-Workflow-Artefaktvertrag', () => {
+  it('führt Browser- und Produkt-E2E nur im lokalen Freigabegate aus', () => {
+    for (const file of ['build-release.yml', 'cross-platform-release-verification.yml']) {
+      const workflow = yaml.load(readFileSync(path.join(root, '.github/workflows', file), 'utf8')) as {
+        jobs?: Record<string, { steps?: WorkflowStep[] }>;
+      };
+      const commands = Object.values(workflow.jobs ?? {}).flatMap((job) => job.steps ?? [])
+        .map((step) => step.run ?? '');
+
+      expect(commands, file).not.toContainEqual(expect.stringMatching(/npm run test:e2e(?::[\w-]+)?\b/u));
+    }
+  });
+
   it('baut im Pull Request Windows portable-only ohne MSI/WiX-Target', () => {
     const windowsPrPackaging = crossPlatformSteps().find(
       (step) => step.name === 'Package Windows portable EXE for pull requests',

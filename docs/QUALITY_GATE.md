@@ -72,7 +72,7 @@ Community-Beiträge müssen sich an die zentrale UI-Schicht, Audit-Builder, Date
 
 ## Lokale Freigabe vor öffentlicher Bereitstellung
 
-Die taggebundene GitHub-Action ist bewusst auf schnelle, günstige Gates begrenzt. Die Browser-basierten Prüfungen laufen deshalb lokal vor dem Push oder vor dem Tag:
+Die GitHub-Workflows für Pull Requests und Releases prüfen Build, Paketierung und Start der Anwendung ohne Browser- oder Produkt-E2E. Diese Prüfungen laufen lokal vor dem Push oder vor dem Tag:
 
 ```bash
 npm run release:local-e2e
