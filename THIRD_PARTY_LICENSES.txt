@@ -470,7 +470,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - @types/react@19.2.18
   License: MIT
   License text: LICENSES/MIT.txt
-- @types/yauzl@2.10.3
+- @types/yauzl@3.4.0
   License: MIT
   License text: LICENSES/MIT.txt
 - @typescript-eslint/eslint-plugin@8.71.1
@@ -776,7 +776,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - electron-winstaller@5.4.0
   License: MIT
   License text: LICENSES/MIT.txt
-- electron@43.7.8
+- electron@43.7.9
   License: MIT
   License text: LICENSES/MIT.txt
 - emoji-regex@8.0.0
@@ -1601,7 +1601,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - util-deprecate@1.0.2
   License: MIT
   License text: LICENSES/MIT.txt
-- vite@8.3.3
+- vite@8.3.4
   License: MIT
   License text: LICENSES/MIT.txt
 - vitest@5.0.3
@@ -1670,7 +1670,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - yargs@17.7.2
   License: MIT
   License text: LICENSES/MIT.txt
-- yauzl@3.3.2
+- yauzl@3.4.0
   License: MIT
   License text: LICENSES/MIT.txt
 - yocto-queue@0.1.0

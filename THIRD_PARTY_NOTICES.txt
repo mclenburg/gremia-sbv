@@ -1268,7 +1268,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-@types/yauzl@2.10.3
+@types/yauzl@3.4.0
 License: MIT
 Repository: https://github.com/DefinitelyTyped/DefinitelyTyped.git
 Homepage: https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/yauzl
@@ -2276,7 +2276,7 @@ Copyright notices:
 - NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 License text: LICENSES/MIT.txt
 
-electron@43.7.8
+electron@43.7.9
 License: MIT
 Repository: https://github.com/electron/electron
 Copyright notices:
@@ -4787,7 +4787,7 @@ Copyright notices:
 - NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
 License text: LICENSES/MIT.txt
 
-vite@8.3.3
+vite@8.3.4
 License: MIT
 Repository: git+https://github.com/vitejs/vite.git
 Homepage: https://vite.dev
@@ -5015,7 +5015,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-yauzl@3.3.2
+yauzl@3.4.0
 License: MIT
 Repository: git+https://github.com/thejoshwolfe/yauzl.git
 Homepage: https://github.com/thejoshwolfe/yauzl
