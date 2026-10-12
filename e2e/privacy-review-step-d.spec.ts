@@ -1,9 +1,23 @@
 import { test, expect } from './support/test';
 import type { Page } from '@playwright/test';
 
+type AnonymizationSpyWindow = Window & {
+  __PRIVACY_REVIEW_ANONYMIZATIONS?: unknown[];
+  __PRIVACY_REVIEW_RESTORE_ANONYMIZE_CASE?: () => void;
+};
+
 async function anonymizationCalls(page: Page) {
-  return page.evaluate(() => (window as Window & { __PRIVACY_REVIEW_ANONYMIZATIONS?: unknown[] }).__PRIVACY_REVIEW_ANONYMIZATIONS ?? []);
+  return page.evaluate(() => (window as AnonymizationSpyWindow).__PRIVACY_REVIEW_ANONYMIZATIONS ?? []);
 }
+
+test.afterEach(async ({ page }) => {
+  await page.evaluate(() => {
+    const testWindow = window as AnonymizationSpyWindow;
+    testWindow.__PRIVACY_REVIEW_RESTORE_ANONYMIZE_CASE?.();
+    delete testWindow.__PRIVACY_REVIEW_RESTORE_ANONYMIZE_CASE;
+    delete testWindow.__PRIVACY_REVIEW_ANONYMIZATIONS;
+  });
+});
 
 function navigation(page: import('@playwright/test').Page) {
   return page.getByRole('navigation', { name: 'Hauptnavigation' });
@@ -58,13 +72,17 @@ for (const scenario of [
 ] as const) {
   test(`überträgt den Fallanonymisierungsmodus ${scenario.option} bis zum Bridge-Aufruf`, async ({ page }) => {
     await page.evaluate(() => {
-      const testWindow = window as Window & { __PRIVACY_REVIEW_ANONYMIZATIONS: unknown[] };
+      const testWindow = window as AnonymizationSpyWindow;
+      if (testWindow.__PRIVACY_REVIEW_RESTORE_ANONYMIZE_CASE) {
+        throw new Error('Der vorherige Anonymisierungs-Test-Wrapper wurde nicht entfernt.');
+      }
       testWindow.__PRIVACY_REVIEW_ANONYMIZATIONS = [];
       const service = window.gremiaSbv!.privacyReview;
-      const original = service.anonymizeCase.bind(service);
+      const original = service.anonymizeCase;
+      testWindow.__PRIVACY_REVIEW_RESTORE_ANONYMIZE_CASE = () => { service.anonymizeCase = original; };
       service.anonymizeCase = async (input) => {
-        testWindow.__PRIVACY_REVIEW_ANONYMIZATIONS.push({ ...input });
-        return original(input);
+        testWindow.__PRIVACY_REVIEW_ANONYMIZATIONS!.push({ ...input });
+        return original.call(service, input);
       };
     });
     await navigation(page).getByRole('button', { name: 'Personen', exact: true }).click();
