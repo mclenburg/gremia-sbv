@@ -182,7 +182,7 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "tesseract.js": "^6.0.1",
-    "yauzl": "^3.3.2",
+    "yauzl": "^3.4.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -191,7 +191,7 @@
     "@types/pdfkit": "^0.17.6",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
-    "@types/yauzl": "^2.10.3",
+    "@types/yauzl": "^3.4.0",
     "@typescript-eslint/eslint-plugin": "^8.71.1",
     "@typescript-eslint/parser": "^8.61.1",
     "@vitejs/plugin-react": "^6.1.2",
