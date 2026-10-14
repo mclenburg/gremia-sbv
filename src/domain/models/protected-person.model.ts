@@ -198,11 +198,14 @@ export interface PersonImportPreviewResult {
 export interface PersonImportExecuteInput extends PersonImportPreviewInput {
   profileId?: string;
   profileName?: string;
+  /** Only for a confirmed complete employer roster, never for a partial export. */
+  reconcileMissingPersons?: boolean;
 }
 
 export interface PersonImportExecuteResult {
   run: PersonImportRunRecord;
   imported: ProtectedPersonRecord[];
+  reconciliationSkippedReason?: string;
 }
 
 export interface PersonStatusExpirySummary {

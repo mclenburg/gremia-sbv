@@ -207,7 +207,7 @@ export class ProtectedPersonService {
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(randomUUID(), id, item.rowNumber, item.action, item.protectedPersonId ?? null, item.matchStrategy ?? null, item.conflictReason ?? null, item.validationMessage ?? null, JSON.stringify(item.changedFields ?? []), importedAt);
     }
-    this.audit('import', id, 'Personenverzeichnis: Arbeitgeberliste importiert', { totalRows: input.totalRows, created: input.createdCount, updated: input.updatedCount, conflicts: input.conflictCount });
+    this.audit('import', id, 'Personenverzeichnis: Arbeitgeberliste importiert', { totalRows: input.totalRows, created: input.createdCount, updated: input.updatedCount, conflicts: input.conflictCount, missingForReview: input.missingCount });
     return this.getImportRun(id)!;
   }
 
@@ -310,6 +310,27 @@ export class ProtectedPersonService {
       warningThresholdHours: 24,
       criticalThresholdHours: 0,
       isUserEditable: false
+    });
+  }
+
+  createMissingFromEmployerListReview(personId: string): void {
+    const sourceEvent = 'protected_person.missing_from_employer_list';
+    const existing = this.database.prepare<ExistingDeadlineRow>(`
+      SELECT id FROM deadlines WHERE process_id = ? AND source_event = ? AND status IN ('open', 'overdue') LIMIT 1
+    `).get(personId, sourceEvent);
+    if (existing) return;
+    new DeadlineService(this.database).create({
+      processId: personId,
+      processType: 'custom',
+      deadlineType: 'warning',
+      title: 'Person fehlt in aktueller Arbeitgeberliste',
+      confidentialTitle: 'Gremia.SBV: Personenbestand prüfen',
+      description: 'Bitte prüfen, ob die Person weiterhin benötigt wird. Abwesenheit in der Arbeitgeberliste allein belegt weder Beschäftigungsende noch eine Löschpflicht.',
+      dueAt: nowIso(),
+      sourceEvent,
+      severity: 'important',
+      calculationMode: 'workflow',
+      isUserEditable: false,
     });
   }
 

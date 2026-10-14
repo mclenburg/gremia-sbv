@@ -24,4 +24,10 @@ describe('0.9.1 Import-Assistent Personenverzeichnis', () => {
     expect(firstNameMapping.fullName).toBe('');
     expect(firstNameMapping.firstName).toBe('Vorname');
   });
+
+  it('ordnet Schwerbehindert seit und Gleichgestellt ab als getrennte Nachweisspalten zu', () => {
+    const mapping = buildDefaultMapping(['Personalnummer', 'Vorname', 'Nachname', 'schwerbehindert seit', 'gleichgestellt ab']);
+    expect(mapping.severelyDisabledSince).toBe('schwerbehindert seit');
+    expect(mapping.equivalentPresentedAt).toBe('gleichgestellt ab');
+  });
 });

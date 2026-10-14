@@ -257,6 +257,19 @@ export class DeadlineService {
     }
   }
 
+  cancelMissingFromEmployerListReview(personId: string): void {
+    const rows = this.database.prepare<DeadlineRow>(`
+      SELECT * FROM deadlines WHERE process_id = ? AND source_event = 'protected_person.missing_from_employer_list' AND status IN ('open', 'overdue')
+    `).all(personId);
+    for (const row of rows) {
+      const timestamp = nowIso();
+      this.database.prepare(`UPDATE deadlines SET status = 'cancelled', cancelled_at = ?, cancelled_reason = ?, updated_at = ? WHERE id = ?`)
+        .run(timestamp, 'Person steht wieder in der Arbeitgeberliste', timestamp, row.id);
+      this.audit(row.id, 'updated', JSON.stringify(mapDeadline(row)), JSON.stringify({ status: 'cancelled' }), 'Person steht wieder in der Arbeitgeberliste');
+      this.personalDataAudit('update', row.id, row.case_id ?? undefined, 'Automatischen Arbeitgeberlisten-Prüfauftrag aufgehoben', { status: 'cancelled' });
+    }
+  }
+
   listTemplates(): DeadlineTemplateRecord[] {
     return this.database.prepare<DeadlineTemplateRow>('SELECT * FROM deadline_templates ORDER BY process_type, title').all().map(mapTemplate);
   }

@@ -2,6 +2,8 @@ import { basename } from 'node:path';
 import { readFileSync } from 'node:fs';
 import type { DatabaseAdapter } from './databaseService.js';
 import { ProtectedPersonService } from './protectedPersonService.js';
+import { DeadlineService } from './deadlineService.js';
+import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { resolvePersonImportMatch } from './personMatchingService.js';
 import {
   getMappedValue,
@@ -96,18 +98,13 @@ function setPersonImportUpdateField<K extends keyof CreateProtectedPersonInput>(
   update[key] = value;
 }
 
-const protectionStatusRank: Record<CreateProtectedPersonInput['protectionStatus'], number> = {
-  inactive: 0,
-  expired: 0,
-  unclear: 1,
-  application_pending: 2,
-  equivalent: 4,
-  severely_disabled: 5,
-};
-
 function shouldUpdateProtectionStatus(existing: ProtectedPersonRecord, next: CreateProtectedPersonInput): boolean {
   if (existing.protectionStatus === next.protectionStatus) return false;
-  return protectionStatusRank[next.protectionStatus] >= protectionStatusRank[existing.protectionStatus];
+  if (next.protectionStatus === 'unclear' || next.protectionStatus === 'application_pending') return false;
+  if (next.protectionStatus === 'equivalent' && existing.protectionStatus === 'severely_disabled') {
+    return existing.statusSource === 'employer_list';
+  }
+  return next.protectionStatus === 'equivalent' || next.protectionStatus === 'severely_disabled';
 }
 
 function shouldUpdateImportedField(existing: ProtectedPersonRecord, next: CreateProtectedPersonInput, key: keyof CreateProtectedPersonInput): boolean {
@@ -116,6 +113,7 @@ function shouldUpdateImportedField(existing: ProtectedPersonRecord, next: Create
   const existingValue = existing[key as keyof ProtectedPersonRecord];
   if ((existingValue ?? '') === nextValue) return false;
   if (key === 'protectionStatus') return shouldUpdateProtectionStatus(existing, next);
+  if (key === 'statusSource' && existing.statusSource !== 'employer_list') return shouldUpdateProtectionStatus(existing, next);
   if ((key === 'statusValidFrom' || key === 'evidenceCheckedAt' || key === 'notes') && existingValue) return false;
   if (key === 'statusValidUntil' && existing.protectionStatus === 'severely_disabled' && next.protectionStatus === 'unclear') return false;
   return true;
@@ -135,6 +133,17 @@ export function planPersonImportUpdate(existing: ProtectedPersonRecord, next: Cr
       changed.push(String(key));
     }
   });
+  if (update.protectionStatus === 'equivalent' && existing.protectionStatus === 'severely_disabled') {
+    for (const key of ['statusValidFrom', 'evidenceCheckedAt', 'statusValidUntil'] as const) {
+      if (existing[key] && !next[key]) {
+        update[key] = undefined;
+        changed.push(key);
+      } else if (next[key] && existing[key] !== next[key] && !changed.includes(key)) {
+        update[key] = next[key];
+        changed.push(key);
+      }
+    }
+  }
   return { changed, update };
 }
 
@@ -215,6 +224,11 @@ export class PersonImportService {
   async execute(input: PersonImportExecuteInput): Promise<PersonImportExecuteResult> {
     const personService = new ProtectedPersonService(this.database);
     const { objects, sourceTextHash } = await this.readRows(input);
+    return new DatabaseUnitOfWork(this.database).run(() => {
+    const previousEmployerPersons = input.reconcileMissingPersons
+      ? personService.list().filter((person) => (person.recordKind ?? 'identified_person') === 'identified_person' && person.statusSource === 'employer_list' && person.employmentState === 'active_employee' && person.lifecycleState !== 'anonymized' && person.lifecycleState !== 'deleted_marker')
+      : [];
+    const matchedPersonIds = new Set<string>();
     const firstDataIndex = input.firstDataRowIndex ?? 1;
     const items: Omit<PersonImportRunItemRecord, 'id' | 'runId' | 'createdAt'>[] = [];
     const imported: ProtectedPersonRecord[] = [];
@@ -238,6 +252,7 @@ export class PersonImportService {
       const matchStrategy = match.matchStrategy;
 
       if (match.conflict && !existing) {
+        matchedPersonIds.add(match.conflict.id);
         conflictCount += 1;
         items.push({ rowNumber, action: 'conflict', protectedPersonId: match.conflict.id, matchStrategy, conflictReason: match.conflictReason, changedFields: [] });
         continue;
@@ -251,6 +266,14 @@ export class PersonImportService {
         continue;
       }
 
+      matchedPersonIds.add(existing.id);
+      if (existing.protectionStatus === 'severely_disabled' && mapped.input.protectionStatus === 'equivalent' && existing.statusSource !== 'employer_list') {
+        conflictCount += 1;
+        items.push({ rowNumber, action: 'conflict', protectedPersonId: existing.id, matchStrategy, conflictReason: 'Gleichstellung in der Arbeitgeberliste widerspricht einer anders belegten Schwerbehinderung. Schutzstatus bitte manuell prüfen.', changedFields: [] });
+        continue;
+      }
+      new DeadlineService(this.database).cancelMissingFromEmployerListReview(existing.id);
+
       const diff = planPersonImportUpdate(existing, mapped.input);
       if (!diff.changed.length) {
         unchangedCount += 1;
@@ -260,6 +283,21 @@ export class PersonImportService {
         imported.push(updated);
         updatedCount += 1;
         items.push({ rowNumber, action: 'updated', protectedPersonId: existing.id, matchStrategy, changedFields: diff.changed });
+      }
+    }
+
+    let reconciliationSkippedReason: string | undefined;
+    let missingCount = 0;
+    if (input.reconcileMissingPersons) {
+      if (conflictCount || skippedCount || !objects.length) {
+        reconciliationSkippedReason = 'Der Bestandsabgleich wurde wegen Konflikten, übersprungener Zeilen oder einer leeren Liste ausgesetzt. Bitte diese Einträge zuerst prüfen und die vollständige Liste erneut importieren.';
+      } else {
+        for (const person of previousEmployerPersons) {
+          if (matchedPersonIds.has(person.id)) continue;
+          personService.createMissingFromEmployerListReview(person.id);
+          missingCount += 1;
+          items.push({ rowNumber: 0, action: 'not_in_list', protectedPersonId: person.id, matchStrategy: 'none', validationMessage: 'In der bestätigten vollständigen Arbeitgeberliste nicht enthalten. Beschäftigungsstatus und weitere Speicherung manuell prüfen.', changedFields: [] });
+        }
       }
     }
 
@@ -273,10 +311,11 @@ export class PersonImportService {
       unchangedCount,
       conflictCount,
       skippedCount,
-      missingCount: 0,
+      missingCount,
       items
     });
 
-    return { run, imported };
+    return { run, imported, reconciliationSkippedReason };
+    });
   }
 }

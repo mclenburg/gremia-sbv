@@ -20,6 +20,14 @@ import {
 } from './personImportUi';
 import { PersonImportResultStep } from './PersonImportResultStep';
 import { IndustrialButton, IndustrialModal, SelectInput } from '../../shared/components/IndustrialControls';
+import { CheckboxField } from '../../shared/components/IndustrialSelectionInputs';
+
+async function previewWithDetectedMapping(source: ImportSource, onPreviewImport: (input: PersonImportPreviewInput) => Promise<PersonImportPreviewResult>) {
+  const basePreview = await onPreviewImport(createPreviewInput(source, buildDefaultMapping()));
+  const detectedMapping = buildDefaultMapping(basePreview.columns);
+  const mappedPreview = await onPreviewImport(createPreviewInput(source, detectedMapping));
+  return { detectedMapping, mappedPreview };
+}
 
 export function PersonImportWizard({
   open,
@@ -46,6 +54,7 @@ export function PersonImportWizard({
   const [mapping, setMapping] = useState<PersonImportColumnMapping>(buildDefaultMapping());
   const [preview, setPreview] = useState<PersonImportPreviewResult | null>(null);
   const [result, setResult] = useState<PersonImportExecuteResult | null>(null);
+  const [reconcileMissingPersons, setReconcileMissingPersons] = useState(false);
   if (!open) return null;
 
   function resetAndClose() {
@@ -55,13 +64,12 @@ export function PersonImportWizard({
     setMapping(buildDefaultMapping());
     setPreview(null);
     setResult(null);
+    setReconcileMissingPersons(false);
     onClose();
   }
 
   async function previewSource(nextSource: ImportSource) {
-    const basePreview = await onPreviewImport(createPreviewInput(nextSource, buildDefaultMapping()));
-    const detectedMapping = buildDefaultMapping(basePreview.columns);
-    const mappedPreview = await onPreviewImport(createPreviewInput(nextSource, detectedMapping));
+    const { detectedMapping, mappedPreview } = await previewWithDetectedMapping(nextSource, onPreviewImport);
     setSource(nextSource);
     setMapping(detectedMapping);
     setPreview(mappedPreview);
@@ -107,7 +115,7 @@ export function PersonImportWizard({
 
   async function executeImport() {
     if (!source) return;
-    const importResult = await onExecuteImport(createPreviewInput(source, mapping));
+    const importResult = await onExecuteImport({ ...createPreviewInput(source, mapping), reconcileMissingPersons });
     setResult(importResult);
     setStep('result');
     onImported('Import wurde durchgeführt. Die Importdatei wurde nicht dauerhaft gespeichert.');
@@ -135,7 +143,7 @@ export function PersonImportWizard({
           <MappingStep preview={preview} mapping={mapping} onMappingChange={updateMapping} onModeChange={(fullNameMode) => setMapping({ ...mapping, fullNameMode })} onBack={() => setStep('preview')} onValidate={validateImport} />
         )}
         {step === 'validate' && preview && (
-          <ValidateStep preview={preview} onBack={() => setStep('mapping')} onExecute={executeImport} />
+          <ValidateStep preview={preview} reconcileMissingPersons={reconcileMissingPersons} onReconcileMissingPersonsChange={setReconcileMissingPersons} onBack={() => setStep('mapping')} onExecute={executeImport} />
         )}
         {step === 'result' && result && <PersonImportResultStep result={result} onClose={resetAndClose} onOpenPerson={onOpenPerson ? (id) => { onOpenPerson(id); resetAndClose(); } : undefined} />}
     </IndustrialModal>
@@ -164,7 +172,7 @@ function ImportSteps({ currentStep }: { currentStep: ImportStep }) {
 function ImportHelp() {
   return (
     <div className="industrial-alert person-import-help">
-      <p>Wählen Sie eine Excel- oder CSV-Datei aus, prüfen Sie die Vorschau und ordnen Sie danach die Spalten den Zielfeldern zu. Personalnummer ist optional. Name und Vorname können getrennt oder in einer Vollnamen-Spalte stehen. Der Schutzstatus kann aus einer Statusspalte oder aus Nachweis-Datumsspalten wie „schwerbehindert seit“ und „Gleichstellung vorgelegt“ ermittelt werden.</p>
+      <p>Wählen Sie eine Excel- oder CSV-Datei aus, prüfen Sie die Vorschau und ordnen Sie danach die Spalten den Zielfeldern zu. Personalnummer ist optional. Name und Vorname können getrennt oder in einer Vollnamen-Spalte stehen. Der Schutzstatus kann aus einer Statusspalte oder aus Nachweis-Datumsspalten wie „schwerbehindert seit“ und „gleichgestellt ab“ ermittelt werden.</p>
     </div>
   );
 }
@@ -226,9 +234,9 @@ function MappingStep({ preview, mapping, onMappingChange, onModeChange, onBack, 
   );
 }
 
-function ValidateStep({ preview, onBack, onExecute }: { preview: PersonImportPreviewResult; onBack: () => void; onExecute: () => void }) {
+function ValidateStep({ preview, reconcileMissingPersons, onReconcileMissingPersonsChange, onBack, onExecute }: { preview: PersonImportPreviewResult; reconcileMissingPersons: boolean; onReconcileMissingPersonsChange: (checked: boolean) => void; onBack: () => void; onExecute: () => void }) {
   return (
-    <div className="person-import-section"><h3>Importprüfung</h3>{preview.detectedEncoding && <p className="industrial-message industrial-message-info">Zeichenkodierung: {preview.detectedEncoding} ({preview.encodingConfidence ?? 'unbekannt'}).</p>}<div className="person-import-summary"><span>{preview.rows.length} Zeilen in der Vorschau</span><span>{countRowsWithErrors(preview)} Zeilen mit Hinweisen</span><span>{preview.warnings.length} allgemeine Hinweise</span></div>{preview.warnings.map((warning) => <p key={warning} className="industrial-message industrial-message-warning">{warning}</p>)}<ImportPreviewTable preview={preview} /><div className="person-import-footer"><IndustrialButton type="button" variant="secondary" onClick={onBack}>Zurück</IndustrialButton><IndustrialButton type="button" onClick={() => void onExecute()}>Import ausführen</IndustrialButton></div></div>
+    <div className="person-import-section"><h3>Importprüfung</h3>{preview.detectedEncoding && <p className="industrial-message industrial-message-info">Zeichenkodierung: {preview.detectedEncoding} ({preview.encodingConfidence ?? 'unbekannt'}).</p>}<div className="person-import-summary"><span>{preview.rows.length} Zeilen in der Vorschau</span><span>{countRowsWithErrors(preview)} Zeilen mit Hinweisen</span><span>{preview.warnings.length} allgemeine Hinweise</span></div>{preview.warnings.map((warning) => <p key={warning} className="industrial-message industrial-message-warning">{warning}</p>)}<ImportPreviewTable preview={preview} /><CheckboxField label="Diese Datei enthält die vollständige aktuelle Arbeitgeberliste" checked={reconcileMissingPersons} onCheckedChange={onReconcileMissingPersonsChange} helpText="Nur dann mit dem bisherigen Arbeitgeberlisten-Bestand abgleichen. Fehlende Personen erhalten einen manuellen Prüfauftrag; es wird nichts automatisch gelöscht." /><div className="person-import-footer"><IndustrialButton type="button" variant="secondary" onClick={onBack}>Zurück</IndustrialButton><IndustrialButton type="button" onClick={() => void onExecute()}>Import ausführen</IndustrialButton></div></div>
   );
 }
 

@@ -39,7 +39,7 @@ function ImportReviewItems({ items, onOpenPerson }: { items: PersonImportRunItem
       <div className="person-import-review-header">
         <div>
           <h4 id="person-import-review-heading">Manuell zu prüfen</h4>
-          <p className="industrial-muted">{items.length === 1 ? '1 Prüfeintrag' : `${items.length} Prüfeinträge`} aus dem Importlauf. Konflikte sind echte Abgleichunsicherheiten, keine normalen Aktualisierungen.</p>
+          <p className="industrial-muted">{items.length === 1 ? '1 Prüfeintrag' : `${items.length} Prüfeinträge`} aus dem Importlauf. Fehlende Bestands-Personen sind manuell zu prüfen; die Datei löst keine Löschung aus.</p>
         </div>
         {items.length > 5 ? <SearchInput label="Prüfeinträge filtern" value={query} onValueChange={setQuery} placeholder="Zeile, Grund oder Abgleich tippen …" /> : null}
       </div>
@@ -51,7 +51,7 @@ function ImportReviewItems({ items, onOpenPerson }: { items: PersonImportRunItem
               const personId = item.protectedPersonId;
               return (
                 <tr key={item.id}>
-                  <td>{item.rowNumber}</td>
+                  <td>{item.action === 'not_in_list' ? 'Bestand' : item.rowNumber}</td>
                   <td>{importActionLabel(item.action)}</td>
                   <td>{item.matchStrategy ?? '—'}</td>
                   <td>{item.conflictReason ?? item.validationMessage ?? (item.changedFields.join(', ') || 'Bitte prüfen.')}</td>
@@ -68,13 +68,14 @@ function ImportReviewItems({ items, onOpenPerson }: { items: PersonImportRunItem
 }
 
 export function PersonImportResultStep({ result, onClose, onOpenPerson }: { result: PersonImportExecuteResult; onClose: () => void; onOpenPerson?: (id: string) => void }) {
-  const reviewItems = result.run.items?.filter((item) => item.action === 'conflict' || item.action === 'skipped') ?? [];
+  const reviewItems = result.run.items?.filter((item) => item.action === 'conflict' || item.action === 'skipped' || item.action === 'not_in_list') ?? [];
   return (
     <div className="person-import-section">
       <h3><CalendarCheck className="inline-icon" aria-hidden="true" /> Import abgeschlossen</h3>
-      <div className="person-import-summary result"><span>Neu: {result.run.createdCount}</span><span>Aktualisiert: {result.run.updatedCount}</span><span>Unverändert: {result.run.unchangedCount}</span><span>Konflikte: {result.run.conflictCount}</span><span>Übersprungen: {result.run.skippedCount}</span></div>
+      <div className="person-import-summary result"><span>Neu: {result.run.createdCount}</span><span>Aktualisiert: {result.run.updatedCount}</span><span>Unverändert: {result.run.unchangedCount}</span><span>Konflikte: {result.run.conflictCount}</span><span>Übersprungen: {result.run.skippedCount}</span><span>Nicht in Liste: {result.run.missingCount}</span></div>
       <p className="industrial-muted">Die Importdatei wurde nicht dauerhaft gespeichert. Das Importprotokoll enthält keine Rohdaten.</p>
-      {reviewItems.length ? <ImportReviewItems items={reviewItems} onOpenPerson={onOpenPerson} /> : <p className="industrial-message industrial-message-ok" role="status">Keine offenen Konflikte oder übersprungenen Zeilen im Importprotokoll.</p>}
+      {result.reconciliationSkippedReason ? <p className="industrial-message industrial-message-warning" role="status">{result.reconciliationSkippedReason}</p> : null}
+      {reviewItems.length ? <ImportReviewItems items={reviewItems} onOpenPerson={onOpenPerson} /> : <p className="industrial-message industrial-message-ok" role="status">Keine offenen Prüfeinträge im Importprotokoll.</p>}
       <div className="person-import-footer">
         <IndustrialButton type="button" variant="secondary" data-e2e="person-import-close-result" onClick={onClose}>
           Schließen

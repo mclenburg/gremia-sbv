@@ -10,6 +10,7 @@ import { repairPersonImportRunItemMatchStrategySchema } from '../../../services/
 import { ProtectedPersonService } from '../../../services/protectedPersonService';
 import type { DatabaseAdapter } from '../../../services/databaseService';
 import { resolvePersonImportMatch } from '../../../services/personMatchingService';
+import { buildDefaultMapping } from '../../../src/app/features/persons/personImportUi';
 import type { ProtectedPersonRecord } from '../../../src/domain/models/protected-person.model';
 
 const existing: ProtectedPersonRecord = {
@@ -131,6 +132,90 @@ describe('0.9.1 Personenimport', () => {
     });
     expect(evidenceColumns.statusReason).toMatch(/schwerbehindert seit/i);
     expect(evidenceColumns.validationErrors).toEqual([]);
+  });
+
+  it('wertet Nein in der Schwerbehinderten-Spalte nicht als Nachweis einer Schwerbehinderung', () => {
+    const mapped = buildPersonInput(
+      { Name: 'Beispiel, Erika', 'Schwerbehindert seit': 'Nein', 'Gleichstellung vorgelegt': '12.03.2021' },
+      { fullName: 'Name', fullNameMode: 'last_comma_first', severelyDisabledSince: 'Schwerbehindert seit', equivalentPresentedAt: 'Gleichstellung vorgelegt' },
+    );
+    expect(mapped.input.protectionStatus).toBe('equivalent');
+    expect(mapped.input.statusValidFrom).toBe('2021-03-12');
+    expect(mapped.input.evidenceCheckedAt).toBe('2021-03-12');
+  });
+
+  it('korrigiert einen zuvor falsch als schwerbehindert importierten Status bei eindeutigem Gleichstellungsnachweis', () => {
+    const update = planPersonImportUpdate({ ...existing, protectionStatus: 'severely_disabled', statusValidFrom: '2020-01-01', evidenceCheckedAt: '2020-01-01' }, {
+      firstName: 'Max', lastName: 'Mustermann', protectionStatus: 'equivalent', statusValidFrom: '2021-03-12', evidenceCheckedAt: '2021-03-12', statusSource: 'employer_list',
+    });
+    expect(update.update).toMatchObject({ protectionStatus: 'equivalent', statusValidFrom: '2021-03-12', evidenceCheckedAt: '2021-03-12' });
+  });
+
+  it('übernimmt bei leerer Schwerbehindert-Spalte und Gleichgestellt-ab-Datum den Gleichstellungsstatus', async () => {
+    const { raw, database } = openPersonImportDatabase();
+    try {
+      const people = new ProtectedPersonService(database);
+      const person = people.create({ firstName: 'Erika', lastName: 'Beispiel', personnelNumber: 'P-2', protectionStatus: 'severely_disabled', statusSource: 'employer_list' });
+      const csvText = 'Personalnummer;Vorname;Nachname;schwerbehindert seit;gleichgestellt ab\nP-2;Erika;Beispiel;;12.03.2021';
+      const mapping = buildDefaultMapping(parseDelimitedText(csvText)[0]);
+      const result = await new PersonImportService(database).execute({ fileType: 'csv', sourceFileName: 'liste.csv', csvText, mapping });
+      expect(result.run.updatedCount).toBe(1);
+      expect(people.get(person.id)).toMatchObject({ protectionStatus: 'equivalent', statusValidFrom: '2021-03-12' });
+    } finally { raw.close(); }
+  });
+
+  it('legt widersprechende manuell bestätigte Schwerbehinderung zur Prüfung vor', async () => {
+    const { raw, database } = openPersonImportDatabase();
+    try {
+      const people = new ProtectedPersonService(database);
+      const person = people.create({ firstName: 'Erika', lastName: 'Beispiel', personnelNumber: 'P-2', protectionStatus: 'severely_disabled', statusSource: 'manual' });
+      const csvText = 'Personalnummer;Vorname;Nachname;schwerbehindert seit;gleichgestellt ab\nP-2;Erika;Beispiel;;12.03.2021';
+      const result = await new PersonImportService(database).execute({ fileType: 'csv', sourceFileName: 'liste.csv', csvText, mapping: buildDefaultMapping(parseDelimitedText(csvText)[0]) });
+      expect(result.run.conflictCount).toBe(1);
+      expect(result.run.items).toEqual(expect.arrayContaining([expect.objectContaining({ action: 'conflict', protectedPersonId: person.id })]));
+      expect(people.get(person.id)?.protectionStatus).toBe('severely_disabled');
+    } finally { raw.close(); }
+  });
+
+  it('vermerkt fehlende Personen einer ausdrücklich vollständigen Arbeitgeberliste zur manuellen Prüfung', async () => {
+    const { raw, database } = openPersonImportDatabase();
+    try {
+      const people = new ProtectedPersonService(database);
+      const present = people.create({ firstName: 'Max', lastName: 'Muster', personnelNumber: 'P-1', protectionStatus: 'equivalent', statusSource: 'employer_list' });
+      const missing = people.create({ firstName: 'Erika', lastName: 'Beispiel', personnelNumber: 'P-2', protectionStatus: 'equivalent', statusSource: 'employer_list' });
+      const manual = people.create({ firstName: 'Manu', lastName: 'Eintrag', protectionStatus: 'equivalent', statusSource: 'manual' });
+      const result = await new PersonImportService(database).execute({
+        fileType: 'csv', sourceFileName: 'liste.csv', csvText: 'Personalnummer;Vorname;Nachname;Status\nP-1;Max;Muster;gleichgestellt',
+        mapping: { personnelNumber: 'Personalnummer', firstName: 'Vorname', lastName: 'Nachname', protectionStatus: 'Status' },
+        reconcileMissingPersons: true,
+      });
+      expect(result.run.missingCount).toBe(1);
+      expect(result.run.items).toEqual(expect.arrayContaining([expect.objectContaining({ action: 'not_in_list', protectedPersonId: missing.id })]));
+      expect(result.run.items?.some((item) => item.protectedPersonId === present.id && item.action === 'not_in_list')).toBe(false);
+      expect(result.run.items?.some((item) => item.protectedPersonId === manual.id)).toBe(false);
+      expect(people.get(missing.id)?.lifecycleState).toBe('active');
+      expect(raw.prepare("SELECT COUNT(*) AS count FROM deadlines WHERE process_id = ? AND source_event = 'protected_person.missing_from_employer_list'").get(missing.id)).toMatchObject({ count: 1 });
+      await new PersonImportService(database).execute({
+        fileType: 'csv', sourceFileName: 'liste-neu.csv', csvText: 'Personalnummer;Vorname;Nachname;Status\nP-1;Max;Muster;gleichgestellt\nP-2;Erika;Beispiel;gleichgestellt',
+        mapping: { personnelNumber: 'Personalnummer', firstName: 'Vorname', lastName: 'Nachname', protectionStatus: 'Status' },
+        reconcileMissingPersons: true,
+      });
+      expect(raw.prepare("SELECT status FROM deadlines WHERE process_id = ? AND source_event = 'protected_person.missing_from_employer_list'").get(missing.id)).toMatchObject({ status: 'cancelled' });
+    } finally { raw.close(); }
+  });
+
+  it('leitet aus einem Teilimport keine fehlenden Personen ab', async () => {
+    const { raw, database } = openPersonImportDatabase();
+    try {
+      const people = new ProtectedPersonService(database);
+      const missing = people.create({ firstName: 'Erika', lastName: 'Beispiel', personnelNumber: 'P-2', protectionStatus: 'equivalent', statusSource: 'employer_list' });
+      const result = await new PersonImportService(database).execute({
+        fileType: 'csv', sourceFileName: 'abteilung.csv', csvText: 'Personalnummer;Vorname;Nachname;Status\nP-1;Max;Muster;gleichgestellt',
+        mapping: { personnelNumber: 'Personalnummer', firstName: 'Vorname', lastName: 'Nachname', protectionStatus: 'Status' },
+      });
+      expect(result.run.missingCount).toBe(0);
+      expect(raw.prepare("SELECT COUNT(*) AS count FROM deadlines WHERE process_id = ? AND source_event = 'protected_person.missing_from_employer_list'").get(missing.id)).toMatchObject({ count: 0 });
+    } finally { raw.close(); }
   });
 
   it('bewahrt genauere Bestandsangaben und ergänzt nur sichere Importwerte', () => {

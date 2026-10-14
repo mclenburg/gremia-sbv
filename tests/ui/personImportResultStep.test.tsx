@@ -38,6 +38,16 @@ function importResult(items: PersonImportRunItemRecord[]): PersonImportExecuteRe
 }
 
 describe('Personenimport-Ergebnis', () => {
+  it('zeigt fehlende Bestands-Personen mit Prüfgrund und Öffnen-Aktion', () => {
+    const result = importResult([{ ...conflictItem(0), action: 'not_in_list', conflictReason: undefined, validationMessage: 'Weitere Speicherung manuell prüfen.' }]);
+    result.run.missingCount = 1;
+    result.run.conflictCount = 0;
+    const text = visibleText(renderComponent(PersonImportResultStep, { result, onClose: () => undefined, onOpenPerson: () => undefined }).markup);
+    expect(text).toContain('Nicht in Liste: 1');
+    expect(text).toContain('Weitere Speicherung manuell prüfen.');
+    expect(text).toContain('Person öffnen');
+  });
+
   it('zeigt große Prüflisten filterbar und ohne Abschneiden an', () => {
     const items = Array.from({ length: 21 }, (_, index) => conflictItem(index + 2));
     const { markup } = renderComponent(PersonImportResultStep, {

@@ -9,30 +9,36 @@ export interface PersonImportStatusResolution {
   warnings: string[];
 }
 
-function hasMappedDate(rowObject: Record<string, string>, mappingKey: keyof PersonImportColumnMapping, mapping: PersonImportColumnMapping): string | undefined {
-  return normalizeDateString(getMappedValue(rowObject, mappingKey, mapping));
+function mappedEvidence(rowObject: Record<string, string>, mappingKey: keyof PersonImportColumnMapping, mapping: PersonImportColumnMapping): { present: boolean; date?: string; warning?: string } {
+  const raw = normalizeCell(getMappedValue(rowObject, mappingKey, mapping));
+  if (!raw || /^(?:nein|no|false|falsch|0|nicht vorhanden|n\/a|-)$/i.test(raw)) return { present: false };
+  if (/^(?:ja|yes|true|wahr|x|1)$/i.test(raw)) return { present: true };
+  const date = normalizeDateString(raw);
+  if (date && /^\d{4}-\d{2}-\d{2}$/.test(date) && !Number.isNaN(Date.parse(`${date}T00:00:00Z`))) return { present: true, date };
+  return { present: false, warning: `Der Wert in „${mapping[mappingKey]}“ ist weder ein eindeutiger Marker noch ein Datum und muss geprüft werden.` };
 }
 
 export function resolvePersonImportStatus(rowObject: Record<string, string>, mapping: PersonImportColumnMapping): PersonImportStatusResolution {
-  const severelyDisabledSince = hasMappedDate(rowObject, 'severelyDisabledSince', mapping);
-  if (severelyDisabledSince) {
+  const severe = mappedEvidence(rowObject, 'severelyDisabledSince', mapping);
+  const equivalent = mappedEvidence(rowObject, 'equivalentPresentedAt', mapping);
+  const warnings = [severe.warning, equivalent.warning].filter((warning): warning is string => Boolean(warning));
+  if (severe.present) {
     return {
       protectionStatus: 'severely_disabled',
-      statusValidFrom: severelyDisabledSince,
-      evidenceCheckedAt: severelyDisabledSince,
-      reason: `Schwerbehindert, weil „${mapping.severelyDisabledSince}“ gefüllt ist.`,
-      warnings: [],
+      statusValidFrom: severe.date,
+      evidenceCheckedAt: severe.date,
+      reason: `Schwerbehindert laut „${mapping.severelyDisabledSince}“.`,
+      warnings,
     };
   }
 
-  const equivalentPresentedAt = hasMappedDate(rowObject, 'equivalentPresentedAt', mapping);
-  if (equivalentPresentedAt) {
+  if (equivalent.present) {
     return {
       protectionStatus: 'equivalent',
-      statusValidFrom: equivalentPresentedAt,
-      evidenceCheckedAt: equivalentPresentedAt,
-      reason: `Gleichgestellt, weil „${mapping.equivalentPresentedAt}“ gefüllt ist.`,
-      warnings: [],
+      statusValidFrom: equivalent.date,
+      evidenceCheckedAt: equivalent.date,
+      reason: `Gleichgestellt laut „${mapping.equivalentPresentedAt}“.`,
+      warnings,
     };
   }
 
@@ -42,23 +48,23 @@ export function resolvePersonImportStatus(rowObject: Record<string, string>, map
     return {
       protectionStatus,
       reason: `Schutzstatus aus Spalte „${mapping.protectionStatus}“ übernommen.`,
-      warnings: protectionStatus === 'unclear' ? ['Der Statuswert ist nicht eindeutig und muss fachlich geprüft werden.'] : [],
+      warnings: protectionStatus === 'unclear' ? [...warnings, 'Der Statuswert ist nicht eindeutig und muss fachlich geprüft werden.'] : warnings,
     };
   }
 
-  const applicationFiledAt = hasMappedDate(rowObject, 'applicationFiledAt', mapping);
-  if (applicationFiledAt) {
+  const application = mappedEvidence(rowObject, 'applicationFiledAt', mapping);
+  if (application.present) {
     return {
       protectionStatus: 'application_pending',
-      statusValidFrom: applicationFiledAt,
+      statusValidFrom: application.date,
       reason: `Antrag läuft, weil „${mapping.applicationFiledAt}“ gefüllt ist.`,
-      warnings: ['Es liegt kein vorgelegter Schutzstatus vor. Bitte prüfen, ob die Person in der aktiven Schutzstatusliste geführt werden soll.'],
+      warnings: [...warnings, 'Es liegt kein vorgelegter Schutzstatus vor. Bitte prüfen, ob die Person in der aktiven Schutzstatusliste geführt werden soll.'],
     };
   }
 
   return {
     protectionStatus: 'unclear',
     reason: 'Keine belastbare Statusquelle erkannt.',
-    warnings: ['Keine Statusspalte und keine gefüllte Nachweis-Datumsspalte erkannt.'],
+    warnings: [...warnings, application.warning, 'Keine eindeutige Statusquelle erkannt.'].filter((warning): warning is string => Boolean(warning)),
   };
 }

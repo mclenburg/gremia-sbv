@@ -53,13 +53,15 @@ Der Name kann entweder in getrennten Spalten für Vor- und Nachname stehen oder 
 Der Schutzstatus kann auf zwei Arten ermittelt werden:
 
 - über eine Statusspalte, etwa mit Werten wie schwerbehindert, gleichgestellt, Antrag läuft, abgelaufen oder unklar,
-- über Nachweis- beziehungsweise Datumsspalten. Ist **Schwerbehindert seit** gefüllt, wird die Person als schwerbehindert übernommen. Ist **Gleichstellung vorgelegt** gefüllt, wird sie als gleichgestellt übernommen. Eine Antragsdatumsspalte kann einen laufenden Antrag kennzeichnen.
+- über Nachweis- beziehungsweise Datumsspalten. Ein gültiges Datum oder ein eindeutiger Ja-Marker bei **Schwerbehindert seit** kennzeichnet eine Schwerbehinderung; ein leeres Feld, „Nein“ und „0“ tun das nicht. Entsprechend können **Gleichstellung vorgelegt** oder **Gleichgestellt ab** eine Gleichstellung kennzeichnen. Beide Spalten werden beim Import getrennt zugeordnet. Eine Antragsdatumsspalte kann einen laufenden Antrag anzeigen. Unverständliche Werte erscheinen als Prüfhilfe.
 
-Sind mehrere Statushinweise vorhanden, zählt der belastbarere vorgelegte Status vor einem allgemeineren Hinweis. Leere oder unklare Importwerte dürfen genauere vorhandene Angaben nicht verdrängen. Eine bereits gespeicherte Schwerbehinderung wird also nicht durch eine leere oder unklare Importzeile heruntergestuft.
+Sind mehrere Statushinweise vorhanden, zählt der belastbarere vorgelegte Status vor einem allgemeineren Hinweis. Leere oder unklare Importwerte dürfen genauere vorhandene Angaben nicht verdrängen. Ein eindeutiger Gleichstellungsnachweis aus einer Arbeitgeberliste kann einen zuvor aus derselben Quelle falsch übernommenen Schwerbehindertenstatus korrigieren.
 
 Beim Abgleich versucht Gremia.SBV, wiederkehrende Personen ohne unnötige Konfliktliste zu erkennen. Personalnummer und dienstliche E-Mail sind starke Merkmale. Findet die Anwendung genau eine bestehende Person mit demselben Vor- und Nachnamen und widersprechen Personalnummer oder E-Mail nicht, wird diese Person aktualisiert statt als Konflikt vorgelegt. Ein Konflikt entsteht nur bei echten Unsicherheiten, etwa mehreren gleichnamigen Personen oder widersprechenden stabilen Merkmalen.
 
-Nach dem Import zeigt das Ergebnis, wie viele Personen neu angelegt, aktualisiert, unverändert gelassen, übersprungen oder manuell zu prüfen sind. Konflikte und übersprungene Zeilen werden direkt mit Grund angezeigt, damit große Arbeitgeberlisten nicht mühsam blind nachbearbeitet werden müssen.
+Ist die Datei tatsächlich die vollständige aktuelle Arbeitgeberliste, kannst du dies bei der Importprüfung ausdrücklich bestätigen. Dann vergleicht Gremia.SBV sie mit den aktiven Personen, die zuvor aus Arbeitgeberlisten übernommen wurden. Fehlende Personen werden im Importergebnis benannt und erhalten einen manuellen Prüfauftrag. Bestehen Konflikte oder übersprungene Zeilen, wird dieser Abgleich ausgesetzt. Teil- und Abteilungsexporte dürfen nicht als vollständige Liste bestätigt werden. Die Abwesenheit in einer Datei ändert weder den Beschäftigungsstatus noch löscht sie Personendaten.
+
+Nach dem Import zeigt das Ergebnis, wie viele Personen neu angelegt, aktualisiert, unverändert gelassen, übersprungen oder manuell zu prüfen sind. Konflikte, übersprungene Zeilen und Personen, die in einer bestätigten vollständigen Liste fehlen, werden mit Grund angezeigt.
 
 ## Löschung und Pflege
 
