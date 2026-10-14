@@ -51,16 +51,26 @@ function isPastOrToday(value: string | undefined): boolean {
   return Boolean(value) && value! <= legalToday();
 }
 
+function mappedImportDate(rowObject: Record<string, string>, mapping: PersonImportColumnMapping, key: 'leftCompanyAt' | 'statusValidFrom' | 'statusValidUntil' | 'evidenceCheckedAt', validationErrors: string[]): string | undefined {
+  const raw = getMappedValue(rowObject, key, mapping);
+  const date = normalizeDateString(raw);
+  if (normalizeCell(raw) && !date) validationErrors.push(`Ungültiges Datum in „${mapping[key]}“. Bitte die Importzeile prüfen.`);
+  return date;
+}
+
 export function buildPersonInput(rowObject: Record<string, string>, mapping: PersonImportColumnMapping): { input: CreateProtectedPersonInput; validationErrors: string[]; rawPreview: Record<string, string>; statusReason: string; statusWarnings: string[] } {
   const fullName = getMappedValue(rowObject, 'fullName', mapping);
   const split = fullName ? splitFullName(fullName, mapping.fullNameMode) : { firstName: '', lastName: '' };
   const firstName = normalizeCell(getMappedValue(rowObject, 'firstName', mapping) ?? split.firstName);
   const lastName = normalizeCell(getMappedValue(rowObject, 'lastName', mapping) ?? split.lastName);
   const statusResolution = resolvePersonImportStatus(rowObject, mapping);
+  const validationErrors: string[] = [...statusResolution.validationErrors];
   const employmentStateRaw = normalizeCell(getMappedValue(rowObject, 'employmentState', mapping)).toLowerCase();
-  const leftCompanyAt = normalizeDateString(getMappedValue(rowObject, 'leftCompanyAt', mapping));
+  const leftCompanyAt = mappedImportDate(rowObject, mapping, 'leftCompanyAt', validationErrors);
   const rawIndicatesLeft = /ausgeschieden|ende|left|inaktiv/.test(employmentStateRaw);
-  const employmentState: CreateProtectedPersonInput['employmentState'] = isPastOrToday(leftCompanyAt) || (rawIndicatesLeft && !leftCompanyAt) ? 'left_company' : 'active_employee';
+  const employmentState: CreateProtectedPersonInput['employmentState'] = employmentStateRaw || leftCompanyAt
+    ? isPastOrToday(leftCompanyAt) || (rawIndicatesLeft && !leftCompanyAt) ? 'left_company' : 'active_employee'
+    : undefined;
   const input: CreateProtectedPersonInput = {
     firstName,
     lastName,
@@ -72,13 +82,15 @@ export function buildPersonInput(rowObject: Record<string, string>, mapping: Per
     leftCompanyAt,
     leftCompanyReason: leftCompanyAt ? 'known_departure' : undefined,
     protectionStatus: statusResolution.protectionStatus,
-    statusValidFrom: normalizeDateString(getMappedValue(rowObject, 'statusValidFrom', mapping)) ?? statusResolution.statusValidFrom,
-    statusValidUntil: normalizeDateString(getMappedValue(rowObject, 'statusValidUntil', mapping)),
-    evidenceCheckedAt: normalizeDateString(getMappedValue(rowObject, 'evidenceCheckedAt', mapping)) ?? statusResolution.evidenceCheckedAt,
+    statusValidFrom: mappedImportDate(rowObject, mapping, 'statusValidFrom', validationErrors) ?? statusResolution.statusValidFrom,
+    statusValidUntil: mappedImportDate(rowObject, mapping, 'statusValidUntil', validationErrors),
+    evidenceCheckedAt: mappedImportDate(rowObject, mapping, 'evidenceCheckedAt', validationErrors) ?? statusResolution.evidenceCheckedAt,
     statusSource: 'employer_list',
     notes: normalizeCell(getMappedValue(rowObject, 'notes', mapping)) || undefined
   };
-  const validationErrors: string[] = [];
+  if (input.statusValidFrom && input.statusValidUntil && input.statusValidFrom > input.statusValidUntil) {
+    validationErrors.push('Status gültig bis liegt vor dem Statusbeginn. Bitte die Datumsangaben prüfen.');
+  }
   if (!input.firstName) validationErrors.push('Vorname fehlt. Bei Vollnamen-Spalten ggf. Modus Vorname Nachname oder Nachname, Vorname wählen.');
   if (!input.lastName) validationErrors.push('Nachname fehlt.');
   if (!mapping.firstName && !mapping.lastName && !mapping.fullName) validationErrors.push('Mapping unvollständig: Name muss über getrennte Spalten oder eine Vollnamen-Spalte zugeordnet werden.');
@@ -100,11 +112,13 @@ function setPersonImportUpdateField<K extends keyof CreateProtectedPersonInput>(
 
 function shouldUpdateProtectionStatus(existing: ProtectedPersonRecord, next: CreateProtectedPersonInput): boolean {
   if (existing.protectionStatus === next.protectionStatus) return false;
-  if (next.protectionStatus === 'unclear' || next.protectionStatus === 'application_pending') return false;
+  if (next.protectionStatus === 'unclear') return false;
+  if (next.protectionStatus === 'application_pending') return existing.protectionStatus === 'unclear' || existing.protectionStatus === 'expired' || existing.protectionStatus === 'inactive';
+  if (next.protectionStatus === 'expired' || next.protectionStatus === 'inactive') return existing.statusSource === 'employer_list';
   if (next.protectionStatus === 'equivalent' && existing.protectionStatus === 'severely_disabled') {
     return existing.statusSource === 'employer_list';
   }
-  return next.protectionStatus === 'equivalent' || next.protectionStatus === 'severely_disabled';
+  return true;
 }
 
 function shouldUpdateImportedField(existing: ProtectedPersonRecord, next: CreateProtectedPersonInput, key: keyof CreateProtectedPersonInput): boolean {
@@ -112,10 +126,7 @@ function shouldUpdateImportedField(existing: ProtectedPersonRecord, next: Create
   if (nextValue === undefined || nextValue === '') return false;
   const existingValue = existing[key as keyof ProtectedPersonRecord];
   if ((existingValue ?? '') === nextValue) return false;
-  if (key === 'protectionStatus') return shouldUpdateProtectionStatus(existing, next);
-  if (key === 'statusSource' && existing.statusSource !== 'employer_list') return shouldUpdateProtectionStatus(existing, next);
-  if ((key === 'statusValidFrom' || key === 'evidenceCheckedAt' || key === 'notes') && existingValue) return false;
-  if (key === 'statusValidUntil' && existing.protectionStatus === 'severely_disabled' && next.protectionStatus === 'unclear') return false;
+  if (key === 'notes' && existingValue) return false;
   return true;
 }
 
@@ -124,8 +135,7 @@ export function planPersonImportUpdate(existing: ProtectedPersonRecord, next: Cr
   const changed: string[] = [];
   const keys: (keyof CreateProtectedPersonInput)[] = [
     'firstName', 'lastName', 'personnelNumber', 'workEmail', 'organizationalUnit', 'location',
-    'employmentState', 'leftCompanyAt', 'leftCompanyReason', 'protectionStatus', 'statusValidFrom',
-    'statusValidUntil', 'evidenceCheckedAt', 'statusSource', 'notes'
+    'employmentState', 'leftCompanyAt', 'leftCompanyReason', 'notes'
   ];
   keys.forEach((key) => {
     if (shouldUpdateImportedField(existing, next, key)) {
@@ -133,13 +143,21 @@ export function planPersonImportUpdate(existing: ProtectedPersonRecord, next: Cr
       changed.push(String(key));
     }
   });
-  if (update.protectionStatus === 'equivalent' && existing.protectionStatus === 'severely_disabled') {
-    for (const key of ['statusValidFrom', 'evidenceCheckedAt', 'statusValidUntil'] as const) {
-      if (existing[key] && !next[key]) {
-        update[key] = undefined;
-        changed.push(key);
-      } else if (next[key] && existing[key] !== next[key] && !changed.includes(key)) {
-        update[key] = next[key];
+  const statusChanged = shouldUpdateProtectionStatus(existing, next);
+  if (statusChanged) {
+    update.protectionStatus = next.protectionStatus;
+    changed.push('protectionStatus');
+    if (next.statusSource && existing.statusSource !== next.statusSource) {
+      update.statusSource = next.statusSource;
+      changed.push('statusSource');
+    }
+  }
+  if (statusChanged || existing.protectionStatus === next.protectionStatus && next.protectionStatus !== 'unclear') {
+    for (const key of ['statusValidFrom', 'statusValidUntil', 'evidenceCheckedAt'] as const) {
+      const value = next[key];
+      if (!statusChanged && (!value || (key !== 'statusValidUntil' && existing.statusSource !== 'employer_list' && existing[key]))) continue;
+      if (existing[key] !== value) {
+        update[key] = value;
         changed.push(key);
       }
     }

@@ -113,7 +113,7 @@ describe('0.9.1 Personenimport', () => {
     expect(statusColumn.validationErrors).toEqual([]);
 
     const evidenceColumns = buildPersonInput(
-      { Name: 'Beispiel, Erika', 'schwerbehindert seit': '01.02.2020', 'Gleichstellung vorgelegt': '12.03.2021', Abteilung: 'Produktion' },
+      { Name: 'Beispiel, Erika', 'schwerbehindert seit': '01.02.2020', 'Gleichstellung vorgelegt': '', Abteilung: 'Produktion' },
       {
         fullName: 'Name',
         fullNameMode: 'last_comma_first',
@@ -142,6 +142,71 @@ describe('0.9.1 Personenimport', () => {
     expect(mapped.input.protectionStatus).toBe('equivalent');
     expect(mapped.input.statusValidFrom).toBe('2021-03-12');
     expect(mapped.input.evidenceCheckedAt).toBe('2021-03-12');
+  });
+
+  it.each([
+    ['Gleichstellung beantragt', 'application_pending'],
+    ['Gleichstellung abgelaufen', 'expired'],
+    ['Gleichstellung nicht mehr gültig', 'expired'],
+    ['nicht schwerbehindert', 'unclear'],
+    ['nicht gleichgestellt', 'unclear'],
+    ['schwerbehindert / gleichgestellt', 'unclear'],
+    ['gleichgestellt', 'equivalent'],
+    ['schwerbehindert', 'severely_disabled'],
+  ] as const)('ordnet den Statuswert %s fachlich als %s ein', (value, expected) => {
+    expect(normalizeProtectionStatus(value)).toBe(expected);
+  });
+
+  it('stoppt widersprüchliche Nachweise oder einen widersprechenden Statuswert vor dem Speichern', () => {
+    const mapping = { fullName: 'Name', severelyDisabledSince: 'schwerbehindert seit', equivalentPresentedAt: 'gleichgestellt ab', protectionStatus: 'Status' };
+    const both = buildPersonInput({ Name: 'Beispiel, Erika', 'schwerbehindert seit': '01.02.2020', 'gleichgestellt ab': '12.03.2021' }, mapping);
+    expect(both.validationErrors).toEqual(expect.arrayContaining([expect.stringMatching(/widersprüch/i)]));
+    const contrary = buildPersonInput({ Name: 'Beispiel, Erika', 'schwerbehindert seit': '01.02.2020', Status: 'gleichgestellt' }, mapping);
+    expect(contrary.validationErrors).toEqual(expect.arrayContaining([expect.stringMatching(/widersprüch/i)]));
+  });
+
+  it('akzeptiert kein ungültiges Nachweis- oder Gültigkeitsdatum als Schutzstatus', () => {
+    const mapped = buildPersonInput({ Name: 'Beispiel, Erika', 'schwerbehindert seit': '31.02.2020', 'gültig bis': '31.02.2027' }, {
+      fullName: 'Name', severelyDisabledSince: 'schwerbehindert seit', statusValidUntil: 'gültig bis',
+    });
+    expect(mapped.input.protectionStatus).toBe('unclear');
+    expect(mapped.validationErrors).toEqual(expect.arrayContaining([expect.stringMatching(/ungültig/i)]));
+    expect(mapped.input.statusValidUntil).toBeUndefined();
+  });
+
+  it('weist ein Gültigkeitsende vor dem Statusbeginn zurück', () => {
+    const mapped = buildPersonInput({ Vorname: 'Erika', Nachname: 'Beispiel', Status: 'gleichgestellt', 'Gültig ab': '01.06.2026', 'Gültig bis': '31.05.2026' }, {
+      firstName: 'Vorname', lastName: 'Nachname', protectionStatus: 'Status', statusValidFrom: 'Gültig ab', statusValidUntil: 'Gültig bis',
+    });
+    expect(mapped.validationErrors).toEqual(expect.arrayContaining([expect.stringMatching(/vor dem Statusbeginn/i)]));
+  });
+
+  it('importiert gemischte CSV-Zeilen mit genau einem jeweils gefüllten Statusfeld getrennt', async () => {
+    const { raw, database } = openPersonImportDatabase();
+    try {
+      const csvText = 'Personalnummer;Vorname;Nachname;schwerbehindert seit;gleichgestellt ab\nP-1;Max;Muster;01.02.2020;\nP-2;Erika;Beispiel;;12.03.2021';
+      const result = await new PersonImportService(database).execute({ fileType: 'csv', sourceFileName: 'liste.csv', csvText, mapping: buildDefaultMapping(parseDelimitedText(csvText)[0]) });
+      expect(result.run.createdCount).toBe(2);
+      const people = new ProtectedPersonService(database).list();
+      expect(people.find((person) => person.personnelNumber === 'P-1')).toMatchObject({ protectionStatus: 'severely_disabled', statusValidFrom: '2020-02-01' });
+      expect(people.find((person) => person.personnelNumber === 'P-2')).toMatchObject({ protectionStatus: 'equivalent', statusValidFrom: '2021-03-12' });
+    } finally { raw.close(); }
+  });
+
+  it('ersetzt beim Wechsel zur Schwerbehinderung die Gleichstellungsdaten und entfernt deren alte Befristung', () => {
+    const update = planPersonImportUpdate({ ...existing, statusValidFrom: '2020-01-01', evidenceCheckedAt: '2020-01-01', statusValidUntil: '2026-12-31' }, {
+      firstName: 'Max', lastName: 'Mustermann', protectionStatus: 'severely_disabled', statusValidFrom: '2022-03-12', evidenceCheckedAt: '2022-03-12', statusSource: 'employer_list',
+    });
+    expect(update.update).toMatchObject({ protectionStatus: 'severely_disabled', statusValidFrom: '2022-03-12', evidenceCheckedAt: '2022-03-12' });
+    expect(update.changed).toContain('statusValidUntil');
+    expect(update.update.statusValidUntil).toBeUndefined();
+  });
+
+  it('übernimmt ein korrigiertes Nachweisdatum aus derselben Arbeitgeberquelle bei unverändertem Status', () => {
+    const update = planPersonImportUpdate({ ...existing, statusValidFrom: '2020-01-01', evidenceCheckedAt: '2020-01-01' }, {
+      firstName: 'Max', lastName: 'Mustermann', protectionStatus: 'equivalent', statusValidFrom: '2021-03-12', evidenceCheckedAt: '2021-03-12', statusSource: 'employer_list',
+    });
+    expect(update.update).toMatchObject({ statusValidFrom: '2021-03-12', evidenceCheckedAt: '2021-03-12' });
   });
 
   it('korrigiert einen zuvor falsch als schwerbehindert importierten Status bei eindeutigem Gleichstellungsnachweis', () => {
@@ -229,6 +294,15 @@ describe('0.9.1 Personenimport', () => {
 
     expect(update.changed).toEqual(['organizationalUnit']);
     expect(update.update).toEqual({ organizationalUnit: 'Vertrieb' });
+  });
+
+  it('ändert den Beschäftigungsstatus nicht, wenn die CSV keine Beschäftigungsspalte enthält', () => {
+    const mapped = buildPersonInput({ Vorname: 'Max', Nachname: 'Mustermann', Status: 'gleichgestellt' }, {
+      firstName: 'Vorname', lastName: 'Nachname', protectionStatus: 'Status',
+    });
+    const update = planPersonImportUpdate({ ...existing, employmentState: 'left_company', leftCompanyAt: '2025-01-01' }, mapped.input);
+    expect(update.changed).not.toContain('employmentState');
+    expect(update.changed).not.toContain('leftCompanyAt');
   });
 
   it('protokolliert eindeutige Namensmatches im echten Schema ohne Konflikt', async () => {

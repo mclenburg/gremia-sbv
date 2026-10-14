@@ -223,25 +223,38 @@ export function splitFullName(fullName: string, mode: PersonImportColumnMapping[
 
 export function normalizeProtectionStatus(value: string | undefined): ProtectionStatus {
   const normalized = normalizeCell(value).toLowerCase();
-  if (/gleich/.test(normalized)) return 'equivalent';
-  if (/schwer|sb|50/.test(normalized)) return 'severely_disabled';
-  if (/antrag|beantragt|läuft|laeuft/.test(normalized)) return 'application_pending';
-  if (/abgelaufen|expired/.test(normalized)) return 'expired';
+  if (/(?:nicht|kein(?:e|en|er|es)?|ohne)\s+(?:mehr\s+)?(?:schwerbehinder|gleichgestell|gleichstellung)/.test(normalized)) return 'unclear';
+  if (/abgelaufen|expired|erloschen|ungültig|ungueltig|nicht mehr gültig|nicht mehr gueltig/.test(normalized)) return 'expired';
   if (/inaktiv|nicht aktiv|ausgeschieden/.test(normalized)) return 'inactive';
+  if (/abgelehnt/.test(normalized)) return 'unclear';
+  if (/gleichgestell|gleichstellung/.test(normalized) && /schwerbehinder|\bsb\b/.test(normalized)) return 'unclear';
+  if (/antrag|beantragt|läuft|laeuft|ausstehend/.test(normalized) && !/bewilligt|anerkannt/.test(normalized)) return 'application_pending';
+  if (/gleichgestell|gleichstellung/.test(normalized)) return 'equivalent';
+  if (/schwerbehinder|\bsb\b|\b50\b/.test(normalized)) return 'severely_disabled';
   return 'unclear';
 }
 
 export function normalizeDateString(value: string | undefined): string | undefined {
   const cleaned = normalizeCell(value);
   if (!cleaned) return undefined;
-  if (/^\d{4}-\d{2}-\d{2}/.test(cleaned)) return cleaned.slice(0, 10);
+  const isValidDate = (date: string): boolean => {
+    const parsed = new Date(`${date}T00:00:00.000Z`);
+    return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
+  };
+  if (/^\d{4}-\d{2}-\d{2}(?:$|T)/.test(cleaned)) {
+    const date = cleaned.slice(0, 10);
+    return isValidDate(date) ? date : undefined;
+  }
   const match = cleaned.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
-  if (match) return `${match[3]}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}`;
+  if (match) {
+    const date = `${match[3]}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}`;
+    return isValidDate(date) ? date : undefined;
+  }
   const excelNumber = Number(cleaned);
   if (Number.isFinite(excelNumber) && excelNumber > 20_000 && excelNumber < 80_000) {
     const epoch = new Date(Date.UTC(1899, 11, 30));
-    epoch.setUTCDate(epoch.getUTCDate() + excelNumber);
+    epoch.setUTCDate(epoch.getUTCDate() + Math.floor(excelNumber));
     return epoch.toISOString().slice(0, 10);
   }
-  return cleaned;
+  return undefined;
 }
