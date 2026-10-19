@@ -167,7 +167,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.electron.json --noEmit"
   },
   "dependencies": {
-    "@napi-rs/canvas": "^1.0.10",
+    "@napi-rs/canvas": "^1.0.11",
     "better-sqlite3-multiple-ciphers": "^13.0.3",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
