@@ -5,7 +5,7 @@ import type { ApplicationServices } from '../applicationServices.js';
 import { IPC_CHANNELS, registerIpcHandler } from './ipcHandler.js';
 import { assertAllowedEnum, assertRecordInput, assertString, sanitizeDialogFileName } from './ipcValidation.js';
 import { issueSelectedFileCapability, resolveSelectedFileCapability, SELECTED_FILE_PURPOSE } from './selectedFileCapability.js';
-import type { ConfigureElectionSetupInput, CreateElectionInput, GenerateElectionPreparationDocumentInput, SaveElectionBoardMemberInput, SaveElectionBoardSessionInput, SaveElectionCandidateInput, SaveElectionObjectionInput, SaveElectionProposalInput, SaveElectionVoterInput, ElectionVoterFileImportInput } from '../../src/domain/models/election-workflow.model.js';
+import type { ConfigureElectionSetupInput, CreateElectionInput, GenerateElectionPreparationDocumentInput, SaveElectionBoardMemberInput, SaveElectionBoardSessionInput, SaveElectionCandidateInput, SaveElectionObjectionInput, SaveElectionProposalInput, SaveElectionVoterInput, ElectionVoterFileImportInput, ElectionVoterFileImportExecutionInput } from '../../src/domain/models/election-workflow.model.js';
 import type { ElectionCloseInput, ElectionDayChecklistInput, GenerateElectionExecutionDocumentInput, RecordElectionAcceptanceInput, RecordElectionLotInput, RecordElectionTotalsInput, SaveElectionMailBallotInput, SaveElectionPhysicalRecordInput } from '../../src/domain/models/election-execution.model.js';
 import type { ElectionTransferEnvelope } from '../../services/electionTransferCryptoAdapter.js';
 import type { SbvOfficeDocumentRecord } from '../../services/sbvOfficeWorkflowDocumentAdapter.js';
@@ -73,9 +73,10 @@ export function registerSbvElectionIpc(ipcMain:IpcMain,_security:SecurityService
   return services.elections().previewVoterImport({...request,filePath});
  });
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsVotersImportFile,async(_e,id,input)=>{
-  const request=assertRecordInput<ElectionVoterFileImportInput>(input,'elections:voters:import-file');
+  const request=assertRecordInput<ElectionVoterFileImportExecutionInput>(input,'elections:voters:import-file');
+  const expectedSourceFileHash=assertString(request.expectedSourceFileHash,'elections:voters:import-file','Prüfwert der Importvorschau',{minLength:64,maxLength:64});
   const filePath=resolveSelectedFileCapability(assertString(request.fileToken,'elections:voters:import-file','Dateiauswahl',{minLength:1,maxLength:200}),SELECTED_FILE_PURPOSE.electionVoterImport,'elections:voters:import-file');
-  return services.elections().importVotersFromPersonFile(eid(id,'elections:voters:import-file'),{...request,filePath});
+  return services.elections().importVotersFromPersonFile(eid(id,'elections:voters:import-file'),{...request,expectedSourceFileHash,filePath});
  });
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsBoardMemberSave,async(_e,id,input)=>services.elections().saveBoardMember(eid(id,'elections:boardMember:save'),assertRecordInput<SaveElectionBoardMemberInput>(input,'elections:boardMember:save')));
  registerIpcHandler(ipcMain,IPC_CHANNELS.electionsBoardSessionSave,async(_e,id,input)=>services.elections().saveBoardSession(eid(id,'elections:boardSession:save'),assertRecordInput<SaveElectionBoardSessionInput>(input,'elections:boardSession:save')));

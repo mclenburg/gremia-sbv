@@ -611,7 +611,7 @@ declare global {
         syncVotersFromPersons(id: string): Promise<ElectionVoterSyncResult>;
         selectVoterImportFile(): Promise<ElectionVoterImportFileSelection>;
         previewVoterImport(input: ElectionVoterFileImportInput): Promise<PersonImportPreviewResult>;
-        importVotersFromPersonFile(id: string, input: ElectionVoterFileImportInput): Promise<ElectionVoterFileImportResult>;
+        importVotersFromPersonFile(id: string, input: import('./domain/models/election-workflow.model.js').ElectionVoterFileImportExecutionInput): Promise<ElectionVoterFileImportResult>;
         saveBoardMember(id: string, input: SaveElectionBoardMemberInput): Promise<ElectionBoardMemberRecord>;
         saveBoardSession(id: string, input: SaveElectionBoardSessionInput): Promise<ElectionBoardSessionRecord>;
         saveObjection(id: string, input: SaveElectionObjectionInput): Promise<ElectionObjectionRecord>;

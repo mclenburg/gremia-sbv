@@ -10,7 +10,7 @@ import {
   normalizeCell,
   normalizeDateString,
   parseDelimitedText,
-  parseXlsxFile,
+  parseXlsxBuffer,
   sha256Text,
   assertPersonImportFileSize,
   MAX_PERSON_IMPORT_FILE_BYTES,
@@ -18,6 +18,7 @@ import {
   splitFullName
 } from './personImportParsing.js';
 import { resolvePersonImportStatus } from './personImportStatusResolver.js';
+import { DUPLICATE_PERSON_IMPORT_MESSAGE, duplicatePersonImportRows } from './personImportDuplicateRows.js';
 import { decodeCp850, detectCsvEncoding, type CsvEncodingDetectionResult } from './csvEncodingDetection.js';
 import type {
   CreateProtectedPersonInput,
@@ -177,6 +178,7 @@ export class PersonImportService {
     }
     if (input.filePath) assertPersonImportFileSize(input.filePath);
     const buffer = input.filePath ? readFileSync(input.filePath) : Buffer.from('');
+    if (buffer.byteLength > MAX_PERSON_IMPORT_FILE_BYTES) throw new Error('Importdatei ist zu groß. Maximal 25 MB sind zulässig.');
     const requested = input.csvEncoding && input.csvEncoding !== 'auto' ? input.csvEncoding : undefined;
     if (requested && requested !== 'cp850') {
       const text = new TextDecoder(requested, { fatal: false }).decode(buffer);
@@ -200,9 +202,10 @@ export class PersonImportService {
     if (fileType === 'xlsx') {
       if (!input.filePath) throw new Error('XLSX-Import benötigt einen Dateipfad.');
       assertPersonImportFileSize(input.filePath);
-      const parsed = await parseXlsxFile(input.filePath, input.sheetName);
+      const buffer = readFileSync(input.filePath);
+      const parsed = await parseXlsxBuffer(buffer, input.sheetName);
       rows = parsed.rows;
-      sourceHash = sha256Text(readFileSync(input.filePath).toString('base64'));
+      sourceHash = sha256Text(buffer.toString('base64'));
     } else {
       const decoded = this.decodeCsv(input);
       csvDetection = decoded.detection;
@@ -215,10 +218,11 @@ export class PersonImportService {
   }
 
   async preview(input: PersonImportPreviewInput): Promise<PersonImportPreviewResult> {
-    const { columns, objects, csvDetection } = await this.readRows(input);
+    const { columns, objects, csvDetection, sourceTextHash } = await this.readRows(input);
     const firstDataIndex = input.firstDataRowIndex ?? 1;
-    const rows = objects.slice(Math.max(0, firstDataIndex - 1)).slice(0, 50).map((rowObject, index): PersonImportPreviewRow => {
-      const mapped = buildPersonInput(rowObject, input.mapping);
+    const mappedRows = objects.slice(Math.max(0, firstDataIndex - 1)).map((rowObject) => buildPersonInput(rowObject, input.mapping));
+    const duplicates = duplicatePersonImportRows(mappedRows.map((row) => row.input));
+    const rows = mappedRows.slice(0, 50).map((mapped, index): PersonImportPreviewRow => {
       return {
         rowNumber: firstDataIndex + index + 1,
         firstName: mapped.input.firstName,
@@ -229,25 +233,30 @@ export class PersonImportService {
         statusValidUntil: mapped.input.statusValidUntil,
         statusReason: mapped.statusReason,
         statusWarnings: mapped.statusWarnings,
-        validationErrors: mapped.validationErrors,
+        validationErrors: duplicates.has(index) ? [...mapped.validationErrors, DUPLICATE_PERSON_IMPORT_MESSAGE] : mapped.validationErrors,
         rawPreview: mapped.rawPreview
       };
     });
     const warnings: string[] = [...(csvDetection?.warnings ?? [])];
     if (columns.some((column) => /\bgdb\b|grad der behinderung/i.test(column))) warnings.push('Eine GdB-Spalte wurde erkannt. Sie wird aus Gründen der Datensparsamkeit nicht importiert, solange sie nicht ausdrücklich gemappt wird.');
     if (!input.mapping.personnelNumber) warnings.push('Personalnummer ist optional. Ohne Personalnummer erfolgt der sichere Abgleich ersatzweise über dienstliche E-Mail; Name/Vorname erzeugt nur Konflikte.');
-    return { columns, rows, warnings, detectedEncoding: csvDetection?.encoding, encodingConfidence: csvDetection?.confidence };
+    return { columns, rows, warnings, sourceFileHash: sourceTextHash, detectedEncoding: csvDetection?.encoding, encodingConfidence: csvDetection?.confidence };
   }
 
   async execute(input: PersonImportExecuteInput): Promise<PersonImportExecuteResult> {
     const personService = new ProtectedPersonService(this.database);
     const { objects, sourceTextHash } = await this.readRows(input);
+    if (!/^[a-f0-9]{64}$/.test(input.expectedSourceFileHash) || input.expectedSourceFileHash !== sourceTextHash) {
+      throw new Error('Die Importdatei wurde seit der Vorschau geändert oder nicht vollständig geprüft. Bitte die Vorschau erneut öffnen und den Import prüfen.');
+    }
+    const firstDataIndex = input.firstDataRowIndex ?? 1;
+    const mappedRows = objects.slice(Math.max(0, firstDataIndex - 1)).map((rowObject) => buildPersonInput(rowObject, input.mapping));
+    const duplicates = duplicatePersonImportRows(mappedRows.map((row) => row.input));
     return new DatabaseUnitOfWork(this.database).run(() => {
     const previousEmployerPersons = input.reconcileMissingPersons
       ? personService.list().filter((person) => (person.recordKind ?? 'identified_person') === 'identified_person' && person.statusSource === 'employer_list' && person.employmentState === 'active_employee' && person.lifecycleState !== 'anonymized' && person.lifecycleState !== 'deleted_marker')
       : [];
     const matchedPersonIds = new Set<string>();
-    const firstDataIndex = input.firstDataRowIndex ?? 1;
     const items: Omit<PersonImportRunItemRecord, 'id' | 'runId' | 'createdAt'>[] = [];
     const imported: ProtectedPersonRecord[] = [];
     let createdCount = 0;
@@ -256,12 +265,12 @@ export class PersonImportService {
     let conflictCount = 0;
     let skippedCount = 0;
 
-    for (const [index, rowObject] of objects.slice(Math.max(0, firstDataIndex - 1)).entries()) {
+    for (const [index, mapped] of mappedRows.entries()) {
       const rowNumber = firstDataIndex + index + 1;
-      const mapped = buildPersonInput(rowObject, input.mapping);
-      if (mapped.validationErrors.length) {
+      const validationErrors = duplicates.has(index) ? [...mapped.validationErrors, DUPLICATE_PERSON_IMPORT_MESSAGE] : mapped.validationErrors;
+      if (validationErrors.length) {
         skippedCount += 1;
-        items.push({ rowNumber, action: 'skipped', matchStrategy: 'none', validationMessage: mapped.validationErrors.join(' | '), changedFields: [] });
+        items.push({ rowNumber, action: 'skipped', matchStrategy: 'none', validationMessage: validationErrors.join(' | '), changedFields: [] });
         continue;
       }
 

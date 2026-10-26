@@ -56,24 +56,71 @@ describe('Wählerliste aus bestehenden Personen und Arbeitgeberdatei', () => {
   it('importiert die Personen-Excel/CSV-Struktur direkt in die Wählerliste ohne das Personenverzeichnis zu verändern', async () => {
     const { persons, elections } = services();
     const election = elections.create({ kind: 'extraordinary_no_sbv', triggerReason: 'vakant' });
-    const result = await elections.importVotersFromPersonFile(election.id, {
+    const input = {
       sourceFileName: 'wahlberechtigte.csv',
-      fileType: 'csv',
+      fileType: 'csv' as const,
       csvText: 'Name;Status;Organisation;Beschäftigungsende\nMuster, Maria;schwerbehindert;IT;\nGleich, Georg;gleichgestellt;HR;\nAntrag, Antje;Antrag läuft;IT;\nAlt, Alfred;schwerbehindert;IT;31.07.2026',
       delimiter: ';',
       headerRowIndex: 0,
       firstDataRowIndex: 1,
       mapping: {
         fullName: 'Name',
-        fullNameMode: 'last_comma_first',
+        fullNameMode: 'last_comma_first' as const,
         protectionStatus: 'Status',
         organizationalUnit: 'Organisation',
         leftCompanyAt: 'Beschäftigungsende',
       },
-    });
+    };
+    const preview = await elections.previewVoterImport(input);
+    const result = await elections.importVotersFromPersonFile(election.id, { ...input, expectedSourceFileHash: preview.sourceFileHash });
 
     expect(result).toMatchObject({ totalRows: 4, imported: 2, skipped: 2 });
     expect(elections.overview(election.id).voters.map((voter) => voter.lastName).sort()).toEqual(['Gleich', 'Muster']);
     expect(persons.list()).toHaveLength(0);
+  });
+
+  it('übernimmt widersprüchliche Doppelzeilen nicht in den Wahl-Snapshot', async () => {
+    const { elections } = services();
+    const election = elections.create({ kind: 'extraordinary_no_sbv', triggerReason: 'vakant' });
+    const input = {
+      sourceFileName: 'wahlberechtigte.csv', fileType: 'csv' as const,
+      csvText: 'Personalnummer;Vorname;Nachname;Status\nP-1;Max;Muster;schwerbehindert\nP-1;Max;Muster;gleichgestellt',
+      mapping: { personnelNumber: 'Personalnummer', firstName: 'Vorname', lastName: 'Nachname', protectionStatus: 'Status' },
+    };
+    const preview = await elections.previewVoterImport(input);
+    const result = await elections.importVotersFromPersonFile(election.id, { ...input, expectedSourceFileHash: preview.sourceFileHash });
+    expect(result).toMatchObject({ imported: 0, skipped: 2 });
+    expect(elections.overview(election.id).voters).toHaveLength(0);
+  });
+
+  it('verweigert die Übernahme, wenn die Wählerliste nach der Vorschau geändert wurde', async () => {
+    const { elections } = services();
+    const election = elections.create({ kind: 'extraordinary_no_sbv', triggerReason: 'vakant' });
+    const input = {
+      sourceFileName: 'wahlberechtigte.csv', fileType: 'csv' as const,
+      csvText: 'Vorname;Nachname;Status\nMara;Muster;schwerbehindert',
+      mapping: { firstName: 'Vorname', lastName: 'Nachname', protectionStatus: 'Status' },
+    };
+    const preview = await elections.previewVoterImport(input);
+    await expect(elections.importVotersFromPersonFile(election.id, {
+      ...input,
+      csvText: 'Vorname;Nachname;Status\nMara;Muster;gleichgestellt',
+      expectedSourceFileHash: preview.sourceFileHash,
+    })).rejects.toThrow('seit der Vorschau geändert');
+    expect(elections.overview(election.id).voters).toHaveLength(0);
+  });
+
+  it('verhindert das Überschreiben zweier Namenszeilen ohne Personalnummer', async () => {
+    const { elections } = services();
+    const election = elections.create({ kind: 'extraordinary_no_sbv', triggerReason: 'vakant' });
+    const input = {
+      sourceFileName: 'wahlberechtigte.csv', fileType: 'csv' as const,
+      csvText: 'Vorname;Nachname;Status;Organisation\nMara;Muster;schwerbehindert;IT\nMara;Muster;gleichgestellt;IT',
+      mapping: { firstName: 'Vorname', lastName: 'Nachname', protectionStatus: 'Status', organizationalUnit: 'Organisation' },
+    };
+    const preview = await elections.previewVoterImport(input);
+    const result = await elections.importVotersFromPersonFile(election.id, { ...input, expectedSourceFileHash: preview.sourceFileHash });
+    expect(result).toMatchObject({ imported: 0, skipped: 2 });
+    expect(elections.overview(election.id).voters).toHaveLength(0);
   });
 });

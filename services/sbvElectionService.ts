@@ -8,6 +8,7 @@ import { ElectionLegalPolicy } from './electionLegalPolicy.js';
 import { ElectionPreparationRepository } from './electionPreparationRepository.js';
 import { ProtectedPersonService } from './protectedPersonService.js';
 import { PersonImportService, buildPersonInput } from './personImportService.js';
+import { duplicatePersonImportRows } from './personImportDuplicateRows.js';
 import { buildFromContext } from './activityJournalPrefill.js';
 import type { ActivityJournalPrefill } from '../src/domain/models/activity-journal.model.js';
 import { ELECTION_LEGAL_RULE_VERSION, type ElectionDeadlineRuleKey, type EligibilityBasis, type ProposalStatus } from '../src/domain/models/election.model.js';
@@ -61,23 +62,26 @@ export class SbvElectionService{
   return{eligiblePersons:eligiblePersons.length,created,updated,unchanged};
  }
  async previewVoterImport(input:PersonImportPreviewInput):Promise<PersonImportPreviewResult>{return new PersonImportService(this.database).preview(input);}
- async importVotersFromPersonFile(id:string,input:PersonImportPreviewInput):Promise<ElectionVoterFileImportResult>{
+ async importVotersFromPersonFile(id:string,input:PersonImportPreviewInput & {expectedSourceFileHash:string}):Promise<ElectionVoterFileImportResult>{
   this.get(id);
   const importer=new PersonImportService(this.database);
   const parsed=await importer.readRows(input);
+  const expectedSourceFileHash=input.expectedSourceFileHash;
+  if(!expectedSourceFileHash||expectedSourceFileHash!==parsed.sourceTextHash)throw new Error('Die Wählerlistendatei wurde seit der Vorschau geändert oder nicht geprüft. Bitte die Vorschau erneut öffnen.');
   const firstDataIndex=input.firstDataRowIndex??1;
+  const mappedRows=parsed.objects.slice(Math.max(0,firstDataIndex-1)).map(rowObject=>buildPersonInput(rowObject,input.mapping));
+  const duplicates=duplicatePersonImportRows(mappedRows.map(row=>row.input));
   let imported=0,skipped=0;
   const warnings:string[]=[];
-  new DatabaseUnitOfWork(this.database).run(()=>{for(const rowObject of parsed.objects.slice(Math.max(0,firstDataIndex-1))){
-    const mapped=buildPersonInput(rowObject,input.mapping);
+  new DatabaseUnitOfWork(this.database).run(()=>{for(const [index,mapped] of mappedRows.entries()){
     const status=mapped.input.protectionStatus;
-    if(mapped.validationErrors.length||mapped.input.employmentState==='left_company'||(status!=='severely_disabled'&&status!=='equivalent')){skipped+=1;continue;}
+    if(duplicates.has(index)||mapped.validationErrors.length||mapped.input.employmentState==='left_company'||(status!=='severely_disabled'&&status!=='equivalent')){skipped+=1;continue;}
     const key=mapped.input.personnelNumber?.trim().toLowerCase()||mapped.input.workEmail?.trim().toLowerCase()||[mapped.input.lastName.trim().toLowerCase(),mapped.input.firstName.trim().toLowerCase(),(mapped.input.organizationalUnit??'').trim().toLowerCase()].join('|');
     const voterId=`file-${createHash('sha256').update(`${id}:${key}`).digest('hex').slice(0,40)}`;
     this.repo.saveVoter(id,{id:voterId,lastName:mapped.input.lastName,firstName:mapped.input.firstName,orgUnit:mapped.input.organizationalUnit,eligibilityBasis:status==='equivalent'?'equalized_confirmed':'severely_disabled_confirmed',eligibilityVerifiedAt:mapped.input.evidenceCheckedAt,listStatus:'eligible'});
     imported+=1;
   }this.auditMutation('update',id,{entityType:'voter_list_import',sourceFileName:input.sourceFileName,totalRows:parsed.objects.length,imported,skipped});});
-  if(skipped)warnings.push(`${skipped} Zeile(n) wurden wegen fehlender Pflichtangaben, ungeeignetem Schutzstatus oder Beschäftigungsende nicht übernommen.`);
+  if(skipped)warnings.push(`${skipped} Zeile(n) wurden wegen doppelter Kennzeichen, fehlender Pflichtangaben, ungeeignetem Schutzstatus oder Beschäftigungsende nicht übernommen.`);
   return{totalRows:parsed.objects.length,imported,skipped,warnings};
  }
  saveBoardMember(id:string,input:SaveElectionBoardMemberInput):ElectionBoardMemberRecord{const e=this.get(id);const allowed=e.procedure==='simplified'?['election_leader','assistant']:['chair','member','substitute'];if(!e.procedure||!allowed.includes(input.role))throw new Error('Rolle passt nicht zum bestätigten Wahlverfahren.');if(!input.name.trim())throw new Error('Wahlorgan-Mitglied benötigt einen Namen.');return new DatabaseUnitOfWork(this.database).run(()=>{const value=this.repo.saveBoardMember(id,input);if(e.procedure==='formal'&&input.role==='chair'&&input.appointedAt){const due=this.deadlinePolicy.calculate('formal.election.target',input.appointedAt,{incumbentTermEnd:e.incumbentTermEnd});this.ensureDeadline(id,'formal.election.target',input.appointedAt,due.dueOn,due.legalReference,'Förmliche Wahl unverzüglich einleiten');}this.auditMutation('update',id,{entityType:'election_body',status:input.role});return value;});}

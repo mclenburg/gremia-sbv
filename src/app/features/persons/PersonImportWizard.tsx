@@ -91,7 +91,11 @@ export function PersonImportWizard({
       onError('Bitte zuerst CSV-Daten einfügen.');
       return;
     }
-    await previewSource({ sourceFileName: 'eingefuegte-arbeitgeberliste.csv', fileType: 'csv', csvText });
+    try {
+      await previewSource({ sourceFileName: 'eingefuegte-arbeitgeberliste.csv', fileType: 'csv', csvText });
+    } catch (error) {
+      onError(error instanceof Error ? error.message : 'CSV-Daten konnten nicht geprüft werden.');
+    }
   }
 
   async function refreshPreview(nextMapping = mapping) {
@@ -109,16 +113,24 @@ export function PersonImportWizard({
       onError('Bitte ordnen Sie einen Namen und eine Statusquelle zu: Statusspalte oder Nachweis-/Antragsdatum.');
       return;
     }
-    await refreshPreview(mapping);
-    setStep('validate');
+    try {
+      await refreshPreview(mapping);
+      setStep('validate');
+    } catch (error) {
+      onError(error instanceof Error ? error.message : 'Importvorschau konnte nicht geprüft werden.');
+    }
   }
 
   async function executeImport() {
-    if (!source) return;
-    const importResult = await onExecuteImport({ ...createPreviewInput(source, mapping), reconcileMissingPersons });
-    setResult(importResult);
-    setStep('result');
-    onImported('Import wurde durchgeführt. Die Importdatei wurde nicht dauerhaft gespeichert.');
+    if (!source || !preview) return;
+    try {
+      const importResult = await onExecuteImport({ ...createPreviewInput(source, mapping), expectedSourceFileHash: preview.sourceFileHash, reconcileMissingPersons });
+      setResult(importResult);
+      setStep('result');
+      onImported('Import wurde durchgeführt. Die Importdatei wurde nicht dauerhaft gespeichert.');
+    } catch (error) {
+      onError(error instanceof Error ? error.message : 'Import konnte nicht durchgeführt werden. Bitte die Vorschau erneut prüfen.');
+    }
   }
 
   return (

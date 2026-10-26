@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { FileText, Plus, Save } from 'lucide-react';
 import type { ConfigureElectionSetupInput, ElectionInvitationDetails, ElectionNoticeDetails, ElectionPreparationOverview } from '../../../domain/models/election-workflow.model';
 import { protectionStatusLabels, type PersonImportColumnMapping, type PersonImportPreviewResult } from '../../../domain/models/protected-person.model';
@@ -149,10 +149,17 @@ export function VotersSection({ overview, run }: { overview: ElectionPreparation
   const [importSource, setImportSource] = useState<{ sourceFileName: string; fileType: 'csv' | 'xlsx'; fileToken: string } | null>(null);
   const [importPreview, setImportPreview] = useState<PersonImportPreviewResult | null>(null);
   const [importMapping, setImportMapping] = useState<PersonImportColumnMapping>({});
+  const [importPreviewReady, setImportPreviewReady] = useState(false);
+  const previewRequest = useRef(0);
 
   async function selectImportFile() {
+    const request = ++previewRequest.current;
+    setImportPreviewReady(false);
     const selection = await window.gremiaSbv.elections.selectVoterImportFile();
-    if (selection.canceled || !selection.fileToken || !selection.sourceFileName || !selection.fileType) return;
+    if (selection.canceled || !selection.fileToken || !selection.sourceFileName || !selection.fileType) {
+      if (request === previewRequest.current) setImportPreviewReady(Boolean(importPreview));
+      return;
+    }
     const source = { fileToken: selection.fileToken, sourceFileName: selection.sourceFileName, fileType: selection.fileType };
     const discovery = await window.gremiaSbv.elections.previewVoterImport({
       ...source, csvEncoding: 'auto', delimiter: ';', headerRowIndex: 0, firstDataRowIndex: 1, mapping: {},
@@ -161,18 +168,24 @@ export function VotersSection({ overview, run }: { overview: ElectionPreparation
     const preview = await window.gremiaSbv.elections.previewVoterImport({
       ...source, csvEncoding: 'auto', delimiter: ';', headerRowIndex: 0, firstDataRowIndex: 1, mapping,
     });
+    if (request !== previewRequest.current) return;
     setImportSource(source);
     setImportMapping(mapping);
     setImportPreview(preview);
+    setImportPreviewReady(true);
   }
 
   async function refreshImportPreview(mapping: PersonImportColumnMapping) {
     if (!importSource) return;
+    const request = ++previewRequest.current;
+    setImportMapping(mapping);
+    setImportPreviewReady(false);
     const preview = await window.gremiaSbv.elections.previewVoterImport({
       ...importSource, csvEncoding: 'auto', delimiter: ';', headerRowIndex: 0, firstDataRowIndex: 1, mapping,
     });
-    setImportMapping(mapping);
+    if (request !== previewRequest.current) return;
     setImportPreview(preview);
+    setImportPreviewReady(true);
   }
 
   const voterImportFields = personImportFieldOptions.filter((field) => ['fullName', 'firstName', 'lastName', 'protectionStatus', 'organizationalUnit', 'leftCompanyAt'].includes(field.key));
@@ -186,7 +199,7 @@ export function VotersSection({ overview, run }: { overview: ElectionPreparation
             <IndustrialButton onClick={() => void run(() => window.gremiaSbv.elections.syncVotersFromPersons(overview.election.id), 'Wählerliste aus dem Personenverzeichnis aktualisiert.')}>
               Personen übernehmen
             </IndustrialButton>
-            <IndustrialButton variant="secondary" onClick={() => void selectImportFile()}>Excel-/CSV importieren</IndustrialButton>
+            <IndustrialButton variant="secondary" onClick={() => void run(selectImportFile, 'Importvorschau geladen.')}>Excel-/CSV importieren</IndustrialButton>
           </>
         )}
       >
@@ -197,9 +210,10 @@ export function VotersSection({ overview, run }: { overview: ElectionPreparation
                 <h3>Importvorschau: {importSource.sourceFileName}</h3>
                 <p className="industrial-meta">Bis zu 50 Zeilen werden vorab angezeigt; der eigentliche Import verarbeitet die vollständige Datei.</p>
               </div>
-              <IndustrialButton onClick={() => void run(async () => {
+              <IndustrialButton disabled={!importPreviewReady} onClick={() => void run(async () => {
                 const result = await window.gremiaSbv.elections.importVotersFromPersonFile(overview.election.id, {
                   ...importSource, csvEncoding: 'auto', delimiter: ';', headerRowIndex: 0, firstDataRowIndex: 1, mapping: importMapping,
+                  expectedSourceFileHash: importPreview.sourceFileHash,
                 });
                 setImportSource(null); setImportPreview(null);
                 return result;
@@ -212,7 +226,7 @@ export function VotersSection({ overview, run }: { overview: ElectionPreparation
                   label={field.label}
                   value={String(importMapping[field.key as keyof PersonImportColumnMapping] ?? '')}
                   options={[{ value: '', label: 'Nicht importieren' }, ...importPreview.columns.map((column) => ({ value: column, label: column }))]}
-                  onValueChange={(value) => void refreshImportPreview(updatePersonImportColumnMapping(importMapping, field.key as PersonImportFieldKey, value))}
+                  onValueChange={(value) => void run(() => refreshImportPreview(updatePersonImportColumnMapping(importMapping, field.key as PersonImportFieldKey, value)), 'Importvorschau aktualisiert.')}
                 />
               ))}
             </div>

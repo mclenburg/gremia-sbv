@@ -4,14 +4,15 @@ import os from 'node:os';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { buildPersonInput, planPersonImportUpdate } from '../../../services/personImportService';
-import { MAX_PERSON_IMPORT_FILE_BYTES, normalizeProtectionStatus, parseDelimitedText, splitFullName } from '../../../services/personImportParsing';
+import { MAX_PERSON_IMPORT_FILE_BYTES, normalizeProtectionStatus, parseDelimitedText, parseXlsxFile, splitFullName } from '../../../services/personImportParsing';
 import { PersonImportService } from '../../../services/personImportService';
 import { repairPersonImportRunItemMatchStrategySchema } from '../../../services/personImportRunItemSchemaRepair';
 import { ProtectedPersonService } from '../../../services/protectedPersonService';
 import type { DatabaseAdapter } from '../../../services/databaseService';
 import { resolvePersonImportMatch } from '../../../services/personMatchingService';
 import { buildDefaultMapping } from '../../../src/app/features/persons/personImportUi';
-import type { ProtectedPersonRecord } from '../../../src/domain/models/protected-person.model';
+import type { PersonImportExecuteInput, ProtectedPersonRecord } from '../../../src/domain/models/protected-person.model';
+import { zipXmlEntries } from '../../helpers/zipXmlEntries';
 
 const existing: ProtectedPersonRecord = {
   id: 'p1',
@@ -48,6 +49,12 @@ function openPersonImportDatabase(): { raw: DatabaseSync; database: DatabaseAdap
   const raw = new DatabaseSync(':memory:');
   raw.exec(readFileSync('database/schema.sql', 'utf8'));
   return { raw, database: new SqliteAdapter(raw) };
+}
+
+async function executeReviewedImport(database: DatabaseAdapter, input: Omit<PersonImportExecuteInput, 'expectedSourceFileHash'>) {
+  const service = new PersonImportService(database);
+  const preview = await service.preview(input);
+  return service.execute({ ...input, expectedSourceFileHash: preview.sourceFileHash });
 }
 
 describe('0.9.1 Personenimport', () => {
@@ -185,11 +192,32 @@ describe('0.9.1 Personenimport', () => {
     const { raw, database } = openPersonImportDatabase();
     try {
       const csvText = 'Personalnummer;Vorname;Nachname;schwerbehindert seit;gleichgestellt ab\nP-1;Max;Muster;01.02.2020;\nP-2;Erika;Beispiel;;12.03.2021';
-      const result = await new PersonImportService(database).execute({ fileType: 'csv', sourceFileName: 'liste.csv', csvText, mapping: buildDefaultMapping(parseDelimitedText(csvText)[0]) });
+      const result = await executeReviewedImport(database, { fileType: 'csv', sourceFileName: 'liste.csv', csvText, mapping: buildDefaultMapping(parseDelimitedText(csvText)[0]) });
       expect(result.run.createdCount).toBe(2);
       const people = new ProtectedPersonService(database).list();
       expect(people.find((person) => person.personnelNumber === 'P-1')).toMatchObject({ protectionStatus: 'severely_disabled', statusValidFrom: '2020-02-01' });
       expect(people.find((person) => person.personnelNumber === 'P-2')).toMatchObject({ protectionStatus: 'equivalent', statusValidFrom: '2021-03-12' });
+    } finally { raw.close(); }
+  });
+
+  it('überspringt beide Zeilen mit derselben Personalnummer und widersprüchlichem Status vor jeder Änderung', async () => {
+    const { raw, database } = openPersonImportDatabase();
+    try {
+      const people = new ProtectedPersonService(database);
+      const person = people.create({ firstName: 'Max', lastName: 'Muster', personnelNumber: 'P-1', protectionStatus: 'severely_disabled', statusSource: 'employer_list' });
+      const csvText = 'Personalnummer;Vorname;Nachname;Status\nP-1;Max;Muster;schwerbehindert\nP-1;Max;Muster;gleichgestellt';
+      const result = await executeReviewedImport(database, {
+        fileType: 'csv', sourceFileName: 'liste.csv', csvText,
+        mapping: { personnelNumber: 'Personalnummer', firstName: 'Vorname', lastName: 'Nachname', protectionStatus: 'Status' },
+        reconcileMissingPersons: true,
+      });
+      expect(result.run).toMatchObject({ createdCount: 0, updatedCount: 0, skippedCount: 2, missingCount: 0 });
+      expect(result.run.items).toEqual(expect.arrayContaining([
+        expect.objectContaining({ rowNumber: 2, action: 'skipped', validationMessage: expect.stringMatching(/doppelt|mehrfach/i) }),
+        expect.objectContaining({ rowNumber: 3, action: 'skipped', validationMessage: expect.stringMatching(/doppelt|mehrfach/i) }),
+      ]));
+      expect(result.reconciliationSkippedReason).toMatch(/ausgesetzt/i);
+      expect(people.get(person.id)?.protectionStatus).toBe('severely_disabled');
     } finally { raw.close(); }
   });
 
@@ -223,7 +251,7 @@ describe('0.9.1 Personenimport', () => {
       const person = people.create({ firstName: 'Erika', lastName: 'Beispiel', personnelNumber: 'P-2', protectionStatus: 'severely_disabled', statusSource: 'employer_list' });
       const csvText = 'Personalnummer;Vorname;Nachname;schwerbehindert seit;gleichgestellt ab\nP-2;Erika;Beispiel;;12.03.2021';
       const mapping = buildDefaultMapping(parseDelimitedText(csvText)[0]);
-      const result = await new PersonImportService(database).execute({ fileType: 'csv', sourceFileName: 'liste.csv', csvText, mapping });
+      const result = await executeReviewedImport(database, { fileType: 'csv', sourceFileName: 'liste.csv', csvText, mapping });
       expect(result.run.updatedCount).toBe(1);
       expect(people.get(person.id)).toMatchObject({ protectionStatus: 'equivalent', statusValidFrom: '2021-03-12' });
     } finally { raw.close(); }
@@ -235,7 +263,7 @@ describe('0.9.1 Personenimport', () => {
       const people = new ProtectedPersonService(database);
       const person = people.create({ firstName: 'Erika', lastName: 'Beispiel', personnelNumber: 'P-2', protectionStatus: 'severely_disabled', statusSource: 'manual' });
       const csvText = 'Personalnummer;Vorname;Nachname;schwerbehindert seit;gleichgestellt ab\nP-2;Erika;Beispiel;;12.03.2021';
-      const result = await new PersonImportService(database).execute({ fileType: 'csv', sourceFileName: 'liste.csv', csvText, mapping: buildDefaultMapping(parseDelimitedText(csvText)[0]) });
+      const result = await executeReviewedImport(database, { fileType: 'csv', sourceFileName: 'liste.csv', csvText, mapping: buildDefaultMapping(parseDelimitedText(csvText)[0]) });
       expect(result.run.conflictCount).toBe(1);
       expect(result.run.items).toEqual(expect.arrayContaining([expect.objectContaining({ action: 'conflict', protectedPersonId: person.id })]));
       expect(people.get(person.id)?.protectionStatus).toBe('severely_disabled');
@@ -249,7 +277,7 @@ describe('0.9.1 Personenimport', () => {
       const present = people.create({ firstName: 'Max', lastName: 'Muster', personnelNumber: 'P-1', protectionStatus: 'equivalent', statusSource: 'employer_list' });
       const missing = people.create({ firstName: 'Erika', lastName: 'Beispiel', personnelNumber: 'P-2', protectionStatus: 'equivalent', statusSource: 'employer_list' });
       const manual = people.create({ firstName: 'Manu', lastName: 'Eintrag', protectionStatus: 'equivalent', statusSource: 'manual' });
-      const result = await new PersonImportService(database).execute({
+      const result = await executeReviewedImport(database, {
         fileType: 'csv', sourceFileName: 'liste.csv', csvText: 'Personalnummer;Vorname;Nachname;Status\nP-1;Max;Muster;gleichgestellt',
         mapping: { personnelNumber: 'Personalnummer', firstName: 'Vorname', lastName: 'Nachname', protectionStatus: 'Status' },
         reconcileMissingPersons: true,
@@ -260,7 +288,7 @@ describe('0.9.1 Personenimport', () => {
       expect(result.run.items?.some((item) => item.protectedPersonId === manual.id)).toBe(false);
       expect(people.get(missing.id)?.lifecycleState).toBe('active');
       expect(raw.prepare("SELECT COUNT(*) AS count FROM deadlines WHERE process_id = ? AND source_event = 'protected_person.missing_from_employer_list'").get(missing.id)).toMatchObject({ count: 1 });
-      await new PersonImportService(database).execute({
+      await executeReviewedImport(database, {
         fileType: 'csv', sourceFileName: 'liste-neu.csv', csvText: 'Personalnummer;Vorname;Nachname;Status\nP-1;Max;Muster;gleichgestellt\nP-2;Erika;Beispiel;gleichgestellt',
         mapping: { personnelNumber: 'Personalnummer', firstName: 'Vorname', lastName: 'Nachname', protectionStatus: 'Status' },
         reconcileMissingPersons: true,
@@ -274,7 +302,7 @@ describe('0.9.1 Personenimport', () => {
     try {
       const people = new ProtectedPersonService(database);
       const missing = people.create({ firstName: 'Erika', lastName: 'Beispiel', personnelNumber: 'P-2', protectionStatus: 'equivalent', statusSource: 'employer_list' });
-      const result = await new PersonImportService(database).execute({
+      const result = await executeReviewedImport(database, {
         fileType: 'csv', sourceFileName: 'abteilung.csv', csvText: 'Personalnummer;Vorname;Nachname;Status\nP-1;Max;Muster;gleichgestellt',
         mapping: { personnelNumber: 'Personalnummer', firstName: 'Vorname', lastName: 'Nachname', protectionStatus: 'Status' },
       });
@@ -316,7 +344,7 @@ describe('0.9.1 Personenimport', () => {
         statusSource: 'manual'
       });
 
-      const result = await new PersonImportService(database).execute({
+      const result = await executeReviewedImport(database, {
         fileType: 'csv',
         sourceFileName: 'arbeitgeberliste.csv',
         csvText: 'Name;Status;Abteilung\nMuster, Max;schwerbehindert;IT',
@@ -402,6 +430,41 @@ afterEach(() => { while (importTempRoots.length) rmSync(importTempRoots.pop()!, 
 const unusedDb = {} as DatabaseAdapter;
 
 describe('Personenimport – feindliche Eingaben', () => {
+  it('liest das erste Excel-Blatt über die Workbook-Beziehung statt über die unabhängige sheetId', async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), 'gremia-person-import-sheets-'));
+    importTempRoots.push(root);
+    const filePath = path.join(root, 'blätter.xlsx');
+    writeFileSync(filePath, zipXmlEntries([
+      ['xl/workbook.xml', '<workbook><sheets><sheet name="Aktuell" sheetId="2" r:id="rId1"/><sheet name="Alt" sheetId="1" r:id="rId2"/></sheets></workbook>'],
+      ['xl/_rels/workbook.xml.rels', '<Relationships><Relationship Id="rId1" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Target="worksheets/sheet2.xml"/></Relationships>'],
+      ['xl/worksheets/sheet1.xml', '<worksheet><sheetData><row><c r="A1" t="inlineStr"><is><t>Aktuell</t></is></c></row></sheetData></worksheet>'],
+      ['xl/worksheets/sheet2.xml', '<worksheet><sheetData><row><c r="A1" t="inlineStr"><is><t>Alt</t></is></c></row></sheetData></worksheet>'],
+    ]));
+
+    expect((await parseXlsxFile(filePath)).rows).toEqual([['Aktuell']]);
+    expect((await parseXlsxFile(filePath, 'Alt')).rows).toEqual([['Alt']]);
+    await expect(parseXlsxFile(filePath, 'Fehlt')).rejects.toThrow(/Tabellenblatt|nicht gefunden/i);
+  });
+
+  it('verhindert einen Import, wenn sich die geprüfte Datei nach der Vorschau ändert', async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), 'gremia-person-import-review-'));
+    importTempRoots.push(root);
+    const filePath = path.join(root, 'liste.csv');
+    const { raw, database } = openPersonImportDatabase();
+    try {
+      const service = new PersonImportService(database);
+      const input = { fileType: 'csv' as const, filePath, sourceFileName: 'liste.csv', mapping: {
+        firstName: 'Vorname', lastName: 'Nachname', personnelNumber: 'Personalnummer', protectionStatus: 'Status',
+      } };
+      writeFileSync(filePath, 'Vorname;Nachname;Personalnummer;Status\nMax;Muster;P-1;schwerbehindert');
+      const preview = await service.preview(input);
+      writeFileSync(filePath, 'Vorname;Nachname;Personalnummer;Status\nMax;Muster;P-1;gleichgestellt');
+
+      await expect(service.execute({ ...input, expectedSourceFileHash: preview.sourceFileHash })).rejects.toThrow(/geändert|erneut prüfen/i);
+      expect(new ProtectedPersonService(database).list()).toHaveLength(0);
+    } finally { raw.close(); }
+  });
+
   it('weist übergroße Importdateien vor dem Einlesen zurück', async () => {
     const root = mkdtempSync(path.join(os.tmpdir(), 'gremia-person-import-limit-'));
     importTempRoots.push(root);

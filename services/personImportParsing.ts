@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
-import { statSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
+import { posix } from 'node:path';
 import yauzl from 'yauzl';
 import type { PersonImportColumnMapping, ProtectionStatus } from '../src/domain/models/protected-person.model.js';
 
@@ -89,18 +90,18 @@ function decodeXml(value: string): string {
     .replace(/&amp;/g, '&');
 }
 
-async function openZipFile(filePath: string): Promise<yauzl.ZipFile> {
+async function openZipFile(buffer: Buffer): Promise<yauzl.ZipFile> {
   return await new Promise((resolve, reject) => {
-    yauzl.open(filePath, { lazyEntries: true }, (error, zipFile) => {
-      if (error || !zipFile) reject(error ?? new Error(`XLSX-Datei konnte nicht geöffnet werden: ${filePath}`));
+    yauzl.fromBuffer(buffer, { lazyEntries: true }, (error, zipFile) => {
+      if (error || !zipFile) reject(error ?? new Error('XLSX-Datei konnte nicht geöffnet werden.'));
       else resolve(zipFile);
     });
   });
 }
 
-async function readZipEntries(filePath: string): Promise<Map<string, Buffer>> {
-  assertPersonImportFileSize(filePath);
-  const zip = await openZipFile(filePath);
+async function readZipEntries(buffer: Buffer): Promise<Map<string, Buffer>> {
+  if (buffer.byteLength > MAX_PERSON_IMPORT_FILE_BYTES) throw new Error('Importdatei ist zu groß. Maximal 25 MB sind zulässig.');
+  const zip = await openZipFile(buffer);
   const entries = new Map<string, Buffer>();
   let totalUncompressed = 0;
   return await new Promise((resolve, reject) => {
@@ -191,16 +192,48 @@ function parseSheetRows(xml: string, sharedStrings: string[]): string[][] {
   return filtered;
 }
 
-export async function parseXlsxFile(filePath: string, sheetName?: string): Promise<{ rows: string[][]; sheetName: string; sheets: string[] }> {
-  const entries = await readZipEntries(filePath);
+function xmlAttributes(tag: string): Record<string, string> {
+  const attributes: Record<string, string> = {};
+  for (const match of tag.matchAll(/([\w:.-]+)\s*=\s*(["'])(.*?)\2/g)) attributes[match[1]] = decodeXml(match[3]);
+  return attributes;
+}
+
+function workbookSheets(workbook: string): Array<{ name: string; relationId: string }> {
+  return [...workbook.matchAll(/<sheet\s+([^>]*?)\/?\s*>/g)].map((match) => {
+    const attributes = xmlAttributes(match[1]);
+    const relationId = Object.entries(attributes).find(([name]) => name.endsWith(':id'))?.[1] ?? '';
+    return { name: attributes.name ?? '', relationId };
+  }).filter((sheet) => sheet.name);
+}
+
+function worksheetPath(relationships: string, relationId: string): string {
+  const relation = [...relationships.matchAll(/<Relationship\s+([^>]*?)\/?\s*>/g)]
+    .map((match) => xmlAttributes(match[1]))
+    .find((attributes) => attributes.Id === relationId);
+  if (!relation?.Target || relation.TargetMode === 'External') throw new Error('Excel-Tabellenblatt hat keine gültige interne Dateizuordnung.');
+  const target = relation.Target.startsWith('/') ? relation.Target.slice(1) : posix.join('xl', relation.Target);
+  const normalized = posix.normalize(target);
+  if (!normalized.startsWith('xl/') || normalized.includes('..')) throw new Error('Excel-Tabellenblatt hat eine ungültige Dateizuordnung.');
+  return normalized;
+}
+
+export async function parseXlsxBuffer(buffer: Buffer, sheetName?: string): Promise<{ rows: string[][]; sheetName: string; sheets: string[] }> {
+  const entries = await readZipEntries(buffer);
   const workbook = entries.get('xl/workbook.xml')?.toString('utf8') ?? '';
-  const sheets = [...workbook.matchAll(/<sheet[^>]*name="([^"]+)"[^>]*sheetId="(\d+)"/g)].map((match) => ({ name: decodeXml(match[1]), sheetId: match[2] }));
-  const selected = sheets.find((sheet) => sheet.name === sheetName) ?? sheets[0] ?? { name: 'Tabelle1', sheetId: '1' };
+  const sheets = workbookSheets(workbook);
+  const selected = sheetName ? sheets.find((sheet) => sheet.name === sheetName) : sheets[0];
+  if (!selected) throw new Error(sheetName ? `Excel-Tabellenblatt „${sheetName}“ wurde nicht gefunden.` : 'XLSX enthält kein lesbares Tabellenblatt.');
+  const relationships = entries.get('xl/_rels/workbook.xml.rels')?.toString('utf8') ?? '';
+  const path = worksheetPath(relationships, selected.relationId);
+  const sheetXml = entries.get(path)?.toString('utf8');
+  if (sheetXml === undefined) throw new Error(`Excel-Tabellenblatt „${selected.name}“ konnte nicht gelesen werden.`);
   const sharedStrings = parseSharedStrings(entries.get('xl/sharedStrings.xml')?.toString('utf8') ?? '');
-  const sheetXml = entries.get(`xl/worksheets/sheet${selected.sheetId}.xml`)?.toString('utf8')
-    ?? entries.get('xl/worksheets/sheet1.xml')?.toString('utf8')
-    ?? '';
   return { rows: parseSheetRows(sheetXml, sharedStrings), sheetName: selected.name, sheets: sheets.map((sheet) => sheet.name) };
+}
+
+export async function parseXlsxFile(filePath: string, sheetName?: string): Promise<{ rows: string[][]; sheetName: string; sheets: string[] }> {
+  assertPersonImportFileSize(filePath);
+  return parseXlsxBuffer(readFileSync(filePath), sheetName);
 }
 
 export function getMappedValue(rowObject: Record<string, string>, mappingKey: keyof PersonImportColumnMapping, mapping: PersonImportColumnMapping): string | undefined {

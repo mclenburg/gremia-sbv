@@ -48,6 +48,8 @@ Speichere dienstliche Kontaktdaten bevorzugt vor privaten Kontaktdaten. Private 
 
 Über **Personen importieren** kannst du eine Excel- oder CSV-Liste des Arbeitgebers lokal einlesen. Die Datei wird nur für den Import verarbeitet und nicht dauerhaft gespeichert. Vor dem Speichern zeigt Gremia.SBV eine Vorschau, erkennt naheliegende Spalten und lässt dich die Zuordnung bewusst prüfen.
 
+Jede Importzeile wird mit der geprüften Datei abgeglichen. Ändert sich die Datei nach der Vorschau, musst du sie erneut prüfen. Mehrere Zeilen mit derselben Personalnummer oder dienstlichen E-Mail werden übersprungen und mit einem Hinweis angezeigt; bereinige die Datei und starte den Import erneut.
+
 Der Name kann entweder in getrennten Spalten für Vor- und Nachname stehen oder in einer gemeinsamen Namensspalte. Bei einer gemeinsamen Spalte kannst du das Format wählen, zum Beispiel **Nachname, Vorname**. Weitere Angaben wie Personalnummer, dienstliche E-Mail, Abteilung, Bereich, Standort, Beschäftigungsstatus oder Statusgültigkeit sind optional.
 
 Der Schutzstatus kann auf zwei Arten ermittelt werden:

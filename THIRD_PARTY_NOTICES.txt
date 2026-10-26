@@ -2276,7 +2276,7 @@ Copyright notices:
 - NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 License text: LICENSES/MIT.txt
 
-electron@43.7.9
+electron@43.8.3
 License: MIT
 Repository: https://github.com/electron/electron
 Copyright notices:
@@ -2590,7 +2590,7 @@ Copyright notices:
 - NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
 License text: LICENSES/MIT.txt
 
-fast-uri@3.1.8
+fast-uri@3.1.9
 License: BSD-3-Clause
 Repository: git+https://github.com/fastify/fast-uri.git
 Homepage: https://github.com/fastify/fast-uri
@@ -2654,7 +2654,7 @@ Copyright notices:
 - copyright notice and this permission notice appear in all copies.
 License text: LICENSES/ISC.txt
 
-follow-redirects@1.16.0
+follow-redirects@1.16.2
 License: MIT
 Repository: git+ssh://git@github.com/follow-redirects/follow-redirects.git
 Homepage: https://github.com/follow-redirects/follow-redirects
@@ -4681,7 +4681,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-undici@6.29.0
+undici@6.29.1
 License: MIT
 Repository: git+https://github.com/nodejs/undici.git
 Homepage: https://undici.nodejs.org
@@ -4691,7 +4691,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-undici@7.30.0
+undici@7.30.1
 License: MIT
 Repository: git+https://github.com/nodejs/undici.git
 Homepage: https://undici.nodejs.org
@@ -5051,7 +5051,7 @@ Copyright notices:
 - The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 License text: LICENSES/MIT.txt
 
-zod@4.4.3
+zod@4.6.7
 License: MIT
 Repository: git+https://github.com/colinhacks/zod.git
 Homepage: https://zod.dev

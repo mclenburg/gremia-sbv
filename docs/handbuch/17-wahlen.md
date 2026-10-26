@@ -35,6 +35,8 @@ Die Anwendung dient dabei als Dokumentations- und Arbeitswerkzeug. Sie ersetzt n
 
 Die Wählerliste wird als Wahl-Snapshot geführt, damit der dokumentierte Stand der Wahlakte nachvollziehbar bleibt. Standardmäßig wird sie aus dem Personenverzeichnis übernommen: aktive schwerbehinderte und gleichgestellte Personen werden als eigenständige Arbeitskopie in die Wahlakte synchronisiert. Änderungen im Personenverzeichnis können erneut übernommen werden; nicht mehr wahlberechtigte zuvor synchronisierte Einträge werden dabei als nicht wahlberechtigt markiert, nicht still gelöscht. Alternativ kann dieselbe Excel-/CSV-Struktur wie beim Personenimport direkt in die Wählerliste eingelesen werden. Die Datei verändert dabei das Personenverzeichnis nicht. Die manuelle Erfassung einzelner Wahlberechtigter bleibt als nachrangige Ergänzung verfügbar. Der historische Wahlberechtigten-Snapshot aus der Verfahrensprüfung wird durch spätere Übernahmen nicht automatisch neu berechnet. Einsprüche und ihre Bearbeitung können getrennt nachgehalten werden.
 
+Prüfe bei einem Dateiimport die Spaltenzuordnung und Vorschau vor der Übernahme. Wird die Datei danach verändert, ist eine neue Vorschau nötig. Mehrere Zeilen mit derselben Personalnummer oder dienstlichen E-Mail werden nicht übernommen; bereinige solche Doppelzeilen in der Datei.
+
 Kandidaturen und Wahlvorschläge werden als Wahlvorgänge dokumentiert. Personenbezogene Daten sollten auch hier auf das für die Durchführung der Wahl Erforderliche begrenzt bleiben.
 
 ## Wahlunterlagen und Stimmabgabe

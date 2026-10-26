@@ -191,11 +191,13 @@ export interface PersonImportPreviewResult {
   columns: string[];
   rows: PersonImportPreviewRow[];
   warnings: string[];
+  sourceFileHash: string;
   detectedEncoding?: string;
   encodingConfidence?: 'high' | 'medium' | 'low';
 }
 
 export interface PersonImportExecuteInput extends PersonImportPreviewInput {
+  expectedSourceFileHash: string;
   profileId?: string;
   profileName?: string;
   /** Only for a confirmed complete employer roster, never for a partial export. */

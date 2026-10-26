@@ -776,7 +776,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - electron-winstaller@5.4.0
   License: MIT
   License text: LICENSES/MIT.txt
-- electron@43.7.9
+- electron@43.8.3
   License: MIT
   License text: LICENSES/MIT.txt
 - emoji-regex@8.0.0
@@ -866,7 +866,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - fast-levenshtein@2.0.6
   License: MIT
   License text: LICENSES/MIT.txt
-- fast-uri@3.1.8
+- fast-uri@3.1.9
   License: BSD-3-Clause
   License text: LICENSES/BSD-3-Clause.txt
 - fdir@6.5.0
@@ -887,7 +887,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - flatted@3.4.4
   License: ISC
   License text: LICENSES/ISC.txt
-- follow-redirects@1.16.0
+- follow-redirects@1.16.2
   License: MIT
   License text: LICENSES/MIT.txt
 - fontkit@2.0.4
@@ -1567,10 +1567,10 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - undici-types@7.24.6
   License: MIT
   License text: LICENSES/MIT.txt
-- undici@6.29.0
+- undici@6.29.1
   License: MIT
   License text: LICENSES/MIT.txt
-- undici@7.30.0
+- undici@7.30.1
   License: MIT
   License text: LICENSES/MIT.txt
 - unicode-properties@1.4.1
@@ -1682,7 +1682,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - zod-validation-error@4.0.2
   License: MIT
   License text: LICENSES/MIT.txt
-- zod@4.4.3
+- zod@4.6.7
   License: MIT
   License text: LICENSES/MIT.txt
 

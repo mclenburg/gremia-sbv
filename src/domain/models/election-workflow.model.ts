@@ -109,6 +109,10 @@ export interface ElectionVoterFileImportInput {
   mapping: import('./protected-person.model.js').PersonImportColumnMapping;
 }
 
+export interface ElectionVoterFileImportExecutionInput extends ElectionVoterFileImportInput {
+  expectedSourceFileHash: string;
+}
+
 export interface ElectionVoterFileImportResult {
   totalRows: number;
   imported: number;
