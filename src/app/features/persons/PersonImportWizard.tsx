@@ -133,6 +133,36 @@ export function PersonImportWizard({
     }
   }
 
+  return <PersonImportWizardBody
+    {...{ step, setStep, source, csvText, setCsvText, mapping, setMapping, preview, result, reconcileMissingPersons, setReconcileMissingPersons }}
+    {...{ resetAndClose, loadFileForPreview, previewPastedCsv, updateMapping, validateImport, executeImport, onOpenPerson }}
+  />;
+}
+
+function PersonImportWizardBody({
+  step, setStep, source, csvText, setCsvText, mapping, setMapping, preview, result,
+  reconcileMissingPersons, setReconcileMissingPersons, resetAndClose,
+  loadFileForPreview, previewPastedCsv, updateMapping, validateImport, executeImport, onOpenPerson
+}: {
+  step: ImportStep;
+  setStep: (value: ImportStep) => void;
+  source: ImportSource | null;
+  csvText: string;
+  setCsvText: (value: string) => void;
+  mapping: PersonImportColumnMapping;
+  setMapping: (value: PersonImportColumnMapping) => void;
+  preview: PersonImportPreviewResult | null;
+  result: PersonImportExecuteResult | null;
+  reconcileMissingPersons: boolean;
+  setReconcileMissingPersons: (value: boolean) => void;
+  resetAndClose: () => void;
+  loadFileForPreview: () => Promise<void>;
+  previewPastedCsv: (event: FormEvent<HTMLFormElement>) => Promise<void>;
+  updateMapping: (key: ImportFieldKey, value: string) => void;
+  validateImport: () => Promise<void>;
+  executeImport: () => Promise<void>;
+  onOpenPerson?: (id: string) => void;
+}) {
   return (
     <IndustrialModal
       title="Personen importieren"

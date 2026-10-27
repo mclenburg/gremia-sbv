@@ -188,8 +188,6 @@ export function VotersSection({ overview, run }: { overview: ElectionPreparation
     setImportPreviewReady(true);
   }
 
-  const voterImportFields = personImportFieldOptions.filter((field) => ['fullName', 'firstName', 'lastName', 'protectionStatus', 'organizationalUnit', 'leftCompanyAt'].includes(field.key));
-
   return (
     <div className="election-section-stack">
       <FormSection
@@ -203,43 +201,18 @@ export function VotersSection({ overview, run }: { overview: ElectionPreparation
           </>
         )}
       >
-        {importSource && importPreview ? (
-          <div className="election-import-panel">
-            <div className="industrial-panel-header compact">
-              <div>
-                <h3>Importvorschau: {importSource.sourceFileName}</h3>
-                <p className="industrial-meta">Bis zu 50 Zeilen werden vorab angezeigt; der eigentliche Import verarbeitet die vollständige Datei.</p>
-              </div>
-              <IndustrialButton disabled={!importPreviewReady} onClick={() => void run(async () => {
-                const result = await window.gremiaSbv.elections.importVotersFromPersonFile(overview.election.id, {
-                  ...importSource, csvEncoding: 'auto', delimiter: ';', headerRowIndex: 0, firstDataRowIndex: 1, mapping: importMapping,
-                  expectedSourceFileHash: importPreview.sourceFileHash,
-                });
-                setImportSource(null); setImportPreview(null);
-                return result;
-              }, 'Wahlberechtigte aus Excel/CSV übernommen.')}>Datei übernehmen</IndustrialButton>
-            </div>
-            <div className="industrial-form-grid industrial-form-grid-3 election-form-grid">
-              {voterImportFields.map((field) => (
-                <SelectInput
-                  key={field.key}
-                  label={field.label}
-                  value={String(importMapping[field.key as keyof PersonImportColumnMapping] ?? '')}
-                  options={[{ value: '', label: 'Nicht importieren' }, ...importPreview.columns.map((column) => ({ value: column, label: column }))]}
-                  onValueChange={(value) => void run(() => refreshImportPreview(updatePersonImportColumnMapping(importMapping, field.key as PersonImportFieldKey, value)), 'Importvorschau aktualisiert.')}
-                />
-              ))}
-            </div>
-            {importPreview.rows.length ? (
-              <div className="industrial-table-wrap">
-                <table className="industrial-table">
-                  <thead><tr><th>Name</th><th>Status</th><th>Hinweise</th></tr></thead>
-                  <tbody>{importPreview.rows.slice(0, 8).map((row) => <tr key={row.rowNumber}><td>{row.lastName ?? '—'}, {row.firstName ?? '—'}</td><td>{row.protectionStatus ? protectionStatusLabels[row.protectionStatus] : '—'}</td><td>{row.validationErrors.join(' ') || 'übernehmbar'}</td></tr>)}</tbody>
-                </table>
-              </div>
-            ) : <p className="industrial-empty-state">Keine importierbaren Zeilen in der Vorschau.</p>}
-          </div>
-        ) : null}
+        {importSource && importPreview ? <VoterImportPanel
+          source={importSource} preview={importPreview} mapping={importMapping} ready={importPreviewReady}
+          onMappingChange={(field, value) => void run(() => refreshImportPreview(updatePersonImportColumnMapping(importMapping, field, value)), 'Importvorschau aktualisiert.')}
+          onImport={() => void run(async () => {
+            const result = await window.gremiaSbv.elections.importVotersFromPersonFile(overview.election.id, {
+              ...importSource, csvEncoding: 'auto', delimiter: ';', headerRowIndex: 0, firstDataRowIndex: 1, mapping: importMapping,
+              expectedSourceFileHash: importPreview.sourceFileHash,
+            });
+            setImportSource(null); setImportPreview(null);
+            return result;
+          }, 'Wahlberechtigte aus Excel/CSV übernommen.')}
+        /> : null}
         {overview.voters.length ? <ul className="election-record-list">{overview.voters.map((voter) => <li key={voter.id}>{voter.lastName}, {voter.firstName}{voter.orgUnit ? ` · ${voter.orgUnit}` : ''} · {electionVoterListStatusLabel(voter.listStatus)}</li>)}</ul> : <p className="industrial-empty-state">Die Wählerliste ist noch leer. Übernehmen Sie zuerst die bestätigten Personen aus dem Personenverzeichnis.</p>}
       </FormSection>
 
@@ -263,6 +236,48 @@ export function VotersSection({ overview, run }: { overview: ElectionPreparation
           {overview.objections.length ? <ul className="election-record-list">{overview.objections.map((item) => <li key={item.id}><span>{item.receivedAt}: {item.subjectRef} {item.notifiedAt ? '· erledigt' : ''}</span>{!item.notifiedAt ? <IndustrialButton compact variant="secondary" onClick={() => void run(() => window.gremiaSbv.elections.saveObjection(overview.election.id, { id: item.id, receivedAt: item.receivedAt, subjectRef: item.subjectRef, decisionAt: today(), decision: 'bearbeitet', notifiedAt: today() }), 'Einspruch entschieden und Mitteilung dokumentiert.')}>Entscheidung/Mitteilung</IndustrialButton> : null}</li>)}</ul> : <p className="industrial-empty-state">Keine Einsprüche dokumentiert.</p>}
         </FormSection>
       ) : null}
+    </div>
+  );
+}
+
+const voterImportFields = personImportFieldOptions.filter((field) => ['fullName', 'firstName', 'lastName', 'protectionStatus', 'organizationalUnit', 'leftCompanyAt'].includes(field.key));
+
+function VoterImportPanel({ source, preview, mapping, ready, onMappingChange, onImport }: {
+  source: { sourceFileName: string; fileType: 'csv' | 'xlsx'; fileToken: string };
+  preview: PersonImportPreviewResult;
+  mapping: PersonImportColumnMapping;
+  ready: boolean;
+  onMappingChange: (field: PersonImportFieldKey, value: string) => void;
+  onImport: () => void;
+}) {
+  return (
+    <div className="election-import-panel">
+      <div className="industrial-panel-header compact">
+        <div>
+          <h3>Importvorschau: {source.sourceFileName}</h3>
+          <p className="industrial-meta">Bis zu 50 Zeilen werden vorab angezeigt; der eigentliche Import verarbeitet die vollständige Datei.</p>
+        </div>
+        <IndustrialButton disabled={!ready} onClick={onImport}>Datei übernehmen</IndustrialButton>
+      </div>
+      <div className="industrial-form-grid industrial-form-grid-3 election-form-grid">
+        {voterImportFields.map((field) => (
+          <SelectInput
+            key={field.key}
+            label={field.label}
+            value={String(mapping[field.key as keyof PersonImportColumnMapping] ?? '')}
+            options={[{ value: '', label: 'Nicht importieren' }, ...preview.columns.map((column) => ({ value: column, label: column }))]}
+            onValueChange={(value) => onMappingChange(field.key as PersonImportFieldKey, value)}
+          />
+        ))}
+      </div>
+      {preview.rows.length ? (
+        <div className="industrial-table-wrap">
+          <table className="industrial-table">
+            <thead><tr><th>Name</th><th>Status</th><th>Hinweise</th></tr></thead>
+            <tbody>{preview.rows.slice(0, 8).map((row) => <tr key={row.rowNumber}><td>{row.lastName ?? '—'}, {row.firstName ?? '—'}</td><td>{row.protectionStatus ? protectionStatusLabels[row.protectionStatus] : '—'}</td><td>{row.validationErrors.join(' ') || 'übernehmbar'}</td></tr>)}</tbody>
+          </table>
+        </div>
+      ) : <p className="industrial-empty-state">Keine importierbaren Zeilen in der Vorschau.</p>}
     </div>
   );
 }
