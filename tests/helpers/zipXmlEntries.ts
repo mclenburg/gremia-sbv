@@ -1,5 +1,11 @@
 import { deflateRawSync } from 'node:zlib';
 
+const CRC32_TABLE = Uint32Array.from({ length: 256 }, (_, index) => {
+  let value = index;
+  for (let bit = 0; bit < 8; bit += 1) value = (value >>> 1) ^ (value & 1 ? 0xedb88320 : 0);
+  return value >>> 0;
+});
+
 export function zipXmlEntries(entries: Array<[string, string]>): Buffer {
   const local: Buffer[] = [];
   const central: Buffer[] = [];
@@ -9,10 +15,7 @@ export function zipXmlEntries(entries: Array<[string, string]>): Buffer {
     const data = Buffer.from(xml);
     const compressed = deflateRawSync(data);
     let crc = 0xffffffff;
-    for (const byte of data) {
-      crc ^= byte;
-      for (let bit = 0; bit < 8; bit += 1) crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
-    }
+    for (const byte of data) crc = (crc >>> 8) ^ CRC32_TABLE[(crc ^ byte) & 0xff];
     crc = (crc ^ 0xffffffff) >>> 0;
     const header = Buffer.alloc(30);
     header.writeUInt32LE(0x04034b50, 0);
