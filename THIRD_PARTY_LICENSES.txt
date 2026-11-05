@@ -1049,7 +1049,7 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - jiti@2.7.0
   License: MIT
   License text: LICENSES/MIT.txt
-- joi@18.2.9
+- joi@18.3.2
   License: BSD-3-Clause
   License text: LICENSES/BSD-3-Clause.txt
 - js-md5@0.8.3

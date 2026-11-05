@@ -3130,7 +3130,7 @@ Copyright notices:
 - AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 License text: LICENSES/MIT.txt
 
-joi@18.2.9
+joi@18.3.2
 License: BSD-3-Clause
 Repository: git://github.com/hapijs/joi.git
 Copyright notices:
