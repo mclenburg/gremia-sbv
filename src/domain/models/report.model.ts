@@ -1,3 +1,5 @@
+import type { DataProtectionNoticeInput } from './compliance.model.js';
+
 export const REPORT_TYPES = [
   'activity',
   'privacy_audit',
@@ -45,6 +47,7 @@ export interface GenerateReportInput {
   complianceSubtitle?: string;
   complianceClassification?: string;
   complianceBody?: string;
+  complianceNoticeInput?: DataProtectionNoticeInput;
 }
 
 export interface ReportGenerationResult {

@@ -7,9 +7,11 @@ import {
 import type {
   ComplianceDocument,
   ComplianceDocumentType,
+  DataProtectionNoticeInput,
 } from "../../../../domain/models/compliance.model";
 import { DOCUMENT_WORKSPACE_EXCLUDED_TYPES } from "../complianceConstants";
 import { ComplianceDocumentPreview } from "./ComplianceDocumentPreview";
+import { DataProtectionNoticePanel } from "./DataProtectionNoticePanel";
 
 export function ComplianceDocumentsPanel({
   descriptors,
@@ -17,6 +19,7 @@ export function ComplianceDocumentsPanel({
   document,
   onRender,
   onExportPdf,
+  onExportNotice,
 }: {
   descriptors: Array<{
     type: ComplianceDocumentType;
@@ -28,6 +31,7 @@ export function ComplianceDocumentsPanel({
   document: ComplianceDocument;
   onRender: (type: ComplianceDocumentType) => void;
   onExportPdf: (open: boolean) => void;
+  onExportNotice: (input: DataProtectionNoticeInput, open: boolean) => Promise<void> | void;
 }) {
   return (
     <div className="compliance-layout">
@@ -52,10 +56,9 @@ export function ComplianceDocumentsPanel({
           )}
         />
       </section>
-      <ComplianceDocumentPreview
-        document={document}
-        onExportPdf={onExportPdf}
-      />
+      {selectedType === 'data_protection_notice'
+        ? <DataProtectionNoticePanel onExport={onExportNotice} />
+        : <ComplianceDocumentPreview document={document} onExportPdf={onExportPdf} />}
     </div>
   );
 }

@@ -46,11 +46,9 @@ export function buildGremiaBrCaseSummaryDocument(input: GremiaBrCaseSummaryDocum
     'Fallzusammenfassung für Gremia.BR',
     'Zuarbeit der SBV für den Betriebsrat',
     [
-      section('Freigabekontext', [
-        paragraph('Diese Zusammenfassung wird auf bewusste Veranlassung der SBV erzeugt, um den Betriebsrat zu informieren oder eine Behandlung im Gremium zu ermöglichen. Sie ersetzt keine vollständige Fallakte. Vor Übergabe ist zu prüfen, ob Umfang und Zweck erforderlich sind.'),
+      section('Übergabe', [
         paragraph(`Zweck der Übergabe: ${input.purpose}`),
         table(['Feld', 'Wert'], [
-          ['Zweck', input.purpose],
           ['Empfänger/Ziel', input.recipientLabel?.trim() || 'Gremia.BR-Arbeitsbereich'],
         ]),
       ]),

@@ -33,12 +33,12 @@ function setup() {
 describe('compliance action workflows', () => {
   afterEach(() => vi.resetAllMocks());
 
-  it('renders the selected compliance document and announces its availability', () => {
+  it('öffnet für die Datenschutzinformation das Eingabeformular ohne ungefülltes PDF', () => {
     const state = setup();
     state.documents.render('data_protection_notice');
     expect(state.setSelectedType).toHaveBeenCalledExactlyOnceWith('data_protection_notice');
-    expect(state.setDocument).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ type: 'data_protection_notice' }));
-    expect(state.announce).toHaveBeenCalledWith(expect.any(String), 'polite');
+    expect(state.setDocument).not.toHaveBeenCalled();
+    expect(state.announce).not.toHaveBeenCalled();
   });
 
   it('generates the selected document through the report service without requesting a preview by default', async () => {
@@ -49,6 +49,21 @@ describe('compliance action workflows', () => {
     expect(state.reports.openExportFolder).not.toHaveBeenCalled();
     expect(state.setMessage).toHaveBeenCalledWith(expect.stringMatching(/verschlüsselter PDF-Report/));
     expect(state.announce).toHaveBeenCalledExactlyOnceWith(expect.any(String), 'polite');
+  });
+
+  it('übergibt die ausgefüllte Datenschutzinformation strukturiert an den Berichtsdienst', async () => {
+    const state = setup();
+    const input = {
+      responsibleEntity: 'Muster GmbH', responsibleContact: 'kontakt@muster.de', sbvContact: 'sbv@muster.de',
+      privacyOfficerContact: '', legalBasis: '§ 178 SGB IX', dataSources: 'Betroffene Person',
+      recipients: 'SBV', retention: 'Bis zum Zweckfortfall', thirdCountryTransfers: 'Keine',
+      supervisoryAuthority: 'Aufsichtsbehörde', issueDate: '2026-11-05',
+    };
+    await state.documents.exportDataProtectionNotice(input, true);
+    expect(state.reports.generate).toHaveBeenCalledExactlyOnceWith({
+      type: 'compliance_document', complianceDocumentType: 'data_protection_notice', complianceNoticeInput: input,
+    });
+    expect(state.reports.openExportFolder).toHaveBeenCalledOnce();
   });
 
   it('requests the generated file for external preview only after successful generation', async () => {

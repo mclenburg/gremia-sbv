@@ -34,8 +34,8 @@ export const COMPLIANCE_DOCUMENTS: ComplianceDocumentDescriptor[] = [
   {
     type: 'data_protection_notice',
     title: 'Datenschutzinformation Art. 13/14 DSGVO',
-    description: 'Anpassbare Vorlage für die proaktive Datenschutzinformation betroffener Beschäftigter.',
-    buttonLabel: 'Datenschutzinformation abrufen'
+    description: 'Versendbare Information für Beschäftigte aus vollständigen lokalen Angaben erstellen.',
+    buttonLabel: 'Datenschutzinformation erstellen'
   },
   {
     type: 'data_subject_rights',
@@ -89,9 +89,7 @@ export function complianceDocumentFileName(type: ComplianceDocumentType, generat
 export function header(title: string, generatedAt: string): string {
   return `# ${title}
 
-Erzeugt am: ${displayDateTime(generatedAt)}
-
-Hinweis: Diese Unterlage dokumentiert die in Gremia.SBV vorgesehenen und umgesetzten Maßnahmen. Sie ersetzt keine abschließende Bewertung durch Datenschutzbeauftragte, IT-Security oder Rechtsberatung.
+Stand: ${displayDateTime(generatedAt)}
 
 `;
 }

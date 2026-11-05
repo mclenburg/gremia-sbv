@@ -39,7 +39,7 @@ Zu dokumentieren sind insbesondere:
 
 ## Information der Beschäftigten
 
-Die Anwendung versendet keine eigenständigen Informationen nach Art. 13/14 DSGVO. Die Information der Beschäftigten ist organisatorisch über Arbeitgeber, Datenschutzinformation oder verantwortliche Stelle sicherzustellen. Als Arbeitshilfe stellt Gremia.SBV eine anpassbare Vorlage `DATENSCHUTZINFORMATION_ART_13_14_TEMPLATE.md` bereit und macht diese zusätzlich im Compliance Center abrufbar.
+Die Anwendung versendet keine Informationen nach Art. 13/14 DSGVO selbst. Im Compliance-Center kann aus vollständigen Angaben eine versendbare Datenschutzinformation als PDF erstellt werden. Organisations- und Kontaktdaten aus den Einstellungen werden vorbelegt; Rechtsgrundlage, Datenherkunft, Empfänger, Speicherdauer, Drittlandübermittlung und Aufsichtsbehörde müssen für den konkreten Betrieb ergänzt werden. Ohne diese Angaben wird kein PDF erzeugt. Die Ausgabe und der Nachweis der Information bleiben ein organisatorischer Vorgang der verantwortlichen Stelle.
 
 
 

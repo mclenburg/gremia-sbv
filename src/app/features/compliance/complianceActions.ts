@@ -1,7 +1,8 @@
 import { waitForBridge } from "../../core/bridge/waitForBridge";
 import type {
-  ComplianceDocument, ComplianceDocumentType, CreateComplianceIncidentInput, UpdateComplianceIncidentInput,
+  ComplianceDocument, ComplianceDocumentType, CreateComplianceIncidentInput, DataProtectionNoticeInput, UpdateComplianceIncidentInput,
 } from "../../../domain/models/compliance.model";
+import type { GenerateReportInput } from "../../../domain/models/report.model";
 import { buildComplianceReportInput, renderComplianceDocument } from "@/domain/compliance/complianceCenterService";
 import { buildPdfExportFeedback } from "./complianceViewUtils";
 
@@ -16,6 +17,10 @@ export function createComplianceDocumentActions({ document, setDocument, setSele
   setSelectedType: (type: ComplianceDocumentType) => void;
 }) {
   function render(type: ComplianceDocumentType) {
+    if (type === 'data_protection_notice') {
+      setSelectedType(type);
+      return;
+    }
     const next = renderComplianceDocument(type);
     setSelectedType(type);
     setDocument(next);
@@ -24,17 +29,17 @@ export function createComplianceDocumentActions({ document, setDocument, setSele
     announce(info, "polite");
   }
 
-  async function exportPdfCurrent(openAfterExport = false) {
+  async function exportPdf(input: GenerateReportInput, title: string, openAfterExport: boolean) {
     try {
       const bridge = await waitForBridge();
       if (!bridge?.reports) throw new Error("Berichtsdienst ist nicht erreichbar.");
-      const result = await bridge.reports.generate(buildComplianceReportInput(document));
+      const result = await bridge.reports.generate(input);
       if (!result.ok) throw new Error(result.error ?? "PDF-Dokument konnte nicht erzeugt werden.");
       const openResult = openAfterExport
         ? await bridge.reports.openExportFolder(result.fileName)
         : undefined;
       const feedback = buildPdfExportFeedback({
-        title: document.title,
+        title,
         fileName: result.fileName,
         openRequested: openAfterExport,
         openResult,
@@ -48,7 +53,15 @@ export function createComplianceDocumentActions({ document, setDocument, setSele
     }
   }
 
-  return { render, exportPdfCurrent };
+  function exportPdfCurrent(openAfterExport = false) {
+    return exportPdf(buildComplianceReportInput(document), document.title, openAfterExport);
+  }
+
+  function exportDataProtectionNotice(input: DataProtectionNoticeInput, openAfterExport = false) {
+    return exportPdf({ type: 'compliance_document', complianceDocumentType: 'data_protection_notice', complianceNoticeInput: input }, 'Datenschutzinformation', openAfterExport);
+  }
+
+  return { render, exportPdfCurrent, exportDataProtectionNotice };
 }
 
 export function createComplianceIncidentActions({ refreshIncidents, refreshSelfCheck, setMessage, announce }: ComplianceFeedback & {

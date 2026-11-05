@@ -29,6 +29,20 @@ export interface ComplianceDocumentDescriptor {
   buttonLabel: string;
 }
 
+export interface DataProtectionNoticeInput {
+  responsibleEntity: string;
+  responsibleContact: string;
+  sbvContact: string;
+  privacyOfficerContact: string;
+  legalBasis: string;
+  dataSources: string;
+  recipients: string;
+  retention: string;
+  thirdCountryTransfers: string;
+  supervisoryAuthority: string;
+  issueDate: string;
+}
+
 
 export interface DataSubjectAccessPrefillPerson {
   id: string;

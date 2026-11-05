@@ -126,7 +126,7 @@ ${stepELegalBasesSection()}
 
 Art. 6 Abs. 1 lit. c DSGVO in Verbindung mit Art. 9 Abs. 2 lit. b DSGVO, § 26 Abs. 3 BDSG sowie den Aufgaben und Beteiligungsrechten der Schwerbehindertenvertretung nach § 178 Abs. 1 SGB IX und § 178 Abs. 2 Satz 1 SGB IX. Für Arbeitgeberverzeichnis und Arbeitgeberliste ist zusätzlich § 163 SGB IX zu berücksichtigen; für behinderungsgerechte Beschäftigung, Arbeitsplatzgestaltung, Arbeitsorganisation, Hilfsmittel und Teilzeit ist § 164 Abs. 4 SGB IX ausdrücklich Rechts- und Zweckbezug.
 
-Beschäftigte sind organisatorisch über die Verarbeitung zu informieren, insbesondere über die Datenschutzinformation des Arbeitgebers. Gremia.SBV versendet keine eigenständigen Art. 13/14-DSGVO-Benachrichtigungen.
+Beschäftigte sind organisatorisch über die Verarbeitung zu informieren. Gremia.SBV kann eine ausgefüllte Art.-13/14-Datenschutzinformation als PDF erzeugen; die Aushändigung erfolgt außerhalb der Anwendung.
 
 ${informationAndAccessRightsSection()}
 ${auditHashChainDecisionSection()}
@@ -216,7 +216,7 @@ export function matrixBody(generatedAt: string): string {
 
 | Personenverzeichnis | Verarbeitungstätigkeit schwerbehinderter und gleichgestellter Beschäftigter ist in DSFA/TOM/VVT dokumentiert | vorbereitet | organisatorisch freigeben |
 | § 164 Abs. 4 SGB IX | Arbeitsplatzgestaltung, Arbeitsorganisation, Hilfsmittel und Teilzeit sind als Zweckbezug dokumentiert | umgesetzt | Praxisprozess prüfen |
-| Art. 13/14 DSGVO | Anpassbare Datenschutzinformation ist als Compliance-Vorlage abrufbar; Ausgabe und Freigabe erfolgen organisatorisch durch Arbeitgeber/verantwortliche Stelle | vorbereitet | Datenschutzinformation abstimmen und ausgeben |
+| Art. 13/14 DSGVO | Datenschutzinformation kann aus vollständigen Angaben als PDF erzeugt werden; Ausgabe erfolgt organisatorisch durch die verantwortliche Stelle | vorbereitet | Aushändigung und Nachweis organisieren |
 | Art. 15 DSGVO | strukturierte Auskunftsfähigkeit mit DSAR-Generator und Prüfschritten vorbereitet | vorbereitet | Schwärzungsprozess festlegen |
 | Audit-Hash-Kette | Audit ohne Direktidentifikatoren; Hash-Kette bleibt bei Löschung/Anonymisierung stabil | umgesetzt / testpflichtig | Integritätsbericht prüfen |
 | SQLCipher | Ruheverschlüsselung der strukturierten Personenstammdaten; keine zusätzliche Namens-Feldverschlüsselung in 0.9.1 | dokumentiert | Passphrase-/Backup-Regeln absichern |

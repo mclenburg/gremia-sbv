@@ -33,15 +33,34 @@ describe("Compliance-Dokumentworkflow", () => {
       document: renderComplianceDocument("toms"),
       onRender: noop,
       onExportPdf: noop,
+      onExportNotice: noop,
     });
     const text = visibleText(markup);
 
     expect(text).not.toContain("Release-Checkliste");
-    expect(text.indexOf("Technischer Datenschutzstatus")).toBeLessThan(text.indexOf("TOMs"));
+    expect(text).not.toContain('Technischer Datenschutzstatus');
+    expect(text).not.toContain('Prozess Betroffenenrechte');
+    expect(text).not.toContain('Export- und Weitergaberegeln');
+    expect(text).not.toContain('DSGVO-/BDSG-Compliance-Auswertung');
     expect(text.indexOf("TOMs")).toBeLessThan(text.indexOf("VVT-Eintrag"));
     expect(text.indexOf("VVT-Eintrag")).toBeLessThan(text.indexOf("Lösch- und Aufbewahrungskonzept"));
-    expect(text.indexOf("Lösch- und Aufbewahrungskonzept")).toBeLessThan(text.indexOf("Export- und Weitergaberegeln"));
-    expect(text.indexOf("Export- und Weitergaberegeln")).toBeLessThan(text.indexOf("DSFA-Entwurf"));
+    expect(text.indexOf("Lösch- und Aufbewahrungskonzept")).toBeLessThan(text.indexOf("DSFA-Entwurf"));
+  });
+
+  it("zeigt für die Datenschutzinformation Eingabefelder und eine Druckaktion", () => {
+    const { markup } = renderComponent(ComplianceDocumentsPanel, {
+      descriptors: listComplianceDocuments(),
+      selectedType: 'data_protection_notice',
+      document: renderComplianceDocument('toms'),
+      onRender: noop,
+      onExportPdf: noop,
+      onExportNotice: noop,
+    });
+    const text = visibleText(markup);
+    expect(text).toContain('Kontakt der verantwortlichen Stelle');
+    expect(text).toContain('Speicherdauer oder Kriterien');
+    expect(text).toContain('PDF zum Drucken öffnen');
+    expect(text).not.toContain('Diese Vorlage unterstützt');
   });
 
   it("unterscheidet PDF-Speicherung von erfolgloser externer Vorschau", () => {

@@ -46,6 +46,8 @@ Gremia.SBV erzeugt keine automatische E-Mail an Arbeitgeber, Betriebsrat, Inklus
 
 Das Compliance-Center unterstützt dich dabei, Datenschutz- und Nachweispunkte nicht aus dem Blick zu verlieren. Es ersetzt keine Datenschutzberatung, macht aber sichtbar, wo eine Prüfung sinnvoll ist.
 
+Unter **Unterlagen → Datenschutzinformation Art. 13/14 DSGVO** kannst du ein Schreiben für betroffene Beschäftigte erstellen. Bereits in den Einstellungen hinterlegte Angaben zu Arbeitgeber, SBV und Datenschutzkontakt werden übernommen. Ergänze die Angaben zum lokalen Verarbeitungsvorgang; fehlende Pflichtangaben verhindern die PDF-Erzeugung. **PDF zum Drucken öffnen** übergibt das fertige Dokument an den lokalen PDF-Viewer. Der Versand oder die Aushändigung erfolgt anschließend außerhalb der Anwendung.
+
 Typische Hinweise betreffen:
 
 - offene Datenschutzprüfungen,

@@ -158,6 +158,7 @@ describe('GremiaBrWorkspaceActionService', () => {
       expect(text).toContain('Arbeitsplatzanpassung Montage');
       expect(text).toContain('BR über Beteiligungsdefizit informieren.');
       expect(text).not.toContain('case-1');
+      expect(text).not.toContain('Vor Übergabe ist zu prüfen');
     } finally {
       database.close();
       fs.rmSync(storageRoot, { recursive: true, force: true });

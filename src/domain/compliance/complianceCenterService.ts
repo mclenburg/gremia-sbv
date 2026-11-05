@@ -2,7 +2,7 @@ import type { GenerateReportInput } from '../models/report.model.js';
 import type { ComplianceDocument, ComplianceDocumentDescriptor, ComplianceDocumentType, DataSubjectAccessRequestInput } from '../models/compliance.model.js';
 import { COMPLIANCE_DOCUMENTS, complianceDocumentFileName, nowIso, plusDays, toDateInputValue } from './complianceDocumentSupport.js';
 import { tomsBody, vvtBody, dsfaBody, matrixBody } from './complianceBodiesCore.js';
-import { retentionScheduleBody, dataSubjectRightsBody, dataProtectionNoticeBody, exportPolicyBody } from './complianceBodiesPrivacy.js';
+import { retentionScheduleBody, dataSubjectRightsBody, exportPolicyBody } from './complianceBodiesPrivacy.js';
 import { approvalBody, dataProtectionStatusBody } from './complianceBodiesRelease.js';
 import { dsarBody } from './complianceDsarBody.js';
 export { COMPLIANCE_DOCUMENTS } from './complianceDocumentSupport.js';
@@ -15,7 +15,7 @@ function bodyFor(type: ComplianceDocumentType, generatedAt: string, dsarInput?: 
     case 'dsgvo_bdsg_matrix': return matrixBody(generatedAt);
     case 'retention_schedule': return retentionScheduleBody(generatedAt);
     case 'data_subject_rights': return dataSubjectRightsBody(generatedAt);
-    case 'data_protection_notice': return dataProtectionNoticeBody(generatedAt);
+    case 'data_protection_notice': throw new Error('Datenschutzinformation: Pflichtangaben müssen im Formular erfasst werden.');
     case 'export_policy': return exportPolicyBody(generatedAt);
     case 'dsb_it_security_approval': return approvalBody(generatedAt);
     case 'data_protection_status': return dataProtectionStatusBody(generatedAt);
@@ -32,6 +32,7 @@ export function listComplianceDocuments(): ComplianceDocumentDescriptor[] {
 }
 
 export function renderComplianceDocument(type: ComplianceDocumentType): ComplianceDocument {
+  if (type === 'data_protection_notice') throw new Error('Datenschutzinformation: Pflichtangaben müssen im Formular erfasst werden.');
   const generatedAt = nowIso();
   const descriptor = COMPLIANCE_DOCUMENTS.find((item) => item.type === type) ?? COMPLIANCE_DOCUMENTS[0];
   return {
@@ -106,7 +107,7 @@ export function buildComplianceReportInput(document: ComplianceDocument): Genera
     type: 'compliance_document',
     complianceDocumentType: document.type,
     complianceTitle: document.title,
-    complianceSubtitle: document.description,
+    complianceSubtitle: '',
     complianceClassification: complianceClassificationFor(document.type),
     complianceBody: document.body
   };

@@ -722,6 +722,19 @@
   };
 
   window.gremiaSbv = {
+    templateDefaults: {
+      list: async () => ({
+        'sbv.name': 'Schwerbehindertenvertretung',
+        'sbv.funktion': 'Schwerbehindertenvertretung',
+        'sbv.email': '', 'sbv.telefon': '', 'sbv.signatur': '',
+        'arbeitgeber.ansprechpartner': '', 'arbeitgeber.personalabteilung': '',
+        'arbeitgeber.name': '', 'unternehmen.name': '', 'standort.name': '',
+        'datenschutz.verantwortliche_stelle': '',
+        'datenschutz.kontakt.name': '', 'datenschutz.kontakt.email': '',
+        'datenschutz.dsb.name': '', 'datenschutz.dsb.email': '',
+      }),
+      save: async (values) => values,
+    },
     security: {
       status: async () => ({
         initialized: securityState.initialized,

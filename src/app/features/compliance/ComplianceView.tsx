@@ -63,6 +63,7 @@ export function ComplianceView() {
               document={state.document}
               onRender={state.render}
               onExportPdf={(open) => void state.exportPdfCurrent(open)}
+              onExportNotice={(input, open) => state.exportDataProtectionNotice(input, open)}
             />
           )}
           {state.workspace === "dsar" && (

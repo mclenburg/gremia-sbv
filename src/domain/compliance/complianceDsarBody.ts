@@ -206,7 +206,7 @@ Diese Unterlage sammelt die in Gremia.SBV gespeicherten personenbezogenen Datenb
 | Feld | Inhalt |
 |---|---|
 | Anfragende Person | ${input.requesterName || '—'} |
-| Eindeutiger Personenbezug | ${input.subjectPersonId || 'nicht festgelegt'} |
+| Personenverzeichnis-Zuordnung | ${input.subjectPersonId ? 'zugeordnet' : 'nicht festgelegt'} |
 | Eingang des Ersuchens | ${input.requestReceivedAt || '—'} |
 | Frist zur Bearbeitung | ${input.responseDueAt || '—'} |
 | Fall-/Aktenbezug | ${input.caseReference || '—'} |

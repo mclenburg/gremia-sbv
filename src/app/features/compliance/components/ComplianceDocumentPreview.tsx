@@ -54,7 +54,7 @@ export function complianceDocumentPreviewBlocks(body: string): PreviewBlock[] {
   return blocks;
 }
 
-function CompliancePreviewBody({ body }: { body: string }) {
+export function CompliancePreviewBody({ body }: { body: string }) {
   return (
     <div className="compliance-output compliance-document-preview-body" aria-label="Dokumentvorschau Inhalt">
       {complianceDocumentPreviewBlocks(body).map((block) => {

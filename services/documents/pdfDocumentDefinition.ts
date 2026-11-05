@@ -71,7 +71,7 @@ export function externalReportDocument(
     title,
     subtitle,
     blocks: [...blocks],
-    footer: 'Gremia.SBV',
+    footer: '',
   };
 }
 
@@ -110,7 +110,7 @@ export function legalRecordDocument(
     subtitle,
     classification,
     blocks: [...blocks],
-    footer: 'Gremia.SBV · Rechtlich relevantes Dokument',
+    footer: '',
   };
 }
 
@@ -144,6 +144,6 @@ export function reportDocument(
     classification,
     blocks: [...blocks],
     warnings: [...warnings],
-    footer: 'Offline erzeugt durch Gremia.SBV. Tätigkeitsberichte sind anonymisiert zu verwenden; interne Prüfberichte bleiben vertraulich.',
+    footer: '',
   };
 }

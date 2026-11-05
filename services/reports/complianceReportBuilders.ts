@@ -3,7 +3,8 @@ import type {
   GenerateReportInput,
 } from "../../src/domain/models/report.model.js";
 import { ProcessReportBuilders } from './processReportBuilders.js';
-import { buildSystemIntegrityContent, buildSystemIntegrityWarnings, collectSystemIntegrityState, count, formatBytes, markdownToReportBlocks, metricCards, normalizeStatus, paragraph, periodWhere, reportShell, reportText, rows, section, table } from './reportSupport.js';
+import { renderDataProtectionNotice } from '../../src/domain/compliance/dataProtectionNotice.js';
+import { buildSystemIntegrityContent, buildSystemIntegrityWarnings, collectSystemIntegrityState, count, externalReportShell, formatBytes, markdownToReportBlocks, metricCards, normalizeStatus, paragraph, periodWhere, reportShell, reportText, rows, section, table } from './reportSupport.js';
 import type { ReportBuildResult } from './reportSupport.js';
 
 export class ComplianceReportBuilders extends ProcessReportBuilders {
@@ -28,7 +29,7 @@ export class ComplianceReportBuilders extends ProcessReportBuilders {
       const content = [metricCards(metrics), section('Lösch-/Aufbewahrungsaktionen', [table(
         ["Aktion", "Anzahl", "Datensätze", "Dateien"],
         byAction.map((row) => [normalizeStatus(reportText(row.action_type)), row.value, row.affected_rows ?? 0, row.affected_files ?? 0]),
-      )]), section('Prüfhinweis', [paragraph('Der Bericht zeigt technische und fachliche Aufbewahrungsrisiken. Eine Löschung ist vor Ausführung rechtlich und fachlich zu prüfen; besonders SBV-Vertraulichkeit, laufende Ansprüche und Nachweispflichten sind zu berücksichtigen.')])];
+      )])];
       return {
         title: "Lösch- und Aufbewahrungsbericht",
         warnings,
@@ -82,19 +83,25 @@ export class ComplianceReportBuilders extends ProcessReportBuilders {
   protected buildComplianceDocumentReport(
       input: GenerateReportInput,
     ): ReportBuildResult {
+      if (input.complianceDocumentType === 'data_protection_notice') {
+        if (!input.complianceNoticeInput) throw new Error('Datenschutzinformation: Pflichtangaben fehlen.');
+        const title = 'Information zur Verarbeitung personenbezogener Daten durch die Schwerbehindertenvertretung';
+        const body = renderDataProtectionNotice(input.complianceNoticeInput);
+        return {
+          title,
+          warnings: [],
+          metrics: {},
+          document: externalReportShell(title, '', markdownToReportBlocks(body)),
+        };
+      }
       const title = input.complianceTitle?.trim() || "Compliance-Dokument";
-      const subtitle =
-        input.complianceSubtitle?.trim() ||
-        "Aus Gremia.SBV Compliance Center erzeugt";
+      const subtitle = input.complianceSubtitle?.trim() || '';
       const classification =
         input.complianceClassification?.trim() || "Intern vertraulich";
       const body = input.complianceBody?.trim() || "Keine Inhalte übergeben.";
       const documentType =
         input.complianceDocumentType?.trim() || "compliance_document";
-      const warnings = [
-        "Compliance-Dokumente vor Weitergabe fachlich prüfen. Sie ersetzen keine abschließende Bewertung durch DSB, IT-Security oder Rechtsberatung.",
-        "Beim Abruf als PDF wird temporär eine Klartextkopie für den externen PDF-Viewer erzeugt.",
-      ];
+      const warnings: string[] = [];
       return {
         title,
         warnings,

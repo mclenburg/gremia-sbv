@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   createPdfDocument,
+  externalLetterDocument,
+  externalReportDocument,
+  legalRecordDocument,
   metricCards,
   paragraph,
   reportDocument,
@@ -33,7 +36,7 @@ describe('PDFKit report rendering', () => {
     expect(text).toContain('Neue Fälle 4');
     expect(text).toContain('Fallstatus');
     expect(text).toContain('Offen 1');
-    expect(text).toContain('Keine Auffälligkeiten in dieser Prüfung.');
+    expect(text).not.toContain('Keine Auffälligkeiten in dieser Prüfung.');
     expect(inspected.title).toBe('Tätigkeitsbericht der SBV');
     expect(inspected.language).toBe('de-DE');
     expect(inspected.hasStructureTree).toBe(true);
@@ -67,6 +70,21 @@ describe('PDFKit report rendering', () => {
     expect(text).toContain('Prüfergebnis');
     expect(text).toContain('Keine Cloud-Übertragung');
     expect(text).toContain('Datenminimierung erfüllt');
-    expect(text).toContain('Compliance-Dokumente vor Weitergabe fachlich prüfen.');
+    expect(text).not.toContain('Compliance-Dokumente vor Weitergabe fachlich prüfen.');
+  });
+
+  it('lässt pauschale Ratschläge und Produktwerbung in allen PDF-Fußzeilen weg', async () => {
+    const definitions = [
+      externalReportDocument('Tätigkeitsbericht', '', [paragraph('Ergebnis')]),
+      externalLetterDocument({ title: 'Schreiben', sender: ['SBV'], recipient: ['Empfänger'], date: '05.11.2026', subject: 'Anliegen', blocks: [paragraph('Inhalt')] }),
+      legalRecordDocument('Wahlniederschrift', '', 'Intern', [paragraph('Ergebnis')]),
+      reportDocument('Prüfbericht', '', 'Intern', [paragraph('Ergebnis')], []),
+    ];
+    for (const definition of definitions) {
+      const inspected = await inspectPdf(await createPdfDocument(definition));
+      const text = inspected.textByPage.join(' ');
+      expect(text).toContain('Seite 1 von 1');
+      expect(text).not.toMatch(/Offline erzeugt|Vertraulich behandeln|Tätigkeitsberichte sind|Rechtlich relevantes Dokument|Keine Auffälligkeiten in dieser Prüfung/);
+    }
   });
 });

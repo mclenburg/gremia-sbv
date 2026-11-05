@@ -82,4 +82,8 @@ export const INCIDENT_STATUSES: Array<{
 
 export const DOCUMENT_WORKSPACE_EXCLUDED_TYPES: ComplianceDocumentType[] = [
   "dsar_response",
+  "data_protection_status",
+  "data_subject_rights",
+  "export_policy",
+  "dsgvo_bdsg_matrix",
 ];

@@ -267,11 +267,6 @@ function drawLetterHeader(
   }
   document.markContent('Artifact', { type: 'Layout' });
   document.rect(50, 48, CONTENT_WIDTH, 4).fill(COLORS.accentBorder);
-  document.font(FONT_BOLD).fontSize(9).fillColor(COLORS.accent).text('Gremia.SBV', 405, 59, {
-    width: 140,
-    align: 'right',
-    lineBreak: false,
-  });
   document.endMarkedContent();
   document.x = 50;
   document.y = 76;
@@ -387,11 +382,11 @@ export function createPdfDocument(definition: PdfDocumentDefinition): Promise<Bu
     if (definition.profile === 'external_letter') drawLetterHeader(document, root, definition);
     else drawHeader(document, root, definition);
     for (const block of definition.blocks) drawBlock(document, root, block);
-    if (definition.profile === 'internal_report' && definition.warnings) {
+    if (definition.profile === 'internal_report' && definition.warnings?.length) {
       drawWarnings(document, root, definition.warnings);
     }
     root.end();
-    addPageFooters(document, definition.footer ?? 'Offline erzeugt durch Gremia.SBV.');
+    addPageFooters(document, definition.footer ?? '');
     document.end();
   });
 }
@@ -415,9 +410,9 @@ export function createAccessibleTextPdf(title: string, lines: readonly string[])
   return createPdfDocument({
     profile: 'legal_record',
     title,
-    subtitle: 'Gremia.SBV Wahldokument',
+    subtitle: '',
     classification: 'Intern vertraulich',
     blocks,
-    footer: 'Offline erzeugt durch Gremia.SBV. Vertraulich behandeln.',
+    footer: '',
   });
 }

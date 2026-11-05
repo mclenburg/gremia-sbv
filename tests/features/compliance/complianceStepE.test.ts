@@ -37,7 +37,7 @@ describe('0.9.1 Step E Compliance Center', () => {
     }
     expect(rendered.matrix).toContain('Audit ohne Direktidentifikatoren');
     expect(rendered.matrix).toContain('keine zusätzliche Namens-Feldverschlüsselung');
-    expect(rendered.vvt).toContain('Gremia.SBV versendet keine eigenständigen Art. 13/14-DSGVO-Benachrichtigungen');
+    expect(rendered.vvt).toContain('Aushändigung erfolgt außerhalb der Anwendung');
   });
 
 

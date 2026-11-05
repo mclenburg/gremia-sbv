@@ -67,7 +67,7 @@ export class ProcessReportBuilders extends ActivityReportBuilders {
       )]), section('Präventionsstatus', [table(
         ["Status", "Anzahl"],
         preventionStatuses.map((row) => [normalizeStatus(typeof row.status === 'string' ? row.status : undefined), row.value]),
-      )]), section('Datenschutz-Hinweis', [paragraph('Dieser Bericht ist aggregiert. Vertrauliche BEM-Notizen, Diagnosen und Freitextinhalte werden nicht ausgegeben.')])];
+      )])];
       return {
         title: "BEM- und Präventionsbericht",
         warnings,
@@ -136,7 +136,7 @@ export class ProcessReportBuilders extends ActivityReportBuilders {
       )]), section('Schutzstatus', [table(
         ["Status", "Anzahl"],
         protectionRows.map((row) => [normalizeStatus(reportText(row.protection_status)), row.value]),
-      )]), section('Prüfhinweis', [paragraph('Der Bericht nutzt die aktuelle Kündigungsanhörungsstruktur ab Schema 0017/0019. Er gibt keine Begründungsfreitexte oder personenbezogenen Details aus.')])];
+      )])];
       return {
         title: "Kündigungsanhörungsbericht",
         warnings,

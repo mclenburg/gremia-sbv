@@ -2,6 +2,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { listComplianceDocuments, renderComplianceDocument } from '../../services/complianceCenterService';
+import { renderDataProtectionNotice } from '../../src/domain/compliance/dataProtectionNotice';
 import { CasePrivacyActionDialog } from '../../src/app/features/cases/CasePrivacyActionDialog';
 import { PersonPrivacyActionDialog } from '../../src/app/features/persons/PersonPrivacyActionDialog';
 import type { CaseRecord } from '../../src/domain/models/case.model';
@@ -12,14 +13,15 @@ describe('DSB-Transparenzpatch 0.9.2', () => {
     const descriptors = listComplianceDocuments();
     expect(descriptors.some((item) => item.type === 'data_protection_notice')).toBe(true);
 
-    const notice = renderComplianceDocument('data_protection_notice');
-    expect(notice.title).toContain('Art. 13/14 DSGVO');
-    expect(notice.body).toContain('Art. 13 DSGVO');
-    expect(notice.body).toContain('Art. 14 DSGVO');
-    expect(notice.body).toContain('§ 178 Abs. 1 SGB IX');
-    expect(notice.body).toContain('§ 178 Abs. 2 Satz 1 SGB IX');
-    expect(notice.body).toContain('muss vor Verwendung organisatorisch, fachlich und datenschutzrechtlich geprüft und freigegeben werden');
-    expect(notice.body).toContain('Gremia.SBV versendet diese Information nicht automatisch');
+    expect(() => renderComplianceDocument('data_protection_notice')).toThrow('Pflichtangaben');
+    const notice = renderDataProtectionNotice({
+      responsibleEntity: 'Muster GmbH', responsibleContact: 'datenschutz@muster.de', sbvContact: 'sbv@muster.de',
+      privacyOfficerContact: 'dsb@muster.de', legalBasis: 'Art. 6 und 9 DSGVO, § 178 SGB IX',
+      dataSources: 'Betroffene Person', recipients: 'SBV', retention: 'Bis zum Zweckfortfall',
+      thirdCountryTransfers: 'Keine', supervisoryAuthority: 'Landesdatenschutzbehörde', issueDate: '2026-11-05',
+    });
+    expect(notice).toContain('Art. 13 und 14 DSGVO');
+    expect(notice).toContain('Muster GmbH');
   });
 
   it('zeigt den Audit-Hinweis in geöffneten Fall- und Personendialogen', () => {

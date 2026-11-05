@@ -27,7 +27,7 @@ export function personDirectoryProcessingActivitySection(): string {
 export function informationAndAccessRightsSection(): string {
   return `## Art. 13/14 und Art. 15 DSGVO
 
-**Art. 13/14 DSGVO:** Die Information der Beschäftigten ist organisatorisch durch den Arbeitgeber beziehungsweise die verantwortliche Stelle sicherzustellen. Gremia.SBV erzeugt hierfür Dokumentations- und Nachweisbausteine, versendet aber keine eigenständigen Datenschutzinformationen an Beschäftigte.
+**Art. 13/14 DSGVO:** Die Information der Beschäftigten ist organisatorisch durch die verantwortliche Stelle sicherzustellen. Gremia.SBV kann aus vollständigen lokalen Angaben eine Datenschutzinformation als PDF erstellen; Versand oder Aushändigung erfolgen außerhalb der Anwendung.
 
 **Art. 15 DSGVO:** Gremia.SBV stellt strukturierte Auskunftsfähigkeit bereit. Der Art.-15-Arbeitsentwurf kann Fallakten, Personenstammdaten, Fristen, Maßnahmen, Importläufe, Lifecycle- und Datenschutz-Prüfentscheidungen automatisch vorbefüllen. Vor Herausgabe sind Drittdaten, Vertraulichkeit der SBV-Arbeit und schutzwürdige Interessen gesondert zu prüfen.
 `;
