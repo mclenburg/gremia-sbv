@@ -68,11 +68,11 @@ describe('versandfähige Datenschutzinformation', () => {
     expect(suggested.legalBasis).toContain('§ 178 SGB IX');
     expect(suggested.dataSources).toContain('Arbeitgeber');
     expect(suggested.recipients).toContain('Stellvertretungen');
-    expect(suggested.thirdCountryTransfers).toBe('');
+    expect(suggested.thirdCountryTransfers).toBe('Eine Übermittlung personenbezogener Daten an Empfänger in Drittländern oder internationale Organisationen findet nicht statt.');
     expect(suggested.retention).toContain('24 Monate nach Abschluss');
     expect(suggested.retention).toContain('keine automatische Löschung');
     expect(suggested.supervisoryAuthority).toBe('');
-    expect(validateDataProtectionNotice({ ...suggested, responsibleEntity: 'Muster GmbH', responsibleContact: 'kontakt@muster.de', sbvContact: 'sbv@muster.de', supervisoryAuthority: 'Behörde' })).toContain('Drittlandübermittlung');
+    expect(validateDataProtectionNotice({ ...suggested, responsibleEntity: 'Muster GmbH', responsibleContact: 'kontakt@muster.de', sbvContact: 'sbv@muster.de', supervisoryAuthority: 'Behörde' })).toEqual([]);
   });
 
   it('nennt ohne geladene Prüffristen nur sichere Aufbewahrungskriterien', () => {
@@ -84,12 +84,31 @@ describe('versandfähige Datenschutzinformation', () => {
   it('rendert ein externes, druckbares PDF ohne interne Prüfhinweise', async () => {
     const reports = new ReportService(() => { throw new Error('Kein Datenbankzugriff nötig'); }, () => '/not-used');
     const built = reports.build({ type: 'compliance_document', complianceDocumentType: 'data_protection_notice', complianceNoticeInput: input });
+    expect(built.title).toBe('Datenschutzinformation');
     const inspected = await inspectPdf(await createPdfDocument(built.document));
+    expect(inspected.pageCount).toBeLessThanOrEqual(2);
     const text = inspected.textByPage.join(' ');
     expect(text).toContain('Muster GmbH');
     expect(text).toContain('dsb@muster.de');
     expect(text).toContain('Beschwerde');
     expect(text).not.toMatch(/Intern \/ Compliance|fachlich prüfen|Klartextkopie|Vorlage|Arbeitsentwurf/);
     expect(inspected.language).toBe('de-DE');
+  });
+
+  it('hält die vollständig vorbelegte Datenschutzinformation ohne verwaiste Schlussseite lesbar', async () => {
+    const reports = new ReportService(() => { throw new Error('Kein Datenbankzugriff nötig'); }, () => '/not-used');
+    const prefilled = dataProtectionNoticeDefaults({ ...EMPTY_TEMPLATE_DEFAULT_VALUES,
+      'arbeitgeber.name': 'Beispielbetrieb',
+      'datenschutz.kontakt.email': 'datenschutz@beispiel.invalid',
+      'sbv.email': 'sbv@beispiel.invalid',
+      'datenschutz.aufsichtsbehoerde': 'Beispielhafte Aufsichtsbehörde',
+    }, '2026-11-05');
+    const built = reports.build({ type: 'compliance_document', complianceDocumentType: 'data_protection_notice', complianceNoticeInput: prefilled });
+    const pdf = await inspectPdf(await createPdfDocument(built.document));
+    expect(pdf.pageCount).toBeLessThanOrEqual(2);
+    expect(pdf.textByPage.join(' ')).toContain('automatisierte Entscheidungen');
+    expect(pdf.textByPage.join(' ')).not.toContain('Die Beispielbetrieb');
+    const auditListPage = pdf.textByPage.find((page) => page.includes('Datensparsame Lifecycle- und Audit-Ereignisse'));
+    expect(auditListPage).toContain('Manipulationsnachweis und Nachvollziehbarkeit');
   });
 });

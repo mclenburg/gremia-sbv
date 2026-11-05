@@ -220,8 +220,9 @@ export class MigrationRepairValidation extends MigrationProcessSchemasD {
       };
   
       Object.entries(requiredColumns).forEach(([table, columns]) => {
+        const existingColumns = new Set(this.columnsOf(table));
         columns.forEach((column) => {
-          if (!this.columnExists(table, column)) {
+          if (!existingColumns.has(column)) {
             throw new Error(`Datenbankschema unvollständig: Spalte ${table}.${column} fehlt.`);
           }
         });

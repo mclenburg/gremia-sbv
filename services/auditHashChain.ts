@@ -214,17 +214,19 @@ export function verifyAuditHashChain(rows: AuditChainRowInput[], legacyMaxSequen
       previousHash: row.previousHash
     };
     const expectedHash = computeAuditEntryHash(hashInput);
-    const legacyExpectedHash = computeLegacyAuditEntryHash(hashInput);
-    if (row.entryHash === legacyExpectedHash && row.entryHash !== expectedHash && sequence > legacyMaxSequence) {
-      issues.push({ kind: 'legacy_hash_outside_boundary', sequence, message: `Veralteter Audit-Hash nach der Migrationsgrenze bei Sequenz ${sequence}.` });
-    } else if (row.entryHash !== expectedHash && row.entryHash !== legacyExpectedHash) {
-      issues.push({
-        kind: 'entry_hash_mismatch',
-        sequence,
-        expected: expectedHash,
-        actual: row.entryHash,
-        message: `Audit-Eintrag ${sequence} wurde rechnerisch verändert oder ist beschädigt.`
-      });
+    if (row.entryHash !== expectedHash) {
+      const legacyExpectedHash = computeLegacyAuditEntryHash(hashInput);
+      if (row.entryHash === legacyExpectedHash && sequence > legacyMaxSequence) {
+        issues.push({ kind: 'legacy_hash_outside_boundary', sequence, message: `Veralteter Audit-Hash nach der Migrationsgrenze bei Sequenz ${sequence}.` });
+      } else if (row.entryHash !== legacyExpectedHash) {
+        issues.push({
+          kind: 'entry_hash_mismatch',
+          sequence,
+          expected: expectedHash,
+          actual: row.entryHash,
+          message: `Audit-Eintrag ${sequence} wurde rechnerisch verändert oder ist beschädigt.`
+        });
+      }
     }
     previousHash = row.entryHash;
     latestHash = row.entryHash;

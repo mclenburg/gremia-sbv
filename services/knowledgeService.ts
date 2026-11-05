@@ -131,7 +131,15 @@ export class KnowledgeService {
   }
 
   seedReferenceData(db = this.database): void {
-    this.seedDefaults(db);
+    db.exec('SAVEPOINT knowledge_reference_seed');
+    try {
+      this.seedDefaults(db);
+      db.exec('RELEASE SAVEPOINT knowledge_reference_seed');
+    } catch (error) {
+      db.exec('ROLLBACK TO SAVEPOINT knowledge_reference_seed');
+      db.exec('RELEASE SAVEPOINT knowledge_reference_seed');
+      throw error;
+    }
   }
 
   private getSafeDb(): DatabaseAdapter { return this.database; }

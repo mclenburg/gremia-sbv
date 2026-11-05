@@ -54,7 +54,7 @@ export function dataProtectionNoticeDefaults(defaults: TemplateDefaultValues, da
     dataSources: 'Die Daten stammen von Ihnen selbst, aus von Ihnen vorgelegten Nachweisen und Unterlagen, aus erforderlichen Mitteilungen und Listen des Arbeitgebers sowie aus der Dokumentation der SBV. Je nach Verfahren können Angaben beteiligter Behörden oder anderer Stellen hinzukommen. Eine automatische Übernahme aus öffentlich zugänglichen Quellen erfolgt nicht.',
     recipients: 'Zugriff haben die zuständige Schwerbehindertenvertretung und zulässig einbezogene Stellvertretungen. Je nach Vorgang können erforderliche Informationen nach rechtlicher Prüfung an die betroffene Person, zuständige Arbeitgeberstellen, Betriebs- oder Personalrat, Inklusionsamt, Agentur für Arbeit oder andere am Verfahren beteiligte Stellen weitergegeben werden. Die Anwendung versendet personenbezogene Fallinhalte nicht automatisch; Exporte und optionale externe Anbindungen werden bewusst ausgelöst.',
     retention: retentionInformation(retentionSettings),
-    thirdCountryTransfers: defaults['datenschutz.drittlandangabe'],
+    thirdCountryTransfers: defaults['datenschutz.drittlandangabe'] || 'Eine Übermittlung personenbezogener Daten an Empfänger in Drittländern oder internationale Organisationen findet nicht statt.',
     supervisoryAuthority: defaults['datenschutz.aufsichtsbehoerde'],
     issueDate: date,
   };
@@ -80,7 +80,7 @@ export function renderDataProtectionNotice(input: DataProtectionNoticeInput): st
   const value = (key: keyof DataProtectionNoticeInput) => clean(input[key]);
   return `${date}
 
-Die ${value('responsibleEntity')} informiert Sie gemäß Art. 13 und 14 DSGVO über die Verarbeitung Ihrer personenbezogenen Daten im Rahmen der Aufgaben der Schwerbehindertenvertretung (SBV).
+Diese Information erläutert gemäß Art. 13 und 14 DSGVO die Verarbeitung Ihrer personenbezogenen Daten im Rahmen der Aufgaben der Schwerbehindertenvertretung (SBV).
 
 ## Verantwortliche Stelle und Kontakt
 

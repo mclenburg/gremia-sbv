@@ -85,7 +85,7 @@ export class ComplianceReportBuilders extends ProcessReportBuilders {
     ): ReportBuildResult {
       if (input.complianceDocumentType === 'data_protection_notice') {
         if (!input.complianceNoticeInput) throw new Error('Datenschutzinformation: Pflichtangaben fehlen.');
-        const title = 'Information zur Verarbeitung personenbezogener Daten durch die Schwerbehindertenvertretung';
+        const title = 'Datenschutzinformation';
         const body = renderDataProtectionNotice(input.complianceNoticeInput);
         return {
           title,

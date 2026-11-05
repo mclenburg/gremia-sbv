@@ -14,6 +14,8 @@ import {
   PDF_FONT_REGULAR as FONT_REGULAR,
   registerPdfFonts as registerFonts,
 } from './pdfDocumentFonts.js';
+import { drawPdfHeader } from './pdfDocumentHeader.js';
+import { addStructuredText } from './pdfDocumentStructure.js';
 
 export {
   externalLetterDocument,
@@ -51,26 +53,26 @@ type AccessiblePdfDocumentOptions = Omit<PDFKit.PDFDocumentOptions, 'subset'> & 
   subset: PDFKit.Mixins.PDFSubsets | 'PDF/UA';
 };
 
-function addStructuredText(
-  document: PDFKit.PDFDocument,
-  parent: PDFKit.PDFStructureElement,
-  tag: string,
-  text: string,
-  draw: () => void,
-): void {
-  parent.add(document.struct(tag, { actual: `${text} ` }, draw));
-}
-
 function drawParagraph(
   document: PDFKit.PDFDocument,
   parent: PDFKit.PDFStructureElement,
   text: string,
+  compact = false,
 ): void {
+  if (compact) {
+    const paragraphHeight = document.font(FONT_REGULAR).fontSize(10)
+      .heightOfString(`${text} `, { width: CONTENT_WIDTH, lineGap: 1 }) + 8;
+    const pageContentHeight = document.page.height - document.page.margins.top - document.page.margins.bottom;
+    if (paragraphHeight <= pageContentHeight && document.y + paragraphHeight > document.page.height - document.page.margins.bottom) {
+      document.addPage();
+      document.x = document.page.margins.left;
+    }
+  }
   addStructuredText(document, parent, 'P', text, () => {
     document
       .fontSize(10)
       .fillColor(COLORS.ink);
-    drawUnicodeText(document, `${text} `, 'regular', { width: CONTENT_WIDTH, lineGap: 2, paragraphGap: 6 });
+    drawUnicodeText(document, `${text} `, 'regular', { width: CONTENT_WIDTH, lineGap: compact ? 1 : 2, paragraphGap: compact ? 2 : 6 });
   });
 }
 
@@ -181,7 +183,7 @@ function drawBlock(
       for (const item of block.items) {
         const itemStructure = document.struct('LI');
         listStructure.add(itemStructure);
-        drawParagraph(document, itemStructure, `• ${item}`);
+        drawParagraph(document, itemStructure, `• ${item}`, true);
       }
       listStructure.end();
       return;
@@ -214,46 +216,6 @@ function drawBlock(
     case 'spacer':
       document.y += block.height;
   }
-}
-
-function drawHeader(
-  document: PDFKit.PDFDocument,
-  root: PDFKit.PDFStructureElement,
-  definition: PdfDocumentDefinition,
-): void {
-  document.markContent('Artifact', { type: 'Layout' });
-  document
-    .roundedRect(50, 48, CONTENT_WIDTH, definition.subtitle || definition.classification ? 116 : 74, 3)
-    .fillAndStroke(COLORS.surface, COLORS.border);
-  document.rect(50, 48, 7, definition.subtitle || definition.classification ? 116 : 74).fill(COLORS.accentBorder);
-  document.endMarkedContent();
-  document.x = 70;
-  document.y = 64;
-
-  addStructuredText(document, root, 'H1', definition.title, () => {
-    document
-      .fontSize(21)
-      .fillColor('#111827');
-    drawUnicodeText(document, `${definition.title} `, 'bold', { width: 455, lineGap: 1 });
-  });
-  if (definition.subtitle) {
-    addStructuredText(document, root, 'P', definition.subtitle, () => {
-      document
-        .fontSize(10)
-        .fillColor(COLORS.muted);
-      drawUnicodeText(document, `${definition.subtitle} `, 'regular', { width: 455, paragraphGap: 4 });
-    });
-  }
-  if (definition.classification) {
-    addStructuredText(document, root, 'P', definition.classification, () => {
-      document
-        .fontSize(9)
-        .fillColor(COLORS.accent);
-      drawUnicodeText(document, `${definition.classification} `, 'bold', { width: 455, paragraphGap: 4 });
-    });
-  }
-  document.x = 50;
-  document.y = definition.subtitle || definition.classification ? 180 : 138;
 }
 
 function drawLetterHeader(
@@ -380,7 +342,7 @@ export function createPdfDocument(definition: PdfDocumentDefinition): Promise<Bu
     const root = document.struct('Document', { lang: 'de-DE', title: definition.title });
     document.addStructure(root);
     if (definition.profile === 'external_letter') drawLetterHeader(document, root, definition);
-    else drawHeader(document, root, definition);
+    else drawPdfHeader(document, root, definition, COLORS, CONTENT_WIDTH);
     for (const block of definition.blocks) drawBlock(document, root, block);
     if (definition.profile === 'internal_report' && definition.warnings?.length) {
       drawWarnings(document, root, definition.warnings);

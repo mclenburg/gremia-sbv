@@ -36,8 +36,7 @@ test('erstellt eine ausgefüllte Datenschutzinformation ohne Platzhalter und lä
   await expect(panel.getByRole('textbox', { name: 'Herkunft der Daten' })).toHaveValue(/Arbeitgeber/u);
   await expect(panel.getByRole('textbox', { name: 'Empfänger oder Empfängerkategorien' })).toHaveValue(/Stellvertretungen/u);
   await expect(panel.getByRole('textbox', { name: 'Speicherdauer oder Kriterien' })).toHaveValue(/keine automatische Löschung/u);
-  await expect(panel.getByRole('textbox', { name: 'Drittlandübermittlung' })).toBeEmpty();
-  await panel.getByRole('textbox', { name: 'Drittlandübermittlung' }).fill('Keine Übermittlung in ein Drittland vorgesehen.');
+  await expect(panel.getByRole('textbox', { name: 'Drittlandübermittlung' })).toHaveValue(/findet nicht statt/u);
   await panel.getByRole('textbox', { name: 'Zuständige Datenschutzaufsichtsbehörde' }).fill('Landesdatenschutzbehörde.');
   await expect(panel.getByLabel('Dokumentvorschau Inhalt')).toContainText('Muster GmbH');
   await generate.press('Enter');
