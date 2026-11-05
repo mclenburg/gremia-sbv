@@ -5,6 +5,7 @@ import { inspectPdf } from '../../helpers/pdf';
 import { dataProtectionNoticeDefaults, renderDataProtectionNotice, validateDataProtectionNotice } from '../../../src/domain/compliance/dataProtectionNotice';
 import type { DataProtectionNoticeInput } from '../../../src/domain/models/compliance.model';
 import { EMPTY_TEMPLATE_DEFAULT_VALUES } from '../../../src/domain/models/template-default.model';
+import { DEFAULT_RETENTION_SETTINGS } from '../../../services/retentionSettings';
 
 const input: DataProtectionNoticeInput = {
   responsibleEntity: 'Muster GmbH',
@@ -31,6 +32,8 @@ describe('versandfähige Datenschutzinformation', () => {
     expect(body).toContain('Muster GmbH');
     expect(body).toContain('dsb@muster.de');
     expect(body).toContain('Angaben der betroffenen Person');
+    expect(body).toContain('Personenstamm und Schutzstatus');
+    expect(body).toContain('Wahlunterlagen mit Personenbezug');
     expect(body).toContain('Art. 13 und 14 DSGVO');
     expect(body).not.toMatch(/\[[^\]]+\]|Vorlage|Arbeitsentwurf|vor Verwendung|Gremia\.SBV versendet/);
   });
@@ -43,13 +46,37 @@ describe('versandfähige Datenschutzinformation', () => {
       'datenschutz.dsb.email': 'dsb@muster.de',
       'sbv.name': 'SBV Muster',
       'sbv.email': 'sbv@muster.de',
+      'datenschutz.aufsichtsbehoerde': 'Landesdatenschutzbehörde Musterland',
     };
-    expect(dataProtectionNoticeDefaults(defaults, '2026-11-05')).toMatchObject({
+    expect(dataProtectionNoticeDefaults(defaults, '2026-11-05', DEFAULT_RETENTION_SETTINGS)).toMatchObject({
       responsibleEntity: 'Muster GmbH',
       responsibleContact: 'datenschutz@muster.de',
       sbvContact: 'SBV Muster · sbv@muster.de',
       privacyOfficerContact: 'DSB Muster · dsb@muster.de',
+      supervisoryAuthority: 'Landesdatenschutzbehörde Musterland',
     });
+  });
+
+  it('befüllt bekannte SBV-Verarbeitung automatisch und übernimmt die eingestellte Löschprüfung', () => {
+    const settings = { ...DEFAULT_RETENTION_SETTINGS, moduleRules: {
+      ...DEFAULT_RETENTION_SETTINGS.moduleRules,
+      case_file: { kind: 'months_after_completion' as const, months: 24 },
+    } };
+    const suggested = dataProtectionNoticeDefaults(EMPTY_TEMPLATE_DEFAULT_VALUES, '2026-11-05', settings);
+    expect(suggested.legalBasis).toContain('§ 178 SGB IX');
+    expect(suggested.dataSources).toContain('Arbeitgeber');
+    expect(suggested.recipients).toContain('Stellvertretungen');
+    expect(suggested.thirdCountryTransfers).toContain('nicht vorgesehen');
+    expect(suggested.retention).toContain('24 Monate nach Abschluss');
+    expect(suggested.retention).toContain('keine automatische Löschung');
+    expect(suggested.supervisoryAuthority).toBe('');
+    expect(validateDataProtectionNotice({ ...suggested, responsibleEntity: 'Muster GmbH', responsibleContact: 'kontakt@muster.de', sbvContact: 'sbv@muster.de', supervisoryAuthority: 'Behörde' })).toEqual([]);
+  });
+
+  it('nennt ohne geladene Prüffristen nur sichere Aufbewahrungskriterien', () => {
+    const suggested = dataProtectionNoticeDefaults(EMPTY_TEMPLATE_DEFAULT_VALUES, '2026-11-05');
+    expect(suggested.retention).toContain('Zweck');
+    expect(suggested.retention).not.toContain('36 Monaten');
   });
 
   it('rendert ein externes, druckbares PDF ohne interne Prüfhinweise', async () => {

@@ -13,7 +13,8 @@ export type TemplateDefaultKey =
   | "datenschutz.kontakt.name"
   | "datenschutz.kontakt.email"
   | "datenschutz.dsb.name"
-  | "datenschutz.dsb.email";
+  | "datenschutz.dsb.email"
+  | "datenschutz.aufsichtsbehoerde";
 
 export type TemplateDefaultValues = Record<TemplateDefaultKey, string>;
 
@@ -99,6 +100,11 @@ export const TEMPLATE_DEFAULT_FIELDS: Array<{
     label: "{{datenschutz.dsb.email}}",
     description: "Optional: E-Mail der/des Datenschutzbeauftragten.",
   },
+  {
+    key: "datenschutz.aufsichtsbehoerde",
+    label: "{{datenschutz.aufsichtsbehoerde}}",
+    description: "Zuständige Datenschutzaufsichtsbehörde für Schreiben an betroffene Personen.",
+  },
 ];
 
 export const EMPTY_TEMPLATE_DEFAULT_VALUES: TemplateDefaultValues = {
@@ -117,6 +123,7 @@ export const EMPTY_TEMPLATE_DEFAULT_VALUES: TemplateDefaultValues = {
   "datenschutz.kontakt.email": "",
   "datenschutz.dsb.name": "",
   "datenschutz.dsb.email": "",
+  "datenschutz.aufsichtsbehoerde": "",
 };
 
 export function normalizeTemplateDefaultValues(

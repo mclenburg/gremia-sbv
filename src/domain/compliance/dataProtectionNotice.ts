@@ -1,5 +1,8 @@
 import type { DataProtectionNoticeInput } from '../models/compliance.model.js';
 import type { TemplateDefaultValues } from '../models/template-default.model.js';
+import type { RetentionRule, RetentionSettings } from '../models/retention.model.js';
+import { retentionPolicyDefinitionsWithRules } from '../retention/retentionPolicyCatalog.js';
+import { DATA_SUBJECT_ACCESS_SOURCES } from './dataSubjectAccessPolicy.js';
 
 const REQUIRED_FIELDS: Array<[keyof DataProtectionNoticeInput, string]> = [
   ['responsibleEntity', 'Verantwortliche Stelle'],
@@ -18,18 +21,41 @@ function clean(value: string): string {
   return value.replace(/\s+/g, ' ').trim();
 }
 
-export function dataProtectionNoticeDefaults(defaults: TemplateDefaultValues, date: string): DataProtectionNoticeInput {
+function reviewPeriod(rule: RetentionRule): string {
+  if (rule.kind === 'months_after_completion') return `${rule.months} Monate nach Abschluss`;
+  if (rule.kind === 'months_after_completion_year_end') return `${rule.months} Monate ab Jahresende des Abschlusses`;
+  if (rule.kind === 'term_related') return `amtszeitbezogen nach ${rule.months} Monaten`;
+  if (rule.kind === 'permanent_anonymized') return 'dauerhaft nur anonymisiert';
+  return 'nach Wegfall des Zwecks';
+}
+
+function retentionInformation(settings?: RetentionSettings): string {
+  const criteria = 'Die Daten werden gespeichert, solange der jeweilige SBV-Zweck, ein laufender Vorgang oder gesetzliche Nachweis- und Aufbewahrungspflichten dies erfordern. Nach Zweckfortfall werden personenbezogene Inhalte auf Löschung oder Anonymisierung geprüft; die Anwendung nimmt keine automatische Löschung vor.';
+  if (!settings) return criteria;
+  const periods = retentionPolicyDefinitionsWithRules(settings.moduleRules)
+    .map(({ label, rule }) => `${label}: Prüfung ${reviewPeriod(rule)}`)
+    .join('; ');
+  return `${criteria} Die in Gremia.SBV eingestellten regulären Prüftermine lauten: ${periods}. Im Einzelfall können laufende Verfahren und gesetzliche Pflichten eine abweichende Dauer erfordern.`;
+}
+
+function processedDataAndPurposes(): string {
+  return DATA_SUBJECT_ACCESS_SOURCES.map((source) =>
+    `- ${source.label}: ${source.dataCategories.join(', ')}. Zweck: ${source.purposes.join('; ')}.`,
+  ).join('\n');
+}
+
+export function dataProtectionNoticeDefaults(defaults: TemplateDefaultValues, date: string, retentionSettings?: RetentionSettings): DataProtectionNoticeInput {
   return {
     responsibleEntity: defaults['datenschutz.verantwortliche_stelle'] || defaults['arbeitgeber.name'] || defaults['unternehmen.name'],
     responsibleContact: [defaults['datenschutz.kontakt.name'], defaults['datenschutz.kontakt.email']].filter(Boolean).join(' · '),
     sbvContact: [defaults['sbv.name'] === 'Schwerbehindertenvertretung' ? '' : defaults['sbv.name'], defaults['sbv.email'], defaults['sbv.telefon']].filter(Boolean).join(' · '),
     privacyOfficerContact: [defaults['datenschutz.dsb.name'], defaults['datenschutz.dsb.email']].filter(Boolean).join(' · '),
-    legalBasis: '',
-    dataSources: '',
-    recipients: '',
-    retention: '',
-    thirdCountryTransfers: '',
-    supervisoryAuthority: '',
+    legalBasis: 'Rechtsgrundlage der zur gesetzlichen SBV-Aufgabe erforderlichen Verarbeitung ist Art. 6 Abs. 1 Buchst. c DSGVO in Verbindung mit § 178 SGB IX. Für erforderliche Angaben über Behinderung und Gesundheit gilt Art. 9 Abs. 2 Buchst. b DSGVO in Verbindung mit § 26 Abs. 3 BDSG, soweit diese Norm auf die verantwortliche Stelle anwendbar ist. Bei Prävention und BEM gelten ergänzend § 167 Abs. 1 und 2 SGB IX.',
+    dataSources: 'Die Daten stammen von Ihnen selbst, aus von Ihnen vorgelegten Nachweisen und Unterlagen, aus erforderlichen Mitteilungen und Listen des Arbeitgebers sowie aus der Dokumentation der SBV. Je nach Verfahren können Angaben beteiligter Behörden oder anderer Stellen hinzukommen. Eine automatische Übernahme aus öffentlich zugänglichen Quellen erfolgt nicht.',
+    recipients: 'Zugriff haben die zuständige Schwerbehindertenvertretung und zulässig einbezogene Stellvertretungen. Je nach Vorgang können erforderliche Informationen nach rechtlicher Prüfung an die betroffene Person, zuständige Arbeitgeberstellen, Betriebs- oder Personalrat, Inklusionsamt, Agentur für Arbeit oder andere am Verfahren beteiligte Stellen weitergegeben werden. Die Anwendung versendet personenbezogene Fallinhalte nicht automatisch; Exporte und optionale externe Anbindungen werden bewusst ausgelöst.',
+    retention: retentionInformation(retentionSettings),
+    thirdCountryTransfers: 'Eine Übermittlung an Empfänger in Drittländern oder internationale Organisationen ist für die lokale Verarbeitung in Gremia.SBV nicht vorgesehen. Manuelle Exporte oder optionale externe Anbindungen können im konkreten Betrieb eine gesondert zu bewertende Übermittlung auslösen.',
+    supervisoryAuthority: defaults['datenschutz.aufsichtsbehoerde'],
     issueDate: date,
   };
 }
@@ -64,7 +90,11 @@ Schwerbehindertenvertretung: ${value('sbvContact')}
 ${input.privacyOfficerContact.trim() ? `\nDatenschutzbeauftragte oder Datenschutzbeauftragter: ${value('privacyOfficerContact')}\n` : ''}
 ## Zwecke und Datenarten
 
-Die SBV verarbeitet die für Beratung, Unterstützung, Beteiligung und Interessenvertretung erforderlichen Daten. Dazu können Kontaktdaten, Angaben zum Beschäftigungsverhältnis, zur Schwerbehinderung oder Gleichstellung, Gesundheitsangaben, Gesprächsnotizen, Vorgänge, Fristen und Dokumente gehören. Die Daten werden elektronisch in einer lokal betriebenen, verschlüsselten Anwendung gespeichert.
+Die SBV verarbeitet nur die für Beratung, Unterstützung, Beteiligung und Interessenvertretung erforderlichen Daten. Je nach Anliegen und genutztem Arbeitsbereich können folgende Datenarten und Zwecke betroffen sein:
+
+${processedDataAndPurposes()}
+
+Angaben zur Gesundheit oder Behinderung werden nur verarbeitet, soweit sie für den konkreten SBV-Zweck erforderlich sind. Die Daten werden elektronisch in einer lokal betriebenen, verschlüsselten Anwendung gespeichert.
 
 ## Rechtsgrundlagen
 

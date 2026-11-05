@@ -39,7 +39,7 @@ Zu dokumentieren sind insbesondere:
 
 ## Information der Beschäftigten
 
-Die Anwendung versendet keine Informationen nach Art. 13/14 DSGVO selbst. Im Compliance-Center kann aus vollständigen Angaben eine versendbare Datenschutzinformation als PDF erstellt werden. Organisations- und Kontaktdaten aus den Einstellungen werden vorbelegt; Rechtsgrundlage, Datenherkunft, Empfänger, Speicherdauer, Drittlandübermittlung und Aufsichtsbehörde müssen für den konkreten Betrieb ergänzt werden. Ohne diese Angaben wird kein PDF erzeugt. Die Ausgabe und der Nachweis der Information bleiben ein organisatorischer Vorgang der verantwortlichen Stelle.
+Die Anwendung versendet keine Informationen nach Art. 13/14 DSGVO selbst. Im Compliance-Center kann aus vollständigen Angaben eine versendbare Datenschutzinformation als PDF erstellt werden. Organisations- und Kontaktdaten einschließlich der Aufsichtsbehörde werden aus den Einstellungen übernommen. Die aus der Anwendung bekannten Angaben zu Rechtsgrundlagen, Datenherkunft, Empfängerkategorien und Drittlandübermittlung sind vorbelegt; Speicherkriterien werden bei verfügbaren Einstellungen um die konfigurierten Prüffristen ergänzt. Unbekannte betriebliche Angaben müssen ergänzt werden. Die Ausgabe und der Nachweis der Information bleiben ein organisatorischer Vorgang der verantwortlichen Stelle.
 
 
 
