@@ -62,6 +62,7 @@ export function ComplianceView() {
               selectedType={state.selectedType}
               document={state.document}
               onRender={state.render}
+              onBodyChange={state.updateDocumentBody}
               onExportPdf={(open) => void state.exportPdfCurrent(open)}
               onExportNotice={(input, open) => state.exportDataProtectionNotice(input, open)}
             />
@@ -77,6 +78,7 @@ export function ComplianceView() {
               onPersonSelect={state.selectDsarPerson}
               onPrefill={() => void state.prefillDsar()}
               onRenderDsar={state.renderDsar}
+              onBodyChange={state.updateDocumentBody}
               onExportPdf={(open) => void state.exportPdfCurrent(open)}
             />
           )}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { waitForBridge } from "../../core/bridge/waitForBridge";
 import { useAnnouncer } from "../../shared/a11y/LiveRegionProvider";
 import type {
@@ -28,6 +28,12 @@ export function useComplianceCenter() {
   const [document, setDocument] = useState<ComplianceDocument>(() =>
     renderComplianceDocument("toms"),
   );
+  const editedDocuments = useRef<Partial<Record<ComplianceDocumentType, ComplianceDocument>>>({});
+  const updateDocumentBody = (body: string) => {
+    const edited = { ...document, body };
+    if (document.type !== "dsar_response") editedDocuments.current[document.type] = edited;
+    setDocument(edited);
+  };
   const [message, setMessage] = useState("");
   const [statusOverview, setStatusOverview] =
     useState<ComplianceStatusOverview>(() => buildFallbackStatus());
@@ -89,7 +95,7 @@ export function useComplianceCenter() {
     void refreshIncidents();
   }, [refreshStatus, refreshSelfCheck, refreshIncidents]);
 
-  const documentActions = createComplianceDocumentActions({ document, setDocument, setSelectedType, setMessage, announce });
+  const documentActions = createComplianceDocumentActions({ document, setDocument, setSelectedType, setMessage, announce, getEditedDocument: (type) => editedDocuments.current[type] });
   const incidentActions = createComplianceIncidentActions({ refreshIncidents, refreshSelfCheck, setMessage, announce });
 
   return {
@@ -98,6 +104,7 @@ export function useComplianceCenter() {
     setWorkspace,
     selectedType,
     document,
+    updateDocumentBody,
     message,
     dsarInput: dsar.dsarInput,
     dsarReadiness: dsar.dsarReadiness,

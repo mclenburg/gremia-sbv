@@ -43,3 +43,28 @@ test('erstellt eine ausgefüllte Datenschutzinformation ohne Platzhalter und lä
   const input = await page.evaluate(() => (window as Window & { __NOTICE_INPUTS: () => Array<{ complianceNoticeInput: { responsibleEntity: string } }> }).__NOTICE_INPUTS()[0]);
   expect(input.complianceNoticeInput.responsibleEntity).toBe('Muster GmbH');
 });
+
+test('bearbeitet Compliance-Markdown vor dem PDF und behält den Entwurf beim Unterlagenwechsel', async ({ page }) => {
+  await page.addInitScript(() => {
+    const inputs: unknown[] = [];
+    Object.assign(window, { __COMPLIANCE_INPUTS: () => inputs });
+    window.gremiaSbv!.reports.generate = async (input) => {
+      inputs.push(input);
+      return { ok: true, reportType: 'compliance_document', title: 'TOMs', fileName: 'toms.gsbvpdf', filePath: '/test/toms.gsbvpdf', generatedAt: new Date().toISOString(), warnings: [], metrics: {} };
+    };
+  });
+  await page.goto('/');
+  await page.getByRole('navigation', { name: 'Hauptnavigation' }).getByRole('button', { name: 'Compliance', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Compliance-Arbeitsbereiche' }).getByRole('button', { name: /Unterlagen/u }).click();
+  const editor = page.getByRole('textbox', { name: 'Markdown vor PDF-Erzeugung bearbeiten' });
+  const editedBody = '# Eigene TOMs\n\n- Konkrete lokale Maßnahme';
+  await editor.fill(editedBody);
+  await expect(page.getByLabel('Dokumentvorschau Inhalt')).toContainText('Konkrete lokale Maßnahme');
+  await page.getByRole('button', { name: 'VVT abrufen' }).click();
+  await page.getByRole('button', { name: 'TOMs abrufen' }).click();
+  await expect(editor).toHaveValue(editedBody);
+  await page.getByRole('region', { name: 'Dokumentvorschau' }).getByRole('button', { name: 'PDF erzeugen', exact: true }).click();
+  await expect.poll(() => page.evaluate(() => (window as Window & { __COMPLIANCE_INPUTS: () => unknown[] }).__COMPLIANCE_INPUTS().length)).toBe(1);
+  const input = await page.evaluate(() => (window as Window & { __COMPLIANCE_INPUTS: () => Array<{ complianceBody: string }> }).__COMPLIANCE_INPUTS()[0]);
+  expect(input.complianceBody).toBe(editedBody);
+});

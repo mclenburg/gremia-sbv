@@ -8,18 +8,20 @@ import { renderComponent, visibleText } from "../../helpers/renderedMarkup";
 const noop = () => undefined;
 
 describe("Compliance-Dokumentworkflow", () => {
-  it("bietet Compliance-Unterlagen einheitlich als PDF-Workflow ohne Markdown-Sonderexport an", () => {
+  it("bietet vor der PDF-Erzeugung einen bearbeitbaren Markdown-Entwurf und eine Vorschau an", () => {
     const { markup } = renderComponent(ComplianceDocumentPreview, {
       document: renderComplianceDocument("toms"),
+      onBodyChange: noop,
       onExportPdf: noop,
     });
     const text = visibleText(markup);
 
-    expect(text).not.toContain("Markdown");
+    expect(text).toContain("Markdown vor PDF-Erzeugung bearbeiten");
     expect(text).toContain("PDF erzeugen");
     expect(text).toContain("PDF erzeugen und öffnen");
-    expect(markup).not.toContain("<textarea");
-    expect(text).not.toContain("# TOMs");
+    expect(markup).toContain("<textarea");
+    expect(markup).toContain("Dokumentvorschau Inhalt");
+    expect(text).toContain("# TOMs");
     expect(complianceDocumentPreviewBlocks("# Titel\n\n- **Punkt**")).toEqual([
       { id: "heading-0", type: "heading", level: 2, text: "Titel" },
       { id: "list-1", type: "list", items: ["Punkt"] },
@@ -32,6 +34,7 @@ describe("Compliance-Dokumentworkflow", () => {
       selectedType: "toms",
       document: renderComplianceDocument("toms"),
       onRender: noop,
+      onBodyChange: noop,
       onExportPdf: noop,
       onExportNotice: noop,
     });
@@ -53,6 +56,7 @@ describe("Compliance-Dokumentworkflow", () => {
       selectedType: 'data_protection_notice',
       document: renderComplianceDocument('toms'),
       onRender: noop,
+      onBodyChange: noop,
       onExportPdf: noop,
       onExportNotice: noop,
     });

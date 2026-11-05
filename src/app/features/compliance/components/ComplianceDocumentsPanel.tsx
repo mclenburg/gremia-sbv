@@ -18,6 +18,7 @@ export function ComplianceDocumentsPanel({
   selectedType,
   document,
   onRender,
+  onBodyChange,
   onExportPdf,
   onExportNotice,
 }: {
@@ -30,6 +31,7 @@ export function ComplianceDocumentsPanel({
   selectedType: ComplianceDocumentType;
   document: ComplianceDocument;
   onRender: (type: ComplianceDocumentType) => void;
+  onBodyChange: (body: string) => void;
   onExportPdf: (open: boolean) => void;
   onExportNotice: (input: DataProtectionNoticeInput, open: boolean) => Promise<void> | void;
 }) {
@@ -58,7 +60,7 @@ export function ComplianceDocumentsPanel({
       </section>
       {selectedType === 'data_protection_notice'
         ? <DataProtectionNoticePanel onExport={onExportNotice} />
-        : <ComplianceDocumentPreview document={document} onExportPdf={onExportPdf} />}
+        : <ComplianceDocumentPreview document={document} onBodyChange={onBodyChange} onExportPdf={onExportPdf} />}
     </div>
   );
 }

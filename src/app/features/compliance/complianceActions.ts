@@ -11,20 +11,22 @@ type ComplianceFeedback = {
   announce: (message: string, mode?: "polite" | "assertive") => void;
 };
 
-export function createComplianceDocumentActions({ document, setDocument, setSelectedType, setMessage, announce }: ComplianceFeedback & {
+export function createComplianceDocumentActions({ document, setDocument, setSelectedType, setMessage, announce, getEditedDocument }: ComplianceFeedback & {
   document: ComplianceDocument;
   setDocument: (document: ComplianceDocument) => void;
   setSelectedType: (type: ComplianceDocumentType) => void;
+  getEditedDocument?: (type: ComplianceDocumentType) => ComplianceDocument | undefined;
 }) {
   function render(type: ComplianceDocumentType) {
     if (type === 'data_protection_notice') {
       setSelectedType(type);
       return;
     }
-    const next = renderComplianceDocument(type);
+    const edited = getEditedDocument?.(type);
+    const next = edited ?? renderComplianceDocument(type);
     setSelectedType(type);
     setDocument(next);
-    const info = `${next.title} wurde erzeugt.`;
+    const info = edited ? `Bearbeiteter Entwurf für ${next.title} wurde wieder geöffnet.` : `${next.title} wurde erzeugt.`;
     setMessage(info);
     announce(info, "polite");
   }
@@ -54,6 +56,12 @@ export function createComplianceDocumentActions({ document, setDocument, setSele
   }
 
   function exportPdfCurrent(openAfterExport = false) {
+    if (!document.body.trim()) {
+      const info = "Dokumenttext fehlt. Bitte Markdown eingeben, bevor das PDF erzeugt wird.";
+      setMessage(info);
+      announce(info, "assertive");
+      return Promise.resolve();
+    }
     return exportPdf(buildComplianceReportInput(document), document.title, openAfterExport);
   }
 

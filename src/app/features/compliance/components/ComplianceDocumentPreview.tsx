@@ -6,6 +6,7 @@ import {
   WorkbenchToolbar,
 } from "../../../shared/components/WorkbenchLayout";
 import type { ComplianceDocument } from "../../../../domain/models/compliance.model";
+import { TextareaInput } from "../../../shared/components/IndustrialForm";
 
 type PreviewBlock =
   | { id: string; type: "heading"; level: 2 | 3; text: string }
@@ -73,9 +74,11 @@ export function CompliancePreviewBody({ body }: { body: string }) {
 
 export function ComplianceDocumentPreview({
   document,
+  onBodyChange,
   onExportPdf,
 }: {
   document: ComplianceDocument;
+  onBodyChange: (body: string) => void;
   onExportPdf: (open: boolean) => void;
 }) {
   return (
@@ -90,14 +93,24 @@ export function ComplianceDocumentPreview({
           <p>{document.description}</p>
         </div>
         <WorkbenchToolbar ariaLabel="PDF-Aktionen">
-          <ToolbarButton onClick={() => onExportPdf(false)}>
+          <ToolbarButton onClick={() => onExportPdf(false)} disabled={!document.body.trim()}>
             PDF erzeugen
           </ToolbarButton>
-          <IndustrialButton onClick={() => onExportPdf(true)}>
+          <IndustrialButton onClick={() => onExportPdf(true)} disabled={!document.body.trim()}>
             PDF erzeugen und öffnen
           </IndustrialButton>
         </WorkbenchToolbar>
       </div>
+      <TextareaInput
+        label="Markdown vor PDF-Erzeugung bearbeiten"
+        value={document.body}
+        onValueChange={onBodyChange}
+        helpText="Änderungen erscheinen in der Vorschau und werden für dieses PDF verwendet."
+        rows={18}
+        wide
+        showCommandHint={false}
+        globalCommandsEnabled={false}
+      />
       <CompliancePreviewBody body={document.body} />
     </section>
   );

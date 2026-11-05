@@ -51,6 +51,49 @@ describe('compliance action workflows', () => {
     expect(state.announce).toHaveBeenCalledExactlyOnceWith(expect.any(String), 'polite');
   });
 
+  it('übergibt den bearbeiteten Markdown-Text unverändert an die PDF-Erzeugung', async () => {
+    const state = setup();
+    const editedBody = '# Eigene TOMs\n\n- Konkrete lokale Maßnahme';
+    const actions = createComplianceDocumentActions({
+      document: { ...state.document, body: editedBody },
+      setDocument: state.setDocument,
+      setSelectedType: state.setSelectedType,
+      setMessage: state.setMessage,
+      announce: state.announce,
+    });
+    await actions.exportPdfCurrent();
+    expect(state.reports.generate).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ complianceBody: editedBody }));
+  });
+
+  it('verhindert eine PDF-Erzeugung ohne Dokumenttext', async () => {
+    const state = setup();
+    const actions = createComplianceDocumentActions({
+      document: { ...state.document, body: '  ' },
+      setDocument: state.setDocument,
+      setSelectedType: state.setSelectedType,
+      setMessage: state.setMessage,
+      announce: state.announce,
+    });
+    await actions.exportPdfCurrent();
+    expect(state.reports.generate).not.toHaveBeenCalled();
+    expect(state.setMessage).toHaveBeenCalledWith(expect.stringContaining('Dokumenttext fehlt'));
+  });
+
+  it('stellt einen bearbeiteten Entwurf beim erneuten Öffnen wieder her', () => {
+    const state = setup();
+    const edited = { ...state.document, body: '# Bearbeitet' };
+    const actions = createComplianceDocumentActions({
+      document: state.document,
+      setDocument: state.setDocument,
+      setSelectedType: state.setSelectedType,
+      setMessage: state.setMessage,
+      announce: state.announce,
+      getEditedDocument: (type) => type === 'toms' ? edited : undefined,
+    });
+    actions.render('toms');
+    expect(state.setDocument).toHaveBeenCalledExactlyOnceWith(edited);
+  });
+
   it('übergibt die ausgefüllte Datenschutzinformation strukturiert an den Berichtsdienst', async () => {
     const state = setup();
     const input = {

@@ -48,6 +48,8 @@ Das Compliance-Center unterstützt dich dabei, Datenschutz- und Nachweispunkte n
 
 Unter **Unterlagen → Datenschutzinformation Art. 13/14 DSGVO** kannst du ein Schreiben für betroffene Beschäftigte erstellen. Bereits in den Einstellungen hinterlegte Angaben zu Arbeitgeber, SBV und Datenschutzkontakt werden übernommen. Ergänze die Angaben zum lokalen Verarbeitungsvorgang; fehlende Pflichtangaben verhindern die PDF-Erzeugung. **PDF zum Drucken öffnen** übergibt das fertige Dokument an den lokalen PDF-Viewer. Der Versand oder die Aushändigung erfolgt anschließend außerhalb der Anwendung.
 
+Bei den übrigen Unterlagen kannst du den erzeugten Markdown-Entwurf vor der PDF-Erzeugung direkt bearbeiten. Die Vorschau folgt deinen Änderungen; das PDF übernimmt den bearbeiteten Text. Beim Wechsel zwischen Unterlagen bleiben bearbeitete Entwürfe erhalten, solange das Compliance-Center geöffnet ist. Die Datenschutzinformation nutzt stattdessen ihr Pflichtfeldformular.
+
 Typische Hinweise betreffen:
 
 - offene Datenschutzprüfungen,

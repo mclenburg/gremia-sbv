@@ -192,6 +192,7 @@ export function ComplianceDsarPanel({
   onPrefill,
   onRenderDsar,
   onExportPdf,
+  onBodyChange,
 }: {
   dsarInput: DataSubjectAccessRequestInput;
   dsarReadiness: DataSubjectAccessReadiness;
@@ -206,6 +207,7 @@ export function ComplianceDsarPanel({
   onPrefill: () => void;
   onRenderDsar: () => void;
   onExportPdf: (open: boolean) => void;
+  onBodyChange: (body: string) => void;
 }) {
   const reviewCount = dsarInput.prefill?.reviewItems.length ?? 0;
 
@@ -223,10 +225,13 @@ export function ComplianceDsarPanel({
         <DsarPersonSelector input={dsarInput} persons={persons} onInputChange={onInputChange} onPersonSelect={onPersonSelect} />
         <DsarActionArea input={dsarInput} readiness={dsarReadiness} prefillBusy={prefillBusy} onPrefill={onPrefill} onRenderDsar={onRenderDsar} />
       </FormSection>
-      <ComplianceDocumentPreview
-        document={document}
-        onExportPdf={onExportPdf}
-      />
+      {document.type === "dsar_response" && (
+        <ComplianceDocumentPreview
+          document={document}
+          onBodyChange={onBodyChange}
+          onExportPdf={onExportPdf}
+        />
+      )}
     </div>
   );
 }
