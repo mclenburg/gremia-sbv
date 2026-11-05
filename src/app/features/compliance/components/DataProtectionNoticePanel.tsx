@@ -93,12 +93,12 @@ export function DataProtectionNoticePanel({ onExport }: { onExport: (input: Data
           <TextareaInput label="Herkunft der Daten" value={input.dataSources} onValueChange={(value) => update('dataSources', value)} required wide />
           <TextareaInput label="Empfänger oder Empfängerkategorien" value={input.recipients} onValueChange={(value) => update('recipients', value)} required wide />
           <TextareaInput label="Speicherdauer oder Kriterien" value={input.retention} onValueChange={(value) => update('retention', value)} required wide />
-          <TextareaInput label="Drittlandübermittlung" value={input.thirdCountryTransfers} onValueChange={(value) => update('thirdCountryTransfers', value)} required wide />
         </div>
       </details>
-      <FormSection title="Betriebliche Angabe" ariaLabel="Betriebliche Angabe">
+      <FormSection title="Betriebliche Angaben" ariaLabel="Betriebliche Angaben">
         <div className="industrial-form-grid">
           <TextInput label="Zuständige Datenschutzaufsichtsbehörde" value={input.supervisoryAuthority} onValueChange={(value) => update('supervisoryAuthority', value)} required wide />
+          <TextareaInput label="Drittlandübermittlung" value={input.thirdCountryTransfers} onValueChange={(value) => update('thirdCountryTransfers', value)} required wide />
         </div>
       </FormSection>
       {attempted && missing.length > 0 && <p role="alert">Vor der PDF-Erzeugung ergänzen: {missing.join(', ')}.</p>}

@@ -36,7 +36,8 @@ test('erstellt eine ausgefüllte Datenschutzinformation ohne Platzhalter und lä
   await expect(panel.getByRole('textbox', { name: 'Herkunft der Daten' })).toHaveValue(/Arbeitgeber/u);
   await expect(panel.getByRole('textbox', { name: 'Empfänger oder Empfängerkategorien' })).toHaveValue(/Stellvertretungen/u);
   await expect(panel.getByRole('textbox', { name: 'Speicherdauer oder Kriterien' })).toHaveValue(/keine automatische Löschung/u);
-  await expect(panel.getByRole('textbox', { name: 'Drittlandübermittlung' })).toHaveValue(/nicht vorgesehen/u);
+  await expect(panel.getByRole('textbox', { name: 'Drittlandübermittlung' })).toBeEmpty();
+  await panel.getByRole('textbox', { name: 'Drittlandübermittlung' }).fill('Keine Übermittlung in ein Drittland vorgesehen.');
   await panel.getByRole('textbox', { name: 'Zuständige Datenschutzaufsichtsbehörde' }).fill('Landesdatenschutzbehörde.');
   await expect(panel.getByLabel('Dokumentvorschau Inhalt')).toContainText('Muster GmbH');
   await generate.press('Enter');
@@ -57,6 +58,7 @@ test('erstellt bei vollständigen Einstellungen die Datenschutzinformation ohne 
       'datenschutz.kontakt.email': 'datenschutz@muster.de',
       'sbv.email': 'sbv@muster.de',
       'datenschutz.aufsichtsbehoerde': 'Landesdatenschutzbehörde Musterland',
+      'datenschutz.drittlandangabe': 'Keine Übermittlung in ein Drittland vorgesehen.',
     });
     const getSettings = bridge.retention.getSettings;
     bridge.retention.getSettings = async () => {

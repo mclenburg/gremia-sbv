@@ -45,12 +45,14 @@ describe('Vorlagen-Standardwerte im verschlüsselten Tresor', () => {
       'sbv.name': 'SBV Muster',
       'arbeitgeber.name': 'Arbeitgeber GmbH',
       'datenschutz.aufsichtsbehoerde': 'Landesdatenschutzbehörde Musterland',
+      'datenschutz.drittlandangabe': 'Keine Übermittlung vorgesehen.',
       unbekannt: 'wird ignoriert',
     });
 
     expect(saved['sbv.name']).toBe('SBV Muster');
     expect(saved['arbeitgeber.name']).toBe('Arbeitgeber GmbH');
     expect(saved['datenschutz.aufsichtsbehoerde']).toBe('Landesdatenschutzbehörde Musterland');
+    expect(saved['datenschutz.drittlandangabe']).toBe('Keine Übermittlung vorgesehen.');
     expect(saved['sbv.signatur']).toBe(EMPTY_TEMPLATE_DEFAULT_VALUES['sbv.signatur']);
     expect(service.list()).toEqual(saved);
   });

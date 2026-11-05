@@ -47,6 +47,7 @@ describe('versandfähige Datenschutzinformation', () => {
       'sbv.name': 'SBV Muster',
       'sbv.email': 'sbv@muster.de',
       'datenschutz.aufsichtsbehoerde': 'Landesdatenschutzbehörde Musterland',
+      'datenschutz.drittlandangabe': 'Keine Übermittlung durch die verantwortliche Stelle vorgesehen.',
     };
     expect(dataProtectionNoticeDefaults(defaults, '2026-11-05', DEFAULT_RETENTION_SETTINGS)).toMatchObject({
       responsibleEntity: 'Muster GmbH',
@@ -54,6 +55,7 @@ describe('versandfähige Datenschutzinformation', () => {
       sbvContact: 'SBV Muster · sbv@muster.de',
       privacyOfficerContact: 'DSB Muster · dsb@muster.de',
       supervisoryAuthority: 'Landesdatenschutzbehörde Musterland',
+      thirdCountryTransfers: 'Keine Übermittlung durch die verantwortliche Stelle vorgesehen.',
     });
   });
 
@@ -66,11 +68,11 @@ describe('versandfähige Datenschutzinformation', () => {
     expect(suggested.legalBasis).toContain('§ 178 SGB IX');
     expect(suggested.dataSources).toContain('Arbeitgeber');
     expect(suggested.recipients).toContain('Stellvertretungen');
-    expect(suggested.thirdCountryTransfers).toContain('nicht vorgesehen');
+    expect(suggested.thirdCountryTransfers).toBe('');
     expect(suggested.retention).toContain('24 Monate nach Abschluss');
     expect(suggested.retention).toContain('keine automatische Löschung');
     expect(suggested.supervisoryAuthority).toBe('');
-    expect(validateDataProtectionNotice({ ...suggested, responsibleEntity: 'Muster GmbH', responsibleContact: 'kontakt@muster.de', sbvContact: 'sbv@muster.de', supervisoryAuthority: 'Behörde' })).toEqual([]);
+    expect(validateDataProtectionNotice({ ...suggested, responsibleEntity: 'Muster GmbH', responsibleContact: 'kontakt@muster.de', sbvContact: 'sbv@muster.de', supervisoryAuthority: 'Behörde' })).toContain('Drittlandübermittlung');
   });
 
   it('nennt ohne geladene Prüffristen nur sichere Aufbewahrungskriterien', () => {

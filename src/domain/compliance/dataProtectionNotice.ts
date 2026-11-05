@@ -54,7 +54,7 @@ export function dataProtectionNoticeDefaults(defaults: TemplateDefaultValues, da
     dataSources: 'Die Daten stammen von Ihnen selbst, aus von Ihnen vorgelegten Nachweisen und Unterlagen, aus erforderlichen Mitteilungen und Listen des Arbeitgebers sowie aus der Dokumentation der SBV. Je nach Verfahren können Angaben beteiligter Behörden oder anderer Stellen hinzukommen. Eine automatische Übernahme aus öffentlich zugänglichen Quellen erfolgt nicht.',
     recipients: 'Zugriff haben die zuständige Schwerbehindertenvertretung und zulässig einbezogene Stellvertretungen. Je nach Vorgang können erforderliche Informationen nach rechtlicher Prüfung an die betroffene Person, zuständige Arbeitgeberstellen, Betriebs- oder Personalrat, Inklusionsamt, Agentur für Arbeit oder andere am Verfahren beteiligte Stellen weitergegeben werden. Die Anwendung versendet personenbezogene Fallinhalte nicht automatisch; Exporte und optionale externe Anbindungen werden bewusst ausgelöst.',
     retention: retentionInformation(retentionSettings),
-    thirdCountryTransfers: 'Eine Übermittlung an Empfänger in Drittländern oder internationale Organisationen ist für die lokale Verarbeitung in Gremia.SBV nicht vorgesehen. Manuelle Exporte oder optionale externe Anbindungen können im konkreten Betrieb eine gesondert zu bewertende Übermittlung auslösen.',
+    thirdCountryTransfers: defaults['datenschutz.drittlandangabe'],
     supervisoryAuthority: defaults['datenschutz.aufsichtsbehoerde'],
     issueDate: date,
   };
