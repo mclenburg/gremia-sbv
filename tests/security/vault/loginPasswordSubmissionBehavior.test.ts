@@ -12,7 +12,7 @@ function setup(isSetup = false) {
   vi.stubGlobal('window', { gremiaSbv: { security }, dispatchEvent });
   const input = {
     password, passwordRepeat: password, isSetup,
-    setError: vi.fn(), setPendingRecoveryKey: vi.fn(), onUnlock: vi.fn(),
+    setError: vi.fn(), setPending: vi.fn(), setPendingRecoveryKey: vi.fn(), onUnlock: vi.fn(),
   };
   return { security, dispatchEvent, input };
 }
@@ -28,6 +28,7 @@ describe('Login password submission', () => {
     expect(input.onUnlock).not.toHaveBeenCalled();
     expect(input.setError).toHaveBeenLastCalledWith(expect.any(String));
     expect(input.setError.mock.lastCall?.[0]).not.toBe('');
+    expect(input.setPending).not.toHaveBeenCalled();
   });
 
   it('requires matching passwords for setup before persisting', async () => {
@@ -35,6 +36,7 @@ describe('Login password submission', () => {
     await submitLoginPassword({ ...input, passwordRepeat: 'anderes-lang-passwort' });
     expect(security.setupInitialPassword).not.toHaveBeenCalled();
     expect(input.setError).toHaveBeenLastCalledWith('Die Passwörter stimmen nicht überein.');
+    expect(input.setPending).not.toHaveBeenCalled();
   });
 
   it('passes a valid password unchanged and preserves unlock warnings', async () => {
@@ -53,10 +55,12 @@ describe('Login password submission', () => {
     security.setupInitialPassword.mockImplementation(() => new Promise((done) => { resolve = done; }));
     const pending = submitLoginPassword(input);
     await vi.waitFor(() => expect(security.setupInitialPassword).toHaveBeenCalledExactlyOnceWith(password));
+    expect(input.setPending).toHaveBeenCalledExactlyOnceWith(true);
     expect(input.setPendingRecoveryKey).not.toHaveBeenCalled();
     expect(input.onUnlock).not.toHaveBeenCalled();
     resolve({ ok: true, recoveryKey: 'synthetischer-key' });
     await pending;
+    expect(input.setPending).toHaveBeenLastCalledWith(false);
     expect(input.setPendingRecoveryKey).toHaveBeenCalledExactlyOnceWith('synthetischer-key');
     expect(input.onUnlock).not.toHaveBeenCalled();
     expect(security.unlock).not.toHaveBeenCalled();

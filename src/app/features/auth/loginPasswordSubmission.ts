@@ -6,12 +6,13 @@ interface LoginPasswordSubmission {
   passwordRepeat: string;
   isSetup: boolean;
   setError: (message: string) => void;
+  setPending: (pending: boolean) => void;
   setPendingRecoveryKey: (key: string) => void;
   onUnlock: (warning?: string) => void;
 }
 
 export async function submitLoginPassword({
-  password, passwordRepeat, isSetup, setError, setPendingRecoveryKey, onUnlock,
+  password, passwordRepeat, isSetup, setError, setPending, setPendingRecoveryKey, onUnlock,
 }: LoginPasswordSubmission) {
   setError("");
 
@@ -26,29 +27,31 @@ export async function submitLoginPassword({
     return;
   }
 
-  await runAuthSecurityOperation(setError, "Sicherheitsoperation konnte nicht verarbeitet werden.", async (security) => {
-    if (isSetup) {
-      const result = await security.setupInitialPassword(password);
-      if (!result.ok) {
-        setError(
-          result.error ??
-            "Das Initialpasswort konnte nicht gespeichert werden.",
-        );
+  setPending(true);
+  try {
+    await runAuthSecurityOperation(setError, "Sicherheitsoperation konnte nicht verarbeitet werden.", async (security) => {
+      if (isSetup) {
+        const result = await security.setupInitialPassword(password);
+        if (!result.ok) {
+          setError(result.error ?? "Das Initialpasswort konnte nicht gespeichert werden.");
+          return;
+        }
+        if (result.recoveryKey) {
+          setPendingRecoveryKey(result.recoveryKey);
+          return;
+        }
+        onUnlock();
         return;
       }
-      if (result.recoveryKey) {
-        setPendingRecoveryKey(result.recoveryKey);
-        return;
-      }
-      onUnlock();
-      return;
-    }
 
-    const result = await security.unlock(password);
-    if (!result.ok || !result.unlocked) {
-      setError(result.error ?? "Entsperren fehlgeschlagen.");
-      return;
-    }
-    onUnlock(result.warning);
-  });
+      const result = await security.unlock(password);
+      if (!result.ok || !result.unlocked) {
+        setError(result.error ?? "Entsperren fehlgeschlagen.");
+        return;
+      }
+      onUnlock(result.warning);
+    });
+  } finally {
+    setPending(false);
+  }
 }

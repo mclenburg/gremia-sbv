@@ -743,6 +743,8 @@
         recoveryRequired: securityState.recoveryRequired,
       }),
       unlock: async (password) => {
+        const unlockDelayMs = Number(authSearchParams.get('unlockDelayMs') || 0);
+        if (unlockDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, unlockDelayMs));
         if (!securityState.initialized || securityState.destroyed) {
           return { ok: false, unlocked: false, error: 'Kein initialisierter Datenbestand.' };
         }

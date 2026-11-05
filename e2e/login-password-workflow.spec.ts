@@ -18,6 +18,18 @@ test('entsperrt per Tastatur und meldet Passwortfehler zugänglich', async ({ pa
   await expect(page.getByRole('navigation', { name: 'Hauptnavigation' })).toBeVisible();
 });
 
+test('zeigt während der Tresorprüfung eine Warteansicht ohne Passwortfeld', async ({ page }) => {
+  await page.goto('/?auth=locked&unlockDelayMs=1500');
+  const password = page.getByLabel('App-Passwort', { exact: true });
+  await password.fill('korrekt-pferd-batterie');
+  await password.press('Enter');
+  await expect(page.getByRole('heading', { name: 'Tresor wird entsperrt' })).toBeVisible();
+  await expect(page.getByRole('status')).toContainText('Das kann einige Sekunden dauern');
+  await expect(password).toHaveCount(0);
+  await expect(page.getByRole('navigation', { name: 'Hauptnavigation' })).toHaveCount(0);
+  await expect(page.getByRole('navigation', { name: 'Hauptnavigation' })).toBeVisible();
+});
+
 test('öffnet die App erst nach ausdrücklicher Bestätigung des Recovery-Keys', async ({ page }) => {
   await page.goto('/?auth=setup');
   const password = page.getByLabel('Initialpasswort', { exact: true });

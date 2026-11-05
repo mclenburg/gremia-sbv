@@ -7,6 +7,38 @@ import { SecurityUnavailable, RecoveryGate, RecoveryKeyPanel } from './AuthRecov
 import { LoginPasswordForm } from "./LoginPasswordForm";
 import { submitLoginPassword } from "./loginPasswordSubmission";
 
+function LoginPendingView({ isSetup }: { isSetup: boolean }) {
+  return (
+    <main className="industrial-shell login-shell">
+      <section className="login-panel login-panel-compact" aria-labelledby="auth-unlock-pending-title">
+        <div className="scanline" />
+        <p className="industrial-kicker">Gremia.SBV</p>
+        <div className="industrial-lazy-state">
+          <div className="industrial-loading-spinner" aria-hidden="true" />
+          <div>
+            <h1 id="auth-unlock-pending-title" className="auth-panel-title">{isSetup ? 'Tresor wird eingerichtet' : 'Tresor wird entsperrt'}</h1>
+            <p role="status" aria-live="polite">{isSetup ? 'Die verschlüsselte Datenbank wird eingerichtet.' : 'Passwort und Datenintegrität werden geprüft.'} Das kann einige Sekunden dauern.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function LoginRecoveryFooter({ onRequest }: { onRequest: () => void }) {
+  return (
+    <div className="auth-recovery-footer">
+      <p className="auth-recovery-note">
+        Passwort vergessen? Dafür brauchst du den langen Recovery-Key aus
+        der Ersteinrichtung.
+      </p>
+      <IndustrialButton type="button" variant="secondary" wide onClick={onRequest}>
+        Passwort vergessen? Recovery-Key verwenden
+      </IndustrialButton>
+    </div>
+  );
+}
+
 export function LoginGate({
   mode,
   onUnlock,
@@ -21,6 +53,7 @@ export function LoginGate({
   const [pendingRecoveryKey, setPendingRecoveryKey] = useState("");
   const [recoveryRequested, setRecoveryRequested] = useState(false);
   const [error, setError] = useState("");
+  const [pending, setPending] = useState(false);
 
   const isSetup = mode === "setup";
 
@@ -66,6 +99,8 @@ export function LoginGate({
     );
   }
 
+  if (pending) return <LoginPendingView isSetup={isSetup} />;
+
   return (
     <main className="industrial-shell login-shell">
       <section className="login-panel login-panel-compact">
@@ -97,29 +132,17 @@ export function LoginGate({
           onRepeatChange={(value) => { setPasswordRepeat(value); setError(""); }}
           onSubmit={(event) => {
             event.preventDefault();
-            void submitLoginPassword({ password, passwordRepeat, isSetup, setError, setPendingRecoveryKey, onUnlock });
+            if (pending) return;
+            void submitLoginPassword({ password, passwordRepeat, isSetup, setError, setPending, setPendingRecoveryKey, onUnlock });
           }}
         />
 
         {!isSetup && (
-          <div className="auth-recovery-footer">
-            <p className="auth-recovery-note">
-              Passwort vergessen? Dafür brauchst du den langen Recovery-Key aus
-              der Ersteinrichtung.
-            </p>
-            <IndustrialButton
-              type="button"
-              variant="secondary"
-              wide
-              onClick={() => {
-                setPassword("");
-                setError("");
-                setRecoveryRequested(true);
-              }}
-            >
-              Passwort vergessen? Recovery-Key verwenden
-            </IndustrialButton>
-          </div>
+          <LoginRecoveryFooter onRequest={() => {
+            setPassword("");
+            setError("");
+            setRecoveryRequested(true);
+          }} />
         )}
       </section>
     </main>
