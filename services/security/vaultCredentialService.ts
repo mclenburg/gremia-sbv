@@ -202,6 +202,7 @@ export class VaultCredentialService extends VaultSetupUnlockService {
           this.resetUnlockDelay();
           this.auditSecurityEvent('recovery_reset', 'Tresorpasswort per Recovery-Key zurückgesetzt');
           const cleanup = this.cleanupLegacyPlaintextExports(databaseKey);
+          this.startBackgroundAuditVerification();
           return {
             ok: true,
             initialized: true,

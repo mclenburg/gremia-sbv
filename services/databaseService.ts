@@ -5,6 +5,7 @@ import { releaseAuditIntegrityKey } from './auditLogService.js';
 export interface DatabaseAdapter {
   prepare<T = unknown>(sql: string): {
     all(...params: unknown[]): T[];
+    iterate?(...params: unknown[]): IterableIterator<T>;
     get(...params: unknown[]): T | undefined;
     run(...params: unknown[]): unknown;
   };

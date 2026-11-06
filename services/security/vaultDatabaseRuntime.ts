@@ -8,7 +8,7 @@ import { DatabaseRuntimeInitializer } from "../databaseRuntimeInitializer.js";
 import { SecurityServiceCore } from './securityServiceCore.js';
 import { BACKUPS_DIR_NAME } from './securitySupport.js';
 import { createVerifiedPreMigrationVaultBackup } from '../preMigrationVaultBackup.js';
-import { normalizeStoredDocumentPaths } from '../documentStorageReferenceMigration.js';
+import { normalizeStoredDocumentPathsOnce } from '../documentStorageReferenceMigration.js';
 import { PersonalDataAuditLogService, registerAuditIntegrityKey } from '../auditLogService.js';
 import { readAuditIntegrityAnchor, writeAuditIntegrityAnchor, type AuditIntegrityAnchor } from '../auditIntegrityAnchor.js';
 
@@ -60,16 +60,33 @@ export class VaultDatabaseRuntime extends SecurityServiceCore {
           legacyMaxSequence: Number(previous?.sequence ?? 0)
         };
       }
-      registerAuditIntegrityKey(db, databaseKey, anchor.legacyMaxSequence,
-        existsSync(this.auditAnchorPath) ? anchor : undefined);
-      const auditStatus = new PersonalDataAuditLogService(db).verifyChain();
-      if (!auditStatus.ok) {
-        throw new Error('Die Audit-Kette stimmt nicht mit dem geschützten Vertrauensanker überein. Tresor wurde nicht entsperrt.');
+      const existingAnchor = existsSync(this.auditAnchorPath);
+      registerAuditIntegrityKey(db, databaseKey, anchor.legacyMaxSequence, existingAnchor ? anchor : undefined);
+      if (existingAnchor) {
+        const anchoredRow = anchor.sequence === 0 ? undefined : db.prepare<{ entry_hash: string }>(
+          'SELECT entry_hash FROM personal_data_audit_log WHERE sequence = ?'
+        ).get(anchor.sequence);
+        const lastRow = db.prepare<{ sequence: number }>(
+          'SELECT sequence FROM personal_data_audit_log ORDER BY sequence DESC LIMIT 1'
+        ).get();
+        if ((anchor.sequence === 0 ? '0'.repeat(64) : anchoredRow?.entry_hash) !== anchor.entryHash ||
+          Number(lastRow?.sequence ?? 0) < anchor.sequence) {
+          throw new Error('Die Audit-Kette stimmt nicht mit dem geschützten Vertrauensanker überein. Tresor wurde nicht entsperrt.');
+        }
+        this.auditVerifiedHead = undefined;
+        this.auditIntegrityState = 'checking';
+      } else {
+        const auditStatus = new PersonalDataAuditLogService(db).verifyChain();
+        if (!auditStatus.ok) {
+          throw new Error('Die Audit-Kette stimmt nicht mit dem geschützten Vertrauensanker überein. Tresor wurde nicht entsperrt.');
+        }
+        writeAuditIntegrityAnchor(this.auditAnchorPath, databaseKey, anchor);
+        this.auditVerifiedHead = { sequence: auditStatus.lastSequence ?? 0, entryHash: auditStatus.latestHash };
+        this.auditIntegrityState = 'verified';
       }
-      if (!existsSync(this.auditAnchorPath)) writeAuditIntegrityAnchor(this.auditAnchorPath, databaseKey, anchor);
       this.auditAnchor = anchor;
-      const normalizedDocumentPaths = normalizeStoredDocumentPaths(db, this.dataDir);
-      const runtimeInitialization = new DatabaseRuntimeInitializer(db).initialize();
+      const normalizedDocumentPaths = normalizeStoredDocumentPathsOnce(db, this.dataDir);
+      const runtimeInitialization = new DatabaseRuntimeInitializer(db).initialize({ deferAggregateIntegrity: existingAnchor });
   
       if (result.applied.length || result.inferred.length || runtimeInitialization.baselineEntriesCreated > 0 || normalizedDocumentPaths > 0) {
         console.log("Gremia.SBV database migrations:", {

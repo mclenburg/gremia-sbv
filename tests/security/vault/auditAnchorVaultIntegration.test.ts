@@ -1,7 +1,7 @@
 import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { SecurityService } from '../../../services/securityService.js';
 import { PersonalDataAuditLogService } from '../../../services/auditLogService.js';
 
@@ -35,15 +35,44 @@ describe('Audit-Anker im echten Tresor', () => {
       service.lock();
       expect(existsSync(path.join(root, 'audit-integrity.anchor'))).toBe(true);
 
+      const fullChainScan = vi.spyOn(PersonalDataAuditLogService.prototype, 'verifyChain');
       const reopened = await service.unlock(PASSWORD);
       expect(reopened.ok).toBe(true);
+      expect(fullChainScan).not.toHaveBeenCalled();
+      fullChainScan.mockRestore();
       const db = service.getActiveDatabase();
       db.exec('DROP TRIGGER personal_data_audit_no_delete');
       db.exec('DELETE FROM personal_data_audit_log WHERE sequence = 1');
       service.lock();
       const result = await service.unlock(PASSWORD);
-      expect(result.ok).toBe(false);
-      expect(result.error).toContain('Audit');
+      expect(result.ok).toBe(true);
+      expect(service.status().auditIntegrityState).toBe('checking');
+      expect(service.getActiveDatabase()).toBeTruthy();
+      expect(() => service.checkpointAuditIntegrityForBackup()).toThrow('noch nicht erfolgreich');
+      await vi.waitFor(() => expect(service.status().auditIntegrityState).toBe('failed'), { timeout: 10_000 });
+      expect(service.status().unlocked).toBe(false);
+      expect(() => service.getActiveDatabase()).toThrow('gesperrt');
+    } finally {
+      service.lock();
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('meldet eine Kürzung nach der Hintergrundprüfung beim Sperren', async () => {
+    const root = mkdtempSync(path.join(tmpdir(), 'gsbv-audit-tail-'));
+    const service = new SecurityService(root);
+    try {
+      expect((await service.setupInitialPassword(PASSWORD)).ok).toBe(true);
+      service.lock();
+      expect((await service.unlock(PASSWORD)).ok).toBe(true);
+      await vi.waitFor(() => expect(service.status().auditIntegrityState).toBe('verified'), { timeout: 10_000 });
+      const db = service.getActiveDatabase();
+      const added = new PersonalDataAuditLogService(db).append({ action: 'create', subjectType: 'case', purpose: 'SBV-Datenschutzereignis' });
+      db.exec('DROP TRIGGER personal_data_audit_no_delete');
+      db.prepare('DELETE FROM personal_data_audit_log WHERE sequence = ?').run(added.sequence);
+      service.lock();
+      expect(service.status()).toMatchObject({ unlocked: false, auditIntegrityState: 'failed' });
+      expect(service.status().error).toContain('Integritätsprüfung');
     } finally {
       service.lock();
       rmSync(root, { recursive: true, force: true });

@@ -106,12 +106,15 @@ export class MeasureLifecycleAuditService {
       measure_type?: string | null;
     }
     const rows = this.database.prepare<BaselineMeasureRow>(`
-      SELECT id, ${options.statusColumn} AS status${options.caseColumn ? `, ${options.caseColumn} AS case_id` : ''}${options.typeColumn ? `, ${options.typeColumn} AS measure_type` : ''}
-      FROM ${options.table}
-    `).all();
+      SELECT measure.id, measure.${options.statusColumn} AS status${options.caseColumn ? `, measure.${options.caseColumn} AS case_id` : ''}${options.typeColumn ? `, measure.${options.typeColumn} AS measure_type` : ''}
+      FROM ${options.table} AS measure
+      WHERE NOT EXISTS (
+        SELECT 1 FROM personal_data_audit_log AS audit
+        WHERE audit.subject_type = ? AND audit.subject_id = measure.id
+      )
+    `).all(MEASURE_LIFECYCLE_SUBJECT_TYPE);
     let created = 0;
     for (const row of rows) {
-      if (this.hasLifecycleEntry(row.id)) continue;
       this.created(options.typeMap && row.measure_type ? options.typeMap(row.measure_type) : options.measureType, row.id, row.case_id ?? undefined, row.status ?? undefined, 'migration_baseline');
       created += 1;
     }

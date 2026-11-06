@@ -59,6 +59,17 @@ export async function createVerifiedPreMigrationVaultBackup(input: {
   if (!hasExistingApplicationSchema(input.db)) {
     return undefined;
   }
+  const expectedVersions = [...input.migrationVersions].sort();
+  const migrationTableExists = input.db.prepare<{ found: number }>(`
+    SELECT 1 AS found FROM sqlite_master WHERE type = 'table' AND name = 'schema_migrations'
+  `).get()?.found;
+  if (migrationTableExists && expectedVersions.length > 0) {
+    const recorded = input.db.prepare<{ version: string }>(
+      'SELECT version FROM schema_migrations ORDER BY version'
+    ).all();
+    if (recorded.length === expectedVersions.length &&
+      recorded.every((row, index) => row.version === expectedVersions[index])) return undefined;
+  }
   const pending = input.migrationVersions.filter((version) => /^\d{4}$/.test(version) && !hasMigration(input.db, version));
   if (pending.length === 0) return undefined;
   const migrationVersion = pending.sort().at(-1)!;

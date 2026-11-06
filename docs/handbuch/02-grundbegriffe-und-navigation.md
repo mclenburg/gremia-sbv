@@ -6,6 +6,8 @@ Das Dashboard ist die Startansicht nach einem echten Neustart der Anwendung. Es 
 
 Wenn du die Anwendung nur sperrst oder sie sich wegen Inaktivität sperrt, bleibt deine Arbeitsposition erhalten. Nach dem Entsperren kehrst du in die Ansicht zurück, in der du zuletzt gearbeitet hast.
 
+Nach dem Entsperren prüft Gremia.SBV die Audit- und Datenintegrität im Hintergrund. Während der Hinweis angezeigt wird, kannst du arbeiten; eine Sicherung ist erst nach erfolgreichem Abschluss möglich. Wird eine Beschädigung erkannt, sperrt die Anwendung den Tresor und zeigt einen Hinweis zur Prüfung des Datenbestands und der Sicherung.
+
 ## Fallakte
 
 Eine Fallakte bündelt Informationen zu einem Beratungs- oder Unterstützungsfall. Sie kann personenbezogen oder bewusst anonym geführt werden. Eine Fallakte ist kein Selbstzweck. Sie soll dir helfen, den Verlauf eines Anliegens nachvollziehbar zu halten.

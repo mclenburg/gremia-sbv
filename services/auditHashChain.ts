@@ -165,38 +165,54 @@ function isHexSha256(value: string): boolean {
   return /^[a-f0-9]{64}$/i.test(value);
 }
 
-export function verifyAuditHashChain(rows: AuditChainRowInput[], legacyMaxSequence = Number.POSITIVE_INFINITY): AuditChainVerificationResult {
-  let previousHash = PERSONAL_DATA_AUDIT_GENESIS_HASH;
-  let expectedSequence = 1;
-  let latestHash = PERSONAL_DATA_AUDIT_GENESIS_HASH;
-  const issues: AuditChainIssue[] = [];
+export class AuditHashChainVerifier {
+  private previousHash: string;
+  private expectedSequence: number;
+  private latestHash: string;
+  private checked = 0;
+  private firstSequence?: number;
+  private lastSequence?: number;
+  private readonly issues: AuditChainIssue[] = [];
 
-  for (const row of rows) {
+  constructor(
+    private readonly legacyMaxSequence = Number.POSITIVE_INFINITY,
+    startSequence = 1,
+    previousHash = PERSONAL_DATA_AUDIT_GENESIS_HASH,
+  ) {
+    this.expectedSequence = startSequence;
+    this.previousHash = previousHash;
+    this.latestHash = previousHash;
+  }
+
+  add(row: AuditChainRowInput): void {
     const sequence = Number(row.sequence);
+    if (this.checked === 0) this.firstSequence = sequence;
+    this.lastSequence = sequence;
+    this.checked += 1;
     if (!Number.isInteger(sequence) || sequence < 1) {
-      issues.push({ kind: 'invalid_sequence', sequence, message: `Ungültige Audit-Sequenz: ${row.sequence}.` });
+      this.issues.push({ kind: 'invalid_sequence', sequence, message: `Ungültige Audit-Sequenz: ${row.sequence}.` });
     }
-    if (sequence !== expectedSequence) {
-      issues.push({
+    if (sequence !== this.expectedSequence) {
+      this.issues.push({
         kind: 'sequence_gap',
         sequence,
-        expected: String(expectedSequence),
+        expected: String(this.expectedSequence),
         actual: String(sequence),
-        message: `Audit-Log-Sequenz ist nicht lückenlos: erwartet ${expectedSequence}, gefunden ${sequence}.`
+        message: `Audit-Log-Sequenz ist nicht lückenlos: erwartet ${this.expectedSequence}, gefunden ${sequence}.`
       });
-      expectedSequence = sequence;
+      this.expectedSequence = sequence;
     }
     if (!isHexSha256(row.previousHash)) {
-      issues.push({ kind: 'invalid_hash', sequence, actual: row.previousHash, message: 'Previous-Hash ist kein gültiger SHA-256-Hexwert.' });
+      this.issues.push({ kind: 'invalid_hash', sequence, actual: row.previousHash, message: 'Previous-Hash ist kein gültiger SHA-256-Hexwert.' });
     }
     if (!isHexSha256(row.entryHash)) {
-      issues.push({ kind: 'invalid_hash', sequence, actual: row.entryHash, message: 'Entry-Hash ist kein gültiger SHA-256-Hexwert.' });
+      this.issues.push({ kind: 'invalid_hash', sequence, actual: row.entryHash, message: 'Entry-Hash ist kein gültiger SHA-256-Hexwert.' });
     }
-    if (row.previousHash !== previousHash) {
-      issues.push({
+    if (row.previousHash !== this.previousHash) {
+      this.issues.push({
         kind: 'previous_hash_mismatch',
         sequence,
-        expected: previousHash,
+        expected: this.previousHash,
         actual: row.previousHash,
         message: `Hash-Chain-Unterbrechung bei Sequenz ${sequence}: Previous-Hash passt nicht zum Vorgängereintrag.`
       });
@@ -216,10 +232,10 @@ export function verifyAuditHashChain(rows: AuditChainRowInput[], legacyMaxSequen
     const expectedHash = computeAuditEntryHash(hashInput);
     if (row.entryHash !== expectedHash) {
       const legacyExpectedHash = computeLegacyAuditEntryHash(hashInput);
-      if (row.entryHash === legacyExpectedHash && sequence > legacyMaxSequence) {
-        issues.push({ kind: 'legacy_hash_outside_boundary', sequence, message: `Veralteter Audit-Hash nach der Migrationsgrenze bei Sequenz ${sequence}.` });
+      if (row.entryHash === legacyExpectedHash && sequence > this.legacyMaxSequence) {
+        this.issues.push({ kind: 'legacy_hash_outside_boundary', sequence, message: `Veralteter Audit-Hash nach der Migrationsgrenze bei Sequenz ${sequence}.` });
       } else if (row.entryHash !== legacyExpectedHash) {
-        issues.push({
+        this.issues.push({
           kind: 'entry_hash_mismatch',
           sequence,
           expected: expectedHash,
@@ -228,20 +244,28 @@ export function verifyAuditHashChain(rows: AuditChainRowInput[], legacyMaxSequen
         });
       }
     }
-    previousHash = row.entryHash;
-    latestHash = row.entryHash;
-    expectedSequence += 1;
+    this.previousHash = row.entryHash;
+    this.latestHash = row.entryHash;
+    this.expectedSequence += 1;
   }
 
-  return {
-    ok: issues.length === 0,
-    checked: rows.length,
-    firstSequence: rows.length ? Number(rows[0].sequence) : undefined,
-    lastSequence: rows.length ? Number(rows[rows.length - 1].sequence) : undefined,
-    firstBrokenSequence: issues[0]?.sequence,
-    latestHash,
-    algorithm: PERSONAL_DATA_AUDIT_HASH_ALGORITHM,
-    chainVersion: PERSONAL_DATA_AUDIT_CHAIN_VERSION,
-    issues
-  };
+  result(): AuditChainVerificationResult {
+    return {
+      ok: this.issues.length === 0,
+      checked: this.checked,
+      firstSequence: this.firstSequence,
+      lastSequence: this.lastSequence,
+      firstBrokenSequence: this.issues[0]?.sequence,
+      latestHash: this.latestHash,
+      algorithm: PERSONAL_DATA_AUDIT_HASH_ALGORITHM,
+      chainVersion: PERSONAL_DATA_AUDIT_CHAIN_VERSION,
+      issues: this.issues,
+    };
+  }
+}
+
+export function verifyAuditHashChain(rows: Iterable<AuditChainRowInput>, legacyMaxSequence = Number.POSITIVE_INFINITY): AuditChainVerificationResult {
+  const verifier = new AuditHashChainVerifier(legacyMaxSequence);
+  for (const row of rows) verifier.add(row);
+  return verifier.result();
 }

@@ -291,6 +291,7 @@ export class VaultSetupUnlockService extends UnlockDelayService {
         this.upgradePasswordKdfIfNeeded(store, password, databaseKey);
         if (options.auditUnlock !== false) this.auditSecurityEvent("unlock", "Tresor per Passwort entsperrt", { failedUnlockAttempts });
         const cleanup = options.cleanupLegacy === false ? undefined : this.cleanupLegacyPlaintextExports(databaseKey);
+        this.startBackgroundAuditVerification();
         return {
           ok: true,
           initialized: true,

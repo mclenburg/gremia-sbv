@@ -14,6 +14,7 @@ export interface SecurityStatus {
   dataProtectionState?: DataProtectionState;
   error?: string;
   databaseProtected?: boolean;
+  auditIntegrityState?: 'checking' | 'verified' | 'failed';
   unlockDelaySeconds?: number;
   unlockAvailableAt?: string;
 }

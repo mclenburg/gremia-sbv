@@ -17,7 +17,7 @@ function LoginPendingView({ isSetup }: { isSetup: boolean }) {
           <div className="industrial-loading-spinner" aria-hidden="true" />
           <div>
             <h1 id="auth-unlock-pending-title" className="auth-panel-title">{isSetup ? 'Tresor wird eingerichtet' : 'Tresor wird entsperrt'}</h1>
-            <p role="status" aria-live="polite">{isSetup ? 'Die verschlüsselte Datenbank wird eingerichtet.' : 'Passwort und Datenintegrität werden geprüft.'} Das kann einige Sekunden dauern.</p>
+            <p role="status" aria-live="polite">{isSetup ? 'Die verschlüsselte Datenbank wird eingerichtet.' : 'Passwort, Datenbank und Vertrauensanker werden geprüft.'} Das kann einige Sekunden dauern.</p>
           </div>
         </div>
       </section>
@@ -43,10 +43,12 @@ export function LoginGate({
   mode,
   onUnlock,
   onResetToSetup,
+  securityError,
 }: {
   mode: AuthMode;
   onUnlock: (warning?: string) => void;
   onResetToSetup: () => void;
+  securityError?: string;
 }) {
   const [password, setPassword] = useState("");
   const [passwordRepeat, setPasswordRepeat] = useState("");
@@ -127,7 +129,7 @@ export function LoginGate({
           isSetup={isSetup}
           password={password}
           passwordRepeat={passwordRepeat}
-          error={error}
+          error={error || securityError || ''}
           onPasswordChange={(value) => { setPassword(value); setError(""); }}
           onRepeatChange={(value) => { setPasswordRepeat(value); setError(""); }}
           onSubmit={(event) => {

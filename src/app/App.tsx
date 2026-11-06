@@ -106,6 +106,8 @@ function useSecuritySession() {
   const [authMode, setAuthMode] = useState<AuthMode>("loading");
   const [unlocked, setUnlocked] = useState(false);
   const [maintenanceWarning, setMaintenanceWarning] = useState("");
+  const [auditIntegrityState, setAuditIntegrityState] = useState<'checking' | 'verified' | 'failed'>('checking');
+  const [securityError, setSecurityError] = useState('');
   const switchToLockedSession = useCallback(() => {
     const locked = toLockedSessionState({ unlocked: true, authMode: "login" as AuthMode });
     setMaintenanceWarning(""); setUnlocked(locked.unlocked); setAuthMode(locked.authMode);
@@ -116,8 +118,22 @@ function useSecuritySession() {
   }, []);
   const completeUnlock = useCallback((warning?: string) => {
     setMaintenanceWarning(warning ?? "");
+    setSecurityError(""); setAuditIntegrityState('checking');
     setUnlocked(true);
   }, []);
+  useEffect(() => {
+    if (!unlocked || auditIntegrityState !== 'checking') return;
+    let active = true;
+    const timer = window.setInterval(() => { void window.gremiaSbv?.security?.status().then((status) => {
+      if (!active) return;
+      if (!status.unlocked) { setSecurityError(status.error ?? 'Der Tresor wurde gesperrt.'); setUnlocked(false); setAuthMode('login'); return; }
+      setAuditIntegrityState(status.auditIntegrityState ?? 'checking');
+    }).catch((error) => {
+      recordRendererDiagnostic('error', 'Integritätsstatus konnte nicht geladen werden.', error);
+      if (active) { setUnlocked(false); setAuthMode('unavailable'); }
+    }); }, 1500);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [unlocked, auditIntegrityState]);
   useAutoLock({
     enabled: unlocked,
     timeoutMs: AUTO_LOCK_TIMEOUT_MS,
@@ -134,6 +150,7 @@ function useSecuritySession() {
         const status = await bridge.security.status();
         if (!active) return;
         setUnlocked(status.unlocked);
+        setAuditIntegrityState(status.auditIntegrityState ?? 'checking'); setSecurityError(status.error ?? '');
         setAuthMode(status.recoveryRequired ? "recovery" : status.initialized ? "login" : "setup");
       } catch (error) {
         recordRendererDiagnostic("error", "Sicherheitsstatus konnte nicht geladen werden.", error);
@@ -149,6 +166,8 @@ function useSecuritySession() {
     setUnlocked,
     completeUnlock,
     maintenanceWarning,
+    auditIntegrityState,
+    securityError,
     dismissMaintenanceWarning: () => setMaintenanceWarning(""),
     switchToLockedSession,
     switchToUnavailableSession,
@@ -308,12 +327,16 @@ function ProcessViews({ currentView, setCurrentView, work, caseNodeTarget, setCa
 function WorkspaceMain(props: PrimaryViewsProps & { currentModule?: (typeof modules)[number]; openCaseNode: (target: CaseNodeTarget) => void;
   onOpenSearchRecord: SearchRecordOpener;
   theme: ThemeMode; setTheme: (theme: ThemeMode) => void; securityWarning?: string; onDismissSecurityWarning: () => void;
+  auditIntegrityState: 'checking' | 'verified' | 'failed';
   startupNotice: GremiaBrStartupNotice | null; onDismissStartupNotice: () => void; }) {
   const { currentView, currentModule, setCurrentView, work } = props;
   return <main id="main-content" className="industrial-content" tabIndex={-1}>
     <header className="industrial-topbar"><div><p className="industrial-kicker">SBV-Arbeitsbereich</p>
       <h2>{currentView === "dashboard" ? "Dashboard" : currentView === "settings" ? "Einstellungen" : currentModule?.title}</h2></div>
       <div className="industrial-state"><CheckCircle2 className="industrial-icon" />entsperrt · {nowLabel()}</div></header>
+    {props.auditIntegrityState === 'checking' && <div className="industrial-message industrial-message-warning" role="status">
+      Audit- und Datenintegrität werden im Hintergrund geprüft. Arbeiten ist möglich; Sicherungen sind bis zum Abschluss der Prüfung nicht möglich.
+    </div>}
     {props.securityWarning && <div className="industrial-message industrial-message-warning" role="alert">
       <p>{props.securityWarning}</p>
       <div className="industrial-search-actions">
@@ -383,7 +406,7 @@ export function App() {
   };
   useModalKeyboardShortcuts({ setCurrentView });
   useEffect(() => { applyTheme(theme); }, [theme]);
-  if (!security.unlocked) return <LoginGate mode={security.authMode} onUnlock={security.completeUnlock}
+  if (!security.unlocked) return <LoginGate mode={security.authMode} onUnlock={security.completeUnlock} securityError={security.securityError}
     onResetToSetup={() => { security.setUnlocked(false); security.setAuthMode("setup"); }} />;
   const viewProps: PrimaryViewsProps = { currentView, setCurrentView, work, caseNodeTarget, setCaseNodeTarget, personTargetId, setPersonTargetId, contactTargetId, recordTarget, setRecordTarget,
     activityJournalPrefill: journal.activityJournalPrefill, setActivityJournalPrefill: journal.setActivityJournalPrefill,
@@ -399,6 +422,7 @@ export function App() {
     }}
   >
     <WorkspaceMain {...viewProps} currentModule={currentModule} openCaseNode={openCaseNode} onOpenSearchRecord={openSearchRecord} theme={theme} setTheme={setTheme}
+      auditIntegrityState={security.auditIntegrityState}
       securityWarning={security.maintenanceWarning} onDismissSecurityWarning={security.dismissMaintenanceWarning}
       startupNotice={startupRefresh.notice} onDismissStartupNotice={startupRefresh.dismissNotice} />
   </AppShell>;

@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_VERSION_KEY } from '../appSchema.js';
+import { DATABASE_SCHEMA_APP_VERSION_KEY, DATABASE_SCHEMA_COOKIE_KEY, DATABASE_SCHEMA_VERSION_KEY } from '../appSchema.js';
 import type { DatabaseAdapter } from '../databaseService.js';
 import { APP_VERSION } from '../generated/appMetadata.js';
 import type { MigrationDefinition, MigrationRow } from './migrationSupport.js';
@@ -89,6 +89,12 @@ export class MigrationCore {
         INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?)
         ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
       `).run(DATABASE_SCHEMA_APP_VERSION_KEY, APP_VERSION, nowIso());
+      const schemaCookie = this.db.prepare<{ schema_version: number }>('PRAGMA schema_version').get()?.schema_version;
+      if (!Number.isSafeInteger(schemaCookie)) throw new Error('SQLite-Schemaversion konnte nicht gelesen werden.');
+      this.db.prepare(`
+        INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?)
+        ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+      `).run(DATABASE_SCHEMA_COOKIE_KEY, String(schemaCookie), nowIso());
     }
 
   protected currentSchemaVersion(): string {

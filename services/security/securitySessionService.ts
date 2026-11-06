@@ -24,6 +24,7 @@ export class SecuritySessionService extends VaultCredentialService {
         };
       }
   
+      this.cancelBackgroundAuditVerification();
       this.unlocked = false;
       this.destroyActiveDatabaseKey();
       this.databaseService.close();
@@ -33,16 +34,26 @@ export class SecuritySessionService extends VaultCredentialService {
     }
 
   lock(reason = "manual"): void {
+      this.cancelBackgroundAuditVerification();
+      let auditCheckpointFailed = false;
       if (this.unlocked) {
-        this.auditSecurityEvent(
-          "lock",
-          reason === "auto" ? "Tresor automatisch gesperrt" : "Tresor gesperrt",
-          { reason },
-        );
         try {
-          this.checkpointAuditIntegrity();
+          this.auditSecurityEvent(
+            "lock",
+            reason === "auto" ? "Tresor automatisch gesperrt" : "Tresor gesperrt",
+            { reason },
+          );
         } catch {
-          console.error('Audit-Integritätsprüfung beim Sperren fehlgeschlagen. Vertrauensanker wurde nicht fortgeschrieben.');
+          auditCheckpointFailed = true;
+          console.error('Audit-Eintrag beim Sperren fehlgeschlagen.');
+        }
+        if (this.auditIntegrityState === 'verified') {
+          try {
+            this.checkpointAuditIntegrity();
+          } catch {
+            console.error('Audit-Integritätsprüfung beim Sperren fehlgeschlagen. Vertrauensanker wurde nicht fortgeschrieben.');
+            auditCheckpointFailed = true;
+          }
         }
       }
       this.unlocked = false;
@@ -57,6 +68,7 @@ export class SecuritySessionService extends VaultCredentialService {
       } catch {
         // Klartextbereinigung ist wichtig, darf die technische Sperre aber nicht zurücknehmen.
       }
+      if (auditCheckpointFailed) this.failAuditIntegrity();
     }
 
   cleanupTemporaryFiles(): TempFileCleanupResult {

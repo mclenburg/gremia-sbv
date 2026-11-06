@@ -6,12 +6,14 @@ import type {
   PersonalDataAuditRecord
 } from '../src/domain/models/audit.model.js';
 import {
+  AuditHashChainVerifier,
   computeAuditEntryHash,
   normalizeAuditMetadata,
   sanitizeAuditActor,
   sanitizeAuditPurpose,
   PERSONAL_DATA_AUDIT_GENESIS_HASH,
   verifyAuditHashChain,
+  type AuditChainIssue,
   type AuditChainRowInput
 } from './auditHashChain.js';
 import { ensurePersonalDataAuditRuntimeSchema } from './runtimeSchemaCompatibility.js';
@@ -21,7 +23,7 @@ import { ensurePersonalDataAuditRuntimeSchema } from './runtimeSchemaCompatibili
 type DatabaseScalar = string;
 type DatabaseRow = Record<string, DatabaseScalar> & { action: PersonalDataAuditRecord['action']; };
 
-interface AuditIntegrityContext { key: Buffer; legacyMaxSequence: number; anchorSequence?: number; anchorHash?: string }
+interface AuditIntegrityContext { key: Buffer; legacyMaxSequence: number; anchorSequence?: number; anchorHash?: string; highestSequenceSeen: number }
 const auditIntegrityKeys = new WeakMap<DatabaseAdapter, AuditIntegrityContext>();
 
 export function registerAuditIntegrityKey(database: DatabaseAdapter, databaseKey: Buffer, legacyMaxSequence: number, anchor?: { sequence: number; entryHash: string }): void {
@@ -30,7 +32,10 @@ export function registerAuditIntegrityKey(database: DatabaseAdapter, databaseKey
   }
   releaseAuditIntegrityKey(database);
   const key = Buffer.from(hkdfSync('sha256', databaseKey, Buffer.alloc(0), 'gremia-sbv-audit-entry-mac-v1', 32));
-  auditIntegrityKeys.set(database, { key, legacyMaxSequence, anchorSequence: anchor?.sequence, anchorHash: anchor?.entryHash });
+  const highestSequenceSeen = Number(database.prepare<{ sequence: number }>(
+    'SELECT sequence FROM personal_data_audit_log ORDER BY sequence DESC LIMIT 1'
+  ).get()?.sequence ?? 0);
+  auditIntegrityKeys.set(database, { key, legacyMaxSequence, anchorSequence: anchor?.sequence, anchorHash: anchor?.entryHash, highestSequenceSeen });
 }
 
 export function setAuditIntegrityCheckpoint(database: DatabaseAdapter, sequence: number, entryHash: string): void {
@@ -99,6 +104,10 @@ export class PersonalDataAuditLogService {
   append(input: CreatePersonalDataAuditInput): PersonalDataAuditRecord {
     const previous = this.database.prepare<DatabaseRow>('SELECT sequence, entry_hash FROM personal_data_audit_log ORDER BY sequence DESC LIMIT 1').get();
     const sequence = Number(previous?.sequence ?? 0) + 1;
+    const context = auditIntegrityKeys.get(this.database);
+    if (context && sequence <= context.highestSequenceSeen) {
+      throw new Error('Audit-Kette wurde während der Sitzung gekürzt. Neuer Eintrag verweigert.');
+    }
     const previousHash = previous?.entry_hash ?? PERSONAL_DATA_AUDIT_GENESIS_HASH;
     const occurredAt = nowIso();
     const metadataJson = normalizeAuditMetadata(input.metadata, input.subjectType);
@@ -118,7 +127,6 @@ export class PersonalDataAuditLogService {
       previousHash
     });
 
-    const context = auditIntegrityKeys.get(this.database);
     const entryMac = context ? auditEntryMac(context.key, id, sequence, entryHash) : null;
 
     const columns = 'id, sequence, occurred_at, actor, action, subject_type, subject_id, case_id, purpose, metadata_json, previous_hash, entry_hash';
@@ -138,6 +146,7 @@ export class PersonalDataAuditLogService {
     ];
     this.database.prepare(`INSERT INTO personal_data_audit_log (${columns}${context ? ', entry_mac' : ''}) VALUES (${values.map(() => '?').join(', ')}${context ? ', ?' : ''})`)
       .run(...values, ...(context ? [entryMac] : []));
+    if (context) context.highestSequenceSeen = Math.max(context.highestSequenceSeen, sequence);
 
     const created = this.database.prepare<DatabaseRow>('SELECT * FROM personal_data_audit_log WHERE id = ?').get(id);
     if (created) return mapAudit(created);
@@ -198,28 +207,133 @@ export class PersonalDataAuditLogService {
   }
 
   verifyChain(rows?: AuditChainRowInput[]): PersonalDataAuditChainStatus {
-    const auditRows = rows ?? this.database.prepare<DatabaseRow>('SELECT * FROM personal_data_audit_log ORDER BY sequence ASC').all().map(mapChainRow);
     const context = auditIntegrityKeys.get(this.database);
-    const status = verifyAuditHashChain(auditRows, context?.legacyMaxSequence);
+    const auditRows: Iterable<AuditChainRowInput> = rows ?? this.databaseAuditRows();
+    const macIssues: AuditChainIssue[] = [];
+    let anchorRowHash: string | undefined;
+    const checkedRows = function* (): IterableIterator<AuditChainRowInput> {
+      for (const row of auditRows) {
+        if (row.sequence === context?.anchorSequence) anchorRowHash = row.entryHash;
+        if (context && !(row.sequence <= context.legacyMaxSequence && !row.entryMac)) {
+          const expected = auditEntryMac(context.key, row.id ?? '', row.sequence, row.entryHash);
+          const actual = row.entryMac ?? '';
+          if (!/^[a-f0-9]{64}$/i.test(actual) || !timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(actual, 'hex'))) {
+            macIssues.push({ kind: 'entry_mac_mismatch', sequence: row.sequence, message: `Audit-Prüfwert bei Sequenz ${row.sequence} stimmt nicht.` });
+          }
+        }
+        yield row;
+      }
+    };
+    const status = verifyAuditHashChain(checkedRows(), context?.legacyMaxSequence);
     if (context) {
       if (context.anchorSequence !== undefined) {
-        const anchorRow = context.anchorSequence === 0 ? undefined : auditRows[context.anchorSequence - 1];
-        const actualHash = anchorRow?.entryHash ?? (context.anchorSequence === 0 ? PERSONAL_DATA_AUDIT_GENESIS_HASH : undefined);
-        if (actualHash !== context.anchorHash || (context.anchorSequence ?? 0) > auditRows.length) {
+        const actualHash = context.anchorSequence === 0 ? PERSONAL_DATA_AUDIT_GENESIS_HASH : anchorRowHash;
+        if (actualHash !== context.anchorHash || context.anchorSequence > status.checked) {
           status.issues.push({ kind: 'anchor_mismatch', sequence: context.anchorSequence, message: 'Audit-Kettenkopf stimmt nicht mit dem geschützten Vertrauensanker überein.' });
         }
       }
-      for (const row of auditRows) {
-        if (row.sequence <= context.legacyMaxSequence && !row.entryMac) continue;
-        const expected = auditEntryMac(context.key, row.id ?? '', row.sequence, row.entryHash);
-        const actual = row.entryMac ?? '';
-        if (!/^[a-f0-9]{64}$/i.test(actual) || !timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(actual, 'hex'))) {
-          status.issues.push({ kind: 'entry_mac_mismatch', sequence: row.sequence, message: `Audit-Prüfwert bei Sequenz ${row.sequence} stimmt nicht.` });
-        }
-      }
+      status.issues.push(...macIssues);
       status.ok = status.issues.length === 0;
       status.firstBrokenSequence = status.issues[0]?.sequence;
     }
+    return status;
+  }
+
+  private *databaseAuditRows(): IterableIterator<AuditChainRowInput> {
+    const statement = this.database.prepare<DatabaseRow>(`
+      SELECT id, sequence, occurred_at, actor, action, subject_type, subject_id, case_id,
+             purpose, metadata_json, previous_hash, entry_hash, entry_mac
+      FROM personal_data_audit_log ORDER BY sequence ASC
+    `);
+    for (const row of statement.iterate?.() ?? statement.all()) yield mapChainRow(row);
+  }
+
+  async verifyChainInBatches(batchSize = 500, signal?: AbortSignal): Promise<PersonalDataAuditChainStatus> {
+    const context = auditIntegrityKeys.get(this.database);
+    const maximumSequence = Number(this.database.prepare<{ sequence: number }>(
+      'SELECT sequence FROM personal_data_audit_log ORDER BY sequence DESC LIMIT 1'
+    ).get()?.sequence ?? 0);
+    const verifier = new AuditHashChainVerifier(context?.legacyMaxSequence);
+    const macIssues: AuditChainIssue[] = [];
+    let anchorRowHash: string | undefined;
+    let lastReadSequence = 0;
+    const safeBatchSize = Math.min(Math.max(Math.floor(batchSize), 1), 2000);
+    const statement = this.database.prepare<DatabaseRow>(`
+      SELECT id, sequence, occurred_at, actor, action, subject_type, subject_id, case_id,
+             purpose, metadata_json, previous_hash, entry_hash, entry_mac
+      FROM personal_data_audit_log
+      WHERE sequence > ? AND sequence <= ? ORDER BY sequence ASC LIMIT ?
+    `);
+    while (lastReadSequence < maximumSequence) {
+      if (signal?.aborted) throw new Error('Audit-Prüfung abgebrochen.');
+      const rows = statement.all(lastReadSequence, maximumSequence, safeBatchSize);
+      if (rows.length === 0) break;
+      for (const databaseRow of rows) {
+        const row = mapChainRow(databaseRow);
+        verifier.add(row);
+        if (row.sequence === context?.anchorSequence) anchorRowHash = row.entryHash;
+        if (context && !(row.sequence <= context.legacyMaxSequence && !row.entryMac)) {
+          const expected = auditEntryMac(context.key, row.id ?? '', row.sequence, row.entryHash);
+          const actual = row.entryMac ?? '';
+          if (!/^[a-f0-9]{64}$/i.test(actual) || !timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(actual, 'hex'))) {
+            macIssues.push({ kind: 'entry_mac_mismatch', sequence: row.sequence, message: `Audit-Prüfwert bei Sequenz ${row.sequence} stimmt nicht.` });
+          }
+        }
+      }
+      lastReadSequence = Number(rows[rows.length - 1].sequence);
+      await new Promise<void>((resolve) => setImmediate(resolve));
+    }
+    const status = verifier.result();
+    if (lastReadSequence !== maximumSequence) {
+      status.issues.push({ kind: 'sequence_gap', sequence: maximumSequence, message: 'Audit-Kettenende konnte nicht vollständig gelesen werden.' });
+    }
+    if (context?.anchorSequence !== undefined) {
+      const actualHash = context.anchorSequence === 0 ? PERSONAL_DATA_AUDIT_GENESIS_HASH : anchorRowHash;
+      if (actualHash !== context.anchorHash || context.anchorSequence > status.checked) {
+        status.issues.push({ kind: 'anchor_mismatch', sequence: context.anchorSequence, message: 'Audit-Kettenkopf stimmt nicht mit dem geschützten Vertrauensanker überein.' });
+      }
+    }
+    status.issues.push(...macIssues);
+    status.ok = status.issues.length === 0;
+    status.firstBrokenSequence = status.issues[0]?.sequence;
+    return status;
+  }
+
+  verifyTailFromCheckpoint(sequence: number, entryHash: string): PersonalDataAuditChainStatus {
+    const context = auditIntegrityKeys.get(this.database);
+    const verifier = new AuditHashChainVerifier(context?.legacyMaxSequence, sequence + 1, entryHash);
+    const issues: AuditChainIssue[] = [];
+    const checkpointHash = sequence === 0 ? PERSONAL_DATA_AUDIT_GENESIS_HASH
+      : this.database.prepare<{ entry_hash: string }>('SELECT entry_hash FROM personal_data_audit_log WHERE sequence = ?').get(sequence)?.entry_hash;
+    if (checkpointHash !== entryHash) {
+      issues.push({ kind: 'anchor_mismatch', sequence, message: 'Der bereits geprüfte Audit-Kettenkopf wurde verändert.' });
+    }
+    const statement = this.database.prepare<DatabaseRow>(`
+      SELECT id, sequence, occurred_at, actor, action, subject_type, subject_id, case_id,
+             purpose, metadata_json, previous_hash, entry_hash, entry_mac
+      FROM personal_data_audit_log WHERE sequence > ? ORDER BY sequence ASC
+    `);
+    for (const databaseRow of statement.iterate?.(sequence) ?? statement.all(sequence)) {
+      const row = mapChainRow(databaseRow);
+      verifier.add(row);
+      if (context && !(row.sequence <= context.legacyMaxSequence && !row.entryMac)) {
+        const expected = auditEntryMac(context.key, row.id ?? '', row.sequence, row.entryHash);
+        const actual = row.entryMac ?? '';
+        if (!/^[a-f0-9]{64}$/i.test(actual) || !timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(actual, 'hex'))) {
+          issues.push({ kind: 'entry_mac_mismatch', sequence: row.sequence, message: `Audit-Prüfwert bei Sequenz ${row.sequence} stimmt nicht.` });
+        }
+      }
+    }
+    const status = verifier.result();
+    const maximumSequence = Number(this.database.prepare<{ sequence: number }>(
+      'SELECT sequence FROM personal_data_audit_log ORDER BY sequence DESC LIMIT 1'
+    ).get()?.sequence ?? 0);
+    if ((status.lastSequence ?? sequence) !== maximumSequence || (context && maximumSequence < context.highestSequenceSeen)) {
+      issues.push({ kind: 'sequence_gap', sequence: maximumSequence, message: 'Audit-Kettenende konnte nicht vollständig gelesen werden.' });
+    }
+    status.issues.push(...issues);
+    status.ok = status.issues.length === 0;
+    status.firstBrokenSequence = status.issues[0]?.sequence;
     return status;
   }
 

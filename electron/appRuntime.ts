@@ -98,6 +98,10 @@ export async function startApplication(existingSplashWindow?: BrowserWindow): Pr
     applicationServices.gremiaBrAuth.clearToken();
     applicationServices.gremiaBrCache.clear();
   };
+  security.setAuditFailureHandler(() => {
+    clearVolatileRemoteSession();
+    refreshMainWindowAfterSecurityLock();
+  });
   startMainSessionLock({
     monitor: powerMonitor,
     isUnlocked: () => security.isUnlocked(),

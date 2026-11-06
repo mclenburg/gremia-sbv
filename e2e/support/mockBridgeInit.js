@@ -741,6 +741,7 @@
         unlocked: securityState.unlocked,
         databaseProtected: true,
         recoveryRequired: securityState.recoveryRequired,
+        auditIntegrityState: 'verified',
       }),
       unlock: async (password) => {
         const unlockDelayMs = Number(authSearchParams.get('unlockDelayMs') || 0);

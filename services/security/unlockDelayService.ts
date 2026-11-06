@@ -103,7 +103,6 @@ export class UnlockDelayService extends VaultDatabaseRuntime {
 
   status(): SecurityStatus {
         const hasStore = this.hasPasswordStore();
-        const hasProtectedData = this.hasProtectedData();
         const hasManifest = this.hasVaultManifest();
     
         if (hasStore) {
@@ -115,11 +114,13 @@ export class UnlockDelayService extends VaultDatabaseRuntime {
             destructiveResetAvailable: false,
             dataProtectionState: this.unlocked ? "unlocked" : "locked",
             databaseProtected: existsSync(this.vaultDatabasePath),
+            auditIntegrityState: this.auditIntegrityState,
+            ...(this.auditIntegrityState === 'failed' ? { error: 'Integritätsprüfung fehlgeschlagen. Der Tresor wurde gesperrt. Bitte Sicherung und Datenbestand prüfen.' } : {}),
             ...this.unlockDelayStatusFields(),
           };
         }
     
-        if (hasProtectedData || hasManifest) {
+        if (this.hasProtectedData() || hasManifest) {
           return {
             initialized: true,
             unlocked: false,

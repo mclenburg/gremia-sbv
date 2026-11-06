@@ -6,6 +6,7 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { DatabaseService } from "../databaseService.js";
+import { DomainAggregateIntegrityService } from '../domainAggregateIntegrityService.js';
 import { PersonalDataAuditLogService, setAuditIntegrityCheckpoint } from "../auditLogService.js";
 import { writeAuditIntegrityAnchor, type AuditIntegrityAnchor } from '../auditIntegrityAnchor.js';
 import {
@@ -18,6 +19,14 @@ import type { SecurityFileOperations, SecurityRuntimeEnvironment } from './secur
 
 export class SecurityServiceCore {
   protected unlocked = false;
+
+  protected auditIntegrityState: 'checking' | 'verified' | 'failed' = 'verified';
+
+  protected auditVerifiedHead?: { sequence: number; entryHash: string };
+
+  private auditVerificationController?: AbortController;
+
+  private auditFailureHandler?: () => void;
 
   protected databaseKey?: Buffer;
 
@@ -64,18 +73,67 @@ export class SecurityServiceCore {
     }
 
   protected checkpointAuditIntegrity(): void {
-    if (!this.auditAnchor || !this.databaseKey) return;
+    if (!this.auditAnchor || !this.databaseKey) throw new Error('Audit-Vertrauensanker oder aktiver Tresorschlüssel fehlt.');
+    if (this.auditIntegrityState !== 'verified') throw new Error('Die Audit-Integritätsprüfung ist noch nicht erfolgreich abgeschlossen.');
     const db = this.databaseService.active;
-    const result = new PersonalDataAuditLogService(db).verifyChain();
+    const audit = new PersonalDataAuditLogService(db);
+    const result = this.auditVerifiedHead
+      ? audit.verifyTailFromCheckpoint(this.auditVerifiedHead.sequence, this.auditVerifiedHead.entryHash)
+      : audit.verifyChain();
     if (!result.ok) throw new Error('Audit-Integritätsprüfung fehlgeschlagen; Vertrauensanker wird nicht fortgeschrieben.');
     const next: AuditIntegrityAnchor = {
       ...this.auditAnchor,
-      sequence: result.lastSequence ?? 0,
+      sequence: result.lastSequence ?? this.auditVerifiedHead?.sequence ?? 0,
       entryHash: result.latestHash
     };
     writeAuditIntegrityAnchor(this.auditAnchorPath, this.databaseKey, next);
     setAuditIntegrityCheckpoint(db, next.sequence, next.entryHash);
     this.auditAnchor = next;
+    this.auditVerifiedHead = { sequence: next.sequence, entryHash: next.entryHash };
+  }
+
+  setAuditFailureHandler(handler: () => void): void {
+    this.auditFailureHandler = handler;
+  }
+
+  protected cancelBackgroundAuditVerification(): void {
+    this.auditVerificationController?.abort();
+    this.auditVerificationController = undefined;
+  }
+
+  protected startBackgroundAuditVerification(): void {
+    if (this.auditIntegrityState !== 'checking') return;
+    this.cancelBackgroundAuditVerification();
+    const controller = new AbortController();
+    this.auditVerificationController = controller;
+    setImmediate(() => {
+      if (controller.signal.aborted || !this.unlocked) return;
+      void new PersonalDataAuditLogService(this.databaseService.active)
+        .verifyChainInBatches(500, controller.signal)
+        .then(async (status) => {
+          if (controller.signal.aborted || !this.unlocked) return;
+          if (!status.ok) { this.failAuditIntegrity(); return; }
+          await new DomainAggregateIntegrityService(this.databaseService.active).verifyCooperatively(controller.signal);
+          if (controller.signal.aborted || !this.unlocked) return;
+          this.auditVerifiedHead = { sequence: status.lastSequence ?? 0, entryHash: status.latestHash };
+          this.auditIntegrityState = 'verified';
+          this.auditVerificationController = undefined;
+        })
+        .catch(() => {
+          if (!controller.signal.aborted && this.unlocked) this.failAuditIntegrity();
+        });
+    });
+  }
+
+  protected failAuditIntegrity(): void {
+    this.cancelBackgroundAuditVerification();
+    this.auditIntegrityState = 'failed';
+    this.auditVerifiedHead = undefined;
+    this.unlocked = false;
+    this.destroyActiveDatabaseKey();
+    try { this.databaseService.close(); } catch { /* Schlüssel wurde bereits vernichtet. */ }
+    try { this.tempFiles.cleanup(); } catch { /* Sperre bleibt wirksam. */ }
+    try { this.auditFailureHandler?.(); } catch { /* Tresor bleibt auch ohne UI-Aktualisierung gesperrt. */ }
   }
 
 
