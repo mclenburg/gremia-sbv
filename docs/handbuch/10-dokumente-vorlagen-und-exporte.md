@@ -12,6 +12,10 @@ Vorlagen helfen bei wiederkehrenden Schreiben und Vermerken. Sie ersetzen nicht 
 
 Neue Vorlagen legst du über **Vorlage anlegen** an. Die Aktion befindet sich im Vorlagenkatalog oben rechts wie andere zentrale Anlegen-Aktionen in Gremia.SBV.
 
+Die Systemvorlage **BEM-Angebot beim Arbeitgeber anregen** ist ein Schreiben der SBV an den Arbeitgeber. Das eigentliche BEM-Angebot an die betroffene Person wird vom Arbeitgeber vorbereitet. Aktualisierte Systemvorlagen werden beim Öffnen des Tresors übernommen; eigene Vorlagen und Änderungen daran bleiben erhalten.
+
+Fehlen beim Erzeugen einer Vorlage noch Pflichtwerte, zeigt die Fallakte die fehlenden Angaben an. Ein solcher Entwurf wird weder als fertige Vorlage archiviert noch exportiert.
+
 Gute Vorlagen:
 
 - sind sachlich,

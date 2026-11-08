@@ -11,6 +11,7 @@ import { buildExportWarningMessage, scanBemProcessExport, scanSensitiveExportTex
 import { buildTerminationExportContext, terminationPrivacyExportNotice } from "@/domain/termination/terminationPrivacyPolicy";
 import { buildProcessTemplateValues, downloadRenderedTemplate, isBemProcessRecord, isEqualizationProcessRecord, isTemplateConnectedToProcessStatus, isTerminationHearingRecord } from "./casesViewProcessUtils";
 import { loadTemplateDefaultValues } from "../../shared/templates/templateDefaults";
+import { missingPlaceholderWarning } from '@/domain/templates/templateContextPolicy';
 
 type ProcessTemplateModalSetter = (
   next:
@@ -128,6 +129,15 @@ export function createProcessTemplateActions(deps: ProcessTemplateActionDeps) {
         },
         archive: true,
       });
+      if (result.unresolvedPlaceholders.length > 0) {
+        setProcessTemplateModal((current) => current ? {
+          ...current,
+          rendered: result,
+          info: undefined,
+          error: missingPlaceholderWarning(result.unresolvedPlaceholders),
+        } : current);
+        return;
+      }
       const confirmed = await confirmDialog(buildExportConfirmation(processTemplateModal, result));
       if (confirmed) downloadRenderedTemplate(result);
       setProcessTemplateModal((current) =>

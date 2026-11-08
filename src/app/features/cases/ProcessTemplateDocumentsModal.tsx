@@ -8,6 +8,7 @@ import type { RenderedTemplateResult, TemplateRecord } from '../../../domain/mod
 import { statusLabel } from '../prevention/preventionShared';
 import { bemStatusLabel } from '../bem/bemShared';
 import { equalizationStatusLabel } from '../equalization/equalizationShared';
+import { missingPlaceholderWarning } from '@/domain/templates/templateContextPolicy';
 
 type PreventionProcessTemplateModalState = {
   process: PreventionProcessRecord;
@@ -75,13 +76,6 @@ export function processTemplateStatusLabel(state: ProcessTemplateModalState): st
   }
 }
 
-export function processTemplateStatusTag(state: ProcessTemplateModalState): string {
-  const status = state.processType === 'equalization'
-    ? state.process.applicationStatus
-    : state.process.status;
-  return `status:${status}`;
-}
-
 export function ProcessTemplateDocumentsModal({
   state,
   onClose,
@@ -100,7 +94,6 @@ export function ProcessTemplateDocumentsModal({
           <div>
             <p className="industrial-kicker">Dokumente zur Maßnahme</p>
             <h2 id="process-template-modal-title">{processTemplateProcessLabel(state.processType)} · {processTemplateStatusLabel(state)}</h2>
-            <p>Gezeigt werden Vorlagen der passenden Maßnahmeart, die mit dem aktuellen Status verbunden sind.</p>
           </div>
           <button type="button" className="industrial-secondary-button" onClick={onClose}>Schließen</button>
         </div>
@@ -108,17 +101,9 @@ export function ProcessTemplateDocumentsModal({
         {state.loading && <div className="industrial-empty">Vorlagen werden geladen …</div>}
         {state.error && <div className="industrial-message industrial-message-warning" role="alert">{state.error}</div>}
         {state.info && <div className="industrial-message industrial-message-ok" role="status">{state.info}</div>}
-        {state.processType === 'bem' && <div className="industrial-message industrial-message-warning">BEM-Dokumente enthalten regelmäßig Gesundheits-, Datenschutz- oder Einwilligungsinformationen. Jeder Download benötigt eine bewusste Exportbestätigung.</div>}
-
         {!state.loading && !state.templates.length && !state.error && (
           <div className="process-template-empty">
             <p>Für diesen Status ist noch keine Vorlage hinterlegt.</p>
-            <div className="process-template-hint">
-              <span>Benötigte Tags</span>
-              <code>{`massnahme:${state.processType}`}</code>
-              <code>{processTemplateStatusTag(state)}</code>
-            </div>
-            <p className="process-template-empty-note">Lege die Vorlage im Vorlagenmodul an und verbinde sie mit Maßnahmeart und Status. Danach erscheint sie hier automatisch.</p>
           </div>
         )}
 
@@ -138,7 +123,7 @@ export function ProcessTemplateDocumentsModal({
         {state.rendered && (
           <div className="industrial-subpanel">
             <h4>Zuletzt erzeugt</h4>
-            {state.rendered.unresolvedPlaceholders.length > 0 && <div className="industrial-message industrial-message-warning" role="alert">Offene Platzhalter: {state.rendered.unresolvedPlaceholders.join(', ')}</div>}
+            {state.rendered.unresolvedPlaceholders.length > 0 && !state.error && <div className="industrial-message industrial-message-warning" role="alert">{missingPlaceholderWarning(state.rendered.unresolvedPlaceholders)}</div>}
             <p className="industrial-meta"><strong>Betreff:</strong> {state.rendered.subject}</p>
             <textarea className="industrial-output-area" value={state.rendered.body} readOnly />
           </div>

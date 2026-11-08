@@ -45,7 +45,7 @@ Bei Löschung oder Anonymisierung bleiben Audit-Einträge hash-kettenstabil erha
 export function sqlCipherDecisionSection(): string {
   return `## SQLCipher-Entscheidung und Feldverschlüsselung
 
-Strukturierte Personenstammdaten werden im Ruhezustand durch SQLCipher geschützt. Eine zusätzliche Feldverschlüsselung von Namen wird in 0.9.1 bewusst nicht eingeführt, weil Suche, Sortierung, Importabgleich und Dublettenprüfung sonst erheblich eingeschränkt würden.
+Strukturierte Personenstammdaten werden im Ruhezustand durch SQLCipher geschützt. Eine zusätzliche Feldverschlüsselung von Namen ist nicht vorgesehen, weil Suche, Sortierung, Importabgleich und Dublettenprüfung sonst erheblich eingeschränkt würden.
 
 Die Entscheidung ist verhältnismäßig, solange starke Passphrase, lokaler Offline-first-Betrieb, Exportkontrolle, Backup-Schutz, Zugriffsbeschränkung und Audit-Härtung eingehalten werden. Besonders sensible Freitexte mit Gesundheitsbezug bleiben nach der bestehenden Strategie besonders geschützt und werden bei Zweckfortfall im Datenschutz-Lifecycle geprüft.
 `;

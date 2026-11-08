@@ -19,6 +19,8 @@ import {
 } from "./complianceViewUtils";
 import { useComplianceDsar, type ComplianceWorkspace } from "./useComplianceDsar";
 import { createComplianceDocumentActions, createComplianceIncidentActions } from "./complianceActions";
+import { loadTemplateDefaultValues } from '../../shared/templates/templateDefaults';
+import type { TemplateDefaultValues } from '../../../domain/models/template-default.model';
 
 export function useComplianceCenter() {
   const descriptors = useMemo(() => listComplianceDocuments(), []);
@@ -29,6 +31,16 @@ export function useComplianceCenter() {
     renderComplianceDocument("toms"),
   );
   const editedDocuments = useRef<Partial<Record<ComplianceDocumentType, ComplianceDocument>>>({});
+  const [templateDefaults, setTemplateDefaults] = useState<TemplateDefaultValues>();
+  useEffect(() => {
+    let active = true;
+    loadTemplateDefaultValues().then((values) => {
+      if (active) setTemplateDefaults(values);
+    }).catch(() => {
+      // Dokumente können auch ohne gespeicherte Standardwerte bearbeitet werden.
+    });
+    return () => { active = false; };
+  }, []);
   const updateDocumentBody = (body: string) => {
     const edited = { ...document, body };
     if (document.type !== "dsar_response") editedDocuments.current[document.type] = edited;
@@ -95,7 +107,7 @@ export function useComplianceCenter() {
     void refreshIncidents();
   }, [refreshStatus, refreshSelfCheck, refreshIncidents]);
 
-  const documentActions = createComplianceDocumentActions({ document, setDocument, setSelectedType, setMessage, announce, getEditedDocument: (type) => editedDocuments.current[type] });
+  const documentActions = createComplianceDocumentActions({ document, setDocument, setSelectedType, setMessage, announce, getEditedDocument: (type) => editedDocuments.current[type], defaults: templateDefaults });
   const incidentActions = createComplianceIncidentActions({ refreshIncidents, refreshSelfCheck, setMessage, announce });
 
   return {

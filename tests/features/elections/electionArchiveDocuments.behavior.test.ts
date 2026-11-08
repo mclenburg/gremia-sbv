@@ -40,13 +40,23 @@ function setup() {
     pendingEqualizationCount: 0, spatiallySeparated: false, electionDate: '2026-09-20',
     procedure: 'formal', deputyCount: 1,
   });
-  elections.saveVoter(election.id, {
+  const voter = elections.saveVoter(election.id, {
     lastName: 'Müller', firstName: 'Jörg', eligibilityBasis: 'severely_disabled_confirmed',
+  });
+  const secondVoter = elections.saveVoter(election.id, {
+    lastName: 'Schulz', firstName: 'Kim', eligibilityBasis: 'severely_disabled_confirmed',
+  });
+  const thirdVoter = elections.saveVoter(election.id, {
+    lastName: 'Weber', firstName: 'Robin', eligibilityBasis: 'severely_disabled_confirmed',
   });
   const candidate = elections.saveCandidate(election.id, {
     officeType: 'deputy', personSnapshot: 'Müller, Anna', consentAt: '2026-08-18', ageOnElectionDay: 30,
     monthsInOperation: 12, operationAgeMonths: 24, excludedFromRepresentativeBodyByLaw: false,
     notTemporaryEmployment: true,
+  });
+  elections.saveProposal(election.id, {
+    receivedAt: '2026-08-18', validityStatus: 'valid', candidateIds: [candidate.id],
+    supporterVoterIds: [voter.id, secondVoter.id, thirdVoter.id],
   });
   const execution = new ElectionExecutionService(db);
   execution.recordTotals(election.id, {
@@ -65,6 +75,39 @@ function setup() {
 }
 
 describe('ElectionArchiveService 0.9.7-D human-readable records', () => {
+  it('erzeugt Korrekturaufforderung und Nachfrist mit konkreten Empfängern und Fristdaten', async () => {
+    const env = setup();
+    const root = mkdtempSync(path.join(os.tmpdir(), 'gremia-election-notice-'));
+    try {
+      const elections = new SbvElectionService(env.db);
+      const proposal = elections.saveProposal(env.election.id, {
+        receivedAt: '2026-08-20', validityStatus: 'correction_required',
+        correctionDueAt: '2026-08-25', invalidReason: 'Doppelte Stützunterschrift',
+      });
+      const documents = new SbvOfficeWorkflowDocumentAdapter(env.db, root);
+      const preparation = new SbvElectionDocumentService(env.db, documents);
+      await expect(preparation.generate(env.election.id, { kind: 'proposal_correction_notice' }))
+        .rejects.toThrow(/Empfänger/);
+      const correction = await preparation.generate(env.election.id, {
+        kind: 'proposal_correction_notice', proposalId: proposal.id, recipientLabel: 'Frau Beispiel',
+      });
+      const correctionText = (await inspectPdf(await documents.read(correction.id))).textByPage.join(' ');
+      expect(correctionText).toContain('Frau Beispiel');
+      expect(correctionText).toContain('25.8.2026');
+      expect(correctionText).toContain('Doppelte Stützunterschrift');
+      expect(correctionText).not.toContain('gemäß gespeicherter zentraler Frist');
+
+      const grace = elections.startGracePeriod(env.election.id, '2026-08-26');
+      const announcement = await preparation.generate(env.election.id, { kind: 'proposal_grace_notice', proposalId: grace.id, graceOffice: 'deputy' });
+      const announcementText = (await inspectPdf(await documents.read(announcement.id))).textByPage.join(' ');
+      expect(announcementText).toContain('2.9.2026');
+      expect(announcementText).not.toContain('gemäß gespeicherter zentraler Frist');
+    } finally {
+      env.raw.close();
+      rmSync(root, { recursive: true, force: true });
+    }
+  }, PDF_ARCHIVE_INTEGRATION_TIMEOUT_MS);
+
   it('generates separate ballots and a standalone PDF archive with state, checksums and physical-original warning', async () => {
     const env = setup();
     const root = mkdtempSync(path.join(os.tmpdir(), 'gremia-election-archive-'));
@@ -75,15 +118,15 @@ describe('ElectionArchiveService 0.9.7-D human-readable records', () => {
       const voterListText = (await inspectPdf(await documents.read(voterList.id))).textByPage.join(' ');
       expect(voterListText).toContain('Alphabetische Wählerliste');
       expect(voterListText).toContain('Müller, Jörg');
-      expect(voterListText).toContain('Statusbegründungen');
+      expect(voterListText).not.toContain('Statusbegründungen');
 
       const electionNotice = await preparation.generate(env.election.id, {
         kind: 'election_notice',
         notice: {
           issueDate: '2026-08-18', votingStartsAt: '2026-09-20 08:00', votingEndsAt: '2026-09-20 16:00',
           votingPlace: 'Raum A', countingPlaceAndTime: 'Raum A, 16:05', voterListInspectionPlace: 'SBV-Büro',
-          voterListInspectionTimes: 'Mo-Fr 9-12', objectionDeadline: '2026-09-01', proposalDeadline: '2026-09-01',
-          proposalSubmissionPlace: 'Wahlvorstand', representativeElectionStatement: 'Vertrauensperson wird gewählt',
+          voterListInspectionTimes: 'Mo-Fr 9-12', ordinanceInspectionPlace: 'SBV-Büro', objectionDeadline: '2026-09-01', proposalDeadline: '2026-09-01',
+          proposalSubmissionPlace: 'Wahlvorstand', proposalDisplayPlace: 'Aushang Foyer', representativeElectionStatement: 'Vertrauensperson wird gewählt',
           deputyElectionStatement: 'Eine Stellvertretung wird gewählt', requiredSupportSignatures: '3',
           mailBallotStatement: 'Schriftliche Stimmabgabe auf Verlangen', boardChairName: 'A. Vorsitz',
           secondBoardMemberName: 'B. Mitglied',
@@ -91,8 +134,24 @@ describe('ElectionArchiveService 0.9.7-D human-readable records', () => {
       });
       const noticeText = (await inspectPdf(await documents.read(electionNotice.id))).textByPage.join(' ');
       expect(noticeText).toContain('Auszählung');
-      expect(noticeText).toContain('Einsicht Wählerliste');
+      expect(noticeText).toContain('Die Wählerliste liegt bei SBV-Büro');
+      expect(noticeText).toContain('20.9.2026, 08:00 Uhr');
       expect(noticeText).toContain('Stützunterschriften');
+      expect(noticeText).toContain('Aushang Foyer');
+      expect(noticeText).toContain('Wahlordnung');
+      expect(noticeText).not.toContain('Dokumentinhalt');
+      const electionsForNotice = new SbvElectionService(env.db);
+      electionsForNotice.saveCandidate(env.election.id, {
+        officeType: 'deputy', personSnapshot: 'Nicht im Wahlvorschlag', consentAt: '2026-08-18', ageOnElectionDay: 30,
+        monthsInOperation: 12, operationAgeMonths: 24, excludedFromRepresentativeBodyByLaw: false,
+        notTemporaryEmployment: true,
+      });
+      const candidatesNotice = await preparation.generate(env.election.id, { kind: 'candidate_announcement' });
+      const candidatesText = (await inspectPdf(await documents.read(candidatesNotice.id))).textByPage.join(' ');
+      expect(candidatesText).toContain('Stellvertretung');
+      expect(candidatesText).toContain('Müller, Anna');
+      expect(candidatesText).not.toContain('Nicht im Wahlvorschlag');
+      expect(candidatesText).not.toContain('Dokumentinhalt');
 
       const simplifiedService = new SbvElectionService(env.db);
       const simplified = simplifiedService.create({ kind: 'regular', electionDate: '2026-10-12' });
@@ -131,6 +190,20 @@ describe('ElectionArchiveService 0.9.7-D human-readable records', () => {
       expect(invitationText).not.toContain('Prüfstatus');
 
       const archive = new ElectionArchiveService(env.db, documents);
+      const electedResult = env.raw.prepare('SELECT id FROM sbv_election_results WHERE election_id=?').get(env.election.id) as { id: string };
+      const notification = await archive.generate(env.election.id, { kind: 'elected_notification', resultId: electedResult.id });
+      const notificationText = (await inspectPdf(await documents.read(notification.id))).textByPage.join(' ');
+      expect(notificationText).toContain('Müller, Anna');
+      expect(notificationText).toContain('Die Annahme der Wahl ist bereits dokumentiert');
+      expect(notificationText).toContain('Empfangsbestätigung');
+      expect(notificationText).not.toContain('Dokumentinhalt');
+      expect(notificationText).not.toContain('Bitte Empfang bestätigen');
+      const resultNotice = await archive.generate(env.election.id, { kind: 'result_announcement' });
+      const resultText = (await inspectPdf(await documents.read(resultNotice.id))).textByPage.join(' ');
+      expect(resultText).toContain('Stellvertretung');
+      expect(resultText).toContain('Müller, Anna');
+      expect(resultText).not.toContain('deputy');
+      expect(resultText).not.toContain('Dokumentinhalt');
       const ballot = await archive.generate(env.election.id, { kind: 'ballot_deputy' });
       const ballotPdf = await inspectPdf(await documents.read(ballot.id));
       expect(ballotPdf.textByPage.join(' ')).toContain('Müller, Anna');
@@ -164,12 +237,18 @@ describe('ElectionArchiveService 0.9.7-D human-readable records', () => {
       const archiveRecord = await archive.exportPdfArchive(env.election.id);
       const archivePdf = await inspectPdf(await documents.read(archiveRecord.id));
       const archiveText = archivePdf.textByPage.join(' ');
-      expect(archiveText).toContain('MENSCHENLESBARE GESAMT-WAHLAKTE');
+      expect(archiveText).toContain('GESAMTWAHLAKTE');
       expect(archiveText).toContain('AUSZÄHLUNG');
       expect(archiveText).toContain('PHYSISCHE ORIGINALUNTERLAGEN');
-      expect(archiveText).toContain('ersetzt gesetzlich oder organisatorisch aufzubewahrende');
-      expect(archiveText).toContain('physische Originale, insbesondere Stimmzettel, nicht.');
+      expect(archiveText).toContain('Physische Originale, insbesondere Stimmzettel, werden getrennt aufbewahrt.');
       expect(archiveText).toContain('SHA-256');
+      expect(archiveText).toContain('Nachwahl Stellvertretung');
+      expect(archiveText).toContain('ausdrücklich angenommen');
+      expect(archiveText).not.toContain('deputy_by_election');
+      expect(archiveText).not.toContain('accepted_explicit');
+      expect(archiveText).not.toContain('Wahl-ID');
+      expect(archiveText).not.toContain('Vorlagenversion');
+      expect(archiveText).not.toContain('ohne Gremia.SBV lesbar');
       expect(archivePdf.hasStructureTree).toBe(true);
       expect(env.raw.prepare("SELECT COUNT(*) AS count FROM sbv_election_archive_exports WHERE election_id=? AND export_type='pdf_bundle'").get(env.election.id)).toMatchObject({ count: 1 });
     } finally {

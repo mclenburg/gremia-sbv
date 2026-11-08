@@ -59,5 +59,21 @@ export function resolveContextualTemplateAction(candidate: ContextualTemplateCan
 
 export function missingPlaceholderWarning(placeholders: string[]): string {
   if (!placeholders.length) return '';
-  return `Nicht alle Platzhalter konnten automatisch befüllt werden: ${placeholders.join(', ')}.`;
+  const labels: Record<string, string> = {
+    'frist.datum': 'Fristdatum',
+    'fall.aktenzeichen': 'Aktenzeichen',
+    'fall.name': 'Name der betroffenen Person',
+    'sbv.signatur': 'SBV-Unterschrift',
+    'bem.beteiligte': 'Beteiligte am BEM',
+    'bem.reaktionsfrist': 'Antwortfrist für das BEM-Angebot',
+    'bem.erstgespraech': 'Gesprächstermin',
+    'bem.ausloeser': 'Ausgangslage des BEM',
+    'bem.massnahmen': 'vereinbarte BEM-Maßnahmen',
+    'bem.wirksamkeitspruefung': 'Termin der Wirksamkeitsprüfung',
+    'bem.ergebnis': 'Ergebnis des BEM',
+    'gleichstellung.widerspruchsfrist': 'Widerspruchsfrist',
+    'kuendigung.sbv_frist': 'Frist der SBV-Stellungnahme',
+  };
+  const names = placeholders.map((key) => labels[key] ?? key.replaceAll(/[._-]/g, ' '));
+  return `Für dieses Dokument fehlen noch Angaben: ${names.join(', ')}.`;
 }

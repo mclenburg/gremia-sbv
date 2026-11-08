@@ -18,7 +18,8 @@ describe('templateContextPolicy', () => {
   });
 
   it('formats unresolved placeholder warnings in German', () => {
-    expect(missingPlaceholderWarning(['frist.datum'])).toContain('frist.datum');
+    expect(missingPlaceholderWarning(['frist.datum'])).toContain('Fristdatum');
+    expect(missingPlaceholderWarning(['frist.datum'])).not.toContain('frist.datum');
     expect(missingPlaceholderWarning([])).toBe('');
   });
 });

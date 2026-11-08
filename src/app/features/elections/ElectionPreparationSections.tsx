@@ -22,9 +22,11 @@ const NOTICE_LABELS: Record<keyof ElectionNoticeDetails, string> = {
   countingPlaceAndTime: 'Ort/Zeit Auszählung',
   voterListInspectionPlace: 'Einsichtsort Wählerliste',
   voterListInspectionTimes: 'Einsichtzeiten Wählerliste',
+  ordinanceInspectionPlace: 'Einsichtsort Wahlordnung',
   objectionDeadline: 'Einspruchsfrist',
   proposalDeadline: 'Frist Wahlvorschläge',
   proposalSubmissionPlace: 'Einreichungsort Wahlvorschläge',
+  proposalDisplayPlace: 'Bekanntmachungsort Wahlvorschläge',
   representativeElectionStatement: 'Wahl Vertrauensperson',
   deputyElectionStatement: 'Wahl Stellvertretungen',
   requiredSupportSignatures: 'Erforderliche Stützunterschriften',
@@ -319,6 +321,9 @@ export function NominationsSection({ overview, run }: { overview: ElectionPrepar
 
 export function DocumentsSection({ overview, run }: { overview: ElectionPreparationOverview; run: ElectionRunner }) {
   const [notice, setNotice] = useState<ElectionNoticeDetails>(EMPTY_NOTICE);
+  const [correctionRecipient, setCorrectionRecipient] = useState('');
+  const [correctionReason, setCorrectionReason] = useState('');
+  const [graceOffice, setGraceOffice] = useState<'' | 'representative' | 'deputy'>('');
   const [invitation, setInvitation] = useState<ElectionInvitationDetails>({
     meetingStartsAt: overview.election.electionDate ?? '',
     meetingPlace: '',
@@ -336,10 +341,41 @@ export function DocumentsSection({ overview, run }: { overview: ElectionPreparat
           <IndustrialButton variant="secondary" onClick={() => void generate('setup_summary')}><FileText className="industrial-icon" /> Wahl-Setup</IndustrialButton>
           <IndustrialButton variant="secondary" onClick={() => void generate('voter_list')}>Wählerliste</IndustrialButton>
           <IndustrialButton variant="secondary" onClick={() => void generate('candidate_announcement')}>Kandidaturen</IndustrialButton>
-          {overview.election.procedure === 'formal' ? <><IndustrialButton variant="secondary" onClick={() => void generate('board_appointment')}>Bestellung Wahlvorstand</IndustrialButton>{overview.boardSessions[0] ? <IndustrialButton variant="secondary" onClick={() => void generate('board_minutes', { boardSessionId: overview.boardSessions[0].id })}>Niederschrift Wahlvorstand</IndustrialButton> : null}<IndustrialButton variant="secondary" onClick={() => void generate('proposal_correction_notice')}>Korrekturaufforderung</IndustrialButton><IndustrialButton variant="secondary" onClick={() => void generate('proposal_grace_notice')}>Nachfrist-Bekanntmachung</IndustrialButton></> : null}
+          {overview.election.procedure === 'formal' ? <><IndustrialButton variant="secondary" onClick={() => void generate('board_appointment')}>Bestellung Wahlvorstand</IndustrialButton>{overview.boardSessions[0] ? <IndustrialButton variant="secondary" onClick={() => void generate('board_minutes', { boardSessionId: overview.boardSessions[0].id })}>Niederschrift Wahlvorstand</IndustrialButton> : null}</> : null}
           {overview.election.procedure === 'simplified' ? <IndustrialButton variant="secondary" onClick={() => void generate('election_leadership_minutes')}>Niederschrift Wahlleitung</IndustrialButton> : null}
         </FormActions>
       </FormSection>
+
+      {overview.election.procedure === 'formal' && overview.proposals.some((proposal) => proposal.validityStatus === 'correction_required' && proposal.correctionDueAt) ? (
+        <FormSection title="Klärungsaufforderung zum Wahlvorschlag">
+          <TextInput label="Empfänger" value={correctionRecipient} onValueChange={setCorrectionRecipient} required />
+          {overview.proposals.some((proposal) => proposal.validityStatus === 'correction_required' && !proposal.invalidReason?.trim()) ? (
+            <TextInput label="Konkreter Klärungsbedarf, falls noch nicht erfasst" value={correctionReason} onValueChange={setCorrectionReason} wide />
+          ) : null}
+          <ul className="election-record-list">{overview.proposals.filter((proposal) => proposal.validityStatus === 'correction_required' && proposal.correctionDueAt).map((proposal) => (
+            <li key={proposal.id}>
+              <span>Wahlvorschlag vom {proposal.receivedAt} · Frist {proposal.correctionDueAt}</span>
+              <IndustrialButton variant="secondary" disabled={!correctionRecipient.trim() || !(proposal.invalidReason?.trim() || correctionReason.trim())}
+                onClick={() => void generate('proposal_correction_notice', { proposalId: proposal.id, recipientLabel: correctionRecipient, correctionReason })}>
+                Schreiben erzeugen
+              </IndustrialButton>
+            </li>
+          ))}</ul>
+        </FormSection>
+      ) : null}
+
+      {overview.election.procedure === 'formal' && overview.proposals.some((proposal) => proposal.validityStatus === 'grace_period' && proposal.correctionDueAt) ? (
+        <FormSection title="Nachfrist für Wahlvorschläge">
+          <SelectInput label="Betroffener Wahlgang" value={graceOffice} onValueChange={(value) => setGraceOffice(value as typeof graceOffice)} options={[
+            { value: '', label: 'Wahlgang auswählen' }, { value: 'representative', label: 'Vertrauensperson' }, { value: 'deputy', label: 'Stellvertretung' },
+          ]} />
+          <FormActions align="start">{overview.proposals.filter((proposal) => proposal.validityStatus === 'grace_period' && proposal.correctionDueAt).map((proposal) => (
+            <IndustrialButton key={proposal.id} variant="secondary" disabled={!graceOffice} onClick={() => void generate('proposal_grace_notice', { proposalId: proposal.id, graceOffice })}>
+              Bekanntmachung bis {proposal.correctionDueAt} erzeugen
+            </IndustrialButton>
+          ))}</FormActions>
+        </FormSection>
+      ) : null}
 
       {overview.election.procedure === 'simplified' ? <FormSection title="Einladung zur Wahlversammlung" description="Externes Schreiben an die wahlberechtigten Beschäftigten.">
         <div className="industrial-form-grid industrial-form-grid-2 election-form-grid">
@@ -351,7 +387,7 @@ export function DocumentsSection({ overview, run }: { overview: ElectionPreparat
       </FormSection> : null}
 
       {overview.election.procedure === 'formal' ? (
-        <FormSection title="Wahlausschreiben – 16 Pflichtangaben" actions={<><IndustrialButton variant="secondary" disabled={!notice.issueDate} onClick={() => void run(() => window.gremiaSbv.elections.recordNoticeIssued(overview.election.id, notice.issueDate), 'Erlass dokumentiert; Einspruchs- und Vorschlagsfristen gestartet.')}>Erlass/Fristen dokumentieren</IndustrialButton><IndustrialButton onClick={() => void generate('election_notice', { notice })}>Wahlausschreiben als PDF erzeugen</IndustrialButton></>}>
+        <FormSection title="Wahlausschreiben" actions={<><IndustrialButton variant="secondary" disabled={!notice.issueDate} onClick={() => void run(() => window.gremiaSbv.elections.recordNoticeIssued(overview.election.id, notice.issueDate), 'Erlass dokumentiert; Einspruchs- und Vorschlagsfristen gestartet.')}>Erlass/Fristen dokumentieren</IndustrialButton><IndustrialButton onClick={() => void generate('election_notice', { notice })}>Wahlausschreiben als PDF erzeugen</IndustrialButton></>}>
           <div className="industrial-form-grid industrial-form-grid-2 election-notice-grid">
             {(Object.keys(NOTICE_LABELS) as Array<keyof ElectionNoticeDetails>).map((key) => <TextInput key={key} label={NOTICE_LABELS[key]} value={notice[key]} onValueChange={(value) => setNotice((current) => ({ ...current, [key]: value }))} />)}
           </div>

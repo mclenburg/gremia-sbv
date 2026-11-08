@@ -1,5 +1,6 @@
 import { header } from './complianceDocumentSupport.js';
 import { auditHashChainDecisionSection, informationAndAccessRightsSection, personDirectoryProcessingActivitySection, sqlCipherDecisionSection, stepELegalBasesSection } from './complianceStepEContent.js';
+import type { TemplateDefaultValues } from '../models/template-default.model.js';
 export function tomsBody(generatedAt: string): string {
   return `${header('TOMs – Technische und organisatorische Maßnahmen Gremia.SBV', generatedAt)}## 1. Vertraulichkeit
 
@@ -9,7 +10,7 @@ export function tomsBody(generatedAt: string): string {
 - Schlüsselmaterial in Buffer-Form wird beim Sperren best-effort überschrieben.
 - Zugriffe, Suchen, Vorschauen, Exporte und Änderungen an personenbezogenen Daten werden lokal hashverkettet protokolliert.
 - Keine Telemetrie und keine externen Analyse- oder Trackingdienste.
-- Personenverzeichnis 0.9.1: Importkontrolle, Spaltenmapping, keine dauerhafte Speicherung der Arbeitgeber-Importdatei, kein GdB-Standardfeld, anonyme Anfrage nur als pseudonymer Personenstamm ohne Direktidentifikatoren.
+- Personenverzeichnis mit Importkontrolle und Spaltenzuordnung; die Arbeitgeber-Importdatei wird nicht dauerhaft gespeichert. Ein GdB-Standardfeld wird nicht geführt.
 - Statusabläufe werden im bestehenden Fristensystem als datenschutzfreundliche Wiedervorlagen geführt.
 - Besonders sensible Fallnotizen werden als vertrauliche Fallnotizen geführt.
 - ExportGuard warnt vor Exporten sensibler Inhalte.
@@ -23,7 +24,7 @@ export function tomsBody(generatedAt: string): string {
 - Berichtsexporte werden als verschlüsselte .gsbvpdf-Container abgelegt.
 - Compliance-PDFs werden über denselben Report-Service erzeugt wie sonstige Berichte.
 - Der System- und Integritätsbericht prüft die Audit-Hash-Chain auf Lücken, Hash-Brüche und rechnerische Manipulationen.
-- Audit-Einträge enthalten ab 0.9.1 keine Direktidentifikatoren wie Namen, E-Mail-Adressen oder Personalnummern; gespeichert werden nur UUIDs, action, purpose, caseId, subjectId und timestamp. Die Hash-Kette bleibt nach Löschung oder Anonymisierung stabil.
+- Audit-Einträge enthalten keine Direktidentifikatoren wie Namen, E-Mail-Adressen oder Personalnummern. Die Hash-Kette bleibt nach Löschung oder Anonymisierung stabil.
 
 ## 3. Verfügbarkeit
 
@@ -55,20 +56,25 @@ export function tomsBody(generatedAt: string): string {
 ## 7. Feldverschlüsselung und Suchbarkeit
 
 - Strukturierte Personenstammdaten werden über SQLCipher im Ruhezustand geschützt.
-- Eine zusätzliche Feldverschlüsselung von Vor- und Nachnamen wird in 0.9.1 bewusst nicht eingeführt; es gibt also keine zusätzliche Feldverschlüsselung für Namen, weil Suche, Sortierung und Importabgleich erforderlich sind und der Sicherheitsgewinn bei lokal verschlüsselter Einzelplatzdatenbank in keinem angemessenen Verhältnis zur Komplexität steht.
+- Für Vor- und Nachnamen gibt es keine zusätzliche Feldverschlüsselung. Die Datenbankverschlüsselung schützt sie im Ruhezustand; Suche, Sortierung und Importabgleich bleiben möglich.
 - Besonders sensible Freitexte mit Gesundheitsbezug bleiben von der bestehenden Gesundheitsdaten-/Fallnotizstrategie erfasst.
 
 ${auditHashChainDecisionSection()}
 ${sqlCipherDecisionSection()}
-## 8. Offene Punkte vor 1.0
+## 8. Betriebliche Festlegungen und Prüfstand
 
-- Auto-Lock und Preview-Cleanup Ende-zu-Ende testen.
-- Backup/Restore Ende-zu-Ende prüfen.
-- Tätigkeitsbericht vollständig anonymisieren.
-- Compliance-Unterlagen mit DSB und IT-Security fachlich gegenprüfen.
+| Gegenstand | Zuständige Stelle / Entscheidung | Datum / Nachweis |
+|---|---|---|
+| Speicherort und Zugriff der SBV |  |  |
+| Backup-Ort und Wiederherstellungsprobe |  |  |
+| Exporte und temporäre PDF-Kopien |  |  |
+| Freigabe der Unterlagen durch Datenschutz und IT |  |  |
 `;
 }
-export function vvtBody(generatedAt: string): string {
+export function vvtBody(generatedAt: string, defaults?: TemplateDefaultValues): string {
+  const responsible = defaults?.['datenschutz.verantwortliche_stelle'] || defaults?.['arbeitgeber.name'] || defaults?.['unternehmen.name'] || 'betrieblich zu ergänzen';
+  const privacyContact = defaults?.['datenschutz.dsb.name'] || defaults?.['datenschutz.kontakt.name'] || 'betrieblich zu ergänzen';
+  const privacyEmail = defaults?.['datenschutz.dsb.email'] || defaults?.['datenschutz.kontakt.email'];
   return `${header('VVT-Eintrag – Gremia.SBV / SBV-Fallarbeit', generatedAt)}## 1. Bezeichnung der Verarbeitungstätigkeit
 
 Vertrauliche Fall-, Beratungs-, Beteiligungs- und Fristenarbeit der Schwerbehindertenvertretung mit Gremia.SBV.
@@ -78,9 +84,9 @@ ${personDirectoryProcessingActivitySection()}
 
 | Feld | Eintrag |
 |---|---|
-| Verantwortlicher | Arbeitgeber / Dienststelle, organisatorisch zu bestätigen |
+| Verantwortlicher | ${responsible} |
 | Fachliche Stelle | Schwerbehindertenvertretung |
-| Datenschutzkontakt | Datenschutzbeauftragte*r einzutragen |
+| Datenschutzkontakt | ${privacyContact}${privacyEmail ? ` · ${privacyEmail}` : ''} |
 | IT-Security-Kontakt | einzutragen |
 | Software | Gremia.SBV, lokale Offline-first-Desktopanwendung |
 
@@ -101,7 +107,7 @@ ${personDirectoryProcessingActivitySection()}
 
 ## 5. Kategorien personenbezogener Daten
 
-- Personenverzeichnis: Vorname, Nachname, dienstliche E-Mail, Organisationseinheit, Standort, optional Personalnummer, Schutzstatus, Statusgültigkeit, Quelle, Beschäftigungsende und Lifecycle-Status. Kein GdB-Standardfeld. Keine Diagnosen.
+- Personenverzeichnis: Vorname, Nachname, dienstliche E-Mail, Organisationseinheit, Standort, optional Personalnummer, Schutzstatus, Statusgültigkeit, Quelle, Beschäftigungsende und Bearbeitungsstatus. Kein GdB-Standardfeld. Keine Diagnosen.
 - Stammdaten, Kontaktdaten und Aktenbezüge.
 - Gesprächsnotizen, Vorgangsstatus und Fristen.
 - Angaben zu Arbeitsplatz, Arbeitszeit, Belastungen, Hilfsmitteln und Maßnahmen.
@@ -219,7 +225,7 @@ export function matrixBody(generatedAt: string): string {
 | Art. 13/14 DSGVO | Datenschutzinformation kann aus vollständigen Angaben als PDF erzeugt werden; Ausgabe erfolgt organisatorisch durch die verantwortliche Stelle | vorbereitet | Aushändigung und Nachweis organisieren |
 | Art. 15 DSGVO | strukturierte Auskunftsfähigkeit mit DSAR-Generator und Prüfschritten vorbereitet | vorbereitet | Schwärzungsprozess festlegen |
 | Audit-Hash-Kette | Audit ohne Direktidentifikatoren; Hash-Kette bleibt bei Löschung/Anonymisierung stabil | umgesetzt / testpflichtig | Integritätsbericht prüfen |
-| SQLCipher | Ruheverschlüsselung der strukturierten Personenstammdaten; keine zusätzliche Namens-Feldverschlüsselung in 0.9.1 | dokumentiert | Passphrase-/Backup-Regeln absichern |
+| SQLCipher | Ruheverschlüsselung der strukturierten Personenstammdaten; keine zusätzliche Namens-Feldverschlüsselung | dokumentiert | Passphrase-/Backup-Regeln absichern |
 
 ## Bewertung
 

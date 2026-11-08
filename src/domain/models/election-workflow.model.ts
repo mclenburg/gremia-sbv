@@ -237,9 +237,11 @@ export interface ElectionNoticeDetails {
   countingPlaceAndTime: string;
   voterListInspectionPlace: string;
   voterListInspectionTimes: string;
+  ordinanceInspectionPlace: string;
   objectionDeadline: string;
   proposalDeadline: string;
   proposalSubmissionPlace: string;
+  proposalDisplayPlace: string;
   representativeElectionStatement: string;
   deputyElectionStatement: string;
   requiredSupportSignatures: string;
@@ -252,4 +254,14 @@ export interface ElectionInvitationDetails {
   meetingPlace: string;
   accessibilityNote?: string;
 }
-export interface GenerateElectionPreparationDocumentInput { kind: ElectionPreparationDocumentKind; boardSessionId?: string; notice?: ElectionNoticeDetails; invitation?: ElectionInvitationDetails; titleOverride?: string; }
+export interface GenerateElectionPreparationDocumentInput {
+  kind: ElectionPreparationDocumentKind;
+  boardSessionId?: string;
+  proposalId?: string;
+  recipientLabel?: string;
+  correctionReason?: string;
+  graceOffice?: 'representative' | 'deputy';
+  notice?: ElectionNoticeDetails;
+  invitation?: ElectionInvitationDetails;
+  titleOverride?: string;
+}

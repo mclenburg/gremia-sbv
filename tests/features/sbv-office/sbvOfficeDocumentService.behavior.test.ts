@@ -4,7 +4,7 @@ import { SbvOfficeDocumentService } from '../../../services/sbvOfficeDocumentSer
 import { inspectPdf } from '../../helpers/pdf';
 
 class AssemblyDb implements DatabaseAdapter {
-  constructor(private readonly storedTemplateDefaults?: Record<string, string>) {}
+  constructor(private readonly storedTemplateDefaults?: Record<string, string>, private readonly agenda: string | null = 'TOP 1') {}
 
   prepare<T = unknown>(sql: string) {
     return {
@@ -15,7 +15,7 @@ class AssemblyDb implements DatabaseAdapter {
             ? { value: JSON.stringify(this.storedTemplateDefaults) } as T
             : undefined;
         }
-        return { id: 'a-1', year: 2026, scheduled_at: '2026-10-10T10:00:00.000Z', location_or_mode: 'Hybrid', agenda: 'TOP 1', minutes: 'Maßnahme 1' } as T;
+        return { id: 'a-1', year: 2026, scheduled_at: '2026-10-10T10:00:00.000Z', location_or_mode: 'Hybrid', agenda: this.agenda, minutes: 'Maßnahme 1' } as T;
       },
       run: (..._params: unknown[]) => ({}),
     };
@@ -26,6 +26,12 @@ class AssemblyDb implements DatabaseAdapter {
 }
 
 describe('SbvOfficeDocumentService', () => {
+  it('erzeugt keine veröffentlichbare Einladung ohne erfasste Tagesordnung', async () => {
+    const store = vi.fn();
+    const service = new SbvOfficeDocumentService(new AssemblyDb(undefined, null), { store } as never);
+    await expect(service.generateAssemblyDocument('a-1', 'invitation')).rejects.toThrow(/Tagesordnung/);
+    expect(store).not.toHaveBeenCalled();
+  });
   it('hands generated assembly documents to the encrypted office-document adapter with the assembly owner', async () => {
     const calls: unknown[] = [];
     const adapter = { store: async (input: unknown) => { calls.push(input); return { id: 'd-1', filename: 'x.pdf', sha256: 'a'.repeat(64) }; } };

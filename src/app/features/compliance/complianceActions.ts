@@ -5,17 +5,19 @@ import type {
 import type { GenerateReportInput } from "../../../domain/models/report.model";
 import { buildComplianceReportInput, renderComplianceDocument } from "@/domain/compliance/complianceCenterService";
 import { buildPdfExportFeedback } from "./complianceViewUtils";
+import type { TemplateDefaultValues } from '../../../domain/models/template-default.model';
 
 type ComplianceFeedback = {
   setMessage: (message: string) => void;
   announce: (message: string, mode?: "polite" | "assertive") => void;
 };
 
-export function createComplianceDocumentActions({ document, setDocument, setSelectedType, setMessage, announce, getEditedDocument }: ComplianceFeedback & {
+export function createComplianceDocumentActions({ document, setDocument, setSelectedType, setMessage, announce, getEditedDocument, defaults }: ComplianceFeedback & {
   document: ComplianceDocument;
   setDocument: (document: ComplianceDocument) => void;
   setSelectedType: (type: ComplianceDocumentType) => void;
   getEditedDocument?: (type: ComplianceDocumentType) => ComplianceDocument | undefined;
+  defaults?: TemplateDefaultValues;
 }) {
   function render(type: ComplianceDocumentType) {
     if (type === 'data_protection_notice') {
@@ -23,7 +25,7 @@ export function createComplianceDocumentActions({ document, setDocument, setSele
       return;
     }
     const edited = getEditedDocument?.(type);
-    const next = edited ?? renderComplianceDocument(type);
+    const next = edited ?? renderComplianceDocument(type, defaults);
     setSelectedType(type);
     setDocument(next);
     const info = edited ? `Bearbeiteter Entwurf für ${next.title} wurde wieder geöffnet.` : `${next.title} wurde erzeugt.`;

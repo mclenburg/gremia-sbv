@@ -824,13 +824,13 @@
         "negative": [
           {
             "file": "tests/features/elections/electionPreparationDocuments.behavior.test.ts",
-            "name": "accepts the complete sixteen-field election notice and rejects any missing mandatory item"
+            "name": "requires every election notice location before a publication PDF is made"
           }
         ],
         "boundary": [
           {
             "file": "tests/features/elections/electionPreparationDocuments.behavior.test.ts",
-            "name": "accepts the complete sixteen-field election notice and rejects any missing mandatory item"
+            "name": "requires every election notice location before a publication PDF is made"
           }
         ],
         "persistence": [

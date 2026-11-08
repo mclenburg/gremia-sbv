@@ -5,12 +5,13 @@ import { tomsBody, vvtBody, dsfaBody, matrixBody } from './complianceBodiesCore.
 import { retentionScheduleBody, dataSubjectRightsBody, exportPolicyBody } from './complianceBodiesPrivacy.js';
 import { approvalBody, dataProtectionStatusBody } from './complianceBodiesRelease.js';
 import { dsarBody } from './complianceDsarBody.js';
+import type { TemplateDefaultValues } from '../models/template-default.model.js';
 export { COMPLIANCE_DOCUMENTS } from './complianceDocumentSupport.js';
 
-function bodyFor(type: ComplianceDocumentType, generatedAt: string, dsarInput?: DataSubjectAccessRequestInput): string {
+function bodyFor(type: ComplianceDocumentType, generatedAt: string, dsarInput?: DataSubjectAccessRequestInput, defaults?: TemplateDefaultValues): string {
   switch (type) {
     case 'toms': return tomsBody(generatedAt);
-    case 'vvt': return vvtBody(generatedAt);
+    case 'vvt': return vvtBody(generatedAt, defaults);
     case 'dsfa': return dsfaBody(generatedAt);
     case 'dsgvo_bdsg_matrix': return matrixBody(generatedAt);
     case 'retention_schedule': return retentionScheduleBody(generatedAt);
@@ -31,7 +32,7 @@ export function listComplianceDocuments(): ComplianceDocumentDescriptor[] {
   return COMPLIANCE_DOCUMENTS;
 }
 
-export function renderComplianceDocument(type: ComplianceDocumentType): ComplianceDocument {
+export function renderComplianceDocument(type: ComplianceDocumentType, defaults?: TemplateDefaultValues): ComplianceDocument {
   if (type === 'data_protection_notice') throw new Error('Datenschutzinformation: Pflichtangaben müssen im Formular erfasst werden.');
   const generatedAt = nowIso();
   const descriptor = COMPLIANCE_DOCUMENTS.find((item) => item.type === type) ?? COMPLIANCE_DOCUMENTS[0];
@@ -40,7 +41,7 @@ export function renderComplianceDocument(type: ComplianceDocumentType): Complian
     title: descriptor.title,
     description: descriptor.description,
     filename: complianceDocumentFileName(descriptor.type, generatedAt),
-    body: bodyFor(descriptor.type, generatedAt),
+    body: bodyFor(descriptor.type, generatedAt, undefined, defaults),
     generatedAt
   };
 }

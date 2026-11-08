@@ -59,21 +59,19 @@ Bitte teilen Sie mir bis zum {{frist.datum}} mit, welche nächsten Schritte vorg
     },
     {
       key: 'bem-angebot-datenschutz',
-      title: 'BEM-Angebot mit Datenschutzhinweis',
+      title: 'BEM-Angebot beim Arbeitgeber anregen',
       category: 'bem',
-      description: 'BEM-Angebot mit Freiwilligkeit, Datenschutz und Beteiligtenhinweis.',
-      subject: 'Angebot eines Betrieblichen Eingliederungsmanagements – {{fall.aktenzeichen}}',
+      description: 'Schreiben der SBV an den Arbeitgeber zur Vorbereitung eines BEM-Angebots.',
+      subject: 'BEM-Angebot vorbereiten – {{fall.aktenzeichen}}',
       legalBasis: ['§ 167 Abs. 2 SGB IX', 'Art. 9 DSGVO'],
       tags: ['BEM', 'massnahme:bem', 'status:angebot_vorzubereiten', 'Datenschutz', 'Einwilligung'],
-      body: `Sehr geehrte*r {{fall.name}},
+      body: `Sehr geehrte Damen und Herren,
 
-wir möchten Ihnen ein Betriebliches Eingliederungsmanagement nach § 167 Abs. 2 SGB IX anbieten.
+im Vorgang {{fall.aktenzeichen}} bitte ich Sie, die Voraussetzungen eines Betrieblichen Eingliederungsmanagements nach § 167 Abs. 2 SGB IX zu prüfen und der betroffenen Person gegebenenfalls ein Angebot zu unterbreiten.
 
-Ziel des BEM ist es, gemeinsam zu klären, wie Arbeitsunfähigkeit möglichst überwunden, erneuter Arbeitsunfähigkeit vorgebeugt und Ihr Arbeitsplatz erhalten werden kann. Die Teilnahme ist freiwillig. Aus einer Ablehnung dürfen Ihnen keine unmittelbaren Nachteile entstehen.
+Bitte unterbreiten Sie ein entsprechendes Angebot mit Angaben zu Ziel, Freiwilligkeit, vorgesehenen Beteiligten sowie Art und Umfang der hierfür verarbeiteten Daten. Die betroffene Person entscheidet über die Teilnahme und die Hinzuziehung der Schwerbehindertenvertretung.
 
-Im BEM werden nur die Informationen verarbeitet, die für die Klärung geeigneter Maßnahmen erforderlich sind. Über Beteiligte, Umfang und Inhalte entscheiden Sie mit. Sie können eine erteilte Einwilligung jederzeit mit Wirkung für die Zukunft widerrufen.
-
-Bitte teilen Sie bis zum {{bem.reaktionsfrist}} mit, ob Sie das Angebot annehmen möchten und welche Personen beteiligt werden sollen.
+Bitte teilen Sie mir bis zum {{bem.reaktionsfrist}} mit, ob und wann das Angebot erfolgt und wie die Vertraulichkeit der Gesundheitsdaten sichergestellt wird.
 
 {{sbv.signatur}}`
     },
@@ -92,11 +90,9 @@ Die betroffene Person hat das BEM-Angebot angenommen.
 Einwilligungsumfang / Beteiligte:
 {{bem.beteiligte}}
 
-Datenschutzhinweis erteilt am:
+Angebot dokumentiert am:
 {{bem.angebot_am}}
-
-Hinweis:
-Die Einwilligung ist freiwillig und kann jederzeit mit Wirkung für die Zukunft widerrufen werden. Inhalte des BEM werden nur zweckgebunden und nur im erforderlichen Umfang dokumentiert.`
+`
     },
     {
       key: 'bem-gespraechsprotokoll',
@@ -117,13 +113,10 @@ Ausgangslage:
 {{bem.ausloeser}}
 
 Besprochene arbeitsplatzbezogene Belastungen / Ressourcen:
-[bitte nur erforderliche Angaben dokumentieren]
+____________________________________________________________________
 
 Vereinbarte nächste Schritte:
-[bitte ergänzen]
-
-Datenschutz- und Vertraulichkeitshinweis:
-Die Dokumentation enthält nur die für das BEM erforderlichen Informationen. Diagnosen werden nicht dokumentiert, sofern sie für die Maßnahmenklärung nicht erforderlich sind.`
+____________________________________________________________________`
     },
     {
       key: 'bem-massnahmenplan',
@@ -144,10 +137,7 @@ Verantwortliche / Umsetzung:
 {{bem.beteiligte}}
 
 Wirksamkeitsprüfung:
-{{bem.wirksamkeitspruefung}}
-
-Hinweis:
-Die Wirksamkeit der Maßnahmen wird zum genannten Termin geprüft. Anpassungen sind möglich, wenn die Maßnahme nicht ausreichend trägt oder sich die Arbeitsbedingungen verändern.`
+{{bem.wirksamkeitspruefung}}`
     },
     {
       key: 'bem-wirksamkeitspruefung',
@@ -169,10 +159,10 @@ Ergebnis / Wirkung:
 {{bem.ergebnis}}
 
 Weitere Schritte:
-[bitte ergänzen]
+____________________________________________________________________
 
 Bewertung der SBV:
-[bitte ergänzen]`
+____________________________________________________________________`
     },
     {
       key: 'bem-abschlussvermerk',
@@ -190,10 +180,7 @@ Ergebnis:
 {{bem.ergebnis}}
 
 Offene Punkte:
-[bitte ergänzen]
-
-Aufbewahrung / Löschung:
-BEM-Unterlagen sind getrennt und zweckgebunden aufzubewahren. Nicht erforderliche oder nicht mehr erforderliche Informationen sind zu löschen beziehungsweise nicht weiter zu verwenden.
+____________________________________________________________________
 
 Abschlussdatum:
 {{datum.heute}}
@@ -357,10 +344,7 @@ Widerspruchsfrist:
 {{gleichstellung.widerspruchsfrist}}
 
 Bewertung / nächste Schritte:
-{{gleichstellung.notizen}}
-
-Hinweis:
-Die Schwerbehindertenvertretung kann unterstützen und auf Fristen hinweisen. Die rechtliche Vertretung im Widerspruchsverfahren sollte bei Bedarf anwaltlich oder durch eine geeignete Beratungsstelle erfolgen.`
+{{gleichstellung.notizen}}`
     },
     {
       key: 'kuendigungsanhoerung-unterlagen-unvollstaendig',

@@ -39,9 +39,29 @@ function retentionInformation(settings?: RetentionSettings): string {
 }
 
 function processedDataAndPurposes(): string {
-  return DATA_SUBJECT_ACCESS_SOURCES.map((source) =>
-    `- ${source.label}: ${source.dataCategories.join(', ')}. Zweck: ${source.purposes.join('; ')}.`,
-  ).join('\n');
+  const publicWording: Record<string, { label: string; dataCategories?: string[]; purposes?: string[] }> = {
+    legacy_persons: {
+      label: 'Ältere Personendaten',
+      dataCategories: ['früher erfasste Stamm-, Kontakt- und Organisationsdaten'],
+      purposes: ['Zuordnung älterer Fallakten'],
+    },
+    measures: { label: 'Maßnahmen und Verfahren' },
+    imports: { label: 'Übernommene Arbeitgeberlisten' },
+    activity_journal: { label: 'SBV-Tätigkeiten' },
+    lifecycle_audit: {
+      label: 'Nachweise über Änderungen und Zugriffe',
+      purposes: ['Nachvollziehbarkeit und Prüfung der Datenverarbeitung'],
+    },
+    external_references: {
+      label: 'Verknüpfte Betriebsratsvorgänge',
+      dataCategories: ['Titel, Beschreibung und Bezug eines Vorgangs'],
+      purposes: ['Zuordnung zwischen SBV-Fallarbeit und Betriebsratsvorgängen'],
+    },
+  };
+  return DATA_SUBJECT_ACCESS_SOURCES.map((source) => {
+    const wording = publicWording[source.id];
+    return `- ${wording?.label ?? source.label}: ${(wording?.dataCategories ?? source.dataCategories).join(', ')}. Zweck: ${(wording?.purposes ?? source.purposes).join('; ')}.`;
+  }).join('\n');
 }
 
 export function dataProtectionNoticeDefaults(defaults: TemplateDefaultValues, date: string, retentionSettings?: RetentionSettings): DataProtectionNoticeInput {

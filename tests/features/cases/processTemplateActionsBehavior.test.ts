@@ -106,6 +106,18 @@ describe('process template workflows', () => {
     expect(fixture.current()).toMatchObject({ rendered, error: undefined });
   });
 
+  it('gibt ein Schreiben mit offenen Pflichtangaben nicht als fertige Datei aus', async () => {
+    const fixture = setup(states[0]);
+    fixture.render.mockResolvedValue({ ...rendered, archivedId: undefined, body: 'Antwort bis {{frist.datum}}', unresolvedPlaceholders: ['frist.datum'] });
+    await fixture.actions.renderAndDownloadProcessTemplate(template);
+    expect(fixture.confirmDialog).not.toHaveBeenCalled();
+    expect(fixture.anchor.click).not.toHaveBeenCalled();
+    expect(fixture.current()).toMatchObject({
+      rendered: { unresolvedPlaceholders: ['frist.datum'] },
+      error: expect.stringMatching(/Frist/),
+    });
+  });
+
   it('retains the rendered output and reports failures without an export decision or download', async () => {
     const fixture = setup({ ...states[0], rendered });
     fixture.render.mockRejectedValue(new Error('Erzeugung fehlgeschlagen'));

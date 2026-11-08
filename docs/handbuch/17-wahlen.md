@@ -43,6 +43,8 @@ Kandidaturen und Wahlvorschläge werden als Wahlvorgänge dokumentiert. Personen
 
 Im Abschnitt **Vorbereitung** können die vorgesehenen Wahlunterlagen erzeugt und nachgehalten werden. Die Durchführung am Wahltag wird anschließend im Abschnitt **Stimmabgabe** dokumentiert.
 
+Das Wahlausschreiben für das förmliche Verfahren enthält eigene Felder für Einsicht in Wählerliste und Wahlordnung, Bekanntmachungsort der Wahlvorschläge, Fristen, Stimmabgabe und Unterschriften. Korrekturaufforderungen beziehen sich auf den ausgewählten Wahlvorschlag und seine dokumentierte Frist; die Nachfristbekanntmachung benennt den betroffenen Wahlgang. Die Kandidaturenbekanntmachung nimmt im förmlichen Verfahren nur bestätigte Kandidaturen aus gültigen Wahlvorschlägen auf.
+
 Gremia.SBV speichert keine Information darüber, **welche Person welche Stimme abgegeben hat**. Die Wahlhandlung einzelner Wählerinnen und Wähler darf aus der Wahlakte nicht rekonstruierbar sein.
 
 ## Briefwahl
@@ -64,6 +66,8 @@ Ist ein Losentscheid erforderlich, dokumentiert Gremia.SBV ausschließlich den r
 ## Annahme und Nachrücken
 
 Im Abschnitt **Annahme** werden Benachrichtigung und Annahmestatus der gewählten Personen nachgehalten. Eine ausdrückliche Annahme, Annahme durch Fristablauf oder Ablehnung wird als tatsächlicher Verfahrensstand dokumentiert.
+
+Die Benachrichtigung nennt die gewählte Person und das Amt. Ist die Annahme bereits dokumentiert, enthält das Schreiben keine erneute Ablehnungsaufforderung.
 
 Bei einer Ablehnung kann das fachlich vorgesehene Nachrücken in der Wahlakte nachgehalten werden. Die Anwendung ersetzt auch hier nicht die Entscheidung des Wahlorgans.
 

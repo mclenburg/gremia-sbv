@@ -115,6 +115,7 @@ export class SbvOfficeDocumentService {
       if (!scheduledAt || !location) {
         throw new ApplicationError('VALIDATION_FAILED', 'Die Einladung benötigt einen Termin und einen Ort bzw. ein Format.');
       }
+      if (!agenda) throw new ApplicationError('VALIDATION_FAILED', 'Die Einladung benötigt eine Tagesordnung.');
       const scheduleLabel = new Intl.DateTimeFormat('de-DE', { dateStyle: 'full', timeStyle: 'short' })
         .format(new Date(scheduledAt));
       return externalLetterDocument({
@@ -128,7 +129,7 @@ export class SbvOfficeDocumentService {
           paragraph(`hiermit lädt die Schwerbehindertenvertretung Sie zur Schwerbehindertenversammlung ${assembly.year} ein.`),
           ...(operationContext ? [section('Betrieb / Standort', [paragraph(operationContext)])] : []),
           section('Termin und Ort', [paragraph(scheduleLabel), paragraph(location)]),
-          section('Tagesordnung', [paragraph(agenda || 'Die Tagesordnung wird rechtzeitig bekannt gegeben.')]),
+          section('Tagesordnung', [paragraph(agenda)]),
           paragraph('Bitte teilen Sie der Schwerbehindertenvertretung frühzeitig mit, wenn Sie für Ihre Teilnahme Unterstützung oder eine barrierefreie Anpassung benötigen.'),
           paragraph(sbvSignature(defaults)),
         ],

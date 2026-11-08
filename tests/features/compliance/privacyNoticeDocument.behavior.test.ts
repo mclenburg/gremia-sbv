@@ -34,7 +34,11 @@ describe('versandfähige Datenschutzinformation', () => {
     expect(body).toContain('Angaben der betroffenen Person');
     expect(body).toContain('Personenstamm und Schutzstatus');
     expect(body).toContain('Wahlunterlagen mit Personenbezug');
+    expect(body).toContain('Ältere Personendaten');
+    expect(body).toContain('Nachweise über Änderungen und Zugriffe');
+    expect(body).toContain('Verknüpfte Betriebsratsvorgänge');
     expect(body).toContain('Art. 13 und 14 DSGVO');
+    expect(body).not.toMatch(/Legacy|Lifecycle|Snapshot-Metadaten|Prozessmodule|Tätigkeitsjournal-Bezüge/);
     expect(body).not.toMatch(/\[[^\]]+\]|Vorlage|Arbeitsentwurf|vor Verwendung|Gremia\.SBV versendet/);
   });
 
@@ -108,7 +112,7 @@ describe('versandfähige Datenschutzinformation', () => {
     expect(pdf.pageCount).toBeLessThanOrEqual(2);
     expect(pdf.textByPage.join(' ')).toContain('automatisierte Entscheidungen');
     expect(pdf.textByPage.join(' ')).not.toContain('Die Beispielbetrieb');
-    const auditListPage = pdf.textByPage.find((page) => page.includes('Datensparsame Lifecycle- und Audit-Ereignisse'));
-    expect(auditListPage).toContain('Manipulationsnachweis und Nachvollziehbarkeit');
+    const auditListPage = pdf.textByPage.find((page) => page.includes('Nachweise über Änderungen und Zugriffe'));
+    expect(auditListPage).toContain('Nachvollziehbarkeit und Prüfung der Datenverarbeitung');
   });
 });

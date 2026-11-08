@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildComplianceReportInput, renderComplianceDocument } from '../../../services/complianceCenterService';
 import { auditHashChainDecisionSection, informationAndAccessRightsSection, personDirectoryProcessingActivitySection, sqlCipherDecisionSection, stepELegalBasesSection } from '../../../services/complianceStepEContent';
+import { EMPTY_TEMPLATE_DEFAULT_VALUES } from '../../../src/domain/models/template-default.model';
 
 function bodies() {
   return {
@@ -27,6 +28,8 @@ describe('0.9.1 Step E Compliance Center', () => {
     }
     expect(rendered.toms).toContain('Audit-Hash-Kette ohne Direktidentifikatoren');
     expect(rendered.toms).toContain('SQLCipher-Entscheidung und Feldverschlüsselung');
+    expect(rendered.toms).toContain('Betriebliche Festlegungen und Prüfstand');
+    expect(rendered.toms).not.toContain('Offene Punkte vor 1.0');
   });
 
   it('dokumentiert Art. 13/14, Art. 15, Audit-Hash-Kette und SQLCipher-Entscheidung', () => {
@@ -38,6 +41,18 @@ describe('0.9.1 Step E Compliance Center', () => {
     expect(rendered.matrix).toContain('Audit ohne Direktidentifikatoren');
     expect(rendered.matrix).toContain('keine zusätzliche Namens-Feldverschlüsselung');
     expect(rendered.vvt).toContain('Aushändigung erfolgt außerhalb der Anwendung');
+  });
+
+  it('übernimmt bekannte Verantwortliche und Datenschutzkontakte in den VVT-Entwurf', () => {
+    const body = renderComplianceDocument('vvt', {
+      ...EMPTY_TEMPLATE_DEFAULT_VALUES,
+      'datenschutz.verantwortliche_stelle': 'Beispielbetrieb GmbH',
+      'datenschutz.dsb.name': 'Dr. Datenschutz',
+      'datenschutz.dsb.email': 'dsb@example.invalid',
+    }).body;
+    expect(body).toContain('| Verantwortlicher | Beispielbetrieb GmbH |');
+    expect(body).toContain('| Datenschutzkontakt | Dr. Datenschutz · dsb@example.invalid |');
+    expect(body).not.toContain('Datenschutzbeauftragte*r einzutragen');
   });
 
 

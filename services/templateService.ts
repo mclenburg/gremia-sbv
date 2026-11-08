@@ -96,19 +96,35 @@ export class TemplateService {
         id, template_key, title, category, description, subject, body, legal_basis_json, tags_json, is_system, created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
     `);
+    const refreshSystemTemplate = db.prepare(`
+      UPDATE document_templates SET title = ?, category = ?, description = ?, subject = ?, body = ?,
+        legal_basis_json = ?, tags_json = ?, updated_at = ?
+      WHERE template_key = ? AND is_system = 1
+        AND (title <> ? OR category <> ? OR COALESCE(description, '') <> COALESCE(?, '')
+          OR subject <> ? OR body <> ? OR legal_basis_json <> ? OR tags_json <> ?)
+    `);
     defaultTemplates().forEach((template) => {
+      const key = template.key ?? normalizeTemplateKey(template.title);
+      const description = optionalText(template.description);
+      const legalBasis = jsonString(template.legalBasis);
+      const tags = jsonString(template.tags);
       insert.run(
         randomUUID(),
-        template.key ?? normalizeTemplateKey(template.title),
+        key,
         template.title,
         template.category,
-        optionalText(template.description),
+        description,
         template.subject,
         template.body,
-        jsonString(template.legalBasis),
-        jsonString(template.tags),
+        legalBasis,
+        tags,
         timestamp,
         timestamp
+      );
+      refreshSystemTemplate.run(
+        template.title, template.category, description, template.subject, template.body,
+        legalBasis, tags, timestamp, key,
+        template.title, template.category, description, template.subject, template.body, legalBasis, tags,
       );
     });
   }
@@ -224,10 +240,14 @@ export class TemplateService {
     const context = this.buildContext(db, input.caseId, input.values);
     const subjectResult = renderTemplateText(template.subject, context);
     const bodyResult = renderTemplateText(template.body, context);
+    const unresolvedPlaceholders = [...new Set([
+      ...subjectResult.unresolvedPlaceholders,
+      ...bodyResult.unresolvedPlaceholders,
+    ])].sort((a, b) => a.localeCompare(b));
     const renderedAt = nowIso();
     let archivedId: string | undefined;
 
-    if (input.archive !== false) {
+    if (input.archive !== false && unresolvedPlaceholders.length === 0) {
       archivedId = randomUUID();
       db.prepare(`
         INSERT INTO template_renders (id, template_id, case_id, subject, body, created_at)
@@ -242,7 +262,7 @@ export class TemplateService {
       body: bodyResult.text,
       caseId: input.caseId,
       archivedId,
-      unresolvedPlaceholders: [...new Set([...subjectResult.unresolvedPlaceholders, ...bodyResult.unresolvedPlaceholders])].sort((a, b) => a.localeCompare(b)),
+      unresolvedPlaceholders,
       renderedAt
     };
   }

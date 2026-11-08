@@ -20,6 +20,7 @@ import { ApplicationError } from '../src/domain/models/application-error.model.j
 import { ElectionMailBallotPackageDefinition } from './electionMailBallotPackageDefinition.js';
 import { OWNER_ONLY_FILE_MODE, restrictFileToOwner } from './secureFilePermissions.js';
 import { appendOperationContext, documentDefaultsForDatabase } from './documents/documentIdentityPolicy.js';
+import { electionArchiveBlocks, electionDocumentLabel } from './documents/electionArchivePresentation.js';
 
 const TEMPLATE_VERSION = '0.9.7-D.1';
 
@@ -130,22 +131,47 @@ export class ElectionArchiveService {
       'Wahl der Schwerbehindertenvertretung',
       documentDefaultsForDatabase(this.database),
     );
-    const blocks = [section('Dokumentinhalt', [list(lines)])];
+    const blocks = input.kind === 'archive_pdf' ? electionArchiveBlocks(lines) : [section('Dokumentinhalt', [list(lines)])];
     if (input.kind === 'result_announcement') {
-      return publicNoticeDocument(title, electionSubtitle, blocks);
+      const elected = this.results(election.id).filter((item) => item.elected_rank !== null && !['rejected', 'replaced'].includes(item.acceptance_status));
+      if (!elected.length) throw new ApplicationError('VALIDATION_FAILED', 'Für die Bekanntmachung liegt noch kein festgestelltes Wahlergebnis vor.');
+      const candidates = this.candidates(election.id);
+      return publicNoticeDocument(title, electionSubtitle, [
+        section('Gewählte Personen', [list(elected.map((item) => {
+          const person = candidates.find((candidate) => candidate.id === item.candidate_id)?.person_snapshot;
+          if (!person) throw new ApplicationError('VALIDATION_FAILED', 'Zum Wahlergebnis fehlt die Kandidatur.');
+          const office = item.office_type === 'representative' ? 'Vertrauensperson' : 'Stellvertretung';
+          return `${office}: ${person}${item.office_type === 'deputy' ? ` · Rang ${item.elected_rank}` : ''}`;
+        }))]),
+        paragraph('Aushang vom: ____________________ bis: ____________________'),
+      ]);
     }
     if (input.kind === 'elected_notification') {
       const selected = this.results(election.id).find((item) => item.id === input.resultId);
       const recipient = selected
         ? this.candidates(election.id).find((candidate) => candidate.id === selected.candidate_id)?.person_snapshot
         : undefined;
+      if (!selected || !recipient || selected.elected_rank === null || ['rejected', 'replaced'].includes(selected.acceptance_status)) {
+        throw new ApplicationError('VALIDATION_FAILED', 'Für die Benachrichtigung ist eine aktuell gewählte Person erforderlich.');
+      }
+      const office = selected.office_type === 'representative'
+        ? 'Vertrauensperson der schwerbehinderten Menschen'
+        : `stellvertretendes Mitglied (Rang ${selected.elected_rank})`;
       return externalLetterDocument({
         title,
         sender: ['Wahlvorstand der Schwerbehindertenvertretungswahl'],
-        recipient: [recipient || 'An die gewählte Person'],
+        recipient: [recipient],
         date: new Intl.DateTimeFormat('de-DE').format(new Date()),
         subject: 'Benachrichtigung über die Wahl',
-        blocks: [paragraph('Sehr geehrte Damen und Herren,'), ...blocks, paragraph('Mit freundlichen Grüßen\nDer Wahlvorstand')],
+        blocks: [
+          paragraph('Guten Tag,'),
+          paragraph(`Der Wahlvorstand teilt Ihnen mit, dass Sie bei der Wahl der Schwerbehindertenvertretung als ${office} gewählt wurden.`),
+          ...(selected.acceptance_status === 'pending'
+            ? [paragraph('Bitte teilen Sie dem Wahlvorstand innerhalb von drei Arbeitstagen nach Zugang dieser Benachrichtigung mit, falls Sie die Wahl ablehnen. Ohne Ablehnung gilt die Wahl nach Ablauf dieser Frist als angenommen.')]
+            : [paragraph('Die Annahme der Wahl ist bereits dokumentiert.')]),
+          paragraph('Mit freundlichen Grüßen\nDer Wahlvorstand'),
+          section('Empfangsbestätigung', [paragraph('Erhalten am: ____________________    Unterschrift: ______________________________')]),
+        ],
       });
     }
     return legalRecordDocument(
@@ -158,6 +184,12 @@ export class ElectionArchiveService {
 
   private archiveLines(election: ElectionRow): string[] {
     const candidates = this.candidates(election.id);
+    const submitted = new Set(this.database.prepare<{ candidate_id: string }>(`
+      SELECT pc.candidate_id FROM sbv_election_proposal_candidates pc
+      JOIN sbv_election_proposals p ON p.id = pc.proposal_id
+      WHERE p.election_id = ? AND p.validity_status = 'valid'
+    `).all(election.id).map((item) => item.candidate_id));
+    const candidacy = (item: CandidateRow) => `${item.person_snapshot}${election.procedure === 'formal' && !submitted.has(item.id) ? ' · kein gültiger Wahlvorschlag' : ''}`;
     const voters = this.database.prepare<{ last_name: string; first_name: string; eligibility_basis: string; list_status: string }>(`
       SELECT last_name,first_name,eligibility_basis,list_status
       FROM sbv_election_voters WHERE election_id=? ORDER BY last_name COLLATE NOCASE,first_name COLLATE NOCASE
@@ -172,8 +204,8 @@ export class ElectionArchiveService {
     const totals = this.totals(election.id);
     const results = this.results(election.id);
     const physical = this.physical(election.id);
-    const links = this.database.prepare<{ title: string; filename: string | null; purpose: string; sha256: string | null; template_version: string | null; legal_rule_version: string | null }>(`
-      SELECT d.title,d.filename,l.purpose,d.sha256,l.template_version,l.legal_rule_version
+    const links = this.database.prepare<{ title: string; filename: string | null; sha256: string | null }>(`
+      SELECT d.title,d.filename,d.sha256
       FROM sbv_workflow_document_links l JOIN generated_documents d ON d.id=l.document_id
       WHERE l.owner_type='election' AND l.owner_id=? ORDER BY l.created_at
     `).all(election.id);
@@ -181,36 +213,35 @@ export class ElectionArchiveService {
 
     return [
       ...this.header(election),
-      'MENSCHENLESBARE GESAMT-WAHLAKTE',
-      'Diese Datei ist ohne Gremia.SBV lesbar und fasst den gespeicherten fachlichen Wahlzustand zusammen.',
+      'GESAMTWAHLAKTE',
       '',
       'WAHLORGAN',
-      ...board.map((item) => `${item.role}: ${item.name} · bestellt/gewählt ${item.appointed_at ?? '-'}`),
+      ...board.map((item) => `${electionDocumentLabel(item.role)}: ${item.name} · bestellt/gewählt ${item.appointed_at ?? '-'}`),
       '',
       'WÄHLERLISTE-SNAPSHOT',
-      ...voters.map((item) => `${item.last_name}, ${item.first_name} · ${item.eligibility_basis} · ${item.list_status}`),
+      ...voters.map((item) => `${item.last_name}, ${item.first_name} · ${electionDocumentLabel(item.eligibility_basis)} · ${electionDocumentLabel(item.list_status)}`),
       '',
       'KANDIDATUREN – VERTRAUENSPERSON',
-      ...candidates.filter((item) => item.office_type === 'representative').map((item) => item.person_snapshot),
+      ...candidates.filter((item) => item.office_type === 'representative').map(candidacy),
       'KANDIDATUREN – STELLVERTRETUNG',
-      ...candidates.filter((item) => item.office_type === 'deputy').map((item) => item.person_snapshot),
+      ...candidates.filter((item) => item.office_type === 'deputy').map(candidacy),
       '',
       'BRIEFWAHLNACHWEISE – OHNE STIMMINHALT',
       ...mail.map((item, index) => `Briefwahl ${index + 1}: Versand ${item.sent_at ?? '-'} · Eingang ${item.received_at ?? '-'} · verspätet ${item.late_received_at ?? '-'} · Erklärung ${item.declaration_valid === null ? 'offen' : item.declaration_valid ? 'gültig' : 'nicht gültig'} · Vernichtung ${item.destroy_due_at ?? '-'}`),
       '',
       'AUSZÄHLUNG',
-      ...totals.map((item) => `${item.office_type}: ${name(item.candidate_id)} · ${item.votes} Stimme(n) · Rang ${item.rank ?? '-'}`),
+      ...totals.map((item) => `${electionDocumentLabel(item.office_type)}: ${name(item.candidate_id)} · ${item.votes} Stimme(n) · Rang ${item.rank ?? '-'}`),
       '',
       'ERGEBNIS UND ANNAHME',
-      ...results.map((item) => `${item.office_type}: ${name(item.candidate_id)} · Rang ${item.elected_rank ?? '-'} · ${item.acceptance_status} · Los ${item.lot_required ? 'erforderlich' : item.lot_decided_at ? `entschieden ${item.lot_decided_at}` : 'nein'}`),
+      ...results.map((item) => `${electionDocumentLabel(item.office_type)}: ${name(item.candidate_id)} · Rang ${item.elected_rank ?? '-'} · ${electionDocumentLabel(item.acceptance_status)} · Los ${item.lot_required ? 'erforderlich' : item.lot_decided_at ? `entschieden ${item.lot_decided_at}` : 'nein'}`),
       '',
       'DIGITALE NACHWEISE / PRÜFSUMMEN',
-      ...links.map((item, index) => `${index + 1}. ${item.title} | ${item.purpose} | ${item.filename ?? '-'} | Template ${item.template_version ?? '-'} | Regel ${item.legal_rule_version ?? '-'} | SHA-256 ${item.sha256 ?? '-'}`),
+      ...links.map((item, index) => `${index + 1}. ${item.title} | ${item.filename ?? '-'} | SHA-256 ${item.sha256 ?? '-'}`),
       '',
       'PHYSISCHE ORIGINALUNTERLAGEN',
       ...physical.map((item) => `${item.record_type}: ${item.description ?? '-'} | Menge ${item.quantity} | Ort ${item.storage_location ?? '-'} | Status ${item.sealed_status ?? '-'} | Original ${item.original_required ? 'aufzubewahren' : 'nein'}`),
       '',
-      'WICHTIG: Dieser PDF-Export ersetzt gesetzlich oder organisatorisch aufzubewahrende physische Originale, insbesondere Stimmzettel, nicht.',
+      'Umfang der digitalen Wahlakte: Physische Originale, insbesondere Stimmzettel, werden getrennt aufbewahrt.',
     ];
   }
 
@@ -248,7 +279,6 @@ export class ElectionArchiveService {
           '☐ erforderliche Besetzung des Wahlorgans gewährleistet',
           '☐ Hilfspersonregel verfügbar',
           '☐ öffentliche Auszählung vorbereitet',
-          'Die Checkliste dokumentiert den Arbeitsstand und blockiert den realen Wahltag nicht.',
         ];
       case 'result_minutes':
         return [
@@ -262,13 +292,7 @@ export class ElectionArchiveService {
       case 'elected_notification': {
         const selected = results.find((item) => item.id === input.resultId);
         if (!selected) throw new ApplicationError('VALIDATION_FAILED', 'Benachrichtigung benötigt ein gewähltes Ergebnis.');
-        return [
-          ...this.publicHeader(election),
-          `Gewählte Person: ${name(selected.candidate_id)}`,
-          `Wahlgang: ${selected.office_type}`,
-          'Bitte Empfang bestätigen. Ablehnung kann binnen drei Arbeitstagen erklärt werden.',
-          'Empfang/Unterschrift: ____________________',
-        ];
+        return [];
       }
       case 'result_announcement':
         return [
@@ -276,7 +300,7 @@ export class ElectionArchiveService {
           'Endgültiges Wahlergebnis',
           ...results.filter((item) => item.elected_rank !== null && !['rejected', 'replaced'].includes(item.acceptance_status))
             .map((item) => `${item.office_type}: ${name(item.candidate_id)} · Rang ${item.elected_rank}`),
-          'Aushangdauer: zwei Wochen ab dokumentiertem Beginn.',
+          'Aushang vom: ____________________ bis: ____________________',
         ];
       case 'physical_inventory':
         return [
@@ -336,16 +360,12 @@ export class ElectionArchiveService {
 
   private header(election: ElectionRow): string[] {
     return [
-      `Wahl-ID: ${election.id}`,
-      `Wahlart: ${election.kind}`,
-      `Verfahren: ${election.procedure ?? '-'}`,
+      `Wahlart: ${electionDocumentLabel(election.kind)}`,
+      `Verfahren: ${electionDocumentLabel(election.procedure)}`,
       `Wahltag: ${election.election_date ?? '-'}`,
       `Amtszeit: ${election.office_term_start ?? '-'} bis ${election.office_term_end ?? '-'}`,
-      `Status: ${election.status}`,
+      `Status: ${electionDocumentLabel(election.status)}`,
       `Aufbewahrung bis: ${election.retention_until ?? '-'}`,
-      `Legal Hold: ${election.legal_hold_status}`,
-      `Rechtsregel: ${election.legal_rule_version}`,
-      `Vorlagenversion: ${TEMPLATE_VERSION}`,
     ];
   }
 
