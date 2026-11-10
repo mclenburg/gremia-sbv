@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import type { CaseRecord } from '../../../domain/models/case.model';
-import type { CaseHandoverExportResult, TransferProtectionMode } from '../../../domain/models/case-handover.model';
+import type { CaseHandoverExportResult, TransferProtectionMode, VacationHandoverFormatVersion } from '../../../domain/models/case-handover.model';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { ExportAction, FileLocationNotice } from '../../shared/components/ImportExportFeedback';
 import { DateInput, FormActions } from '../../shared/components/IndustrialForm';
@@ -9,12 +9,14 @@ import { CaseHandoverChecklistPanel, handoverChecklistConfirmation } from './Cas
 import { CaseHandoverCasePicker } from './CaseHandoverCasePicker';
 import { requireCaseHandoverBridge } from './caseHandoverBridge';
 import { toHandoverExpiry } from './caseHandoverCockpitPolicy';
+import { VacationHandoverCompatibilityField } from './VacationHandoverCompatibilityField';
 import { requiresPassphrase, TransferProtectionFields, type TransferProtectionState } from './TransferProtectionFields';
 
 export function VacationHandoverExportPanel({ cases, onCompleted }: { cases: CaseRecord[]; onCompleted: () => Promise<void> }) {
   const announce = useAnnouncer();
   const [caseIds, setCaseIds] = useState<string[]>([]);
   const [protection, setProtection] = useState<TransferProtectionState>({ targetRecipientToken: '', passphrase: '', protectionMode: 'passphrase_and_recipient_key' as TransferProtectionMode });
+  const [targetFormatVersion, setTargetFormatVersion] = useState<VacationHandoverFormatVersion>(4);
   const [acknowledgedItemIds, setAcknowledgedItemIds] = useState<string[]>([]);
   const [validUntil, setValidUntil] = useState('');
   const [busy, setBusy] = useState(false);
@@ -43,6 +45,7 @@ export function VacationHandoverExportPanel({ cases, onCompleted }: { cases: Cas
         targetRecipientToken: protection.targetRecipientToken.trim(),
         passphrase: requiresPassphrase(protection.protectionMode) ? protection.passphrase : '',
         protectionMode: protection.protectionMode,
+        targetFormatVersion,
         checklist: handoverChecklistConfirmation(acknowledgedItemIds),
         expiresAt,
         purpose: 'Urlaubsübergabe / SBV-Vertretung',
@@ -60,11 +63,12 @@ export function VacationHandoverExportPanel({ cases, onCompleted }: { cases: Cas
   return <IndustrialPanel ariaLabel="Urlaubsvertretung übergeben" kicker="Ausgabe" title="Urlaubsvertretung übergeben" description="Ausgewählte Fallakten werden als ein verschlüsseltes, zielgebundenes Paket übergeben." helpId="caseHandover.vacation">
     <form className="industrial-stack" onSubmit={submit}>
       <CaseHandoverCasePicker cases={cases} selectedIds={caseIds} onChange={setCaseIds} legend="Fallakten für die Vertretung" />
-      <TransferProtectionFields value={protection} onChange={setProtection} targetLabel="Öffentliche Empfängerkennung der Vertretungsinstanz" />
+      <VacationHandoverCompatibilityField value={targetFormatVersion} onChange={(next) => { setTargetFormatVersion(next); if (next === 2) setProtection((current) => ({ ...current, protectionMode: 'passphrase_and_recipient_key' })); }} />
+      <TransferProtectionFields value={protection} onChange={setProtection} allowRecipientKeyOnly={targetFormatVersion !== 2} targetLabel="Öffentliche Empfängerkennung der Vertretungsinstanz" />
       <DateInput label="Vertretung endet am" value={validUntil} onValueChange={setValidUntil} required />
       <CaseHandoverChecklistPanel packageType="vacation_handover" caseIds={caseIds} expiresAt={toHandoverExpiry(validUntil)} acknowledgements={acknowledgedItemIds} onAcknowledgementsChange={setAcknowledgedItemIds} />
       {error ? <div className="industrial-message industrial-message-warning" role="alert">{error}</div> : null}
-      {result?.exported ? <FileLocationNotice filePath={result.filePath} label="Übergabepaket gespeichert" /> : null}
+      {result?.exported ? <FileLocationNotice filePath={result.filePath} label={result.formatVersion === 2 ? 'Übergabepaket für ältere Version gespeichert' : 'Übergabepaket gespeichert'} /> : null}
       <FormActions><ExportAction type="submit" loading={busy} disabled={!caseIds.length}>Urlaubsübergabe exportieren</ExportAction></FormActions>
     </form>
   </IndustrialPanel>;

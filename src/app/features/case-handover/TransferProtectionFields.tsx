@@ -29,11 +29,13 @@ export function TransferProtectionFields({
   onChange,
   targetLabel = 'Empfängerkennung der Zielinstanz',
   passphraseLabel = 'Transport-Passphrase',
+  allowRecipientKeyOnly = true,
 }: {
   value: TransferProtectionState;
   onChange: (value: TransferProtectionState) => void;
   targetLabel?: string;
   passphraseLabel?: string;
+  allowRecipientKeyOnly?: boolean;
 }) {
   const [profiles, setProfiles] = useState<TransferRecipientProfile[]>([]);
   const [selectedProfileId, setSelectedProfileId] = useState(MANUAL_PROFILE);
@@ -116,7 +118,7 @@ export function TransferProtectionFields({
       value={value.protectionMode}
       options={[
         { value: 'passphrase_and_recipient_key', label: 'Empfängerschlüssel + Passphrase' },
-        { value: 'recipient_key_only', label: 'Nur Empfängerschlüssel' },
+        ...(allowRecipientKeyOnly ? [{ value: 'recipient_key_only', label: 'Nur Empfängerschlüssel' }] : []),
       ]}
       onValueChange={(protectionMode) => update({ protectionMode: protectionMode as TransferProtectionMode })}
       helpId="caseHandover.protectionMode"

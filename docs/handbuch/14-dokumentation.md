@@ -26,12 +26,14 @@ Die Arbeitsbereiche sind:
 
 Eine Sitzung kann zum Beispiel als Betriebsratssitzung, BR-Ausschusssitzung, Arbeitsschutzausschuss, Arbeitgeber-/BR-Besprechung oder Betriebsversammlung angelegt werden. Bestehende Sitzungen werden nach Datum absteigend in einer filterbaren Übersicht mit höchstens fünf Einträgen pro Seite angezeigt. Durch Auswahl einer Tabellenzeile öffnest du die Sitzung zur Bearbeitung. Zu einer Sitzung lassen sich Tagesordnungspunkte und die eigene SBV-Arbeit dokumentieren.
 
+Neue Sitzungen beginnen als **Entwurf**. Im geöffneten Sitzungseintrag kannst du den Status auf **Geplant**, **Durchgeführt** oder **Abgeschlossen** setzen und mit **Status speichern** übernehmen. Der Status erscheint in der Sitzungsliste.
+
 Für einen Tagesordnungspunkt kannst du unter anderem festhalten:
 
 - ob er aus SBV-Sicht relevant ist,
 - welchen Personenbezug er hat,
 - welchen Stand die benötigten Unterlagen haben,
-- die eigene SBV-Position,
+- die eigene SBV-Position und freie Notizen zum TOP im selben Feld,
 - einen TOP-Antrag und die Reaktion darauf,
 - eine Wiedervorlage,
 - ein beobachtetes Beschlussergebnis,

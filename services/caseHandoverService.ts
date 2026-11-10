@@ -6,7 +6,7 @@ import { PersonalDataAuditLogService } from './auditLogService.js';
 import type { CreatePersonalDataAuditInput } from '../src/domain/models/audit.model.js';
 import { auditCaseHandoverContinuedAfterExpiry, auditCaseHandoverExported, auditCaseHandoverImported, auditCaseHandoverImportInspected } from './auditEventBuilders.js';
 import { SearchIndexService } from './search/searchIndexService.js';
-import { buildCandidateMatches, buildCaseHandoverImportPlan, isExpired, safeAuditMetadata } from './caseHandoverPolicy.js';
+import { CASE_HANDOVER_TARGET_BOUND_LEGACY_VERSION, CASE_HANDOVER_VERSION, buildCandidateMatches, buildCaseHandoverImportPlan, isExpired, safeAuditMetadata } from './caseHandoverPolicy.js';
 import { assertCaseHandoverEnvelope, decryptCaseHandoverEnvelope, type CaseHandoverEnvelope } from './caseHandoverCrypto.js';
 import { encryptCaseHandoverPayloadForRecipient } from './caseHandoverTargetCrypto.js';
 import { inspectCaseHandoverFilePath } from './caseHandoverFilePolicy.js';
@@ -55,6 +55,7 @@ export class CaseHandoverService {
       expiresAt: payload.expiresAt,
       recipient,
       protectionMode: input.protectionMode,
+      formatVersion: input.targetFormatVersion,
     });
   }
 
@@ -158,16 +159,29 @@ export class CaseHandoverService {
 
   async exportToFile(input: CaseHandoverExportInput, targetPath: string): Promise<CaseHandoverExportResult> {
     const db = this.db();
-    const payload = collectCaseHandoverPayload(db, input, this.dataDirProvider);
+    const formatVersion = input.targetFormatVersion ?? CASE_HANDOVER_VERSION;
+    if (formatVersion !== CASE_HANDOVER_VERSION && formatVersion !== CASE_HANDOVER_TARGET_BOUND_LEGACY_VERSION) {
+      throw new Error('Nicht unterstützte Zielversion für die Fallübergabe.');
+    }
+    if (formatVersion === CASE_HANDOVER_TARGET_BOUND_LEGACY_VERSION) {
+      if (input.packageType && input.packageType !== 'vacation_handover') throw new Error('Das ältere Übergabeformat ist nur für Urlaubsvertretungen verfügbar.');
+      if (input.protectionMode === 'recipient_key_only' || input.passphrase?.trim().length < 10) {
+        throw new Error('Für ältere Zielversionen sind Empfängerschlüssel und eine Transport-Passphrase mit mindestens zehn Zeichen erforderlich.');
+      }
+    }
+    const collected = collectCaseHandoverPayload(db, input, this.dataDirProvider);
+    const payload = formatVersion === CASE_HANDOVER_TARGET_BOUND_LEGACY_VERSION
+      ? { ...collected, version: formatVersion, packageType: undefined }
+      : collected;
     new CaseHandoverChecklistService(db).assertConfirmed({ payload, checklist: input.checklist });
-    const envelope = this.encryptPayload(payload, input);
+    const envelope = this.encryptPayload(payload, { ...input, targetFormatVersion: formatVersion });
     await fs.promises.mkdir(path.dirname(targetPath), { recursive: true });
     await fs.promises.writeFile(targetPath, JSON.stringify(envelope, null, 2), { mode: OWNER_ONLY_FILE_MODE });
     await restrictFileToOwner(targetPath);
     const targetInstanceId = 'crypto' in envelope ? envelope.recipientBinding?.targetInstanceId : undefined;
     recordCaseHandoverExport(db, payload, targetInstanceId);
     this.audit(db, auditCaseHandoverExported({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, validUntilPresent: Boolean(payload.expiresAt), result: 'success' }));
-    return { exported: true, filePath: targetPath, packageId: payload.packageId, packageType: payload.packageType ?? 'vacation_handover', caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, expiresAt: payload.expiresAt, targetInstanceId, protectionMode: input.protectionMode ?? 'passphrase_and_recipient_key', officeScope: officeHandoverScope(payload) };
+    return { exported: true, filePath: targetPath, packageId: payload.packageId, packageType: payload.packageType ?? 'vacation_handover', caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, expiresAt: payload.expiresAt, targetInstanceId, protectionMode: input.protectionMode ?? 'passphrase_and_recipient_key', formatVersion, officeScope: officeHandoverScope(payload) };
   }
 
   async exportReturnDeltaToFile(input: CaseHandoverReturnDeltaExportInput, targetPath: string): Promise<CaseHandoverExportResult> {

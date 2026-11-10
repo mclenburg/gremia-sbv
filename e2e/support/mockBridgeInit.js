@@ -1414,7 +1414,7 @@
     sbvOffice: {
       meetings: {
         list: async () => cloneForIpc(sbvOfficeMeetings),
-        create: async (input) => { const row = { id: `meeting-${Date.now()}`, attendanceStatus: 'planned', agenda: [], createdAt: now, updatedAt: now, ...input }; sbvOfficeMeetings.unshift(row); return cloneForIpc(row); },
+        create: async (input) => { const row = { id: `meeting-${Date.now()}`, attendanceStatus: 'planned', status: 'draft', agenda: [], createdAt: now, updatedAt: now, ...input }; sbvOfficeMeetings.unshift(row); return cloneForIpc(row); },
         update: async (id, input) => { const row = sbvOfficeMeetings.find((item) => item.id === id); Object.assign(row, input, { updatedAt: now }); return cloneForIpc(row); },
         journalPrefill: async (id, activity) => {
           const meeting = sbvOfficeMeetings.find((item) => item.id === id);

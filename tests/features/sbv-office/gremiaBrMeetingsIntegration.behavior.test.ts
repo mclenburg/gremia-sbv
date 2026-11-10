@@ -88,5 +88,16 @@ describe('Sitzungsregister und Tagesordnung', () => {
       expect(service.list()[0]?.agenda).toHaveLength(1);
       expect(service.list()[0]?.agenda[0]?.id).toBe(agenda.id);
     });
+
+    it('ändert den Sitzungsstatus über die bestehende Aktualisierung und erhält TOPs', () => {
+      const service = new SbvMeetingService(db);
+      const meeting = service.create({ meetingType: 'works_council', title: 'BR-Sitzung', startsAt: '2026-08-20T09:00:00.000Z' });
+      service.upsertAgenda(meeting.id, { title: 'Arbeitsschutz' });
+      expect(meeting.status).toBe('draft');
+      expect(service.update(meeting.id, { status: 'planned' }).status).toBe('planned');
+      expect(service.update(meeting.id, { status: 'held' }).status).toBe('held');
+      expect(service.update(meeting.id, { status: 'closed' }).status).toBe('closed');
+      expect(service.list()[0]?.agenda[0]?.title).toBe('Arbeitsschutz');
+    });
   });
 });

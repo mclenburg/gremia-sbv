@@ -3,6 +3,7 @@ import type { TransferImportConflictLevel, TransferImportPlan } from './transfer
 export type CaseHandoverImportMode = 'create_new' | 'merge_existing';
 export type CaseHandoverPackageType = 'vacation_handover' | 'return_delta' | 'office_handover' | 'mobile_snapshot';
 export type TransferProtectionMode = 'passphrase_and_recipient_key' | 'recipient_key_only';
+export type VacationHandoverFormatVersion = 2 | 4;
 export type CaseHandoverChecklistItemState = 'ready' | 'attention' | 'blocking';
 
 export interface CaseHandoverChecklistItem {
@@ -51,6 +52,7 @@ export interface CaseHandoverExportInput {
   passphrase: string;
   targetRecipientToken: string;
   protectionMode?: TransferProtectionMode;
+  targetFormatVersion?: VacationHandoverFormatVersion;
   checklist?: CaseHandoverChecklistConfirmation;
 }
 
@@ -75,6 +77,7 @@ export interface CaseHandoverExportResult {
   expiresAt?: string;
   targetInstanceId?: string;
   protectionMode?: TransferProtectionMode;
+  formatVersion?: number;
   officeScope?: OfficeHandoverScope;
 }
 
