@@ -1,5 +1,3 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverReturnDeltaExportInput } from '../src/domain/models/case-handover.model.js';
 import type { DatabaseAdapter } from './databaseService.js';
@@ -12,7 +10,7 @@ import { recordCaseHandoverExport } from './caseHandoverExportLedger.js';
 import { storeImportedCaseDocument } from './caseHandoverImportedDocumentStore.js';
 import { inspectCaseHandoverFilePath } from './caseHandoverFilePolicy.js';
 import { parseTransferRecipientToken } from './transferInstanceIdentityPolicy.js';
-import { OWNER_ONLY_FILE_MODE, restrictFileToOwner } from './secureFilePermissions.js';
+import { writeCaseHandoverFile } from './caseHandoverAtomicFile.js';
 import { nowIso, safeString, type PackagePayload, type Row } from './caseHandoverSupport.js';
 import { PrivacyReviewService } from './privacyReviewService.js';
 import type { TrackImportedFile } from './caseHandoverImportUnitOfWork.js';
@@ -37,9 +35,7 @@ export class CaseHandoverReturnDeltaService {
       recipient,
       protectionMode: input.protectionMode,
     });
-    await fs.promises.mkdir(path.dirname(targetPath), { recursive: true });
-    await fs.promises.writeFile(targetPath, JSON.stringify(envelope, null, 2), { mode: OWNER_ONLY_FILE_MODE });
-    await restrictFileToOwner(targetPath);
+    await writeCaseHandoverFile(targetPath, JSON.stringify(envelope, null, 2));
     const targetInstanceId = 'crypto' in envelope ? envelope.recipientBinding?.targetInstanceId : undefined;
     recordCaseHandoverExport(this.database, payload, targetInstanceId);
     this.markVacationHandoverReturned(input.sourcePackageId, payload.createdAt);

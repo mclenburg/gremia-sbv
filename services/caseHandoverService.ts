@@ -19,7 +19,7 @@ import { ensureCaseHandoverExportLedgerSchema, recordCaseHandoverExport } from '
 import { CaseHandoverReturnDeltaService } from './caseHandoverReturnDeltaService.js';
 import { CaseHandoverCockpitService } from './caseHandoverCockpitService.js';
 import { storeImportedCaseDocument } from './caseHandoverImportedDocumentStore.js';
-import { OWNER_ONLY_FILE_MODE, restrictFileToOwner } from './secureFilePermissions.js';
+import { writeCaseHandoverFile } from './caseHandoverAtomicFile.js';
 import { ensureCaseHandoverRuntimeSchema } from './runtimeSchemaCompatibility.js';
 import { PrivacyReviewService } from './privacyReviewService.js';
 import type { TransferImportPlan } from '../src/domain/models/transfer.model.js';
@@ -161,9 +161,7 @@ export class CaseHandoverService {
     const payload = collectCaseHandoverPayload(db, input, this.dataDirProvider);
     new CaseHandoverChecklistService(db).assertConfirmed({ payload, checklist: input.checklist });
     const envelope = this.encryptPayload(payload, input);
-    await fs.promises.mkdir(path.dirname(targetPath), { recursive: true });
-    await fs.promises.writeFile(targetPath, JSON.stringify(envelope, null, 2), { mode: OWNER_ONLY_FILE_MODE });
-    await restrictFileToOwner(targetPath);
+    await writeCaseHandoverFile(targetPath, JSON.stringify(envelope, null, 2));
     const targetInstanceId = 'crypto' in envelope ? envelope.recipientBinding?.targetInstanceId : undefined;
     recordCaseHandoverExport(db, payload, targetInstanceId);
     this.audit(db, auditCaseHandoverExported({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, validUntilPresent: Boolean(payload.expiresAt), result: 'success' }));
