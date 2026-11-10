@@ -70,7 +70,8 @@ export function HandoverImportPanel({ onCompleted }: { onCompleted: () => Promis
           ? 'Amtsbestand wurde dauerhaft übernommen und zur Datenschutzprüfung vorgemerkt.'
           : 'Urlaubsübergabe wurde als lokale Vertretungsakte importiert.');
       setSelection(null); setPassphrase('');
-      await onCompleted();
+      try { await onCompleted(); }
+      catch { showError('Das Übergabepaket wurde importiert. Die Übersicht konnte nicht aktualisiert werden; bitte den Bereich erneut öffnen.'); }
     } catch (cause) { showError(cause instanceof Error ? cause.message : 'Übergabepaket konnte nicht importiert werden.'); }
     finally { setBusy(false); }
   }

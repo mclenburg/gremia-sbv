@@ -62,7 +62,8 @@ export function HandoverReturnPanel({ items, cases, onCompleted }: { items: Case
       announce('Rückgabe-Delta wurde verschlüsselt exportiert.', 'polite');
       setProtection((current) => ({ ...current, passphrase: '' }));
       setAcknowledgedItemIds([]);
-      await onCompleted();
+      try { await onCompleted(); }
+      catch { showError('Das Rückgabepaket wurde gespeichert. Die Übersicht konnte nicht aktualisiert werden; bitte den Bereich erneut öffnen.'); }
     } catch (cause) { showError(cause instanceof Error ? cause.message : 'Rückgabepaket konnte nicht erstellt werden.'); }
     finally { setBusy(false); }
   }

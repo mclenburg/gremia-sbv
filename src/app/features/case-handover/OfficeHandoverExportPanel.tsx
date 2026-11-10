@@ -57,7 +57,8 @@ export function OfficeHandoverExportPanel({
       setProtection((current) => ({ ...current, passphrase: '' }));
       setAcknowledgedItemIds([]);
       announce('Amtsübergabe wurde verschlüsselt und zielgebunden exportiert.', 'polite');
-      await onCompleted();
+      try { await onCompleted(); }
+      catch { fail('Das Amtsübergabepaket wurde gespeichert. Die Übersicht konnte nicht aktualisiert werden; bitte den Bereich erneut öffnen.'); }
     } catch (cause) { fail(cause instanceof Error ? cause.message : 'Amtsübergabe konnte nicht exportiert werden.'); }
     finally { setBusy(false); }
   }

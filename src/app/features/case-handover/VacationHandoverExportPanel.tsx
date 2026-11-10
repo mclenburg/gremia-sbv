@@ -52,7 +52,8 @@ export function VacationHandoverExportPanel({ cases, onCompleted }: { cases: Cas
       announce('Urlaubsübergabe wurde verschlüsselt exportiert.', 'polite');
       setProtection((current) => ({ ...current, passphrase: '' }));
       setAcknowledgedItemIds([]);
-      await onCompleted();
+      try { await onCompleted(); }
+      catch { showError('Das Übergabepaket wurde gespeichert. Die Übersicht konnte nicht aktualisiert werden; bitte den Bereich erneut öffnen.'); }
     } catch (cause) { showError(cause instanceof Error ? cause.message : 'Urlaubsübergabe konnte nicht exportiert werden.'); }
     finally { setBusy(false); }
   }
