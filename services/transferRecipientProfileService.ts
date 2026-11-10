@@ -72,7 +72,7 @@ export class TransferRecipientProfileService {
         label = excluded.label,
         instance_id = excluded.instance_id,
         recipient_token = excluded.recipient_token,
-        active = 1,
+        active = transfer_recipient_profiles.active,
         updated_at = excluded.updated_at
     `).run(id, label, recipient.instanceId, recipient.keyFingerprint, recipient.recipientToken, existing?.created_at ?? timestamp, timestamp);
     this.auditLog?.append({
@@ -80,7 +80,7 @@ export class TransferRecipientProfileService {
       subjectType: 'transfer_recipient_profile',
       subjectId: id,
       purpose: existing ? 'Empfängerprofil aktualisiert' : 'Empfängerprofil angelegt',
-      metadata: { active: true },
+      metadata: { active: existing ? Boolean(existing.active) : true },
     });
     return this.requireProfile(id);
   }

@@ -75,6 +75,25 @@ describe('TransferRecipientProfileService', () => {
     }
   });
 
+  it('reaktiviert ein bewusst deaktiviertes Profil beim erneuten Speichern derselben Kennung nicht', () => {
+    const target = database();
+    try {
+      const service = new TransferRecipientProfileService(target.database);
+      const token = recipientToken();
+      const profile = service.save({ label: 'Vertretung', recipientToken: token });
+      service.setActive(profile.id, false);
+
+      const updated = service.save({ label: 'Vertretung aktualisiert', recipientToken: token });
+
+      expect(updated.id).toBe(profile.id);
+      expect(updated.label).toBe('Vertretung aktualisiert');
+      expect(updated.active).toBe(false);
+      expect(service.list()).toHaveLength(1);
+    } finally {
+      target.raw.close();
+    }
+  });
+
   it('weist leere Bezeichnungen und manipulierte Empfängerkennungen zurück', () => {
     const target = database();
     try {
