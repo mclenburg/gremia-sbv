@@ -39,9 +39,12 @@ function checkedProfile(database: DatabaseAdapter, id: string, requireReadFive: 
   if (token.instanceId !== profile.instance_id || token.keyFingerprint !== profile.key_fingerprint) {
     throw new Error('Das Empfängerprofil enthält eine widersprüchliche Schlüsselbindung.');
   }
-  if (requireReadFive && (!profile.capabilities_json
-    || !assertTransferCapabilities(JSON.parse(profile.capabilities_json) as unknown).readFormats.includes(5))) {
-    throw new Error('Die Zielinstanz hat Format 5 nicht verifiziert bestätigt.');
+  if (requireReadFive) {
+    const capabilities = profile.capabilities_json
+      ? assertTransferCapabilities(JSON.parse(profile.capabilities_json) as unknown) : null;
+    if (!capabilities?.readFormats.includes(5) || !capabilities.features.includes('vacation_scope_v5')) {
+      throw new Error('Die Zielinstanz hat Format 5 nicht verifiziert bestätigt.');
+    }
   }
   return profile;
 }
@@ -74,7 +77,9 @@ export class VacationV5FileService {
     const targetProfile = checkedProfile(this.database, input.profileId, true);
     const target = parseTransferRecipientToken(targetProfile.recipient_token);
     const capabilities = assertTransferCapabilities(input.capabilities);
-    if (!capabilities.writeFormats.includes(5)) throw new Error('Die abgebende Instanz bietet Format 5 nicht an.');
+    if (!capabilities.writeFormats.includes(5) || !capabilities.features.includes('vacation_scope_v5')) {
+      throw new Error('Die abgebende Instanz bietet Format 5 nicht an.');
+    }
     const collected = collectVacationV5Sections(this.database, input.selection);
     const sender = new TransferInstanceIdentityService(this.database).getPrivateIdentity();
     const envelope = sealVacationV5Transport({ packageId: `handover_${randomUUID()}`, expiresAt: input.expiresAt,
@@ -120,7 +125,9 @@ export class VacationV5FileService {
     const sender = parseTransferRecipientToken(profile.recipient_token);
     const recipient = new TransferInstanceIdentityService(this.database).getPrivateIdentity();
     const payload: VacationV5Payload = openVacationV5Transport(parsed, passphrase, recipient, sender);
-    if (!payload.capabilities.writeFormats.includes(5)) throw new Error('Die abgebende Instanz bietet Format 5 nicht an.');
+    if (!payload.capabilities.writeFormats.includes(5) || !payload.capabilities.features.includes('vacation_scope_v5')) {
+      throw new Error('Die abgebende Instanz bietet Format 5 nicht an.');
+    }
     const imported = importVacationV5Sections(this.database, payload.packageId, payload.expiresAt,
       payload.sections, payload.manifest, { originKeyFingerprint: sender.keyFingerprint, targetKeyFingerprint: recipient.keyFingerprint });
     return { ...imported, packageId: payload.packageId };

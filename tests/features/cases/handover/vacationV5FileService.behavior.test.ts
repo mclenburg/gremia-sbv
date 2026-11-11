@@ -72,6 +72,10 @@ describe('Format-5-Dateiservice für fallfreie Arbeit', () => {
         expiresAt: '2099-11-30T00:00:00.000Z', passphrase: 'lange Transport-Passphrase', capabilities, targetPath: filePath };
       await expect(new VacationV5FileService(source.adapter).exportToFile(input)).rejects.toThrow(/Format 5/);
       expect(fs.existsSync(filePath)).toBe(false);
+      source.raw.prepare('UPDATE transfer_recipient_profiles SET capabilities_json = ? WHERE id = ?')
+        .run(JSON.stringify({ ...capabilities, features: ['manual_capability_exchange'] }), profile.id);
+      await expect(new VacationV5FileService(source.adapter).exportToFile(input)).rejects.toThrow(/Format 5/);
+      expect(source.raw.prepare('SELECT COUNT(*) AS count FROM case_handover_exports').get()).toEqual({ count: 0 });
       source.raw.prepare('UPDATE transfer_recipient_profiles SET capabilities_json = ? WHERE id = ?').run(JSON.stringify(capabilities), profile.id);
       fs.writeFileSync(filePath, 'bestehend');
       await expect(new VacationV5FileService(source.adapter).exportToFile(input)).rejects.toThrow();
