@@ -35,7 +35,8 @@ export function isVacationV5OfficeDocumentSectionType(value: string): value is V
   return Object.hasOwn(FIELDS, value);
 }
 
-function validateData(type: VacationV5OfficeDocumentSectionType, input: unknown): VacationV5OfficeDocumentItem['data'] {
+export function assertVacationV5OfficeDocumentData(type: VacationV5OfficeDocumentSectionType,
+  input: unknown): VacationV5OfficeDocumentItem['data'] {
   if (!record(input) || Object.keys(input).some((key) => !FIELDS[type].allowed.includes(key))
     || FIELDS[type].required.some((key) => input[key] === null || input[key] === undefined || input[key] === '')
     || Object.values(input).some((value) => value !== null && !['string', 'number', 'boolean'].includes(typeof value)
@@ -50,7 +51,7 @@ export function projectVacationV5OfficeDocumentData(type: VacationV5OfficeDocume
   source: Record<string, unknown>): VacationV5OfficeDocumentItem['data'] {
   const data: Record<string, unknown> = {};
   for (const field of FIELDS[type].allowed) if (Object.hasOwn(source, field)) data[field] = source[field];
-  return validateData(type, data);
+  return assertVacationV5OfficeDocumentData(type, data);
 }
 
 export function assertVacationV5OfficeDocumentGraph(input: unknown,
@@ -82,7 +83,7 @@ export function assertVacationV5OfficeDocumentGraph(input: unknown,
         throw new Error('Amtsdokument enthält ungültige oder doppelte Referenzen.');
       }
       refs.add(source.ref);
-      const data = validateData(type, source.data);
+      const data = assertVacationV5OfficeDocumentData(type, source.data);
       if (type === 'generated_document') {
         if (!['generic', 'sbv_participation_violation'].includes(String(data.document_kind))) {
           throw new Error('Amtsdokumentart ist ungültig.');

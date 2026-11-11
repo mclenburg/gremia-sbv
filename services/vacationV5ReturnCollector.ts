@@ -6,6 +6,7 @@ import { projectVacationV5CaseRow, VACATION_V5_CASE_ROW_FIELDS } from './vacatio
 import { projectVacationV5Row, VACATION_V5_ROW_FIELDS } from './vacationV5RowPolicy.js';
 import { projectVacationV5OfficeDocumentData } from './vacationV5OfficeDocumentGraph.js';
 import { encodeSelectedVacationV5Document } from './vacationV5DocumentCodec.js';
+import { assertVacationV5ReturnChanges } from './vacationV5ReturnChanges.js';
 
 export interface VacationV5ReturnChange {
   ref: string;
@@ -122,5 +123,5 @@ export function collectVacationV5ReturnChanges(database: DatabaseAdapter, source
       ...(contentBase64 === undefined ? {} : { contentBase64 }),
     });
   }
-  return { importId: inventory.importId, changes };
+  return { importId: inventory.importId, changes: assertVacationV5ReturnChanges(changes) };
 }
