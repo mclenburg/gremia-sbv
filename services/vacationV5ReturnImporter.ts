@@ -12,7 +12,7 @@ import type { VacationV5ReturnPayload } from './vacationV5ReturnTransport.js';
 
 export interface VacationV5ReturnChoice {
   ref: string;
-  action: 'accept_update' | 'accept_addition' | 'keep_origin' | 'acknowledge_cancellation';
+  action: 'accept_update' | 'accept_conflict_update' | 'accept_addition' | 'keep_origin' | 'acknowledge_cancellation';
   expectedOriginSha256: string | null;
 }
 
@@ -89,7 +89,8 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
     const choicesByRef = new Map<string, VacationV5ReturnChoice>();
     for (const choice of choices) {
       if (!choice || typeof choice.ref !== 'string' || choicesByRef.has(choice.ref)
-        || !['accept_update', 'accept_addition', 'keep_origin', 'acknowledge_cancellation'].includes(choice.action)
+        || !['accept_update', 'accept_conflict_update', 'accept_addition', 'keep_origin',
+          'acknowledge_cancellation'].includes(choice.action)
         || (choice.expectedOriginSha256 !== null && !/^[0-9a-f]{64}$/.test(choice.expectedOriginSha256))) {
         throw new Error('Rückgabeentscheidung enthält ungültige oder doppelte Referenzen.');
       }
@@ -137,13 +138,15 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
         accepted.push({ ref: change.ref, kind: change.kind, localId, baselineSha256: caseHandoverBaselineHash(stored) });
         continue;
       }
-      if (planned.decision !== 'propose_update' || choice.action !== 'accept_update'
+      if (!((planned.decision === 'propose_update' && choice.action === 'accept_update')
+          || (planned.decision === 'review_conflict' && choice.action === 'accept_conflict_update'))
         || change.operation !== 'upsert' || !change.data
         || !Object.hasOwn(VACATION_V5_ROW_FIELDS, change.kind)) {
         throw new Error('Diese Rückgabe kann nur nach gesonderter fachlicher Prüfung übernommen werden.');
       }
       const target = targets.get(change.ref);
-      if (!target || target.kind !== change.kind || !current || current.status !== 'unchanged') {
+      if (!target || target.kind !== change.kind || !current
+        || current.status !== (choice.action === 'accept_update' ? 'unchanged' : 'changed')) {
         throw new Error('Rückgabe kann keinem unveränderten Ausgangsvorgang zugeordnet werden.');
       }
       const config = VACATION_V5_ROW_FIELDS[change.kind as keyof typeof VACATION_V5_ROW_FIELDS];
