@@ -27,6 +27,7 @@ import { OfficeHandoverImportService } from './officeHandoverImportService.js';
 import { assertCaseHandoverPayload } from './caseHandoverPayloadValidator.js';
 import { CaseHandoverImportUnitOfWork, type TrackImportedFile } from './caseHandoverImportUnitOfWork.js';
 import { CaseHandoverChecklistService } from './caseHandoverChecklistService.js';
+import { uniqueImportedCaseNumber } from './caseHandoverCaseNumber.js';
 export class CaseHandoverService {
   constructor(private readonly database: DatabaseAdapter, private readonly dataDirProvider: () => string = () => path.join(process.cwd(), 'data')) {}
 
@@ -275,7 +276,7 @@ export class CaseHandoverService {
       if (localId && !this.row(db, 'SELECT id FROM cases WHERE id = ?', localId)) throw new Error('Gewählte lokale Zielakte wurde nicht gefunden.');
       if (!localId) {
         localId = randomUUID();
-        const localCaseNumber = this.uniqueCaseNumber(db, safeString(d.case_number, 'ÜBERGABE'), payload.packageType === 'office_handover');
+        const localCaseNumber = uniqueImportedCaseNumber(db, safeString(d.case_number, 'ÜBERGABE'), payload.packageType === 'office_handover');
         const personRef = payload.protectedPersons.find((p) => p.data.id === d.protected_person_id)?.ref;
         db.prepare(`INSERT INTO cases (id, case_number, display_name, category, status, priority, opened_at, closed_at, summary, is_pseudonymized, is_locked, created_at, updated_at, protected_person_id, person_binding_state, handover_import_id, handover_package_id, handover_valid_until, handover_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
           .run(localId, localCaseNumber, `${titlePrefix}${d.display_name ?? 'Fallakte'}`, d.category ?? 'sonstiges', d.status ?? 'offen', d.priority ?? 'normal', d.opened_at ?? timestamp, d.closed_at ?? null, d.summary ?? null, d.is_pseudonymized ?? 1, 0, timestamp, timestamp, personRef ? personRefToLocal.get(personRef) ?? null : null, d.person_binding_state ?? 'legacy_unlinked', importId, payload.packageId, payload.expiresAt ?? null, status);
@@ -367,15 +368,6 @@ export class CaseHandoverService {
     db.prepare(`UPDATE case_measures SET handover_status = 'continued_after_expiry', handover_continue_confirmed_at = ?, handover_continue_reason = ? WHERE case_id = ? AND (handover_status = 'expired' OR (handover_status = 'active' AND handover_valid_until IS NOT NULL AND handover_valid_until < ?))`).run(timestamp, input.reason.trim(), input.caseId, timestamp);
     this.audit(db, auditCaseHandoverContinuedAfterExpiry());
     return { caseId: input.caseId, confirmed: true, confirmedAt: timestamp };
-  }
-
-  private uniqueCaseNumber(db: DatabaseAdapter, base: string, preserveWhenAvailable = false): string {
-    const sanitized = base.replace(/\s+/g, '-').slice(0, 80) || 'UEBERGABE';
-    if (preserveWhenAvailable && !this.row(db, 'SELECT id FROM cases WHERE case_number = ?', sanitized)) return sanitized;
-    let candidate = `${sanitized}-IMPORT`;
-    let index = 2;
-    while (this.row(db, 'SELECT id FROM cases WHERE case_number = ?', candidate)) candidate = `${sanitized}-IMPORT-${index++}`;
-    return candidate;
   }
 
   private insertItem(db: DatabaseAdapter, importId: string, type: string, localId: string, packageRef: string, createdAt: string): void {
