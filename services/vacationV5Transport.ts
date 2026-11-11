@@ -37,7 +37,7 @@ function references(sections: VacationV5PackageSection[]): Array<{ ref: string; 
   return sections.flatMap((section) => section.items.map((item) => ({ ref: item.ref, type: section.type })));
 }
 
-function assertEnvelope(input: unknown): VacationV5Envelope {
+export function assertVacationV5Envelope(input: unknown): VacationV5Envelope {
   if (!isRecord(input) || !exactKeys(input, ['format', 'version', 'packageId', 'createdAt', 'recipientBinding', 'crypto', 'integrity', 'payload', 'senderProof'], ['expiresAt'])
     || input.format !== 'gremia-sbv-case-handover' || input.version !== 5 || !isRecord(input.recipientBinding)
     || !exactKeys(input.recipientBinding, ['scheme', 'targetInstanceId', 'targetKeyFingerprint', 'ephemeralPublicKeyPem'])
@@ -83,7 +83,7 @@ export function sealVacationV5Transport(input: {
 
 export function openVacationV5Transport(input: unknown, passphrase: string, recipient: TransferInstancePrivateIdentity,
   knownSender: PublicIdentity): VacationV5Payload {
-  const envelope = assertEnvelope(input);
+  const envelope = assertVacationV5Envelope(input);
   const proof = envelope.senderProof;
   verifyCaseHandoverV5OriginProof(envelope, { packageType: proof.packageType, manifestSha256: proof.manifestSha256 }, proof, recipient, knownSender);
   const decrypted = decryptTargetBoundTransferPayload(envelope, passphrase, recipient, { format: 'gremia-sbv-case-handover', version: 5 });

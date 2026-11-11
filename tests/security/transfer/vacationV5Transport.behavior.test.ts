@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import type { DatabaseAdapter } from '../../../services/databaseService';
 import { TransferInstanceIdentityService } from '../../../services/transferInstanceIdentityService';
 import { sealVacationV5Transport, openVacationV5Transport } from '../../../services/vacationV5Transport';
+import { sealVacationV5ReturnTransport, openVacationV5ReturnTransport } from '../../../services/vacationV5ReturnTransport';
 
 function identity() {
   const raw = new DatabaseSync(':memory:');
@@ -16,6 +17,35 @@ function identity() {
 }
 
 describe('Format-5-Transport', () => {
+  it('bindet eine Rückgabe an Ausgangspaket, Ziel und Herkunftsnachweis', () => {
+    const sender = identity(); const target = identity();
+    try {
+      const capabilities = { protocolVersion: 1 as const, readFormats: [1, 2, 3, 4, 5], writeFormats: [2, 4, 5],
+        features: ['manual_capability_exchange', 'return_scope_v5'], buildVersion: '0.9.9', revision: 1,
+        issuedAt: '2026-11-11T10:00:00.000Z' };
+      const changes = [{ ref: 'meeting_1', kind: 'meeting', operation: 'upsert',
+        deputyBaselineSha256: 'a'.repeat(64), deputyCurrentSha256: 'b'.repeat(64),
+        data: { meeting_type: 'other', title: 'Geändert', starts_at: '2099-11-20', status: 'draft' } }];
+      const envelope = sealVacationV5ReturnTransport({ packageId: 'handover_return_v5',
+        sourcePackageId: 'handover_source_v5', expiresAt: '2099-11-30', changes,
+        capabilities, passphrase: 'lange Transport-Passphrase', sender: sender.privateIdentity,
+        target: target.privateIdentity });
+      const opened = openVacationV5ReturnTransport(envelope, 'lange Transport-Passphrase',
+        target.privateIdentity, sender.privateIdentity);
+      expect(opened.sourcePackageId).toBe('handover_source_v5');
+      expect(opened.changes).toEqual(changes);
+      expect(JSON.stringify(envelope)).not.toContain('Geändert');
+      expect(() => openVacationV5ReturnTransport({ ...envelope, senderProof: {
+        ...envelope.senderProof, packageType: 'vacation_handover' } }, 'lange Transport-Passphrase',
+      target.privateIdentity, sender.privateIdentity)).toThrow();
+      expect(() => sealVacationV5ReturnTransport({ packageId: 'handover_return_other',
+        sourcePackageId: 'handover_source_v5', expiresAt: '2099-11-30', changes,
+        capabilities: { ...capabilities, features: ['manual_capability_exchange'] },
+        passphrase: 'lange Transport-Passphrase', sender: sender.privateIdentity,
+        target: target.privateIdentity })).toThrow();
+    } finally { sender.raw.close(); target.raw.close(); }
+  });
+
   it('verschlüsselt und authentisiert Fall- und fallfreie Abschnitte gemeinsam', () => {
     const sender = identity(); const target = identity();
     try {
