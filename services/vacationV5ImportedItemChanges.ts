@@ -47,7 +47,7 @@ function listItemChanges(database: DatabaseAdapter, table: 'case_handover_import
     const kind = entry.local_entity_type;
     const table = vacationV5SourceTable(kind);
     const current = database.prepare<Record<string, unknown>>(`SELECT * FROM ${table} WHERE id = ?`).get(entry.local_entity_id);
-    const contentBase64 = current && kind === 'case_document'
+    const contentBase64 = current && (kind === 'case_document' || kind === 'generated_document')
       ? encodeSelectedVacationV5Document(current, dataDirectory).contentBase64 : undefined;
     const currentSha256 = current ? caseHandoverBaselineHash(current, contentBase64) : null;
     return { ref: entry.package_ref, kind, localId: entry.local_entity_id,

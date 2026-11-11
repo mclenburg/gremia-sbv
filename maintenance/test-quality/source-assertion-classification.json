@@ -7,6 +7,12 @@
   },
   "entries": [
     {
+      "file": "tests/features/cases/documents/documentContainerService.test.ts",
+      "sourceAssertions": 1,
+      "category": "A",
+      "rationale": "Der verschlüsselte Dokumentcontainer ist selbst das geprüfte Dateiartefakt; der Test stellt sicher, dass der Importinhalt nicht im Klartext gespeichert wird."
+    },
+    {
       "file": "tests/privacy/auditIntegrityAnchor.test.ts",
       "sourceAssertions": 1,
       "category": "A",
@@ -14,7 +20,7 @@
     },
     {
       "file": "tests/features/cases/handover/vacationV5FileService.behavior.test.ts",
-      "sourceAssertions": 2,
+      "sourceAssertions": 3,
       "category": "A",
       "rationale": "Die verschlüsselte Übergabedatei ist selbst das geprüfte Artefakt; der Test stellt sicher, dass ein fachlicher Klartext nicht im Envelope steht."
     }

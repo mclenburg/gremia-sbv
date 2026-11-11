@@ -73,6 +73,11 @@
     "sbv_retention_legal_holds"
   ],
   "exceptions": {
+    "services/vacationV5OfficeDocumentImporter.ts#<module>.recordImportedItem": {
+      "classification": "delegated",
+      "owner": "importVacationV5OfficeDocuments",
+      "reason": "Technische Ledgerzeile innerhalb des atomaren und direkt auditierten Format-5-Amtsdokumentimports."
+    },
     "services/retentionCaseDependents.ts#<module>.deleteRetentionCaseDependents": {
       "classification": "delegated",
       "owner": "RetentionService.deleteCase",

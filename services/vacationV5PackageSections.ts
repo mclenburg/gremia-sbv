@@ -3,22 +3,27 @@ import { assertVacationV5CaseGraph, isVacationV5CaseSectionType, type VacationV5
 import { assertVacationV5Sections, createVacationV5Manifest, hashVacationV5Section,
   type VacationV5Manifest, type VacationV5Section } from './vacationV5SectionManifest.js';
 import { VACATION_V5_ROW_FIELDS } from './vacationV5RowPolicy.js';
+import { assertVacationV5OfficeDocumentGraph, isVacationV5OfficeDocumentSectionType,
+  type VacationV5OfficeDocumentSection } from './vacationV5OfficeDocumentGraph.js';
+import { VACATION_V5_MAX_DOCUMENT_TOTAL_BYTES } from './vacationV5DocumentCodec.js';
 
-export type VacationV5PackageSection = VacationV5Section | VacationV5CaseSection;
+export type VacationV5PackageSection = VacationV5Section | VacationV5CaseSection | VacationV5OfficeDocumentSection;
 
 const record = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const exact = (value: Record<string, unknown>, keys: readonly string[]) =>
   Object.keys(value).length === keys.length && keys.every((key) => Object.hasOwn(value, key));
 
 function validated(input: unknown): VacationV5PackageSection[] {
-  if (!Array.isArray(input) || input.length > 19) throw new Error('Format-5-Paketabschnitte sind ungültig.');
+  if (!Array.isArray(input) || input.length > 22) throw new Error('Format-5-Paketabschnitte sind ungültig.');
   const caseInput: unknown[] = [];
   const otherInput: unknown[] = [];
+  const officeInput: unknown[] = [];
   for (const value of input) {
     if (!record(value) || typeof value.type !== 'string') throw new Error('Format-5-Paketabschnitt ist ungültig.');
     if (isVacationV5CaseSectionType(value.type)) {
       caseInput.push(value);
     } else if (Object.hasOwn(VACATION_V5_ROW_FIELDS, value.type)) otherInput.push(value);
+    else if (isVacationV5OfficeDocumentSectionType(value.type)) officeInput.push(value);
     else throw new Error('Unbekannter Format-5-Paketabschnitt.');
   }
   const cases = assertVacationV5CaseGraph(caseInput);
@@ -27,7 +32,16 @@ function validated(input: unknown): VacationV5PackageSection[] {
   }
   const otherManifest = createVacationV5Manifest(otherInput);
   const others = assertVacationV5Sections(otherInput, otherManifest);
-  const byType = new Map([...cases, ...others].map((section) => [section.type, section]));
+  const roots = [...cases, ...others].flatMap((section) => section.items.map((item) => ({ ref: item.ref, type: section.type })));
+  const office = assertVacationV5OfficeDocumentGraph(officeInput, roots);
+  let documentBytes = 0;
+  for (const section of [...cases, ...office]) {
+    if (section.type === 'case_document' || section.type === 'generated_document') {
+      for (const item of section.items) documentBytes += Number(item.data.size_bytes ?? 0);
+    }
+  }
+  if (documentBytes > VACATION_V5_MAX_DOCUMENT_TOTAL_BYTES) throw new Error('Format-5-Dokumente überschreiten das Gesamtlimit.');
+  const byType = new Map([...cases, ...others, ...office].map((section) => [section.type, section]));
   const sections = input.map((value) => byType.get((value as { type: string }).type));
   if (sections.some((section) => !section)) throw new Error('Format-5-Paketabschnitt wurde nicht bestätigt.');
   const allRefs = sections.flatMap((section) => section!.items.map((item) => item.ref));

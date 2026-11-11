@@ -9,6 +9,7 @@ import { parseTransferRecipientToken } from './transferInstanceIdentityPolicy.js
 import { TransferInstanceIdentityService } from './transferInstanceIdentityService.js';
 import { collectVacationV5Sections } from './vacationV5SectionCollector.js';
 import { collectVacationV5CaseSections } from './vacationV5CaseCollector.js';
+import { collectVacationV5OfficeDocuments } from './vacationV5OfficeDocumentCollector.js';
 import { vacationV5SourceTable, type VacationV5PackageSourceByRef } from './vacationV5PackageSource.js';
 import { caseHandoverBaselineHash } from './caseHandoverBaselineHash.js';
 import { sealVacationV5Transport, openVacationV5Transport, type VacationV5Payload } from './vacationV5Transport.js';
@@ -28,6 +29,7 @@ export interface VacationV5FileExportInput {
   selection: VacationV5ScopeSelection;
   measureIds?: readonly string[];
   documentIds?: readonly string[];
+  officeDocumentIds?: readonly string[];
   profileId: string;
   expiresAt: string;
   passphrase: string;
@@ -62,7 +64,7 @@ function assertSourceUnchanged(database: DatabaseAdapter, sourceByRef: VacationV
   for (const source of Object.values(sourceByRef)) {
     const table = vacationV5SourceTable(source.kind);
     const row = database.prepare<Record<string, unknown>>(`SELECT * FROM ${table} WHERE id = ?`).get(source.localId);
-    const contentBase64 = row && source.kind === 'case_document'
+    const contentBase64 = row && (source.kind === 'case_document' || source.kind === 'generated_document')
       ? encodeSelectedVacationV5Document(row, dataDirectory).contentBase64 : undefined;
     if (!row || caseHandoverBaselineHash(row, contentBase64) !== source.baselineSha256) {
       throw new Error('Ein ausgewählter Vorgang hat sich während des Exports geändert. Bitte die Vorschau erneut prüfen.');
@@ -93,8 +95,10 @@ export class VacationV5FileService {
       ? collectVacationV5CaseSections(this.database, { caseIds: input.selection.caseIds,
         measureIds: input.measureIds, documentIds: input.documentIds, dataDirectory: this.dataDirectoryProvider() })
       : { sections: [], sourceByRef: {} };
-    const sections = [...cases.sections, ...other.sections];
-    const sourceByRef: VacationV5PackageSourceByRef = { ...cases.sourceByRef, ...other.sourceByRef };
+    const office = collectVacationV5OfficeDocuments(this.database, input.officeDocumentIds ?? [],
+      other.sourceByRef, this.dataDirectoryProvider());
+    const sections = [...cases.sections, ...other.sections, ...office.sections];
+    const sourceByRef: VacationV5PackageSourceByRef = { ...cases.sourceByRef, ...other.sourceByRef, ...office.sourceByRef };
     const sender = new TransferInstanceIdentityService(this.database).getPrivateIdentity();
     const envelope = sealVacationV5Transport({ packageId: `handover_${randomUUID()}`, expiresAt: input.expiresAt,
       sections, capabilities, passphrase: input.passphrase, sender, target });

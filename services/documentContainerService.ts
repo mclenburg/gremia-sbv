@@ -126,20 +126,12 @@ export function decryptEncryptedDocumentBytes(
 }
 
 export class DocumentContainerService {
-  async writeEncryptedContainer(input: EncryptedDocumentContainerWriteInput): Promise<EncryptedDocumentContainerResult> {
-    const documentId = assertSafeDocumentId(input.documentId);
-    const subdirectory = assertRelativeSubdirectory(input.subdirectory);
-    const storageRoot = path.resolve(input.storageRoot);
-    const storageDir = path.resolve(storageRoot, subdirectory);
-    if (!storageDir.startsWith(storageRoot + path.sep) && storageDir !== storageRoot) {
-      throw new Error('Dokumentcontainer darf nicht außerhalb des Datenspeichers liegen.');
-    }
-
+  private writePreparedContainer(input: EncryptedDocumentContainerWriteInput,
+    storageRoot: string, storageDir: string, documentId: string): EncryptedDocumentContainerResult {
     const documentKey = randomBytes(32);
     const iv = randomBytes(12);
     let authTag: Buffer | undefined;
     try {
-      await fs.promises.mkdir(storageDir, { recursive: true, mode: 0o700 });
       const storagePath = resolveEncryptedDocumentStoragePath(storageRoot, path.join(storageDir, `${documentId}${ENCRYPTED_DOCUMENT_CONTAINER_EXTENSION}`));
       const cipher = createCipheriv('aes-256-gcm', documentKey, iv);
       cipher.setAAD(containerAad(storageRoot, storagePath));
@@ -163,6 +155,31 @@ export class DocumentContainerService {
       iv.fill(0);
       authTag?.fill(0);
     }
+  }
+
+  private preparedWritePath(input: EncryptedDocumentContainerWriteInput): {
+    documentId: string; storageRoot: string; storageDir: string;
+  } {
+    const documentId = assertSafeDocumentId(input.documentId);
+    const subdirectory = assertRelativeSubdirectory(input.subdirectory);
+    const storageRoot = path.resolve(input.storageRoot);
+    const storageDir = path.resolve(storageRoot, subdirectory);
+    if (!storageDir.startsWith(storageRoot + path.sep) && storageDir !== storageRoot) {
+      throw new Error('Dokumentcontainer darf nicht außerhalb des Datenspeichers liegen.');
+    }
+    return { documentId, storageRoot, storageDir };
+  }
+
+  async writeEncryptedContainer(input: EncryptedDocumentContainerWriteInput): Promise<EncryptedDocumentContainerResult> {
+    const { documentId, storageRoot, storageDir } = this.preparedWritePath(input);
+    await fs.promises.mkdir(storageDir, { recursive: true, mode: 0o700 });
+    return this.writePreparedContainer(input, storageRoot, storageDir, documentId);
+  }
+
+  writeEncryptedContainerSync(input: EncryptedDocumentContainerWriteInput): EncryptedDocumentContainerResult {
+    const { documentId, storageRoot, storageDir } = this.preparedWritePath(input);
+    fs.mkdirSync(storageDir, { recursive: true, mode: 0o700 });
+    return this.writePreparedContainer(input, storageRoot, storageDir, documentId);
   }
 
   async readEncryptedContainer(input: EncryptedDocumentContainerReadInput): Promise<Buffer> {

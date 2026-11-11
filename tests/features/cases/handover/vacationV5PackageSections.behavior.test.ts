@@ -38,4 +38,21 @@ describe('Format-5-Paketabschnitte', () => {
       { ...document.items[0], contentBase64: 'QQ==' },
     ] }])).toThrow(/Dokument/);
   });
+
+  it('bindet ausgewählte Amtsdokumente und Eigentümerverweise an dasselbe Manifest', () => {
+    const bytes = Buffer.from('Protokoll', 'utf8');
+    const document = { type: 'generated_document', schemaVersion: 1, count: 1, items: [{
+      ref: 'generated_document_1', data: { title: 'Protokoll', filename: 'protokoll.pdf',
+        mime_type: 'application/pdf', document_kind: 'generic', size_bytes: bytes.length,
+        sha256: createHash('sha256').update(bytes).digest('hex') }, contentBase64: bytes.toString('base64'),
+    }] };
+    const link = { type: 'workflow_document_link', schemaVersion: 1, count: 1, items: [{
+      ref: 'workflow_document_link_1', documentRef: 'generated_document_1', ownerRef: 'meeting_1',
+      data: { purpose: 'Protokoll', document_class: 'generated_document' },
+    }] };
+    const sections = [meeting, document, link];
+    const manifest = createVacationV5PackageManifest(sections);
+    expect(assertVacationV5PackageSections(sections, manifest)).toEqual(sections);
+    expect(() => createVacationV5PackageManifest([document, link])).toThrow();
+  });
 });

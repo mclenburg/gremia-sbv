@@ -5,6 +5,20 @@ import { describe, expect, it } from 'vitest';
 import { DocumentContainerService, safeDocumentFilePart } from '../../../../services/documentContainerService';
 
 describe('DocumentContainerService 0.9.4-c-r6', () => {
+  it('schreibt für atomare Importe denselben verschlüsselten Container synchron', async () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'gremia-doc-container-sync-'));
+    try {
+      const service = new DocumentContainerService();
+      const plain = Buffer.from('Importdokument');
+      const result = service.writeEncryptedContainerSync({ plain, storageRoot: dir,
+        subdirectory: 'office/meeting', documentId: 'import-1', filename: 'bericht.pdf', mimeType: 'application/pdf' });
+      expect(readFileSync(result.storagePath).toString('utf8')).not.toContain('Importdokument');
+      await expect(service.readEncryptedContainer({ storageRoot: dir, storagePath: result.storageReference,
+        documentKey: result.documentKey, iv: result.iv, authTag: result.authTag,
+        expectedSha256: result.sha256 })).resolves.toEqual(plain);
+    } finally { rmSync(dir, { recursive: true, force: true }); }
+  });
+
   it('verschlüsselt Dokumentbytes zentral als .gsbvdoc und entschlüsselt sie mit Integritätsprüfung', async () => {
     const dir = mkdtempSync(path.join(tmpdir(), 'gremia-doc-container-'));
     try {

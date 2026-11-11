@@ -9,6 +9,7 @@ import { formatTransferRecipientToken } from '../../../../services/transferInsta
 import { TransferRecipientProfileService } from '../../../../services/transferRecipientProfileService';
 import { VacationV5FileService } from '../../../../services/vacationV5FileService';
 import { DocumentContainerService } from '../../../../services/documentContainerService';
+import { listVacationV5ImportedItemChanges, listVacationV5OriginItemChanges } from '../../../../services/vacationV5ImportedItemChanges';
 
 const empty = { caseIds: [], standaloneDeadlineIds: [], meetingIds: [], recruitingIds: [], employerObligationIds: [],
   inclusionAgreementIds: [], violationIds: [], assemblyIds: [] };
@@ -29,6 +30,108 @@ function database() {
 }
 
 describe('Format-5-Dateiservice für fallfreie Arbeit', () => {
+  it('ordnet ein ausgewähltes Verstoßdokument der neu importierten Verstoßkopie zu', async () => {
+    const source = database(); const target = database();
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'gremia-v5-violation-document-'));
+    const sourceDirectory = path.join(directory, 'source');
+    const targetDirectory = path.join(directory, 'target');
+    const filePath = path.join(directory, 'verstoss.gsbvtransfer');
+    try {
+      source.raw.exec(`INSERT INTO sbv_participation_violations
+        (id, stage, status, violation_type, source_context_type, source_context_id, subject,
+          measure_description, wrong_behavior, required_behavior, created_at, updated_at)
+        VALUES ('violation-source', 'request', 'open', 'not_informed', 'general_employer_practice',
+          'violation-source', 'Anfrage', 'Maßnahme', 'Unterlassung', 'Beteiligung', '2026-11-11', '2026-11-11')`);
+      const plain = Buffer.from('Verstoßdokument', 'utf8');
+      const stored = await new DocumentContainerService().writeEncryptedContainer({ plain, storageRoot: sourceDirectory,
+        subdirectory: 'generated/violation', documentId: 'violation-document', filename: 'anfrage.pdf', mimeType: 'application/pdf' });
+      source.raw.prepare(`INSERT INTO generated_documents
+        (id, violation_id, document_kind, title, storage_path, filename, mime_type, sha256,
+          document_key, iv, auth_tag, size_bytes, created_at)
+        VALUES ('violation-document', 'violation-source', 'sbv_participation_violation', 'Anfrage', ?, ?, ?, ?, ?, ?, ?, ?, '2026-11-11')`)
+        .run(stored.storageReference, stored.filename, stored.mimeType, stored.sha256, stored.documentKey,
+          stored.iv, stored.authTag, stored.sizeBytes);
+      source.raw.exec(`INSERT INTO sbv_participation_violation_documents
+        (id, violation_id, document_id, stage, template_key, template_version, created_at)
+        VALUES ('violation-link', 'violation-source', 'violation-document', 'request', 'request', '1', '2026-11-11')`);
+      const profile = new TransferRecipientProfileService(source.adapter).save({ label: 'Vertretung',
+        recipientToken: formatTransferRecipientToken(target.identity) });
+      source.raw.prepare('UPDATE transfer_recipient_profiles SET capabilities_json = ? WHERE id = ?')
+        .run(JSON.stringify(capabilities), profile.id);
+      new TransferRecipientProfileService(target.adapter).save({ label: 'Abgebende SBV',
+        recipientToken: formatTransferRecipientToken(source.identity) });
+      const exported = await new VacationV5FileService(source.adapter, () => sourceDirectory).exportToFile({
+        selection: { ...empty, violationIds: ['violation-source'] }, officeDocumentIds: ['violation-document'], profileId: profile.id,
+        expiresAt: '2099-11-30T00:00:00.000Z', passphrase: 'lange Transport-Passphrase', capabilities, targetPath: filePath,
+      });
+      expect(exported.sectionCounts.map((entry) => entry.type))
+        .toEqual(['violation', 'generated_document', 'violation_document_link']);
+      new VacationV5FileService(target.adapter, () => targetDirectory).importFromFile(filePath, 'lange Transport-Passphrase');
+      const row = target.raw.prepare(`SELECT d.violation_id, l.violation_id AS linked_violation_id, v.id AS local_violation_id
+        FROM generated_documents d JOIN sbv_participation_violation_documents l ON l.document_id = d.id
+        JOIN sbv_participation_violations v ON v.id = l.violation_id`).get();
+      expect(row).toMatchObject({ violation_id: row?.local_violation_id,
+        linked_violation_id: row?.local_violation_id });
+    } finally { source.raw.close(); target.raw.close(); fs.rmSync(directory, { recursive: true, force: true }); }
+  });
+
+  it('überträgt ein ausdrücklich ausgewähltes Amtsdokument samt Link und rollt Dateifehler vollständig zurück', async () => {
+    const source = database(); const target = database();
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'gremia-v5-office-roundtrip-'));
+    const sourceDirectory = path.join(directory, 'source');
+    const targetDirectory = path.join(directory, 'target');
+    const filePath = path.join(directory, 'amt.gsbvtransfer');
+    try {
+      source.raw.exec(`INSERT INTO sbv_meetings (id, meeting_type, title, starts_at, status, created_at, updated_at)
+        VALUES ('meeting-source', 'other', 'Sitzung', '2099-11-20', 'draft', '2026-11-11', '2026-11-11')`);
+      const plain = Buffer.from('Protokoll mit Umlauten äöü', 'utf8');
+      const stored = await new DocumentContainerService().writeEncryptedContainer({ plain, storageRoot: sourceDirectory,
+        subdirectory: 'office/meeting', documentId: 'office-source', filename: 'Protokoll.pdf', mimeType: 'application/pdf' });
+      source.raw.prepare(`INSERT INTO generated_documents
+        (id, title, storage_path, filename, mime_type, sha256, document_key, iv, auth_tag, size_bytes, created_at)
+        VALUES ('office-source', 'Protokoll', ?, ?, ?, ?, ?, ?, ?, ?, '2026-11-11')`)
+        .run(stored.storageReference, stored.filename, stored.mimeType, stored.sha256, stored.documentKey,
+          stored.iv, stored.authTag, stored.sizeBytes);
+      source.raw.exec(`INSERT INTO sbv_workflow_document_links
+        (id, owner_type, owner_id, document_id, purpose, created_at)
+        VALUES ('link-source', 'meeting', 'meeting-source', 'office-source', 'Protokoll', '2026-11-11')`);
+      const profile = new TransferRecipientProfileService(source.adapter).save({ label: 'Vertretung',
+        recipientToken: formatTransferRecipientToken(target.identity) });
+      source.raw.prepare('UPDATE transfer_recipient_profiles SET capabilities_json = ? WHERE id = ?')
+        .run(JSON.stringify(capabilities), profile.id);
+      new TransferRecipientProfileService(target.adapter).save({ label: 'Abgebende SBV',
+        recipientToken: formatTransferRecipientToken(source.identity) });
+      const exported = await new VacationV5FileService(source.adapter, () => sourceDirectory).exportToFile({
+        selection: { ...empty, meetingIds: ['meeting-source'] }, officeDocumentIds: ['office-source'], profileId: profile.id,
+        expiresAt: '2099-11-30T00:00:00.000Z', passphrase: 'lange Transport-Passphrase', capabilities, targetPath: filePath,
+      });
+      expect(exported.sectionCounts.map((entry) => entry.type)).toEqual(['meeting', 'generated_document', 'workflow_document_link']);
+      expect(fs.readFileSync(filePath, 'utf8')).not.toContain('Protokoll mit Umlauten');
+      target.raw.exec(`CREATE TRIGGER reject_office_link BEFORE INSERT ON sbv_workflow_document_links
+        BEGIN SELECT RAISE(ABORT, 'link failed'); END`);
+      expect(() => new VacationV5FileService(target.adapter, () => targetDirectory).importFromFile(filePath, 'lange Transport-Passphrase'))
+        .toThrow(/link failed/);
+      expect(target.raw.prepare('SELECT COUNT(*) AS count FROM generated_documents').get()).toEqual({ count: 0 });
+      expect(fs.existsSync(targetDirectory) ? fs.readdirSync(targetDirectory, { recursive: true }).filter((name) =>
+        String(name).endsWith('.gsbvdoc')) : []).toEqual([]);
+      target.raw.exec('DROP TRIGGER reject_office_link');
+      const imported = new VacationV5FileService(target.adapter, () => targetDirectory).importFromFile(filePath, 'lange Transport-Passphrase');
+      expect(imported.importedCount).toBe(3);
+      const linked = target.raw.prepare(`SELECT d.*, l.owner_id FROM generated_documents d
+        JOIN sbv_workflow_document_links l ON l.document_id = d.id`).get() as Record<string, string>;
+      expect(linked.owner_id).toBe(target.raw.prepare('SELECT id FROM sbv_meetings').get()?.id);
+      expect(await new DocumentContainerService().readEncryptedContainer({ storageRoot: targetDirectory,
+        storagePath: linked.storage_path, documentKey: linked.document_key, iv: linked.iv,
+        authTag: linked.auth_tag, expectedSha256: linked.sha256 })).toEqual(plain);
+      expect(listVacationV5ImportedItemChanges(target.adapter, exported.packageId, targetDirectory).items
+        .map((item) => [item.kind, item.status])).toEqual([
+          ['generated_document', 'unchanged'], ['meeting', 'unchanged'], ['workflow_document_link', 'unchanged'],
+        ]);
+      expect(listVacationV5OriginItemChanges(source.adapter, exported.packageId, sourceDirectory).items
+        .every((item) => item.status === 'unchanged')).toBe(true);
+    } finally { source.raw.close(); target.raw.close(); fs.rmSync(directory, { recursive: true, force: true }); }
+  });
+
   it('überträgt nur das ausgewählte Falldokument und legt es lokal neu verschlüsselt ab', async () => {
     const source = database(); const target = database();
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'gremia-v5-file-document-'));
