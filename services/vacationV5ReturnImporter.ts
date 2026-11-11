@@ -12,7 +12,7 @@ import type { VacationV5ReturnPayload } from './vacationV5ReturnTransport.js';
 
 export interface VacationV5ReturnChoice {
   ref: string;
-  action: 'accept_update' | 'keep_origin' | 'acknowledge_cancellation';
+  action: 'accept_update' | 'accept_addition' | 'keep_origin' | 'acknowledge_cancellation';
   expectedOriginSha256: string | null;
 }
 
@@ -27,6 +27,36 @@ const PROCESS_PARENT: Readonly<Record<string, string>> = {
   employer_obligation_review: 'employer_obligation', inclusion_agreement: 'inclusion_agreement',
   sbv_participation_violation: 'violation', sbv_assembly: 'assembly',
 };
+const ADDITION_ORDER = ['meeting', 'recruiting', 'employer_obligation', 'inclusion_agreement',
+  'violation', 'assembly', 'inclusion_officer', 'meeting_agenda', 'recruiting_interview',
+  'inclusion_topic', 'violation_event', 'deadline'] as const;
+
+function insertAddition(database: DatabaseAdapter, change: { ref: string; kind: string;
+  data: Record<string, string | number | boolean | null>; links?: Record<string, string> },
+  targets: Map<string, { kind: string; localId: string }>, timestamp: string): string {
+  const config = VACATION_V5_ROW_FIELDS[change.kind as keyof typeof VACATION_V5_ROW_FIELDS];
+  const localId = randomUUID();
+  const values: Record<string, string | number | boolean | null> = {
+    ...change.data, id: localId, created_at: timestamp,
+  };
+  if ((config.fields as readonly string[]).includes('updated_at')) values.updated_at = timestamp;
+  if (change.kind === 'violation') values.source_context_id = localId;
+  const rules = change.kind === 'deadline' && change.links?.processRef
+    ? { processRef: { kind: PROCESS_PARENT[String(change.data.process_type)], column: 'process_id' } }
+    : LINK_COLUMN[change.kind] ?? {};
+  for (const [name, ref] of Object.entries(change.links ?? {})) {
+    const rule = rules[name];
+    const target = targets.get(ref);
+    if (!rule?.kind || !target || target.kind !== rule.kind) {
+      throw new Error('Neuer Rückgabevorgang enthält eine nicht übernommene Elternbeziehung.');
+    }
+    values[rule.column] = target.localId;
+  }
+  const fields = Object.keys(values);
+  database.prepare(`INSERT INTO ${config.table} (${fields.join(', ')}) VALUES (${fields.map(() => '?').join(', ')})`)
+    .run(...fields.map((field) => values[field]));
+  return localId;
+}
 
 function assertOriginalLinks(kind: string, links: Record<string, string> | undefined,
   row: Record<string, unknown>, targets: Map<string, { kind: string; localId: string }>): void {
@@ -59,6 +89,7 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
     const choicesByRef = new Map<string, VacationV5ReturnChoice>();
     for (const choice of choices) {
       if (!choice || typeof choice.ref !== 'string' || choicesByRef.has(choice.ref)
+        || !['accept_update', 'accept_addition', 'keep_origin', 'acknowledge_cancellation'].includes(choice.action)
         || (choice.expectedOriginSha256 !== null && !/^[0-9a-f]{64}$/.test(choice.expectedOriginSha256))) {
         throw new Error('Rückgabeentscheidung enthält ungültige oder doppelte Referenzen.');
       }
@@ -75,7 +106,13 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
     const importId = randomUUID();
     const accepted: Array<{ ref: string; kind: string; localId: string; baselineSha256: string }> = [];
     let reviewedCount = 0;
-    for (const planned of preview.items) {
+    const plannedItems = [...preview.items].sort((a, b) => {
+      if (a.decision !== 'review_addition' && b.decision === 'review_addition') return -1;
+      if (a.decision === 'review_addition' && b.decision !== 'review_addition') return 1;
+      return ADDITION_ORDER.indexOf(a.kind as typeof ADDITION_ORDER[number])
+        - ADDITION_ORDER.indexOf(b.kind as typeof ADDITION_ORDER[number]);
+    });
+    for (const planned of plannedItems) {
       const choice = choicesByRef.get(planned.ref);
       const change = changeByRef.get(planned.ref);
       const current = currentByRef.get(planned.ref);
@@ -88,6 +125,18 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
         continue;
       }
       if (choice.action === 'keep_origin') { reviewedCount += 1; continue; }
+      if (planned.decision === 'review_addition' && choice.action === 'accept_addition'
+        && change.operation === 'upsert' && change.deputyBaselineSha256 === null
+        && change.data && Object.hasOwn(VACATION_V5_ROW_FIELDS, change.kind)) {
+        const localId = insertAddition(database, change as typeof change & {
+          data: Record<string, string | number | boolean | null> }, targets, timestamp);
+        targets.set(change.ref, { kind: change.kind, localId });
+        const config = VACATION_V5_ROW_FIELDS[change.kind as keyof typeof VACATION_V5_ROW_FIELDS];
+        const stored = database.prepare<Record<string, unknown>>(`SELECT * FROM ${config.table} WHERE id = ?`).get(localId);
+        if (!stored) throw new Error('Neuer Rückgabevorgang konnte nicht bestätigt werden.');
+        accepted.push({ ref: change.ref, kind: change.kind, localId, baselineSha256: caseHandoverBaselineHash(stored) });
+        continue;
+      }
       if (planned.decision !== 'propose_update' || choice.action !== 'accept_update'
         || change.operation !== 'upsert' || !change.data
         || !Object.hasOwn(VACATION_V5_ROW_FIELDS, change.kind)) {
