@@ -32,7 +32,7 @@ export const VACATION_V5_CASE_ROW_FIELDS = {
   case_document: {
     table: 'case_documents', references: ['id', 'case_id', 'measure_id'],
     localOnly: ['storage_path', 'document_key', 'iv', 'auth_tag', 'extracted_text', 'imported_at', 'extraction_quality', 'text_extraction_status', 'text_extracted_at', 'text_extractor_id', 'text_extraction_error', 'ocr_status', 'ocr_text', 'ocr_engine', 'ocr_started_at', 'ocr_completed_at', 'ocr_error', 'remote_document_id', 'remote_version_id', 'remote_title'],
-    required: ['filename', 'sha256'],
+    required: ['filename', 'sha256', 'size_bytes'],
     fields: ['filename', 'display_title', 'mime_type', 'sha256', 'size_bytes', 'contains_health_data', 'created_at'],
   },
 } as const;

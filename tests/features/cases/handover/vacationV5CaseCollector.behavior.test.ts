@@ -1,8 +1,11 @@
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { describe, expect, it } from 'vitest';
 import type { DatabaseAdapter } from '../../../../services/databaseService';
 import { collectVacationV5CaseSections } from '../../../../services/vacationV5CaseCollector';
+import { DocumentContainerService } from '../../../../services/documentContainerService';
 
 function database() {
   const raw = new DatabaseSync(':memory:');
@@ -29,6 +32,30 @@ function database() {
 }
 
 describe('Format-5-Collector für Fallakten', () => {
+  it('nimmt nur ausdrücklich gewählte und intakte Falldokumente samt Bytes auf', async () => {
+    const { raw, adapter } = database();
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'gremia-v5-case-doc-'));
+    try {
+      const content = Buffer.from('Vertraulicher Dokumentinhalt', 'utf8');
+      const stored = await new DocumentContainerService().writeEncryptedContainer({ plain: content, storageRoot: directory,
+        subdirectory: 'documents', documentId: 'selected', filename: 'Attest.pdf', mimeType: 'application/pdf' });
+      raw.prepare(`INSERT INTO case_documents (id, case_id, filename, storage_path, sha256, document_key, iv, auth_tag, size_bytes, created_at)
+        VALUES (?, 'case-local', 'Attest.pdf', ?, ?, ?, ?, ?, ?, '2026-11-11')`)
+        .run('selected-doc', stored.storageReference, stored.sha256, stored.documentKey, stored.iv, stored.authTag, stored.sizeBytes);
+      const without = collectVacationV5CaseSections(adapter, { caseIds: ['case-local'] });
+      expect(without.sections.some((section) => section.type === 'case_document')).toBe(false);
+      const selected = collectVacationV5CaseSections(adapter, { caseIds: ['case-local'], documentIds: ['selected-doc'], dataDirectory: directory });
+      const document = selected.sections.find((section) => section.type === 'case_document')?.items[0];
+      expect(document?.links).toEqual({ caseRef: 'case_1' });
+      expect(Buffer.from(document?.contentBase64 ?? '', 'base64')).toEqual(content);
+      expect(JSON.stringify(selected.sections)).not.toContain(stored.documentKey);
+      expect(JSON.stringify(selected.sections)).not.toContain(stored.storageReference);
+      fs.rmSync(stored.storagePath);
+      expect(() => collectVacationV5CaseSections(adapter, { caseIds: ['case-local'], documentIds: ['selected-doc'], dataDirectory: directory }))
+        .toThrow();
+    } finally { raw.close(); fs.rmSync(directory, { recursive: true, force: true }); }
+  });
+
   it('übernimmt notwendige Beziehungen als Paket-Referenzen ohne lokale IDs', () => {
     const { raw, adapter } = database();
     try {

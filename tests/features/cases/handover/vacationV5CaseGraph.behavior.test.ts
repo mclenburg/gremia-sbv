@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { createHash } from 'node:crypto';
 import { assertVacationV5CaseGraph } from '../../../../services/vacationV5CaseGraph';
 
 const person = { type: 'protected_person', schemaVersion: 1, count: 1, items: [
@@ -22,6 +23,25 @@ const note = { type: 'case_measure_note', schemaVersion: 1, count: 1, items: [
 ] };
 
 describe('Format-5-Fallreferenzgraph', () => {
+  it('bindet ausgewählte Dokumentbytes kanonisch an Hash, Größe und Fallreferenz', () => {
+    const bytes = Buffer.from('Vertraulicher Inhalt', 'utf8');
+    const document = { type: 'case_document', schemaVersion: 1, count: 1, items: [{
+      ref: 'document_1', links: { caseRef: 'case_1' },
+      data: { filename: 'Attest.pdf', sha256: createHash('sha256').update(bytes).digest('hex'), size_bytes: bytes.length },
+      contentBase64: bytes.toString('base64'),
+    }] };
+    expect(assertVacationV5CaseGraph([firstCase, person, document]).find((section) => section.type === 'case_document')?.count).toBe(1);
+    expect(() => assertVacationV5CaseGraph([firstCase, person, { ...document, items: [
+      { ...document.items[0], contentBase64: 'QQ==' },
+    ] }])).toThrow(/Dokument/);
+    expect(() => assertVacationV5CaseGraph([firstCase, person, { ...document, items: [
+      { ...document.items[0], contentBase64: 'Q===' },
+    ] }])).toThrow(/Dokument/);
+    expect(() => assertVacationV5CaseGraph([firstCase, person, { ...document, items: [
+      { ref: 'document_1', links: { caseRef: 'case_1' }, data: document.items[0].data },
+    ] }])).toThrow(/Dokument/);
+  });
+
   it('löst Beziehungen innerhalb ausgewählter Fallakten auf', () => {
     expect(assertVacationV5CaseGraph([person, firstCase, measure, note]).map((section) => section.type))
       .toEqual(['protected_person', 'case', 'case_measure', 'case_measure_note']);

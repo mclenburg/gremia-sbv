@@ -1,9 +1,13 @@
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { describe, expect, it } from 'vitest';
 import type { DatabaseAdapter } from '../../../../services/databaseService';
 import { collectVacationV5CaseSections } from '../../../../services/vacationV5CaseCollector';
 import { importVacationV5CaseSections } from '../../../../services/vacationV5CaseImporter';
+import { DocumentContainerService } from '../../../../services/documentContainerService';
+import { CaseHandoverImportUnitOfWork } from '../../../../services/caseHandoverImportUnitOfWork';
 
 function database() {
   const raw = new DatabaseSync(':memory:');
@@ -43,6 +47,49 @@ function prepareImport(raw: DatabaseSync) {
 }
 
 describe('Format-5-Fallimport', () => {
+  it('speichert ausgewählte Dokumentbytes neu verschlüsselt und entfernt sie bei Rollback', async () => {
+    const source = database(); const destination = database(); const failed = database();
+    const sourceDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'gremia-v5-document-source-'));
+    const targetDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'gremia-v5-document-target-'));
+    const failedDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'gremia-v5-document-failed-'));
+    try {
+      source.raw.prepare(`INSERT INTO cases (id, case_number, display_name, category, opened_at, created_at, updated_at)
+        VALUES ('source-case', 'SBV-3', 'Fall', 'sonstiges', '2026-11-11', '2026-11-11', '2026-11-11')`).run();
+      const plain = Buffer.from('Vertraulicher Dokumentinhalt', 'utf8');
+      const stored = await new DocumentContainerService().writeEncryptedContainer({ plain, storageRoot: sourceDirectory,
+        subdirectory: 'documents', documentId: 'source-document', filename: 'Attest.pdf', mimeType: 'application/pdf' });
+      source.raw.prepare(`INSERT INTO case_documents (id, case_id, filename, storage_path, sha256, document_key, iv, auth_tag, size_bytes, created_at)
+        VALUES ('source-document', 'source-case', 'Attest.pdf', ?, ?, ?, ?, ?, ?, '2026-11-11')`)
+        .run(stored.storageReference, stored.sha256, stored.documentKey, stored.iv, stored.authTag, stored.sizeBytes);
+      const sections = collectVacationV5CaseSections(source.adapter, { caseIds: ['source-case'],
+        documentIds: ['source-document'], dataDirectory: sourceDirectory }).sections;
+      prepareImport(destination.raw);
+      const imported = new CaseHandoverImportUnitOfWork(destination.adapter, () => targetDirectory).run((trackFile) =>
+        importVacationV5CaseSections(destination.adapter, 'import-local', 'handover_case_test', '2099-11-30', sections,
+          { dataDirectory: targetDirectory, trackFile }));
+      expect(imported.importedCount).toBe(2);
+      const document = destination.raw.prepare('SELECT storage_path, document_key, iv, auth_tag, sha256 FROM case_documents').get() as {
+        storage_path: string; document_key: string; iv: string; auth_tag: string; sha256: string;
+      };
+      expect(document.storage_path).not.toBe(stored.storagePath);
+      const recovered = await new DocumentContainerService().readEncryptedContainer({ storageRoot: targetDirectory,
+        storagePath: document.storage_path, documentKey: document.document_key, iv: document.iv,
+        authTag: document.auth_tag, expectedSha256: document.sha256 });
+      expect(recovered).toEqual(plain);
+      prepareImport(failed.raw);
+      failed.raw.exec(`CREATE TRIGGER fail_document_ledger BEFORE INSERT ON case_handover_import_items
+        WHEN NEW.local_entity_type = 'case_document' BEGIN SELECT RAISE(ABORT, 'document ledger failed'); END`);
+      expect(() => new CaseHandoverImportUnitOfWork(failed.adapter, () => failedDirectory).run((trackFile) =>
+        importVacationV5CaseSections(failed.adapter, 'import-local', 'handover_case_test', '2099-11-30', sections,
+          { dataDirectory: failedDirectory, trackFile }))).toThrow(/document ledger failed/);
+      expect(failed.raw.prepare('SELECT COUNT(*) AS count FROM case_documents').get()).toEqual({ count: 0 });
+      expect(fs.readdirSync(failedDirectory, { recursive: true }).filter((entry) => String(entry).endsWith('.gsbvdoc'))).toEqual([]);
+    } finally {
+      source.raw.close(); destination.raw.close(); failed.raw.close();
+      for (const directory of [sourceDirectory, targetDirectory, failedDirectory]) fs.rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
   it('erzeugt lokale Kopien mit umgebogenen Beziehungen, Baselines und Datenschutzprüfung', () => {
     const destination = database();
     try {

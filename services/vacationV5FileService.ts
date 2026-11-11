@@ -19,12 +19,15 @@ import { CASE_HANDOVER_FILE_EXTENSION, inspectCaseHandoverFilePath } from './cas
 import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { auditCaseHandoverExported } from './auditEventBuilders.js';
+import { encodeSelectedVacationV5Document } from './vacationV5DocumentCodec.js';
 
 type ProfileRow = { id: string; instance_id: string; key_fingerprint: string; recipient_token: string;
   active: number; capabilities_json: string | null };
 
 export interface VacationV5FileExportInput {
   selection: VacationV5ScopeSelection;
+  measureIds?: readonly string[];
+  documentIds?: readonly string[];
   profileId: string;
   expiresAt: string;
   passphrase: string;
@@ -55,11 +58,13 @@ function assertOutputPath(filePath: string): void {
   }
 }
 
-function assertSourceUnchanged(database: DatabaseAdapter, sourceByRef: VacationV5PackageSourceByRef): void {
+function assertSourceUnchanged(database: DatabaseAdapter, sourceByRef: VacationV5PackageSourceByRef, dataDirectory: string): void {
   for (const source of Object.values(sourceByRef)) {
     const table = vacationV5SourceTable(source.kind);
     const row = database.prepare<Record<string, unknown>>(`SELECT * FROM ${table} WHERE id = ?`).get(source.localId);
-    if (!row || caseHandoverBaselineHash(row) !== source.baselineSha256) {
+    const contentBase64 = row && source.kind === 'case_document'
+      ? encodeSelectedVacationV5Document(row, dataDirectory).contentBase64 : undefined;
+    if (!row || caseHandoverBaselineHash(row, contentBase64) !== source.baselineSha256) {
       throw new Error('Ein ausgewählter Vorgang hat sich während des Exports geändert. Bitte die Vorschau erneut prüfen.');
     }
   }
@@ -67,12 +72,16 @@ function assertSourceUnchanged(database: DatabaseAdapter, sourceByRef: VacationV
 
 /** Internal format-5 path for modelled case and case-free sections. */
 export class VacationV5FileService {
-  constructor(private readonly database: DatabaseAdapter) {}
+  constructor(private readonly database: DatabaseAdapter,
+    private readonly dataDirectoryProvider: () => string = () => path.join(process.cwd(), 'data')) {}
 
   async exportToFile(input: VacationV5FileExportInput): Promise<{
     packageId: string; sectionCounts: Array<{ type: string; count: number }>; targetInstanceId: string;
   }> {
     assertOutputPath(input.targetPath);
+    if (!input.selection.caseIds.length && (input.documentIds?.length || input.measureIds?.length)) {
+      throw new Error('Dokumente und Maßnahmen erfordern eine ausgewählte Fallakte.');
+    }
     const targetProfile = checkedProfile(this.database, input.profileId, true);
     const target = parseTransferRecipientToken(targetProfile.recipient_token);
     const capabilities = assertTransferCapabilities(input.capabilities);
@@ -81,7 +90,8 @@ export class VacationV5FileService {
     }
     const other = collectVacationV5Sections(this.database, input.selection);
     const cases = input.selection.caseIds.length
-      ? collectVacationV5CaseSections(this.database, { caseIds: input.selection.caseIds })
+      ? collectVacationV5CaseSections(this.database, { caseIds: input.selection.caseIds,
+        measureIds: input.measureIds, documentIds: input.documentIds, dataDirectory: this.dataDirectoryProvider() })
       : { sections: [], sourceByRef: {} };
     const sections = [...cases.sections, ...other.sections];
     const sourceByRef: VacationV5PackageSourceByRef = { ...cases.sourceByRef, ...other.sourceByRef };
@@ -97,7 +107,7 @@ export class VacationV5FileService {
       await new DatabaseUnitOfWork(this.database).runAsync(async () => {
         await writeCaseHandoverFile(input.targetPath, JSON.stringify(envelope), { replaceExisting: false });
         written = true;
-        assertSourceUnchanged(this.database, sourceByRef);
+        assertSourceUnchanged(this.database, sourceByRef, this.dataDirectoryProvider());
         recordVacationV5Export(this.database, { packageId: envelope.packageId, createdAt: envelope.createdAt,
           expiresAt: envelope.expiresAt ?? input.expiresAt, targetInstanceId: target.instanceId,
           targetKeyFingerprint: target.keyFingerprint, sourceByRef });
@@ -135,7 +145,7 @@ export class VacationV5FileService {
       throw new Error('Die abgebende Instanz bietet Format 5 nicht an.');
     }
     const imported = importVacationV5Package(this.database, payload,
-      { originKeyFingerprint: sender.keyFingerprint, targetKeyFingerprint: recipient.keyFingerprint });
+      { originKeyFingerprint: sender.keyFingerprint, targetKeyFingerprint: recipient.keyFingerprint }, this.dataDirectoryProvider);
     return { ...imported, packageId: payload.packageId };
   }
 }

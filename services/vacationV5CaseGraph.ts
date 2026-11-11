@@ -1,5 +1,7 @@
+import { createHash } from 'node:crypto';
 import { assertVacationV5CaseRow } from './vacationV5CaseRowPolicy.js';
 import { assertVacationV5Row } from './vacationV5RowPolicy.js';
+import { VACATION_V5_MAX_DOCUMENT_BYTES, VACATION_V5_MAX_DOCUMENT_TOTAL_BYTES } from './vacationV5DocumentCodec.js';
 
 export type VacationV5CaseSectionType = 'protected_person' | 'case' | 'case_note' | 'case_measure'
   | 'case_measure_note' | 'case_deadline' | 'case_document';
@@ -8,6 +10,7 @@ export interface VacationV5CaseItem {
   ref: string;
   data: Record<string, string | number | boolean | null>;
   links: Record<string, string>;
+  contentBase64?: string;
 }
 
 export interface VacationV5CaseSection {
@@ -44,6 +47,7 @@ export function assertVacationV5CaseGraph(input: unknown): VacationV5CaseSection
   const byRef = new Map<string, { type: VacationV5CaseSectionType; links: Record<string, string> }>();
   const seenTypes = new Set<string>();
   let totalBytes = 0;
+  let documentBytes = 0;
   for (const candidate of input) {
     if (!record(candidate) || !exact(candidate, ['type', 'schemaVersion', 'count', 'items'])
       || typeof candidate.type !== 'string' || !Object.hasOwn(LINK_TYPES, candidate.type)
@@ -54,7 +58,10 @@ export function assertVacationV5CaseGraph(input: unknown): VacationV5CaseSection
     seenTypes.add(type);
     const items: VacationV5CaseItem[] = [];
     for (const source of candidate.items) {
-      if (!record(source) || !exact(source, ['ref', 'data', 'links'])
+      if (type === 'case_document' && record(source) && !Object.hasOwn(source, 'contentBase64')) {
+        throw new Error('Dokumentinhalt fehlt im ausgewählten Fallabschnitt.');
+      }
+      if (!record(source) || !exact(source, type === 'case_document' ? ['ref', 'data', 'links', 'contentBase64'] : ['ref', 'data', 'links'])
         || typeof source.ref !== 'string' || !/^[a-z_]+_[1-9][0-9]*$/.test(source.ref)
         || source.ref.length > 120 || byRef.has(source.ref) || !record(source.links)) {
         throw new Error('Fallabschnitt enthält ungültige Paket-Referenzen.');
@@ -67,12 +74,33 @@ export function assertVacationV5CaseGraph(input: unknown): VacationV5CaseSection
         throw new Error('Fallabschnitt enthält unzulässige oder fehlende Beziehungen.');
       }
       const data = type === 'case_deadline' ? assertVacationV5Row('deadline', source.data) : assertVacationV5CaseRow(type, source.data);
-      const item = { ref: source.ref, data, links };
+      let contentBase64: string | undefined;
+      if (type === 'case_document') {
+        if (typeof source.contentBase64 !== 'string'
+          || source.contentBase64.length > 4 * Math.ceil(VACATION_V5_MAX_DOCUMENT_BYTES / 3)
+          || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(source.contentBase64)
+          || typeof data.sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(data.sha256)
+          || !Number.isSafeInteger(data.size_bytes) || Number(data.size_bytes) < 0
+          || Number(data.size_bytes) > VACATION_V5_MAX_DOCUMENT_BYTES) throw new Error('Dokumentinhalt oder Hash ist ungültig.');
+        const plain = Buffer.from(source.contentBase64, 'base64');
+        try {
+          if (plain.toString('base64') !== source.contentBase64 || plain.length !== data.size_bytes
+            || createHash('sha256').update(plain).digest('hex') !== data.sha256) {
+            throw new Error('Dokumentinhalt stimmt nicht mit Hash oder Größe überein.');
+          }
+          documentBytes += plain.length;
+          if (documentBytes > VACATION_V5_MAX_DOCUMENT_TOTAL_BYTES) throw new Error('Dokumentgesamtgröße überschritten.');
+        } finally { plain.fill(0); }
+        contentBase64 = source.contentBase64;
+      }
+      const item: VacationV5CaseItem = { ref: source.ref, data, links, ...(contentBase64 === undefined ? {} : { contentBase64 }) };
       byRef.set(item.ref, { type, links });
       items.push(item);
     }
     const section: VacationV5CaseSection = { type, schemaVersion: 1, count: items.length, items };
-    totalBytes += Buffer.byteLength(JSON.stringify(section), 'utf8');
+    totalBytes += Buffer.byteLength(JSON.stringify(type === 'case_document'
+      ? { ...section, items: section.items.map(({ contentBase64: _content, ...metadata }) => metadata) }
+      : section), 'utf8');
     if (totalBytes > 32 * 1024 * 1024) throw new Error('Fallabschnitte sind zu groß.');
     sections.push(section);
   }

@@ -8,6 +8,7 @@ import { TransferInstanceIdentityService } from '../../../../services/transferIn
 import { formatTransferRecipientToken } from '../../../../services/transferInstanceIdentityPolicy';
 import { TransferRecipientProfileService } from '../../../../services/transferRecipientProfileService';
 import { VacationV5FileService } from '../../../../services/vacationV5FileService';
+import { DocumentContainerService } from '../../../../services/documentContainerService';
 
 const empty = { caseIds: [], standaloneDeadlineIds: [], meetingIds: [], recruitingIds: [], employerObligationIds: [],
   inclusionAgreementIds: [], violationIds: [], assemblyIds: [] };
@@ -28,6 +29,46 @@ function database() {
 }
 
 describe('Format-5-Dateiservice für fallfreie Arbeit', () => {
+  it('überträgt nur das ausgewählte Falldokument und legt es lokal neu verschlüsselt ab', async () => {
+    const source = database(); const target = database();
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'gremia-v5-file-document-'));
+    const sourceDirectory = path.join(directory, 'source');
+    const targetDirectory = path.join(directory, 'target');
+    const filePath = path.join(directory, 'fall.gsbvtransfer');
+    try {
+      source.raw.prepare(`INSERT INTO cases (id, case_number, display_name, category, opened_at, created_at, updated_at)
+        VALUES ('source-case', 'SBV-9', 'Einzelfall', 'sonstiges', '2026-11-11', '2026-11-11', '2026-11-11')`).run();
+      const plain = Buffer.from('Vertraulicher Dokumentinhalt', 'utf8');
+      const stored = await new DocumentContainerService().writeEncryptedContainer({ plain, storageRoot: sourceDirectory,
+        subdirectory: 'documents', documentId: 'selected', filename: 'Attest.pdf', mimeType: 'application/pdf' });
+      source.raw.prepare(`INSERT INTO case_documents (id, case_id, filename, storage_path, sha256, document_key, iv, auth_tag, size_bytes, created_at)
+        VALUES ('selected', 'source-case', 'Attest.pdf', ?, ?, ?, ?, ?, ?, '2026-11-11')`)
+        .run(stored.storageReference, stored.sha256, stored.documentKey, stored.iv, stored.authTag, stored.sizeBytes);
+      const profile = new TransferRecipientProfileService(source.adapter).save({ label: 'Vertretung',
+        recipientToken: formatTransferRecipientToken(target.identity) });
+      source.raw.prepare('UPDATE transfer_recipient_profiles SET capabilities_json = ? WHERE id = ?')
+        .run(JSON.stringify(capabilities), profile.id);
+      new TransferRecipientProfileService(target.adapter).save({ label: 'Abgebende SBV',
+        recipientToken: formatTransferRecipientToken(source.identity) });
+      const exported = await new VacationV5FileService(source.adapter, () => sourceDirectory).exportToFile({
+        selection: { ...empty, caseIds: ['source-case'] }, documentIds: ['selected'], profileId: profile.id,
+        expiresAt: '2099-11-30T00:00:00.000Z', passphrase: 'lange Transport-Passphrase', capabilities, targetPath: filePath,
+      });
+      expect(exported.sectionCounts).toEqual([{ type: 'case', count: 1 }, { type: 'case_document', count: 1 }]);
+      expect(fs.readFileSync(filePath, 'utf8')).not.toContain('Vertraulicher Dokumentinhalt');
+      const imported = new VacationV5FileService(target.adapter, () => targetDirectory).importFromFile(filePath, 'lange Transport-Passphrase');
+      expect(imported.importedCount).toBe(2);
+      const document = target.raw.prepare('SELECT storage_path, document_key, iv, auth_tag, sha256 FROM case_documents').get() as {
+        storage_path: string; document_key: string; iv: string; auth_tag: string; sha256: string;
+      };
+      expect(document.storage_path).not.toBe(stored.storagePath);
+      const recovered = await new DocumentContainerService().readEncryptedContainer({ storageRoot: targetDirectory,
+        storagePath: document.storage_path, documentKey: document.document_key, iv: document.iv,
+        authTag: document.auth_tag, expectedSha256: document.sha256 });
+      expect(recovered).toEqual(plain);
+    } finally { source.raw.close(); target.raw.close(); fs.rmSync(directory, { recursive: true, force: true }); }
+  });
+
   it('überträgt eine bewusst ausgewählte Fallakte auch ohne fallfreien Abschnitt', async () => {
     const source = database(); const target = database();
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'gremia-v5-case-only-'));

@@ -17,7 +17,6 @@ function validated(input: unknown): VacationV5PackageSection[] {
   for (const value of input) {
     if (!record(value) || typeof value.type !== 'string') throw new Error('Format-5-Paketabschnitt ist ungültig.');
     if (isVacationV5CaseSectionType(value.type)) {
-      if (value.type === 'case_document') throw new Error('Dokumentabschnitte benötigen den geprüften Byte-Import.');
       caseInput.push(value);
     } else if (Object.hasOwn(VACATION_V5_ROW_FIELDS, value.type)) otherInput.push(value);
     else throw new Error('Unbekannter Format-5-Paketabschnitt.');
