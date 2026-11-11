@@ -25,7 +25,7 @@ export function collectCaseHandoverPayload(
   const createdAt = nowIso();
   const packageType = input.packageType ?? 'vacation_handover';
   if (packageType === 'office_handover' && input.expiresAt) throw new Error('Eine Amtsübergabe darf kein Ablaufdatum enthalten.');
-  const payload: PackagePayload = { format: CASE_HANDOVER_FORMAT, version: CASE_HANDOVER_VERSION, packageId, createdAt, expiresAt: input.expiresAt, purpose: input.purpose?.trim() || (packageType === 'office_handover' ? 'Amtsübergabe an die gewählte Nachfolge' : 'Urlaubsübergabe / SBV-Vertretung'), packageType, cases: [], protectedPersons: [], notes: [], measures: [], measureNotes: [], deadlines: [], documents: [] };
+  const payload: PackagePayload = { format: CASE_HANDOVER_FORMAT, version: input.formatVersion ?? CASE_HANDOVER_VERSION, packageId, createdAt, expiresAt: input.expiresAt, purpose: input.purpose?.trim() || (packageType === 'office_handover' ? 'Amtsübergabe an die gewählte Nachfolge' : 'Urlaubsübergabe / SBV-Vertretung'), packageType, cases: [], protectedPersons: [], notes: [], measures: [], measureNotes: [], deadlines: [], documents: [] };
   const personIdToRef = new Map<string, string>();
   const caseIdToRef = new Map<string, string>();
   const measureIdToRef = new Map<string, string>();

@@ -12,10 +12,11 @@ export function encryptCaseHandoverPayloadForRecipient(args: {
   expiresAt?: string;
   recipient: TransferRecipientIdentity;
   protectionMode?: TransferProtectionMode;
+  formatVersion?: 2 | 4;
 }): CaseHandoverEnvelopeV2 {
   return encryptTargetBoundTransferPayload({
     format: CASE_HANDOVER_FORMAT,
-    version: CASE_HANDOVER_VERSION,
+    version: args.formatVersion ?? CASE_HANDOVER_VERSION,
     packageId: args.packageId,
     createdAt: args.createdAt,
     expiresAt: args.expiresAt,

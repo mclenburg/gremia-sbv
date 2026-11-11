@@ -8,6 +8,7 @@ import { assertAllowedEnum, assertRecordInput, assertString, sanitizeDialogFileN
 import { issueSelectedFileCapability, resolveSelectedFileCapability, SELECTED_FILE_PURPOSE } from './selectedFileCapability.js';
 import { registerMobilePairingFileIpc } from './mobilePairingFileIpc.js';
 import { validateMobileReturnImportInput } from './mobileReturnIpcValidation.js';
+import { resolveCaseHandoverExportVersion } from '../../services/caseHandoverPolicy.js';
 
 function validateMobileDeviceInput(input: unknown): SaveMobileCompanionDeviceInput {
   const value = assertRecordInput<Record<string, unknown>>(input, 'caseHandover:mobile:devices:save');
@@ -38,6 +39,7 @@ export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityServ
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverExport, async (_event, input: unknown, suggestedFileName?: unknown) => {
     const validated = assertRecordInput<CaseHandoverExportInput>(input, 'caseHandover:export');
+    resolveCaseHandoverExportVersion(validated);
     const safeName = sanitizeDialogFileName(suggestedFileName, 'caseHandover:export', 'vorgeschlagener Dateiname') ?? 'falluebergabe.gsbvtransfer';
     const result = await dialog.showSaveDialog({
       title: 'Verschlüsseltes Fallübergabepaket speichern',

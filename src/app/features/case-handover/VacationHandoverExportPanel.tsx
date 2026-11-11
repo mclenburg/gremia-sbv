@@ -3,7 +3,7 @@ import type { CaseRecord } from '../../../domain/models/case.model';
 import type { CaseHandoverExportResult, TransferProtectionMode } from '../../../domain/models/case-handover.model';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { ExportAction, FileLocationNotice } from '../../shared/components/ImportExportFeedback';
-import { DateInput, FormActions } from '../../shared/components/IndustrialForm';
+import { DateInput, FormActions, SelectInput } from '../../shared/components/IndustrialForm';
 import { IndustrialPanel } from '../../shared/components/WorkbenchPanels';
 import { CaseHandoverChecklistPanel, handoverChecklistConfirmation } from './CaseHandoverChecklistPanel';
 import { CaseHandoverCasePicker } from './CaseHandoverCasePicker';
@@ -17,6 +17,7 @@ export function VacationHandoverExportPanel({ cases, onCompleted }: { cases: Cas
   const [protection, setProtection] = useState<TransferProtectionState>({ targetRecipientToken: '', passphrase: '', protectionMode: 'passphrase_and_recipient_key' as TransferProtectionMode });
   const [acknowledgedItemIds, setAcknowledgedItemIds] = useState<string[]>([]);
   const [validUntil, setValidUntil] = useState('');
+  const [formatVersion, setFormatVersion] = useState<2 | 4>(4);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState<CaseHandoverExportResult | null>(null);
@@ -31,6 +32,7 @@ export function VacationHandoverExportPanel({ cases, onCompleted }: { cases: Cas
     event.preventDefault(); setError(''); setResult(null);
     if (!caseIds.length) return showError('Bitte mindestens eine Fallakte für die Vertretung auswählen.');
     if (!protection.targetRecipientToken.trim()) return showError('Bitte die Empfängerkennung der Vertretungsinstanz einfügen.');
+    if (formatVersion === 2 && protection.protectionMode !== 'passphrase_and_recipient_key') return showError('Das ältere Format 2 benötigt Empfängerschlüssel und Transport-Passphrase. Bitte die Schutzart ändern.');
     if (requiresPassphrase(protection.protectionMode) && protection.passphrase.trim().length < 10) return showError('Die Transport-Passphrase muss mindestens 10 Zeichen lang sein.');
     const expiresAt = toHandoverExpiry(validUntil);
     if (!validUntil.trim() || !expiresAt) return showError('Bitte das Ende der Urlaubsvertretung angeben.');
@@ -43,6 +45,7 @@ export function VacationHandoverExportPanel({ cases, onCompleted }: { cases: Cas
         targetRecipientToken: protection.targetRecipientToken.trim(),
         passphrase: requiresPassphrase(protection.protectionMode) ? protection.passphrase : '',
         protectionMode: protection.protectionMode,
+        formatVersion,
         checklist: handoverChecklistConfirmation(acknowledgedItemIds),
         expiresAt,
         purpose: 'Urlaubsübergabe / SBV-Vertretung',
@@ -62,6 +65,10 @@ export function VacationHandoverExportPanel({ cases, onCompleted }: { cases: Cas
     <form className="industrial-stack" onSubmit={submit}>
       <CaseHandoverCasePicker cases={cases} selectedIds={caseIds} onChange={setCaseIds} legend="Fallakten für die Vertretung" />
       <TransferProtectionFields value={protection} onChange={setProtection} targetLabel="Öffentliche Empfängerkennung der Vertretungsinstanz" />
+      <SelectInput label="Übergabeformat" value={String(formatVersion)} options={[
+        { value: '4', label: 'Format 4 – aktuelle Fallübergabe' },
+        { value: '2', label: 'Format 2 – ältere Zielinstanz' },
+      ]} onValueChange={(value) => setFormatVersion(value === '2' ? 2 : 4)} helpText="Format 2 nur ausdrücklich für eine ältere, bekannte Zielinstanz wählen. Es benötigt eine Transport-Passphrase. Die tatsächlich installierte Gegenstelle muss dieses Format lesen können." wide />
       <DateInput label="Vertretung endet am" value={validUntil} onValueChange={setValidUntil} required />
       <CaseHandoverChecklistPanel packageType="vacation_handover" caseIds={caseIds} expiresAt={toHandoverExpiry(validUntil)} acknowledgements={acknowledgedItemIds} onAcknowledgementsChange={setAcknowledgedItemIds} />
       {error ? <div className="industrial-message industrial-message-warning" role="alert">{error}</div> : null}

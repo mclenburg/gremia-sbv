@@ -45,6 +45,7 @@ export interface OfficeHandoverScope {
 export interface CaseHandoverExportInput {
   caseIds: string[];
   measureIds?: string[];
+  formatVersion?: 2 | 4;
   packageType?: 'vacation_handover' | 'office_handover';
   expiresAt?: string;
   purpose?: string;
@@ -75,6 +76,7 @@ export interface CaseHandoverExportResult {
   expiresAt?: string;
   targetInstanceId?: string;
   protectionMode?: TransferProtectionMode;
+  formatVersion?: 2 | 4;
   officeScope?: OfficeHandoverScope;
 }
 

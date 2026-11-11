@@ -22,11 +22,12 @@ Die Zielinstanz zeigt unter **Einstellungen** ihre kurze Instanz-ID und die voll
 2. Öffne das Register **Urlaubsvertretung**.
 3. Wähle nur die Fallakten aus, die während der Vertretung bearbeitet werden müssen. Bei größeren Beständen filterst du nach Aktenzeichen, Name oder Kategorie.
 4. Wähle ein Empfängerprofil oder füge die vollständige öffentliche Empfängerkennung der Zielinstanz ein. Prüfe die angezeigte fünfstellige Zielinstanz-ID.
-5. Trage Transport-Passphrase und Vertretungsende ein.
-6. Exportiere das Paket und übermittle Datei und Passphrase getrennt.
-7. Die Stellvertretung prüft das Paket im Register **Import** vor dem Schreiben und übernimmt es als lokale Vertretungsakte.
-8. Nach der Vertretung erzeugt sie im Register **Rückgabe** ein Rückgabe-Delta für die geänderten Inhalte.
-9. Die ursprüngliche SBV prüft und importiert das Delta. Die Zuordnung erfolgt über das protokollierte Ausgangspaket.
+5. Wähle das Übergabeformat. Format 4 ist der Standard. Format 2 ist nur für eine ältere, bekannte Zielinstanz gedacht, deren tatsächliche Lesefähigkeit geprüft wurde. Format 2 benötigt Empfängerschlüssel und eine Transport-Passphrase; die Schutzart ohne Passphrase ist dafür gesperrt.
+6. Trage Transport-Passphrase und Vertretungsende ein.
+7. Exportiere das Paket und übermittle Datei und Passphrase getrennt.
+8. Die Stellvertretung prüft das Paket im Register **Import** vor dem Schreiben und übernimmt es als lokale Vertretungsakte.
+9. Nach der Vertretung erzeugt sie im Register **Rückgabe** ein Rückgabe-Delta für die geänderten Inhalte.
+10. Die ursprüngliche SBV prüft und importiert das Delta. Die Zuordnung erfolgt über das protokollierte Ausgangspaket.
 
 Abgelaufene Pakete dürfen nicht importiert werden. Bereits importierte Vertretungsdaten werden nach Ablauf sichtbar als prüfbedürftig markiert. Eine fachlich erforderliche Fortführung muss begründet werden.
 

@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { CaseHandoverCandidateMatch } from '../src/domain/models/case-handover.model.js';
+import type { CaseHandoverExportInput } from '../src/domain/models/case-handover.model.js';
 import type { TransferImportPlan } from '../src/domain/models/transfer.model.js';
 import { buildTransferImportPlan } from './transferImportPlan.js';
 
@@ -8,6 +9,20 @@ export const CASE_HANDOVER_LEGACY_VERSION = 1;
 export const CASE_HANDOVER_TARGET_BOUND_LEGACY_VERSION = 2;
 export const CASE_HANDOVER_PASSPHRASE_VERSION = 3;
 export const CASE_HANDOVER_VERSION = 4;
+
+export function resolveCaseHandoverExportVersion(input: CaseHandoverExportInput): 2 | 4 {
+  const version = input.formatVersion ?? CASE_HANDOVER_VERSION;
+  if (version !== CASE_HANDOVER_TARGET_BOUND_LEGACY_VERSION && version !== CASE_HANDOVER_VERSION) {
+    throw new Error('Das gewählte Übergabeformat wird nicht unterstützt.');
+  }
+  if (version === CASE_HANDOVER_TARGET_BOUND_LEGACY_VERSION) {
+    if (input.packageType === 'office_handover') throw new Error('Eine Amtsübergabe kann nicht im älteren Format 2 exportiert werden.');
+    if (input.protectionMode === 'recipient_key_only' || typeof input.passphrase !== 'string' || input.passphrase.trim().length < 10) {
+      throw new Error('Das ältere Format 2 benötigt eine Transport-Passphrase mit mindestens 10 Zeichen und den Empfängerschlüssel.');
+    }
+  }
+  return version;
+}
 
 export function packageRef(prefix: string, index: number): string {
   return `${prefix}_${index + 1}`;

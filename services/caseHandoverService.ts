@@ -6,7 +6,7 @@ import { PersonalDataAuditLogService } from './auditLogService.js';
 import type { CreatePersonalDataAuditInput } from '../src/domain/models/audit.model.js';
 import { auditCaseHandoverContinuedAfterExpiry, auditCaseHandoverExported, auditCaseHandoverImported, auditCaseHandoverImportInspected } from './auditEventBuilders.js';
 import { SearchIndexService } from './search/searchIndexService.js';
-import { buildCandidateMatches, buildCaseHandoverImportPlan, isExpired, safeAuditMetadata } from './caseHandoverPolicy.js';
+import { buildCandidateMatches, buildCaseHandoverImportPlan, isExpired, resolveCaseHandoverExportVersion, safeAuditMetadata } from './caseHandoverPolicy.js';
 import { assertCaseHandoverEnvelope, decryptCaseHandoverEnvelope, type CaseHandoverEnvelope } from './caseHandoverCrypto.js';
 import { encryptCaseHandoverPayloadForRecipient } from './caseHandoverTargetCrypto.js';
 import { inspectCaseHandoverFilePath } from './caseHandoverFilePolicy.js';
@@ -55,6 +55,7 @@ export class CaseHandoverService {
       expiresAt: payload.expiresAt,
       recipient,
       protectionMode: input.protectionMode,
+      formatVersion: payload.version === 2 ? 2 : 4,
     });
   }
 
@@ -158,14 +159,15 @@ export class CaseHandoverService {
 
   async exportToFile(input: CaseHandoverExportInput, targetPath: string): Promise<CaseHandoverExportResult> {
     const db = this.db();
-    const payload = collectCaseHandoverPayload(db, input, this.dataDirProvider);
+    const formatVersion = resolveCaseHandoverExportVersion(input);
+    const payload = collectCaseHandoverPayload(db, { ...input, formatVersion }, this.dataDirProvider);
     new CaseHandoverChecklistService(db).assertConfirmed({ payload, checklist: input.checklist });
     const envelope = this.encryptPayload(payload, input);
     await writeCaseHandoverFile(targetPath, JSON.stringify(envelope, null, 2));
     const targetInstanceId = 'crypto' in envelope ? envelope.recipientBinding?.targetInstanceId : undefined;
     recordCaseHandoverExport(db, payload, targetInstanceId);
     this.audit(db, auditCaseHandoverExported({ packageId: payload.packageId, caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, validUntilPresent: Boolean(payload.expiresAt), result: 'success' }));
-    return { exported: true, filePath: targetPath, packageId: payload.packageId, packageType: payload.packageType ?? 'vacation_handover', caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, expiresAt: payload.expiresAt, targetInstanceId, protectionMode: input.protectionMode ?? 'passphrase_and_recipient_key', officeScope: officeHandoverScope(payload) };
+    return { exported: true, filePath: targetPath, packageId: payload.packageId, packageType: payload.packageType ?? 'vacation_handover', caseCount: payload.cases.length, measureCount: payload.measures.length, documentCount: payload.documents.length, deadlineCount: payload.deadlines.length, expiresAt: payload.expiresAt, targetInstanceId, protectionMode: input.protectionMode ?? 'passphrase_and_recipient_key', formatVersion, officeScope: officeHandoverScope(payload) };
   }
 
   async exportReturnDeltaToFile(input: CaseHandoverReturnDeltaExportInput, targetPath: string): Promise<CaseHandoverExportResult> {

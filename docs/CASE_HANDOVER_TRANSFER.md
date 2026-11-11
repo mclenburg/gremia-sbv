@@ -131,6 +131,8 @@ Konflikte blockieren den Import vollständig. Das gilt insbesondere für unbekan
 
 Neue Übergaben verwenden das aktuelle zielgebundene Format. Unterstützte ältere Formate können weiterhin geprüft werden, erfordern vor dem Import aber eine gesonderte ausdrückliche Bestätigung. Pakethülle und Nutzdaten müssen dieselbe Version tragen. Amtsdaten sind ausschließlich im aktuellen Format zulässig; unbekannte Versionen und unerwartete Datenbereiche werden abgewiesen.
 
+Für eine bewusst gewählte ältere Zielinstanz kann eine Urlaubsvertretung mit ausgewählten Fallakten ausdrücklich als Format 2 geschrieben werden. Dabei sind Empfängerschlüssel und Transport-Passphrase erforderlich. Das Format wird vor dem Aufbau der Nutzdaten geprüft; Amtsdaten und die Schutzart ohne Passphrase sind damit nicht kombinierbar. Die ältere Zielanwendung muss Format 2 tatsächlich lesen können. Der Rückgabeweg einer älteren Zielanwendung ist dadurch nicht zugesagt.
+
 ## Datenschutz und Audit
 
 Export, Import, abgelehnte Importe und die Weiterbearbeitung abgelaufener Übergabedaten werden auditiert. Das Audit-Log darf dabei nicht selbst zum Datenschutzproblem werden.
