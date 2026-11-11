@@ -3,6 +3,9 @@ import type { CaseHandoverCandidateMatch } from '../src/domain/models/case-hando
 import type { CaseHandoverExportInput } from '../src/domain/models/case-handover.model.js';
 import type { TransferImportPlan } from '../src/domain/models/transfer.model.js';
 import { buildTransferImportPlan } from './transferImportPlan.js';
+import type { DatabaseAdapter } from './databaseService.js';
+import { TransferRecipientProfileService } from './transferRecipientProfileService.js';
+import { parseTransferRecipientToken } from './transferInstanceIdentityPolicy.js';
 
 export const CASE_HANDOVER_FORMAT = 'gremia-sbv-case-handover';
 export const CASE_HANDOVER_LEGACY_VERSION = 1;
@@ -22,6 +25,14 @@ export function resolveCaseHandoverExportVersion(input: CaseHandoverExportInput)
     }
   }
   return version;
+}
+
+export function assertVerifiedRecipientCanReadFormat(database: DatabaseAdapter, input: CaseHandoverExportInput, formatVersion: 2 | 4): void {
+  const recipient = parseTransferRecipientToken(input.targetRecipientToken);
+  const profile = new TransferRecipientProfileService(database).list().find((candidate) => candidate.keyFingerprint === recipient.keyFingerprint);
+  if (profile?.capabilityStatus === 'verified' && !profile.capabilities?.readFormats.includes(formatVersion)) {
+    throw new Error(`Die verifizierte Zielinstanz kann Format ${formatVersion} nicht lesen. Bitte ein gemeinsames Übergabeformat wählen.`);
+  }
 }
 
 export function packageRef(prefix: string, index: number): string {

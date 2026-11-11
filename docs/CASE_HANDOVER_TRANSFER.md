@@ -137,6 +137,8 @@ Für eine bewusst gewählte ältere Zielinstanz kann eine Urlaubsvertretung mit 
 
 Bekannte Instanzen können ihre Übergabefähigkeiten offline austauschen: Unter **Einstellungen > Übergaben** wird für ein aktives Empfängerprofil eine kleine `.gsbvcap`-Datei erzeugt. Die Gegeninstanz wählt diese Datei beim zugehörigen Profil aus, prüft Instanz-ID, vollständigen Fingerprint, Lese- und Schreibformate sowie Merkmale und übernimmt sie ausdrücklich. Die Datei bindet Absender, Ziel, Inhalt und Ausgabezeitpunkt kryptografisch an die beiden bekannten X25519-Schlüssel. Ein unbekannter oder ausgetauschter Schlüssel benötigt weiterhin eine unabhängig bestätigte Empfängerkennung und ein neues Profil. Ältere Revisionsstände setzen bereits bestätigte Fähigkeiten nicht zurück; deaktivierte Profile werden dadurch nicht aktiviert. Die aktuelle Anwendung meldet nur die tatsächlich vorhandenen Formate 1–4 zum Lesen und 2/4 zum Schreiben. Die angezeigte Softwareversion ist informativ und schaltet keine Paketformate frei.
 
+Bei Auswahl eines verifizierten Empfängerprofils schlägt die Urlaubsübergabe das neueste gemeinsame Format aus den derzeit schreibbaren Formaten 4 und 2 vor. Ein Format, das die bestätigte Gegeninstanz nicht lesen kann, wird auch im Export-Service vor Datensammlung und Dateischreiben gesperrt. Bei unbekannter Fähigkeit bleibt die Formatwahl offen und muss unabhängig geprüft werden; die Rückgabefähigkeit einer älteren Gegeninstanz ist damit weiterhin nicht zugesagt.
+
 ## Datenschutz und Audit
 
 Export, Import, abgelehnte Importe und die Weiterbearbeitung abgelaufener Übergabedaten werden auditiert. Das Audit-Log darf dabei nicht selbst zum Datenschutzproblem werden.

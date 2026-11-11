@@ -6,7 +6,7 @@ import { PersonalDataAuditLogService } from './auditLogService.js';
 import type { CreatePersonalDataAuditInput } from '../src/domain/models/audit.model.js';
 import { auditCaseHandoverContinuedAfterExpiry, auditCaseHandoverExported, auditCaseHandoverImported, auditCaseHandoverImportInspected } from './auditEventBuilders.js';
 import { SearchIndexService } from './search/searchIndexService.js';
-import { buildCandidateMatches, buildCaseHandoverImportPlan, isExpired, resolveCaseHandoverExportVersion, safeAuditMetadata } from './caseHandoverPolicy.js';
+import { assertVerifiedRecipientCanReadFormat, buildCandidateMatches, buildCaseHandoverImportPlan, isExpired, resolveCaseHandoverExportVersion, safeAuditMetadata } from './caseHandoverPolicy.js';
 import { assertCaseHandoverEnvelope, decryptCaseHandoverEnvelope, type CaseHandoverEnvelope } from './caseHandoverCrypto.js';
 import { encryptCaseHandoverPayloadForRecipient } from './caseHandoverTargetCrypto.js';
 import { inspectCaseHandoverFilePath } from './caseHandoverFilePolicy.js';
@@ -160,9 +160,11 @@ export class CaseHandoverService {
   async exportToFile(input: CaseHandoverExportInput, targetPath: string): Promise<CaseHandoverExportResult> {
     const db = this.db();
     const formatVersion = resolveCaseHandoverExportVersion(input);
+    assertVerifiedRecipientCanReadFormat(db, input, formatVersion);
     const payload = collectCaseHandoverPayload(db, { ...input, formatVersion }, this.dataDirProvider);
     new CaseHandoverChecklistService(db).assertConfirmed({ payload, checklist: input.checklist });
     const envelope = this.encryptPayload(payload, input);
+    assertVerifiedRecipientCanReadFormat(db, input, formatVersion);
     await writeCaseHandoverFile(targetPath, JSON.stringify(envelope, null, 2));
     const targetInstanceId = 'crypto' in envelope ? envelope.recipientBinding?.targetInstanceId : undefined;
     recordCaseHandoverExport(db, payload, targetInstanceId);

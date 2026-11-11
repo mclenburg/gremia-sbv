@@ -29,11 +29,13 @@ export function TransferProtectionFields({
   onChange,
   targetLabel = 'Empfängerkennung der Zielinstanz',
   passphraseLabel = 'Transport-Passphrase',
+  onRecipientProfileChange,
 }: {
   value: TransferProtectionState;
   onChange: (value: TransferProtectionState) => void;
   targetLabel?: string;
   passphraseLabel?: string;
+  onRecipientProfileChange?: (profile: TransferRecipientProfile | null) => void;
 }) {
   const [profiles, setProfiles] = useState<TransferRecipientProfile[]>([]);
   const [selectedProfileId, setSelectedProfileId] = useState(MANUAL_PROFILE);
@@ -62,6 +64,7 @@ export function TransferProtectionFields({
   function selectProfile(profileId: string) {
     setSelectedProfileId(profileId);
     const profile = profiles.find((entry) => entry.id === profileId);
+    onRecipientProfileChange?.(profile ?? null);
     if (profile) update({ targetRecipientToken: profile.recipientToken });
   }
 
@@ -101,6 +104,7 @@ export function TransferProtectionFields({
         value={value.targetRecipientToken}
         onValueChange={(targetRecipientToken) => {
           setSelectedProfileId(MANUAL_PROFILE);
+          onRecipientProfileChange?.(null);
           update({ targetRecipientToken });
         }}
         rows={2}

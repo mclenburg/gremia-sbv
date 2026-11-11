@@ -6,6 +6,8 @@ import type { DatabaseAdapter } from '../../../../services/databaseService';
 import { CaseHandoverService } from '../../../../services/caseHandoverService';
 import { MigrationService } from '../../../../services/migrationService';
 import { TransferInstanceIdentityService } from '../../../../services/transferInstanceIdentityService';
+import { TransferRecipientProfileService } from '../../../../services/transferRecipientProfileService';
+import { createTransferCapabilityDocument } from '../../../../services/transferCapabilityDocument';
 import { openTestDatabase } from '../../../helpers/openTestDatabase';
 import { createElement } from 'react';
 import { LiveRegionProvider } from '../../../../src/app/shared/a11y/LiveRegionProvider';
@@ -41,7 +43,7 @@ describe('ausdrücklicher Legacy-Export', () => {
     const text = visibleText(rendered.markup);
     expect(text).toContain('Format 4 – aktuelle Fallübergabe');
     expect(text).toContain('Format 2 – ältere Zielinstanz');
-    expect(text).toContain('Die tatsächlich installierte Gegenstelle muss dieses Format lesen können.');
+    expect(text).toContain('Die tatsächliche Rückgabefähigkeit einer älteren Zielinstanz ist gesondert zu prüfen.');
   });
 
   it('erzeugt Format 2 zielgebunden und importiert es erst nach Altformat-Bestätigung', async () => {
@@ -77,5 +79,22 @@ describe('ausdrücklicher Legacy-Export', () => {
     const unknownPath = path.join(temporaryRoot, 'unknown.gsbvtransfer');
     await expect(sender.exportToFile({ ...base, formatVersion: 5 as 2 }, unknownPath)).rejects.toThrow(/nicht unterstützt/);
     expect(fs.existsSync(unknownPath)).toBe(false);
+  });
+
+  it('sperrt ein Format, das ein verifiziertes Empfängerprofil nicht lesen kann, vor Dateianlage', async () => {
+    const sourceIdentity = new TransferInstanceIdentityService(source).getPrivateIdentity();
+    const targetIdentity = new TransferInstanceIdentityService(target).getPrivateIdentity();
+    const profiles = new TransferRecipientProfileService(source);
+    const profile = profiles.save({ label: 'Ältere Vertretung', recipientToken: new TransferInstanceIdentityService(target).getPublicIdentity().recipientToken });
+    profiles.acceptCapability(profile.id, createTransferCapabilityDocument(targetIdentity, sourceIdentity, {
+      protocolVersion: 1, readFormats: [1, 2], writeFormats: [2], features: ['manual_capability_exchange'],
+      buildVersion: '9.9.9', revision: 1, issuedAt: '2026-11-11T10:00:00.000Z',
+    }), sourceIdentity);
+    const filePath = path.join(temporaryRoot, 'unsupported-format.gsbvtransfer');
+    await expect(new CaseHandoverService(source, () => temporaryRoot).exportToFile({
+      caseIds: ['case-legacy-export'], targetRecipientToken: profile.recipientToken,
+      passphrase: 'lange Transport-Passphrase', formatVersion: 4, expiresAt: '2099-11-11T23:59:59.000Z',
+    }, filePath)).rejects.toThrow(/verifizierte.*Format 4/);
+    expect(fs.existsSync(filePath)).toBe(false);
   });
 });

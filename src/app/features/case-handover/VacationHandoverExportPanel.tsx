@@ -1,6 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import type { CaseRecord } from '../../../domain/models/case.model';
 import type { CaseHandoverExportResult, TransferProtectionMode } from '../../../domain/models/case-handover.model';
+import type { TransferRecipientProfile } from '../../../domain/models/transfer-recipient-profile.model';
+import { planVacationHandoverFormat } from '../../../domain/transfer/transferFormatPlan';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { ExportAction, FileLocationNotice } from '../../shared/components/ImportExportFeedback';
 import { DateInput, FormActions, SelectInput } from '../../shared/components/IndustrialForm';
@@ -18,10 +20,18 @@ export function VacationHandoverExportPanel({ cases, onCompleted }: { cases: Cas
   const [acknowledgedItemIds, setAcknowledgedItemIds] = useState<string[]>([]);
   const [validUntil, setValidUntil] = useState('');
   const [formatVersion, setFormatVersion] = useState<2 | 4>(4);
+  const [selectedProfile, setSelectedProfile] = useState<TransferRecipientProfile | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState<CaseHandoverExportResult | null>(null);
   useEffect(() => { setCaseIds((current) => current.filter((id) => cases.some((record) => record.id === id))); }, [cases]);
+  const formatPlan = planVacationHandoverFormat(selectedProfile?.capabilityStatus === 'verified' ? selectedProfile.capabilities : null);
+
+  function selectRecipientProfile(profile: TransferRecipientProfile | null) {
+    setSelectedProfile(profile);
+    const suggestion = planVacationHandoverFormat(profile?.capabilityStatus === 'verified' ? profile.capabilities : null).suggested;
+    if (suggestion) setFormatVersion(suggestion);
+  }
 
   function showError(message: string) {
     setError(message);
@@ -32,6 +42,7 @@ export function VacationHandoverExportPanel({ cases, onCompleted }: { cases: Cas
     event.preventDefault(); setError(''); setResult(null);
     if (!caseIds.length) return showError('Bitte mindestens eine Fallakte für die Vertretung auswählen.');
     if (!protection.targetRecipientToken.trim()) return showError('Bitte die Empfängerkennung der Vertretungsinstanz einfügen.');
+    if (!formatPlan.available.includes(formatVersion)) return showError('Die verifizierte Zielinstanz kann das gewählte Übergabeformat nicht lesen. Bitte ein gemeinsames Format wählen.');
     if (formatVersion === 2 && protection.protectionMode !== 'passphrase_and_recipient_key') return showError('Das ältere Format 2 benötigt Empfängerschlüssel und Transport-Passphrase. Bitte die Schutzart ändern.');
     if (requiresPassphrase(protection.protectionMode) && protection.passphrase.trim().length < 10) return showError('Die Transport-Passphrase muss mindestens 10 Zeichen lang sein.');
     const expiresAt = toHandoverExpiry(validUntil);
@@ -64,16 +75,18 @@ export function VacationHandoverExportPanel({ cases, onCompleted }: { cases: Cas
   return <IndustrialPanel ariaLabel="Urlaubsvertretung übergeben" kicker="Ausgabe" title="Urlaubsvertretung übergeben" description="Ausgewählte Fallakten werden als ein verschlüsseltes, zielgebundenes Paket übergeben." helpId="caseHandover.vacation">
     <form className="industrial-stack" onSubmit={submit}>
       <CaseHandoverCasePicker cases={cases} selectedIds={caseIds} onChange={setCaseIds} legend="Fallakten für die Vertretung" />
-      <TransferProtectionFields value={protection} onChange={setProtection} targetLabel="Öffentliche Empfängerkennung der Vertretungsinstanz" />
-      <SelectInput label="Übergabeformat" value={String(formatVersion)} options={[
-        { value: '4', label: 'Format 4 – aktuelle Fallübergabe' },
-        { value: '2', label: 'Format 2 – ältere Zielinstanz' },
-      ]} onValueChange={(value) => setFormatVersion(value === '2' ? 2 : 4)} helpText="Format 2 nur ausdrücklich für eine ältere, bekannte Zielinstanz wählen. Es benötigt eine Transport-Passphrase. Die tatsächlich installierte Gegenstelle muss dieses Format lesen können." wide />
+      <TransferProtectionFields value={protection} onChange={setProtection} onRecipientProfileChange={selectRecipientProfile} targetLabel="Öffentliche Empfängerkennung der Vertretungsinstanz" />
+      {selectedProfile?.capabilityStatus === 'verified' ? <div className="industrial-settings-note" role="status">Verifizierte Zielformate zum Lesen: {selectedProfile.capabilities?.readFormats.join(', ') || 'keine'} · Rückgabeformate zum Schreiben: {selectedProfile.capabilities?.writeFormats.join(', ') || 'keine'}</div>
+        : <div className="industrial-settings-note" role="status">Übergabefähigkeiten der Zielinstanz unbekannt. Bitte das tatsächlich unterstützte Format unabhängig prüfen.</div>}
+      {formatPlan.available.length ? <SelectInput label="Übergabeformat" value={String(formatVersion)} options={formatPlan.available.map((format) => ({
+        value: String(format), label: format === 4 ? 'Format 4 – aktuelle Fallübergabe' : 'Format 2 – ältere Zielinstanz',
+      }))} onValueChange={(value) => setFormatVersion(value === '2' ? 2 : 4)} helpText="Format 2 benötigt eine Transport-Passphrase. Die tatsächliche Rückgabefähigkeit einer älteren Zielinstanz ist gesondert zu prüfen." wide />
+        : <div className="industrial-message industrial-message-warning" role="alert">Dieses verifizierte Empfängerprofil kann keines der derzeit schreibbaren Urlaubsübergabeformate lesen.</div>}
       <DateInput label="Vertretung endet am" value={validUntil} onValueChange={setValidUntil} required />
       <CaseHandoverChecklistPanel packageType="vacation_handover" caseIds={caseIds} expiresAt={toHandoverExpiry(validUntil)} acknowledgements={acknowledgedItemIds} onAcknowledgementsChange={setAcknowledgedItemIds} />
       {error ? <div className="industrial-message industrial-message-warning" role="alert">{error}</div> : null}
       {result?.exported ? <FileLocationNotice filePath={result.filePath} label="Übergabepaket gespeichert" /> : null}
-      <FormActions><ExportAction type="submit" loading={busy} disabled={!caseIds.length}>Urlaubsübergabe exportieren</ExportAction></FormActions>
+      <FormActions><ExportAction type="submit" loading={busy} disabled={!caseIds.length || !formatPlan.available.includes(formatVersion)}>Urlaubsübergabe exportieren</ExportAction></FormActions>
     </form>
   </IndustrialPanel>;
 }
