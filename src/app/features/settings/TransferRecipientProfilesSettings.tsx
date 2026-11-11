@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Pencil, Power, Save, Trash2 } from 'lucide-react';
+import { Download, Pencil, Power, Save, Trash2, Upload } from 'lucide-react';
 import type { TransferRecipientProfile } from '../../../domain/models/transfer-recipient-profile.model';
+import type { TransferCapabilityDocument } from '../../../domain/models/transfer-capability.model';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { useConfirmDialog } from '../../shared/dialogs/ConfirmDialogProvider';
 import { ButtonGroup, IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
@@ -16,6 +17,7 @@ export function TransferRecipientProfilesSettings() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [selectedCapability, setSelectedCapability] = useState<{ profileId: string; fileToken: string; fileName: string; document: TransferCapabilityDocument } | null>(null);
 
   async function reload() {
     setProfiles(await window.gremiaSbv.transferIdentity.listRecipientProfiles());
@@ -75,8 +77,19 @@ export function TransferRecipientProfilesSettings() {
             <div>
               <strong>{profile.label}</strong>
               <div className="industrial-settings-note">Instanz {profile.instanceId} · Fingerprint {profile.keyFingerprint.slice(0, 16)} · {profile.active ? 'aktiv' : 'deaktiviert'}</div>
+              <div className="industrial-settings-note">Übergabefähigkeiten: {profile.capabilityStatus === 'verified' && profile.capabilities
+                ? `verifiziert am ${new Date(profile.capabilityConfirmedAt ?? '').toLocaleString('de-DE')} · Lesen ${profile.capabilities.readFormats.join(', ')} · Schreiben ${profile.capabilities.writeFormats.join(', ')}`
+                : 'unbekannt'}</div>
             </div>
             <ButtonGroup ariaLabel={`Aktionen für ${profile.label}`}>
+              <ToolbarButton disabled={busy || !profile.active} onClick={() => void run(async () => {
+                const result = await window.gremiaSbv.transferIdentity.exportCapability(profile.id);
+                if (result.exported) setMessage(`Fähigkeitsdatei für „${profile.label}“ wurde gespeichert.`);
+              })}><Download className="industrial-icon" aria-hidden="true" /> Fähigkeiten bereitstellen</ToolbarButton>
+              <ToolbarButton disabled={busy} onClick={() => void run(async () => {
+                const result = await window.gremiaSbv.transferIdentity.selectCapability(profile.id);
+                if (!result.canceled) setSelectedCapability({ profileId: profile.id, ...result });
+              })}><Upload className="industrial-icon" aria-hidden="true" /> Übergabefähigkeiten aktualisieren</ToolbarButton>
               <ToolbarButton disabled={busy} onClick={() => edit(profile)}><Pencil className="industrial-icon" aria-hidden="true" /> Bearbeiten</ToolbarButton>
               <ToolbarButton disabled={busy} onClick={() => void run(async () => {
                 const updated = await window.gremiaSbv.transferIdentity.setRecipientProfileActive(profile.id, !profile.active);
@@ -94,6 +107,20 @@ export function TransferRecipientProfilesSettings() {
           </div>
         ))}
       </div>
+
+      {selectedCapability ? <section className="industrial-settings-form" aria-label="Geprüfte Übergabefähigkeiten">
+        <h4>Fähigkeitsdatei prüfen</h4>
+        <p className="industrial-settings-note">{selectedCapability.fileName} · Instanz {selectedCapability.document.origin.instanceId} · Fingerprint {selectedCapability.document.origin.keyFingerprint}</p>
+        <p className="industrial-settings-note">Lesen: {selectedCapability.document.capabilities.readFormats.join(', ')} · Schreiben: {selectedCapability.document.capabilities.writeFormats.join(', ')} · Merkmale: {selectedCapability.document.capabilities.features.join(', ') || 'keine'} · Stand: {selectedCapability.document.capabilities.revision}</p>
+        <ButtonGroup ariaLabel="Fähigkeitsdatei übernehmen">
+          <IndustrialButton loading={busy} onClick={() => void run(async () => {
+            const profile = await window.gremiaSbv.transferIdentity.importCapability(selectedCapability.profileId, selectedCapability.fileToken);
+            setSelectedCapability(null);
+            setMessage(`Übergabefähigkeiten für „${profile.label}“ wurden verifiziert übernommen.`);
+          })}>Fähigkeiten übernehmen</IndustrialButton>
+          <IndustrialButton variant="secondary" disabled={busy} onClick={() => setSelectedCapability(null)}>Abbrechen</IndustrialButton>
+        </ButtonGroup>
+      </section> : null}
 
       {message ? <div className="industrial-message industrial-message-ok" role="status">{message}</div> : null}
       {error ? <div className="industrial-message industrial-message-warning" role="alert">{error}</div> : null}

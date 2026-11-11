@@ -5,6 +5,7 @@ import { PersonalDataAuditLogService } from '../../../services/auditLogService';
 import type { DatabaseAdapter } from '../../../services/databaseService';
 import { TransferInstanceIdentityService } from '../../../services/transferInstanceIdentityService';
 import { TransferRecipientProfileService } from '../../../services/transferRecipientProfileService';
+import { createTransferCapabilityDocument } from '../../../services/transferCapabilityDocument';
 
 class SqliteAdapter implements DatabaseAdapter {
   constructor(private readonly database: DatabaseSync) {}
@@ -37,6 +38,44 @@ function recipientToken() {
 }
 
 describe('TransferRecipientProfileService', () => {
+  it('erstellt für bekannte aktive Ziele fortlaufend nummerierte, überprüfbare Fähigkeitsdateien', () => {
+    const source = database();
+    const target = database();
+    try {
+      const sender = new TransferInstanceIdentityService(source.database).getPrivateIdentity();
+      const recipient = new TransferInstanceIdentityService(target.database).getPrivateIdentity();
+      const service = new TransferRecipientProfileService(source.database);
+      const profile = service.save({ label: 'Ziel', recipientToken: new TransferInstanceIdentityService(target.database).getPublicIdentity().recipientToken });
+      const first = service.createCapability(profile.id, sender, '0.9.8');
+      const second = service.createCapability(profile.id, sender, '0.9.8');
+      expect(first.capabilities.revision).toBe(1);
+      expect(second.capabilities.revision).toBe(2);
+      expect(JSON.stringify(first)).not.toContain('PRIVATE KEY');
+      const receiving = new TransferRecipientProfileService(target.database);
+      const reverseProfile = receiving.save({ label: 'Quelle', recipientToken: new TransferInstanceIdentityService(source.database).getPublicIdentity().recipientToken });
+      expect(receiving.acceptCapability(reverseProfile.id, second, recipient).capabilities?.revision).toBe(2);
+      expect(() => receiving.acceptCapability(reverseProfile.id, first, recipient)).toThrow(/nicht neuer/);
+      service.setActive(profile.id, false);
+      expect(() => service.createCapability(profile.id, sender, '0.9.8')).toThrow(/deaktiviertes/);
+    } finally { source.raw.close(); target.raw.close(); }
+  });
+  it('übernimmt nur neuere verifizierte Fähigkeiten des gespeicherten Schlüssels ohne ein deaktiviertes Profil zu aktivieren', () => {
+    const source = database();
+    const target = database();
+    try {
+      const sender = new TransferInstanceIdentityService(source.database).getPrivateIdentity();
+      const recipient = new TransferInstanceIdentityService(target.database).getPrivateIdentity();
+      const service = new TransferRecipientProfileService(target.database);
+      const profile = service.save({ label: 'Vertretung', recipientToken: new TransferInstanceIdentityService(source.database).getPublicIdentity().recipientToken });
+      service.setActive(profile.id, false);
+      const capabilities = { protocolVersion: 1 as const, readFormats: [1, 2, 3, 4], writeFormats: [2, 4], features: ['manual_capability_exchange'], buildVersion: '0.9.8', revision: 2, issuedAt: '2026-11-11T10:00:00.000Z' };
+      const document = createTransferCapabilityDocument(sender, recipient, capabilities);
+      expect(service.acceptCapability(profile.id, document, recipient)).toMatchObject({ active: false, capabilities, capabilityStatus: 'verified' });
+      expect(() => service.acceptCapability(profile.id, createTransferCapabilityDocument(sender, recipient, { ...capabilities, revision: 1 }), recipient)).toThrow(/nicht neuer/);
+      expect(() => service.acceptCapability(profile.id, { ...document, capabilities: { ...capabilities, writeFormats: [5] } }, recipient)).toThrow();
+      expect(service.list()[0]).toMatchObject({ active: false, capabilities, capabilityStatus: 'verified' });
+    } finally { source.raw.close(); target.raw.close(); }
+  });
   it('speichert nur öffentliche Empfängerdaten und aktualisiert denselben Schlüssel ohne Dublette', () => {
     const target = database();
     try {

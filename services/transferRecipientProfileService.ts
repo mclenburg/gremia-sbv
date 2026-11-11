@@ -5,6 +5,8 @@ import type {
   TransferRecipientProfile,
 } from '../src/domain/models/transfer-recipient-profile.model.js';
 import { parseTransferRecipientToken } from './transferInstanceIdentityPolicy.js';
+import { createTransferCapabilityDocument, verifyTransferCapabilityDocument, type TransferCapabilityDocument } from './transferCapabilityDocument.js';
+import type { TransferInstancePrivateIdentity } from './transferInstanceIdentityService.js';
 import type { PersonalDataAuditLogService } from './auditLogService.js';
 
 type RecipientProfileRow = {
@@ -14,6 +16,9 @@ type RecipientProfileRow = {
   key_fingerprint: string;
   recipient_token: string;
   active: number;
+  capabilities_json: string | null;
+  capability_revision: number | null;
+  capability_confirmed_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -38,6 +43,9 @@ function mapProfile(row: RecipientProfileRow): TransferRecipientProfile {
     keyFingerprint: row.key_fingerprint,
     recipientToken: row.recipient_token,
     active: Boolean(row.active),
+    capabilities: row.capabilities_json ? JSON.parse(row.capabilities_json) as TransferRecipientProfile['capabilities'] : null,
+    capabilityStatus: row.capabilities_json ? 'verified' : 'unknown',
+    capabilityConfirmedAt: row.capability_confirmed_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -54,6 +62,40 @@ export class TransferRecipientProfileService {
       SELECT * FROM transfer_recipient_profiles
       ORDER BY active DESC, label COLLATE NOCASE, instance_id
     `).all().map(mapProfile);
+  }
+
+  createCapability(id: string, sender: TransferInstancePrivateIdentity, buildVersion: string): TransferCapabilityDocument {
+    const profile = this.requireProfile(id);
+    if (!profile.active) throw new Error('Für ein deaktiviertes Empfängerprofil kann keine Fähigkeitsdatei erstellt werden.');
+    const recipient = parseTransferRecipientToken(profile.recipientToken);
+    const row = this.database.prepare<{ value: string }>(`
+      INSERT INTO settings (key, value, updated_at) VALUES ('transfer.capability.revision.v1', '1', ?)
+      ON CONFLICT(key) DO UPDATE SET value = CAST(CAST(value AS INTEGER) + 1 AS TEXT), updated_at = excluded.updated_at
+      RETURNING value
+    `).get(nowIso());
+    const revision = Number(row?.value);
+    if (!Number.isSafeInteger(revision) || revision < 1) throw new Error('Fähigkeitsrevision konnte nicht vergeben werden.');
+    return createTransferCapabilityDocument(sender, recipient, {
+      protocolVersion: 1, readFormats: [1, 2, 3, 4], writeFormats: [2, 4],
+      features: ['manual_capability_exchange'], buildVersion, revision, issuedAt: nowIso(),
+    });
+  }
+
+  acceptCapability(id: string, document: TransferCapabilityDocument, recipient: TransferInstancePrivateIdentity): TransferRecipientProfile {
+    const profile = this.requireProfile(id);
+    const knownSender = parseTransferRecipientToken(profile.recipientToken);
+    const capabilities = verifyTransferCapabilityDocument(document, recipient, knownSender);
+    const result = this.database.prepare(`
+      UPDATE transfer_recipient_profiles
+      SET capabilities_json = ?, capability_revision = ?, capability_confirmed_at = ?, updated_at = ?
+      WHERE id = ? AND (capability_revision IS NULL OR capability_revision < ?)
+    `).run(JSON.stringify(capabilities), capabilities.revision, nowIso(), nowIso(), id, capabilities.revision) as { changes?: number };
+    if (!result.changes) throw new Error('Der Fähigkeitsstand ist nicht neuer als der bereits bestätigte Stand.');
+    this.auditLog?.append({
+      action: 'update', subjectType: 'transfer_recipient_profile', subjectId: id,
+      purpose: 'Übergabefähigkeiten verifiziert', metadata: { revision: capabilities.revision },
+    });
+    return this.requireProfile(id);
   }
 
   save(input: SaveTransferRecipientProfileInput): TransferRecipientProfile {

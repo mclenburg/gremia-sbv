@@ -5,8 +5,7 @@ import type { TemplateDefaultValues } from "../../src/domain/models/template-def
 import type { EmployerQuotaSettings } from "../../src/domain/models/employer-quota.model.js";
 import type { CaseDocumentRecord } from "../../src/domain/models/case-document.model.js";
 import type { GremiaBrDocumentImportInput, GremiaBrManagedDocument, GremiaBrOwnShare, GremiaBrShareCreateInput, GremiaBrShareRevokeInput } from "../../src/domain/models/gremia-br.model.js";
-import type { TransferInstanceIdentity } from "../../src/domain/models/transfer-identity.model.js";
-import type { SaveTransferRecipientProfileInput, TransferRecipientProfile } from "../../src/domain/models/transfer-recipient-profile.model.js";
+import { createTransferIdentityApi } from './transferIdentity.js';
 
 export function createSettingsApi(invokeIpc: IpcInvoker) {
   return {
@@ -114,17 +113,6 @@ export function createSettingsApi(invokeIpc: IpcInvoker) {
       save: (values: TemplateDefaultValues): Promise<TemplateDefaultValues> =>
         invokeIpc(IPC_CHANNELS.templateDefaultsSave, values),
     },
-  transferIdentity: {
-      get: (): Promise<TransferInstanceIdentity> =>
-        invokeIpc(IPC_CHANNELS.transferIdentityGet),
-      listRecipientProfiles: (): Promise<TransferRecipientProfile[]> =>
-        invokeIpc(IPC_CHANNELS.transferRecipientProfilesList),
-      saveRecipientProfile: (input: SaveTransferRecipientProfileInput): Promise<TransferRecipientProfile> =>
-        invokeIpc(IPC_CHANNELS.transferRecipientProfilesSave, input),
-      setRecipientProfileActive: (id: string, active: boolean): Promise<TransferRecipientProfile> =>
-        invokeIpc(IPC_CHANNELS.transferRecipientProfilesSetActive, id, active),
-      deleteRecipientProfile: (id: string): Promise<{ deleted: boolean }> =>
-        invokeIpc(IPC_CHANNELS.transferRecipientProfilesDelete, id),
-    }
+  transferIdentity: createTransferIdentityApi(invokeIpc),
   } as const;
 }

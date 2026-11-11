@@ -4,6 +4,7 @@ import { IpcValidationError } from './ipcValidation.js';
 
 export const SELECTED_FILE_PURPOSE = {
   caseHandover: 'case-handover',
+  transferCapability: 'transfer-capability',
   mobileCompanionReturn: 'mobile-companion-return',
   personImport: 'person-import',
   electionTransfer: 'election-transfer',

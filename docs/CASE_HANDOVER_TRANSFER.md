@@ -135,6 +135,8 @@ Neue Übergaben verwenden das aktuelle zielgebundene Format. Unterstützte älte
 
 Für eine bewusst gewählte ältere Zielinstanz kann eine Urlaubsvertretung mit ausgewählten Fallakten ausdrücklich als Format 2 geschrieben werden. Dabei sind Empfängerschlüssel und Transport-Passphrase erforderlich. Das Format wird vor dem Aufbau der Nutzdaten geprüft; Amtsdaten und die Schutzart ohne Passphrase sind damit nicht kombinierbar. Die ältere Zielanwendung muss Format 2 tatsächlich lesen können. Der Rückgabeweg einer älteren Zielanwendung ist dadurch nicht zugesagt.
 
+Bekannte Instanzen können ihre Übergabefähigkeiten offline austauschen: Unter **Einstellungen > Übergaben** wird für ein aktives Empfängerprofil eine kleine `.gsbvcap`-Datei erzeugt. Die Gegeninstanz wählt diese Datei beim zugehörigen Profil aus, prüft Instanz-ID, vollständigen Fingerprint, Lese- und Schreibformate sowie Merkmale und übernimmt sie ausdrücklich. Die Datei bindet Absender, Ziel, Inhalt und Ausgabezeitpunkt kryptografisch an die beiden bekannten X25519-Schlüssel. Ein unbekannter oder ausgetauschter Schlüssel benötigt weiterhin eine unabhängig bestätigte Empfängerkennung und ein neues Profil. Ältere Revisionsstände setzen bereits bestätigte Fähigkeiten nicht zurück; deaktivierte Profile werden dadurch nicht aktiviert. Die aktuelle Anwendung meldet nur die tatsächlich vorhandenen Formate 1–4 zum Lesen und 2/4 zum Schreiben. Die angezeigte Softwareversion ist informativ und schaltet keine Paketformate frei.
+
 ## Datenschutz und Audit
 
 Export, Import, abgelehnte Importe und die Weiterbearbeitung abgelaufener Übergabedaten werden auditiert. Das Audit-Log darf dabei nicht selbst zum Datenschutzproblem werden.

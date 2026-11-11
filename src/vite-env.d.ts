@@ -578,6 +578,9 @@ declare global {
       };
       transferIdentity: {
         get(): Promise<TransferInstanceIdentity>;
+        exportCapability(profileId: string): Promise<{ exported: boolean; filePath?: string }>;
+        selectCapability(profileId: string): Promise<{ canceled: true } | { canceled: false; fileToken: string; fileName: string; document: import('./domain/models/transfer-capability.model').TransferCapabilityDocument }>;
+        importCapability(profileId: string, fileToken: string): Promise<TransferRecipientProfile>;
         listRecipientProfiles(): Promise<TransferRecipientProfile[]>;
         saveRecipientProfile(input: SaveTransferRecipientProfileInput): Promise<TransferRecipientProfile>;
         setRecipientProfileActive(id: string, active: boolean): Promise<TransferRecipientProfile>;

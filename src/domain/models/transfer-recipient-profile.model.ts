@@ -1,3 +1,5 @@
+import type { TransferCapabilities } from './transfer-capability.model.js';
+
 export interface TransferRecipientProfile {
   id: string;
   label: string;
@@ -5,6 +7,9 @@ export interface TransferRecipientProfile {
   keyFingerprint: string;
   recipientToken: string;
   active: boolean;
+  capabilities: TransferCapabilities | null;
+  capabilityStatus: 'unknown' | 'verified';
+  capabilityConfirmedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }

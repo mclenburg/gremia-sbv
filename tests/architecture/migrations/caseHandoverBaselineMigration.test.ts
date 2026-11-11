@@ -16,8 +16,8 @@ describe('Fallübergabe-Ledger-Migration 0069', () => {
         .run('item-old', 'export-old', 'deadline_1', 'deadline', 'deadline-old', '2026-09-01T08:00:00.000Z');
 
       const migration = new MigrationService(database, path.resolve('database/schema.sql'), path.resolve('database/migrations'));
-      expect(migration.migrate().currentSchemaVersion).toBe('0069');
-      expect(migration.migrate().currentSchemaVersion).toBe('0069');
+      expect(migration.migrate().currentSchemaVersion).toBe('0070');
+      expect(migration.migrate().currentSchemaVersion).toBe('0070');
       expect(database.prepare<{ baseline_sha256: string | null; local_entity_id: string }>('SELECT baseline_sha256, local_entity_id FROM case_handover_export_items WHERE id = ?').get('item-old'))
         .toEqual({ baseline_sha256: null, local_entity_id: 'deadline-old' });
     } finally {

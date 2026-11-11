@@ -315,6 +315,9 @@ export const TRANSFER_RECIPIENT_PROFILES_REQUIRED_COLUMNS = [
   'key_fingerprint',
   'recipient_token',
   'active',
+  'capabilities_json',
+  'capability_revision',
+  'capability_confirmed_at',
   'created_at',
   'updated_at',
 ] as const;
