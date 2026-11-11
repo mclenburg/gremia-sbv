@@ -7,7 +7,8 @@ import type { VacationV5PackageSourceKind } from './vacationV5PackageSource.js';
 import { CASE_HANDOVER_FILE_EXTENSION, inspectCaseHandoverFilePath } from './caseHandoverFilePolicy.js';
 import { parseTransferRecipientToken } from './transferInstanceIdentityPolicy.js';
 import { TransferInstanceIdentityService } from './transferInstanceIdentityService.js';
-import { openVacationV5ReturnTransport, sealVacationV5ReturnTransport } from './vacationV5ReturnTransport.js';
+import { openVacationV5ReturnTransport, sealVacationV5ReturnTransport,
+  type VacationV5ReturnPayload } from './vacationV5ReturnTransport.js';
 import { previewVacationV5ReturnPayload } from './vacationV5ReturnPreview.js';
 import type { VacationV5PlannedReturnItem } from '../src/domain/transfer/vacationV5ReturnPlan.js';
 import { collectVacationV5ReturnChanges, type VacationV5ReturnSourceByRef } from './vacationV5ReturnCollector.js';
@@ -20,6 +21,7 @@ import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { recordVacationV5ReturnExport } from './caseHandoverExportLedger.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { auditCaseHandoverExported } from './auditEventBuilders.js';
+import { importConfirmedVacationV5Return, type VacationV5ReturnChoice } from './vacationV5ReturnImporter.js';
 
 type ProfileRow = { recipient_token: string; key_fingerprint: string; active: number; capabilities_json: string | null };
 
@@ -119,6 +121,19 @@ export class VacationV5ReturnFileService {
   previewFromFile(filePath: string, passphrase: string): {
     packageId: string; sourcePackageId: string; exportId: string; items: VacationV5PlannedReturnItem[];
   } {
+    const payload = this.openVerifiedPayload(filePath, passphrase);
+    const preview = previewVacationV5ReturnPayload(this.database, payload, this.dataDirectoryProvider());
+    return { packageId: payload.packageId, sourcePackageId: payload.sourcePackageId,
+      exportId: preview.exportId, items: preview.items };
+  }
+
+  importConfirmedFromFile(filePath: string, passphrase: string,
+    choices: readonly VacationV5ReturnChoice[]): { importId: string; acceptedCount: number; reviewedCount: number } {
+    const payload = this.openVerifiedPayload(filePath, passphrase);
+    return importConfirmedVacationV5Return(this.database, payload, choices, this.dataDirectoryProvider());
+  }
+
+  private openVerifiedPayload(filePath: string, passphrase: string): VacationV5ReturnPayload {
     const file = inspectCaseHandoverFilePath(filePath);
     let parsed: unknown;
     try { parsed = JSON.parse(fs.readFileSync(file.filePath, 'utf8')) as unknown; }
@@ -136,9 +151,6 @@ export class VacationV5ReturnFileService {
     const sender = parseTransferRecipientToken(profile.recipient_token);
     if (sender.keyFingerprint !== fingerprint) throw new Error('Das Gegenprofil enthält eine widersprüchliche Schlüsselbindung.');
     const recipient = new TransferInstanceIdentityService(this.database).getPrivateIdentity();
-    const payload = openVacationV5ReturnTransport(parsed, passphrase, recipient, sender);
-    const preview = previewVacationV5ReturnPayload(this.database, payload, this.dataDirectoryProvider());
-    return { packageId: payload.packageId, sourcePackageId: payload.sourcePackageId,
-      exportId: preview.exportId, items: preview.items };
+    return openVacationV5ReturnTransport(parsed, passphrase, recipient, sender);
   }
 }

@@ -9,6 +9,7 @@ import { TransferRecipientProfileService } from '../../../../services/transferRe
 import { formatTransferRecipientToken } from '../../../../services/transferInstanceIdentityPolicy';
 import { VacationV5FileService } from '../../../../services/vacationV5FileService';
 import { VacationV5ReturnFileService } from '../../../../services/vacationV5ReturnFileService';
+import { listVacationV5OriginItemChanges } from '../../../../services/vacationV5ImportedItemChanges';
 
 const empty = { caseIds: [], standaloneDeadlineIds: [], meetingIds: [], recruitingIds: [], employerObligationIds: [],
   inclusionAgreementIds: [], violationIds: [], assemblyIds: [] };
@@ -69,6 +70,33 @@ describe('Format-5-Rückgabedatei', () => {
         .toEqual({ status: 'returned' });
       expect(new VacationV5ReturnFileService(origin.adapter).previewFromFile(returnPath, 'lange Transport-Passphrase').items)
         .toEqual([{ ref: 'meeting_1', kind: 'meeting', decision: 'propose_update' }]);
+      const originHash = listVacationV5OriginItemChanges(origin.adapter, handover.packageId, '').items[0].currentSha256;
+      const choice = [{ ref: 'meeting_1', action: 'accept_update' as const, expectedOriginSha256: originHash }];
+      origin.raw.prepare("UPDATE sbv_meetings SET title = 'Lokal überarbeitet' WHERE id = ?").run('meeting-source');
+      expect(new VacationV5ReturnFileService(origin.adapter).previewFromFile(returnPath,
+        'lange Transport-Passphrase').items[0].decision).toBe('review_conflict');
+      expect(() => new VacationV5ReturnFileService(origin.adapter).importConfirmedFromFile(returnPath,
+        'lange Transport-Passphrase', choice)).toThrow(/Rückgabebasis/);
+      expect(origin.raw.prepare('SELECT title FROM sbv_meetings WHERE id = ?').get('meeting-source'))
+        .toEqual({ title: 'Lokal überarbeitet' });
+      origin.raw.prepare("UPDATE sbv_meetings SET title = 'Sitzung' WHERE id = ?").run('meeting-source');
+      origin.raw.exec(`CREATE TRIGGER reject_return_update BEFORE UPDATE ON sbv_meetings
+        BEGIN SELECT RAISE(ABORT, 'return update failed'); END`);
+      expect(() => new VacationV5ReturnFileService(origin.adapter).importConfirmedFromFile(returnPath,
+        'lange Transport-Passphrase', choice)).toThrow(/return update failed/);
+      expect(origin.raw.prepare('SELECT title FROM sbv_meetings WHERE id = ?').get('meeting-source'))
+        .toEqual({ title: 'Sitzung' });
+      expect(origin.raw.prepare('SELECT status FROM case_handover_exports WHERE package_id = ?').get(handover.packageId))
+        .toEqual({ status: 'open' });
+      origin.raw.exec('DROP TRIGGER reject_return_update');
+      expect(new VacationV5ReturnFileService(origin.adapter).importConfirmedFromFile(returnPath,
+        'lange Transport-Passphrase', choice).acceptedCount).toBe(1);
+      expect(origin.raw.prepare('SELECT title FROM sbv_meetings WHERE id = ?').get('meeting-source'))
+        .toEqual({ title: 'Vertretung hat geändert' });
+      expect(origin.raw.prepare('SELECT status FROM case_handover_exports WHERE package_id = ?').get(handover.packageId))
+        .toEqual({ status: 'taken_over' });
+      expect(() => new VacationV5ReturnFileService(origin.adapter).importConfirmedFromFile(returnPath,
+        'lange Transport-Passphrase', choice)).toThrow();
       await expect(service.exportToFile({ sourcePackageId: handover.packageId, profileId: originProfile.id,
         expiresAt: '2099-12-01T00:00:00.000Z', passphrase: 'lange Transport-Passphrase', capabilities,
         targetPath: path.join(directory, 'second.gsbvtransfer') })).rejects.toThrow();
