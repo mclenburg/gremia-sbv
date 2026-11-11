@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Download, Pencil, Power, Save, Trash2, Upload } from 'lucide-react';
 import type { TransferRecipientProfile } from '../../../domain/models/transfer-recipient-profile.model';
 import type { TransferCapabilityDocument } from '../../../domain/models/transfer-capability.model';
@@ -18,6 +18,7 @@ export function TransferRecipientProfilesSettings() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [selectedCapability, setSelectedCapability] = useState<{ profileId: string; fileToken: string; fileName: string; document: TransferCapabilityDocument } | null>(null);
+  const capabilityReviewHeading = useRef<HTMLHeadingElement>(null);
 
   async function reload() {
     setProfiles(await window.gremiaSbv.transferIdentity.listRecipientProfiles());
@@ -28,6 +29,7 @@ export function TransferRecipientProfilesSettings() {
   }, []);
   useEffect(() => { if (message) announce(message, 'polite'); }, [announce, message]);
   useEffect(() => { if (error) announce(error, 'assertive'); }, [announce, error]);
+  useEffect(() => { if (selectedCapability) capabilityReviewHeading.current?.focus(); }, [selectedCapability]);
 
   async function run(action: () => Promise<void>) {
     setBusy(true);
@@ -109,7 +111,7 @@ export function TransferRecipientProfilesSettings() {
       </div>
 
       {selectedCapability ? <section className="industrial-settings-form" aria-label="Geprüfte Übergabefähigkeiten">
-        <h4>Fähigkeitsdatei prüfen</h4>
+        <h4 ref={capabilityReviewHeading} tabIndex={-1}>Fähigkeitsdatei prüfen</h4>
         <p className="industrial-settings-note">{selectedCapability.fileName} · Instanz {selectedCapability.document.origin.instanceId} · Fingerprint {selectedCapability.document.origin.keyFingerprint}</p>
         <p className="industrial-settings-note">Lesen: {selectedCapability.document.capabilities.readFormats.join(', ')} · Schreiben: {selectedCapability.document.capabilities.writeFormats.join(', ')} · Merkmale: {selectedCapability.document.capabilities.features.join(', ') || 'keine'} · Stand: {selectedCapability.document.capabilities.revision}</p>
         <ButtonGroup ariaLabel="Fähigkeitsdatei übernehmen">
