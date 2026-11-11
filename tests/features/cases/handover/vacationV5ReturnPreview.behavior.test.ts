@@ -3,7 +3,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { describe, expect, it } from 'vitest';
 import type { DatabaseAdapter } from '../../../../services/databaseService';
 import { caseHandoverBaselineHash } from '../../../../services/caseHandoverBaselineHash';
-import { previewVacationV5Return } from '../../../../services/vacationV5ReturnPreview';
+import { previewVacationV5Return, previewVacationV5ReturnPayload } from '../../../../services/vacationV5ReturnPreview';
 
 function database() {
   const raw = new DatabaseSync(':memory:');
@@ -35,6 +35,15 @@ describe('Format-5-Rückgabevorschau', () => {
         baselineSha256: deputyBaseline, currentSha256: deputyCurrent };
       expect(previewVacationV5Return(adapter, 'handover_preview', fingerprint, [item], '').items)
         .toEqual([{ ref: 'meeting_1', kind: 'meeting', decision: 'propose_update' }]);
+      expect(previewVacationV5ReturnPayload(adapter, { sourcePackageId: 'handover_preview',
+        origin: { keyFingerprint: fingerprint }, changes: [{ ref: 'meeting_1', kind: 'meeting', operation: 'upsert',
+          deputyBaselineSha256: deputyBaseline, deputyCurrentSha256: deputyCurrent,
+          data: { meeting_type: 'other', title: 'Geändert', starts_at: '2099-11-20', status: 'draft' } }] }, '').items)
+        .toEqual([{ ref: 'meeting_1', kind: 'meeting', decision: 'propose_update' }]);
+      expect(previewVacationV5ReturnPayload(adapter, { sourcePackageId: 'handover_preview',
+        origin: { keyFingerprint: fingerprint }, changes: [{ ref: 'meeting_1', kind: 'meeting', operation: 'cancel_request',
+          deputyBaselineSha256: deputyBaseline, deputyCurrentSha256: null, reason: 'Termin entfällt' }] }, '').items)
+        .toEqual([{ ref: 'meeting_1', kind: 'meeting', decision: 'review_removal' }]);
       raw.prepare("UPDATE sbv_meetings SET title = 'Parallel geändert' WHERE id = 'meeting-origin'").run();
       expect(previewVacationV5Return(adapter, 'handover_preview', fingerprint, [item], '').items[0].decision)
         .toBe('review_conflict');

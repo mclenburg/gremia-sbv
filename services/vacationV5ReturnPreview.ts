@@ -2,6 +2,7 @@ import type { DatabaseAdapter } from './databaseService.js';
 import { listVacationV5OriginItemChanges } from './vacationV5ImportedItemChanges.js';
 import { planVacationV5Return, type VacationV5ReturnInventoryItem,
   type VacationV5ReturnAddition, type VacationV5PlannedReturnItem } from '../src/domain/transfer/vacationV5ReturnPlan.js';
+import { assertVacationV5ReturnChanges } from './vacationV5ReturnChanges.js';
 
 /** Read-only comparison of a verified deputy's return against the source export ledger. */
 export function previewVacationV5Return(database: DatabaseAdapter, sourcePackageId: string,
@@ -20,4 +21,19 @@ export function previewVacationV5Return(database: DatabaseAdapter, sourcePackage
   const origin = listVacationV5OriginItemChanges(database, sourcePackageId, dataDirectory);
   if (origin.exportId !== source.id) throw new Error('Rückgabe enthält eine widersprüchliche Exportzuordnung.');
   return { exportId: source.id, items: planVacationV5Return(deputyItems, origin.items, options) };
+}
+
+export function previewVacationV5ReturnPayload(database: DatabaseAdapter, payload: {
+  sourcePackageId: string; origin: { keyFingerprint: string }; changes: unknown;
+}, dataDirectory: string): { exportId: string; items: VacationV5PlannedReturnItem[] } {
+  const changes = assertVacationV5ReturnChanges(payload.changes);
+  const deputyItems: VacationV5ReturnInventoryItem[] = changes.map((change) => ({
+    ref: change.ref, kind: change.kind, baselineSha256: change.deputyBaselineSha256,
+    currentSha256: change.deputyCurrentSha256,
+    status: change.deputyCurrentSha256 === null ? 'missing'
+      : change.deputyCurrentSha256 === change.deputyBaselineSha256 ? 'unchanged' : 'changed',
+  }));
+  return previewVacationV5Return(database, payload.sourcePackageId, payload.origin.keyFingerprint,
+    deputyItems, dataDirectory, { cancellationRefs: changes.filter((change) => change.operation === 'cancel_request')
+      .map((change) => change.ref) });
 }
