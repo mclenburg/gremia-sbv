@@ -16,6 +16,30 @@ function identity() {
 }
 
 describe('Format-5-Transport', () => {
+  it('verschlüsselt und authentisiert Fall- und fallfreie Abschnitte gemeinsam', () => {
+    const sender = identity(); const target = identity();
+    try {
+      const sections = [
+        { type: 'case', schemaVersion: 1, count: 1, items: [{ ref: 'case_1', links: {}, data: {
+          case_number: 'SBV-1', display_name: 'Anfrage', category: 'sonstiges', status: 'offen', opened_at: '2026-11-11',
+        } }] },
+        { type: 'meeting', schemaVersion: 1, count: 1, items: [{ ref: 'meeting_1', data: {
+          meeting_type: 'other', title: 'Sitzung', starts_at: '2099-11-20', status: 'draft',
+        } }] },
+      ];
+      const capabilities = { protocolVersion: 1 as const, readFormats: [1, 2, 3, 4, 5], writeFormats: [2, 4, 5],
+        features: ['manual_capability_exchange', 'vacation_scope_v5'], buildVersion: '0.9.9', revision: 1,
+        issuedAt: '2026-11-11T10:00:00.000Z' };
+      const envelope = sealVacationV5Transport({ packageId: 'handover_v5_mixed', expiresAt: '2099-11-30',
+        sections, capabilities, passphrase: 'lange Transport-Passphrase', sender: sender.privateIdentity, target: target.privateIdentity });
+      expect(openVacationV5Transport(envelope, 'lange Transport-Passphrase', target.privateIdentity, sender.privateIdentity).sections)
+        .toEqual(sections);
+      expect(JSON.stringify(envelope)).not.toContain('Anfrage');
+      expect(() => openVacationV5Transport({ ...envelope, senderProof: { ...envelope.senderProof, manifestSha256: 'a'.repeat(64) } },
+        'lange Transport-Passphrase', target.privateIdentity, sender.privateIdentity)).toThrow();
+    } finally { sender.raw.close(); target.raw.close(); }
+  });
+
   it('öffnet nur ein unverändertes, zielgebundenes und bekanntes Paket mit geprüftem Manifest', () => {
     const sender = identity(); const target = identity(); const stranger = identity();
     try {

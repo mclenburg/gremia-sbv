@@ -1,8 +1,9 @@
 import type { TransferInstancePrivateIdentity } from './transferInstanceIdentityService.js';
 import type { TransferCapabilities } from '../src/domain/models/transfer-capability.model.js';
 import { assertTransferCapabilities } from './transferCapabilityDocument.js';
-import { createVacationV5Manifest, assertVacationV5Sections, hashVacationV5Manifest,
-  type VacationV5Manifest, type VacationV5Section } from './vacationV5SectionManifest.js';
+import { hashVacationV5Manifest, type VacationV5Manifest } from './vacationV5SectionManifest.js';
+import { createVacationV5PackageManifest, assertVacationV5PackageSections,
+  type VacationV5PackageSection } from './vacationV5PackageSections.js';
 import { createCaseHandoverV5OriginProof, verifyCaseHandoverV5OriginProof,
   type CaseHandoverV5OriginProof } from './caseHandoverV5OriginProof.js';
 import { encryptTargetBoundTransferPayload, decryptTargetBoundTransferPayload, assertTransferRecipientBinding,
@@ -21,7 +22,7 @@ export interface VacationV5Payload {
   origin: { instanceId: string; keyFingerprint: string };
   target: { instanceId: string; keyFingerprint: string };
   capabilities: TransferCapabilities;
-  sections: VacationV5Section[];
+  sections: VacationV5PackageSection[];
   references: Array<{ ref: string; type: string }>;
   manifest: VacationV5Manifest;
 }
@@ -32,7 +33,7 @@ const exactKeys = (value: Record<string, unknown>, required: readonly string[], 
   required.every((key) => Object.hasOwn(value, key)) && Object.keys(value).every((key) => required.includes(key) || optional.includes(key));
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 
-function references(sections: VacationV5Section[]): Array<{ ref: string; type: string }> {
+function references(sections: VacationV5PackageSection[]): Array<{ ref: string; type: string }> {
   return sections.flatMap((section) => section.items.map((item) => ({ ref: item.ref, type: section.type })));
 }
 
@@ -56,8 +57,8 @@ export function sealVacationV5Transport(input: {
 }): VacationV5Envelope {
   if (!/^handover_[A-Za-z0-9_-]{4,120}$/.test(input.packageId) || !Number.isFinite(Date.parse(input.expiresAt))
     || Date.parse(input.expiresAt) <= Date.now()) throw new Error('Ungültiges oder abgelaufenes Vertretungspaket.');
-  const manifest = createVacationV5Manifest(input.sections);
-  const sections = assertVacationV5Sections(input.sections, manifest);
+  const manifest = createVacationV5PackageManifest(input.sections);
+  const sections = assertVacationV5PackageSections(input.sections, manifest);
   if (!sections.length) throw new Error('Format-5-Paket enthält keinen ausgewählten Vertretungsumfang.');
   const createdAt = new Date().toISOString();
   const payload: VacationV5Payload = {
@@ -96,7 +97,7 @@ export function openVacationV5Transport(input: unknown, passphrase: string, reci
     || !isRecord(parsed.target) || !exactKeys(parsed.target, ['instanceId', 'keyFingerprint'])
     || parsed.target.instanceId !== recipient.instanceId || parsed.target.keyFingerprint !== recipient.keyFingerprint
     || !isRecord(parsed.manifest)) throw new Error('Format-5-Nutzdaten enthalten widersprüchliche Metadaten.');
-  const sections = assertVacationV5Sections(parsed.sections, parsed.manifest);
+  const sections = assertVacationV5PackageSections(parsed.sections, parsed.manifest);
   if (!sections.length || hashVacationV5Manifest(parsed.manifest as unknown as VacationV5Manifest) !== proof.manifestSha256) {
     throw new Error('Format-5-Manifest stimmt nicht mit dem Herkunftsnachweis überein.');
   }
