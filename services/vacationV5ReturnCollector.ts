@@ -21,6 +21,10 @@ export interface VacationV5ReturnChange {
   reason?: string;
 }
 
+export type VacationV5ReturnSourceByRef = Record<string, {
+  kind: VacationV5PackageSourceKind; localId: string; currentSha256: string | null;
+}>;
+
 const PROCESS_PARENT: Readonly<Record<string, VacationV5PackageSourceKind>> = {
   sbv_meeting: 'meeting', recruiting_participation: 'recruiting',
   employer_obligation_review: 'employer_obligation', inclusion_agreement: 'inclusion_agreement',
@@ -83,7 +87,7 @@ function relations(kind: VacationV5PackageSourceKind, row: Record<string, unknow
 export function collectVacationV5ReturnChanges(database: DatabaseAdapter, sourcePackageId: string,
   dataDirectory: string, cancellationRequests: readonly { ref: string; reason: string }[] = [],
   additionalItems: readonly { kind: VacationV5PackageSourceKind; localId: string }[] = []):
-  { importId: string; changes: VacationV5ReturnChange[] } {
+  { importId: string; changes: VacationV5ReturnChange[]; sourceByRef: VacationV5ReturnSourceByRef } {
   const inventory = listVacationV5ImportedItemChanges(database, sourcePackageId, dataDirectory);
   const byRef = new Map(inventory.items.map((item) => [item.ref, item]));
   const refByLocal = new Map(inventory.items.map((item) => [`${item.kind}:${item.localId}`, item.ref]));
@@ -151,5 +155,13 @@ export function collectVacationV5ReturnChanges(database: DatabaseAdapter, source
       ...(Object.keys(links).length ? { links } : {}),
       ...(contentBase64 === undefined ? {} : { contentBase64 }) });
   }
-  return { importId: inventory.importId, changes: assertVacationV5ReturnChanges(changes) };
+  const sourceByRef: VacationV5ReturnSourceByRef = {};
+  for (const change of changes) {
+    const existing = byRef.get(change.ref);
+    const addition = additions.find((item) => item.ref === change.ref);
+    const localId = existing?.localId ?? addition?.localId;
+    if (!localId) throw new Error('Rückgabe enthält eine ungelöste lokale Quellreferenz.');
+    sourceByRef[change.ref] = { kind: change.kind, localId, currentSha256: change.deputyCurrentSha256 };
+  }
+  return { importId: inventory.importId, changes: assertVacationV5ReturnChanges(changes), sourceByRef };
 }

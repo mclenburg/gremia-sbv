@@ -5,6 +5,8 @@ import type { DatabaseAdapter } from './databaseService.js';
 import type { PackagePayload } from './caseHandoverSupport.js';
 import { caseHandoverBaselineHash } from './caseHandoverBaselineHash.js';
 import type { VacationV5PackageSourceByRef } from './vacationV5PackageSource.js';
+import { isVacationV5PackageSourceKind } from './vacationV5PackageSource.js';
+import type { VacationV5ReturnSourceByRef } from './vacationV5ReturnCollector.js';
 
 export function ensureCaseHandoverExportLedgerSchema(db: DatabaseAdapter): void {
   db.exec(`
@@ -113,6 +115,40 @@ export function recordVacationV5Export(db: DatabaseAdapter, input: {
       (id, handover_export_id, package_ref, local_entity_type, local_entity_id, exported_at, baseline_sha256)
       VALUES (?, ?, ?, ?, ?, ?, ?)`)
       .run(randomUUID(), exportId, ref, source.kind, source.localId, input.createdAt, source.baselineSha256);
+  }
+}
+
+export function recordVacationV5ReturnExport(db: DatabaseAdapter, input: {
+  packageId: string; sourcePackageId: string; createdAt: string; expiresAt: string;
+  targetInstanceId: string; targetKeyFingerprint: string; sourceByRef: VacationV5ReturnSourceByRef;
+}): void {
+  if (!/^handover_[A-Za-z0-9_-]{4,120}$/.test(input.packageId)
+    || !/^handover_[A-Za-z0-9_-]{4,120}$/.test(input.sourcePackageId)
+    || input.packageId === input.sourcePackageId || !/^[0-9a-f]{64}$/.test(input.targetKeyFingerprint)
+    || !input.targetInstanceId || !Number.isFinite(Date.parse(input.createdAt))
+    || !Number.isFinite(Date.parse(input.expiresAt))) {
+    throw new Error('Format-5-Rückgabeledger enthält ungültige Paket- oder Zielbindung.');
+  }
+  const entries = Object.entries(input.sourceByRef);
+  if (!entries.length || entries.length > 20_000) throw new Error('Format-5-Rückgabeledger enthält keinen gültigen Umfang.');
+  ensureCaseHandoverExportLedgerSchema(db);
+  const exportId = randomUUID();
+  db.prepare(`INSERT INTO case_handover_exports
+    (id, package_id, exported_at, valid_until, package_type, status, target_instance_id,
+      target_key_fingerprint, format_version, case_count, metadata_json)
+    VALUES (?, ?, ?, ?, 'return_delta', 'open', ?, ?, 5, ?, ?)`)
+    .run(exportId, input.packageId, input.createdAt, input.expiresAt, input.targetInstanceId,
+      input.targetKeyFingerprint, entries.filter(([, item]) => item.kind === 'case').length,
+      JSON.stringify({ sourcePackageId: input.sourcePackageId, changeCount: entries.length }));
+  for (const [ref, source] of entries) {
+    if (!/^[a-z_]+_[1-9][0-9]*$/.test(ref) || !isVacationV5PackageSourceKind(source.kind)
+      || !source.localId || (source.currentSha256 !== null && !/^[0-9a-f]{64}$/.test(source.currentSha256))) {
+      throw new Error('Format-5-Rückgabeledger enthält eine ungültige Quellreferenz.');
+    }
+    db.prepare(`INSERT INTO case_handover_export_items
+      (id, handover_export_id, package_ref, local_entity_type, local_entity_id, exported_at, baseline_sha256)
+      VALUES (?, ?, ?, ?, ?, ?, ?)`)
+      .run(randomUUID(), exportId, ref, source.kind, source.localId, input.createdAt, source.currentSha256);
   }
 }
 
