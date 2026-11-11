@@ -1193,7 +1193,11 @@ CREATE TABLE IF NOT EXISTS case_handover_imports (
   mode TEXT NOT NULL DEFAULT 'create_new',
   created_case_count INTEGER NOT NULL DEFAULT 0,
   updated_case_count INTEGER NOT NULL DEFAULT 0,
-  metadata_json TEXT NOT NULL DEFAULT '{}'
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  origin_key_fingerprint TEXT,
+  target_key_fingerprint TEXT,
+  format_version INTEGER,
+  source_package_id TEXT
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_case_handover_package ON case_handover_imports(package_id);
 
@@ -1203,7 +1207,8 @@ CREATE TABLE IF NOT EXISTS case_handover_import_items (
   local_entity_type TEXT NOT NULL,
   local_entity_id TEXT NOT NULL,
   package_ref TEXT NOT NULL,
-  created_at TEXT NOT NULL
+  created_at TEXT NOT NULL,
+  baseline_sha256 TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_case_handover_items_local ON case_handover_import_items(local_entity_type, local_entity_id);
 
@@ -1216,7 +1221,9 @@ CREATE TABLE IF NOT EXISTS case_handover_exports (
   status TEXT NOT NULL DEFAULT 'open',
   target_instance_id TEXT,
   case_count INTEGER NOT NULL DEFAULT 0,
-  metadata_json TEXT NOT NULL DEFAULT '{}'
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  target_key_fingerprint TEXT,
+  format_version INTEGER
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_case_handover_exports_package ON case_handover_exports(package_id);
 

@@ -3,9 +3,15 @@ import type { VacationV5ScopeSelection, VacationV5DeadlineReference } from '../s
 import { inspectVacationV5Scope } from '../src/domain/transfer/vacationV5ScopePolicy.js';
 import { projectVacationV5Row, VACATION_V5_ROW_FIELDS } from './vacationV5RowPolicy.js';
 import { createVacationV5Manifest, type VacationV5Manifest, type VacationV5Section, type VacationV5SectionItem } from './vacationV5SectionManifest.js';
+import { caseHandoverBaselineHash } from './caseHandoverBaselineHash.js';
 
 type Row = Record<string, unknown> & { id: string };
 type RowKind = keyof typeof VACATION_V5_ROW_FIELDS;
+export type VacationV5SourceByRef = Record<string, { kind: RowKind; localId: string; baselineSha256: string }>;
+
+function recordSource(target: VacationV5SourceByRef, ref: string, kind: RowKind, source: Row): void {
+  target[ref] = { kind, localId: source.id, baselineSha256: caseHandoverBaselineHash(source) };
+}
 
 const ROOTS: Array<{ kind: RowKind; ids: keyof VacationV5ScopeSelection; prefix: string; closed: readonly string[] }> = [
   { kind: 'meeting', ids: 'meetingIds', prefix: 'meeting', closed: ['held', 'closed'] },
@@ -40,7 +46,7 @@ function requireRow(database: DatabaseAdapter, kind: RowKind, id: string): Row {
 }
 
 function collectRoots(database: DatabaseAdapter, selection: VacationV5ScopeSelection,
-  references: Map<RowKind, Map<string, string>>): VacationV5Section[] {
+  references: Map<RowKind, Map<string, string>>, sourceByRef: VacationV5SourceByRef): VacationV5Section[] {
   const sections: VacationV5Section[] = [];
   for (const root of ROOTS) {
     const ids = selection[root.ids];
@@ -55,6 +61,7 @@ function collectRoots(database: DatabaseAdapter, selection: VacationV5ScopeSelec
         || source.related_termination_hearing_id)) throw new Error('Beteiligungsverstoß enthält unaufgelöste Bezüge.');
       const ref = `${root.prefix}_${index + 1}`;
       map.set(id, ref);
+      recordSource(sourceByRef, ref, root.kind, source);
       return { ref, data: projectVacationV5Row(root.kind, source) };
     });
     references.set(root.kind, map);
@@ -64,14 +71,19 @@ function collectRoots(database: DatabaseAdapter, selection: VacationV5ScopeSelec
   return sections;
 }
 
-function collectChildren(database: DatabaseAdapter, references: Map<RowKind, Map<string, string>>): VacationV5Section[] {
+function collectChildren(database: DatabaseAdapter, references: Map<RowKind, Map<string, string>>,
+  sourceByRef: VacationV5SourceByRef): VacationV5Section[] {
   const sections: VacationV5Section[] = [];
   for (const child of CHILDREN) {
     const items: VacationV5SectionItem[] = [];
     for (const [parentId, parentRef] of references.get(child.parent) ?? []) {
       const table = VACATION_V5_ROW_FIELDS[child.kind].table;
       const rows = database.prepare<Row>(`SELECT * FROM ${table} WHERE ${child.column} = ? ORDER BY id`).all(parentId);
-      for (const source of rows) items.push({ ref: `${child.prefix}_${items.length + 1}`, parentRef, data: projectVacationV5Row(child.kind, source) });
+      for (const source of rows) {
+        const ref = `${child.prefix}_${items.length + 1}`;
+        recordSource(sourceByRef, ref, child.kind, source);
+        items.push({ ref, parentRef, data: projectVacationV5Row(child.kind, source) });
+      }
     }
     const value = section(child.kind, items);
     if (value) sections.push(value);
@@ -80,18 +92,20 @@ function collectChildren(database: DatabaseAdapter, references: Map<RowKind, Map
 }
 
 function collectDeadlines(database: DatabaseAdapter, ids: readonly string[],
-  references: Map<RowKind, Map<string, string>>): VacationV5Section | null {
+  references: Map<RowKind, Map<string, string>>, sourceByRef: VacationV5SourceByRef): VacationV5Section | null {
   const items = ids.map((id, index) => {
     const source = requireRow(database, 'deadline', id);
     const parentKind = PROCESS_PARENT[String(source.process_type)];
     const parentRef = parentKind ? references.get(parentKind)?.get(String(source.process_id)) : undefined;
-    return { ref: `deadline_${index + 1}`, ...(parentRef ? { parentRef } : {}), data: projectVacationV5Row('deadline', source) };
+    const ref = `deadline_${index + 1}`;
+    recordSource(sourceByRef, ref, 'deadline', source);
+    return { ref, ...(parentRef ? { parentRef } : {}), data: projectVacationV5Row('deadline', source) };
   });
   return section('deadline', items);
 }
 
 export function collectVacationV5Sections(database: DatabaseAdapter, selection: VacationV5ScopeSelection): {
-  sections: VacationV5Section[]; manifest: VacationV5Manifest;
+  sections: VacationV5Section[]; manifest: VacationV5Manifest; sourceByRef: VacationV5SourceByRef;
 } {
   const deadlines = selection.standaloneDeadlineIds.map((id) => {
     const source = database.prepare<Row>('SELECT * FROM deadlines WHERE id = ?').get(id);
@@ -102,13 +116,16 @@ export function collectVacationV5Sections(database: DatabaseAdapter, selection: 
   const inspection = inspectVacationV5Scope(selection, deadlines);
   if (inspection.issues.length) throw new Error(`Vertretungsauswahl enthält eine unaufgelöste Abhängigkeit oder einen unzulässigen Vorgang: ${inspection.issues.map((issue) => issue.code).join(', ')}.`);
   const references = new Map<RowKind, Map<string, string>>();
-  const sections = [...collectRoots(database, selection, references), ...collectChildren(database, references)];
+  const sourceByRef: VacationV5SourceByRef = {};
+  const sections = [...collectRoots(database, selection, references, sourceByRef), ...collectChildren(database, references, sourceByRef)];
   if (selection.inclusionOfficerSnapshotId) {
+    const officer = requireRow(database, 'inclusion_officer', selection.inclusionOfficerSnapshotId);
+    recordSource(sourceByRef, 'officer_1', 'inclusion_officer', officer);
     sections.push({ type: 'inclusion_officer', schemaVersion: 1, count: 1, items: [{ ref: 'officer_1',
-      data: projectVacationV5Row('inclusion_officer', requireRow(database, 'inclusion_officer', selection.inclusionOfficerSnapshotId)) }] });
+      data: projectVacationV5Row('inclusion_officer', officer) }] });
   }
-  const deadlineSection = collectDeadlines(database, selection.standaloneDeadlineIds, references);
+  const deadlineSection = collectDeadlines(database, selection.standaloneDeadlineIds, references, sourceByRef);
   if (deadlineSection) sections.push(deadlineSection);
   const manifest = createVacationV5Manifest(sections);
-  return { sections, manifest };
+  return { sections, manifest, sourceByRef };
 }

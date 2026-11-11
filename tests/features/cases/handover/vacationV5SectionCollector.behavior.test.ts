@@ -7,6 +7,7 @@ import { assertVacationV5Sections } from '../../../../services/vacationV5Section
 import { importVacationV5Sections } from '../../../../services/vacationV5SectionImporter';
 
 const empty = { caseIds: [], standaloneDeadlineIds: [], meetingIds: [], recruitingIds: [], employerObligationIds: [], inclusionAgreementIds: [], violationIds: [], assemblyIds: [] };
+const binding = { originKeyFingerprint: 'a'.repeat(64), targetKeyFingerprint: 'b'.repeat(64) };
 
 function database() {
   const raw = new DatabaseSync(':memory:');
@@ -36,12 +37,15 @@ describe('Format-5-Collector für fallfreie Arbeit', () => {
       expect(result.sections.map((section) => [section.type, section.count])).toEqual([['meeting', 1], ['meeting_agenda', 1], ['deadline', 1]]);
       expect(result.sections.find((section) => section.type === 'meeting_agenda')?.items[0].parentRef).toBe('meeting_1');
       expect(result.sections.find((section) => section.type === 'deadline')?.items[0].parentRef).toBe('meeting_1');
+      expect(result.sourceByRef.meeting_1).toMatchObject({ kind: 'meeting', localId: 'meeting-local' });
+      expect(result.sourceByRef.deadline_1).toMatchObject({ kind: 'deadline', localId: 'deadline-local' });
+      expect(result.sourceByRef.meeting_1.baselineSha256).toMatch(/^[0-9a-f]{64}$/);
       expect(JSON.stringify(result.sections)).not.toContain('meeting-local');
       expect(JSON.stringify(result.sections)).not.toContain('deadline-local');
       expect(assertVacationV5Sections(result.sections, result.manifest)).toEqual(result.sections);
       const destination = database();
       try {
-        expect(importVacationV5Sections(destination.adapter, 'handover_cross_case_test', '2099-11-30', result.sections, result.manifest).importedCount).toBe(3);
+        expect(importVacationV5Sections(destination.adapter, 'handover_cross_case_test', '2099-11-30', result.sections, result.manifest, binding).importedCount).toBe(3);
         expect(destination.raw.prepare('SELECT COUNT(*) AS count FROM sbv_meetings').get()).toEqual({ count: 1 });
         expect(destination.raw.prepare('SELECT COUNT(*) AS count FROM sbv_meeting_agenda_items').get()).toEqual({ count: 1 });
         expect(destination.raw.prepare('SELECT COUNT(*) AS count FROM deadlines WHERE case_id IS NULL').get()).toEqual({ count: 1 });
@@ -83,7 +87,7 @@ describe('Format-5-Collector für fallfreie Arbeit', () => {
       expect(assertVacationV5Sections(result.sections, result.manifest)).toEqual(result.sections);
       const destination = database();
       try {
-        expect(importVacationV5Sections(destination.adapter, 'handover_all_groups_test', '2099-11-30', result.sections, result.manifest).importedCount).toBe(9);
+        expect(importVacationV5Sections(destination.adapter, 'handover_all_groups_test', '2099-11-30', result.sections, result.manifest, binding).importedCount).toBe(9);
         for (const table of ['recruiting_participations', 'recruiting_interview_events', 'sbv_employer_obligation_reviews',
           'sbv_inclusion_agreements', 'sbv_inclusion_agreement_topics', 'sbv_inclusion_officer_snapshots',
           'sbv_participation_violations', 'sbv_participation_violation_events', 'sbv_assemblies']) {

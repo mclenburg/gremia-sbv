@@ -16,6 +16,7 @@ function database() {
 }
 
 describe('Format-5-Import übergreifender Vorgänge', () => {
+  const binding = { originKeyFingerprint: 'a'.repeat(64), targetKeyFingerprint: 'b'.repeat(64) };
   it('legt lokale Kopien mit aufgelösten TOP- und Fristreferenzen samt Ledger an', () => {
     const { raw, db } = database();
     try {
@@ -24,7 +25,7 @@ describe('Format-5-Import übergreifender Vorgänge', () => {
         { type: 'meeting_agenda', schemaVersion: 1, count: 1, items: [{ ref: 'agenda_1', parentRef: 'meeting_1', data: { position: 1, title: 'TOP', status: 'open', own_position: 'SBV-Position' } }] },
         { type: 'deadline', schemaVersion: 1, count: 1, items: [{ ref: 'deadline_1', parentRef: 'meeting_1', data: { process_type: 'sbv_meeting', deadline_type: 'follow_up', title: 'Nachfassen', due_at: '2099-11-19', status: 'open' } }] },
       ];
-      const result = importVacationV5Sections(db, 'handover_v5_import_test', '2099-11-30', sections, createVacationV5Manifest(sections));
+      const result = importVacationV5Sections(db, 'handover_v5_import_test', '2099-11-30', sections, createVacationV5Manifest(sections), binding);
       expect(result.importedCount).toBe(3);
       const meeting = raw.prepare('SELECT id, title FROM sbv_meetings').get() as { id: string; title: string };
       expect(meeting.title).toBe('Sitzung');
@@ -32,8 +33,12 @@ describe('Format-5-Import übergreifender Vorgänge', () => {
       expect(raw.prepare('SELECT case_id, process_id, process_type FROM deadlines').get()).toEqual({ case_id: null, process_id: meeting.id, process_type: 'sbv_meeting' });
       expect(raw.prepare('SELECT package_ref, local_entity_id FROM case_handover_import_items ORDER BY package_ref').all())
         .toEqual(expect.arrayContaining([expect.objectContaining({ package_ref: 'meeting_1', local_entity_id: meeting.id })]));
+      expect(raw.prepare('SELECT format_version, origin_key_fingerprint, target_key_fingerprint FROM case_handover_imports').get())
+        .toEqual({ format_version: 5, origin_key_fingerprint: binding.originKeyFingerprint, target_key_fingerprint: binding.targetKeyFingerprint });
+      expect(raw.prepare("SELECT baseline_sha256 FROM case_handover_import_items WHERE package_ref = 'meeting_1'").get())
+        .toEqual({ baseline_sha256: expect.stringMatching(/^[0-9a-f]{64}$/) });
       expect(raw.prepare("SELECT COUNT(*) AS count FROM personal_data_audit_log WHERE subject_type = 'case_handover'").get()).toEqual({ count: 1 });
-      expect(() => importVacationV5Sections(db, 'handover_v5_import_test', '2099-11-30', sections, createVacationV5Manifest(sections))).toThrow(/bereits importiert/);
+      expect(() => importVacationV5Sections(db, 'handover_v5_import_test', '2099-11-30', sections, createVacationV5Manifest(sections), binding)).toThrow(/bereits importiert/);
     } finally { raw.close(); }
   });
 
@@ -46,7 +51,7 @@ describe('Format-5-Import übergreifender Vorgänge', () => {
         { type: 'meeting', schemaVersion: 1, count: 1, items: [{ ref: 'meeting_1', data: { meeting_type: 'other', title: 'Sitzung', starts_at: '2099-11-20', status: 'draft' } }] },
         { type: 'employer_obligation', schemaVersion: 1, count: 1, items: [{ ref: 'obligation_1', data: { obligation_key: 'quota', period_year: 2099, scope_key: '', status: 'due' } }] },
       ];
-      expect(() => importVacationV5Sections(db, 'handover_v5_conflict_test', '2099-11-30', sections, createVacationV5Manifest(sections))).toThrow();
+      expect(() => importVacationV5Sections(db, 'handover_v5_conflict_test', '2099-11-30', sections, createVacationV5Manifest(sections), binding)).toThrow();
       expect(raw.prepare('SELECT COUNT(*) AS count FROM sbv_meetings').get()).toEqual({ count: 0 });
       expect(raw.prepare('SELECT COUNT(*) AS count FROM case_handover_imports').get()).toEqual({ count: 0 });
       expect(raw.prepare("SELECT COUNT(*) AS count FROM personal_data_audit_log WHERE subject_type = 'case_handover'").get()).toEqual({ count: 0 });

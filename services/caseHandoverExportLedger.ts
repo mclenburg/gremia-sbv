@@ -4,6 +4,7 @@ import type { MobileCompanionSnapshotPayload } from '../src/domain/models/mobile
 import type { DatabaseAdapter } from './databaseService.js';
 import type { PackagePayload } from './caseHandoverSupport.js';
 import { caseHandoverBaselineHash } from './caseHandoverBaselineHash.js';
+import type { VacationV5SourceByRef } from './vacationV5SectionCollector.js';
 
 export function ensureCaseHandoverExportLedgerSchema(db: DatabaseAdapter): void {
   db.exec(`
@@ -16,7 +17,9 @@ export function ensureCaseHandoverExportLedgerSchema(db: DatabaseAdapter): void 
       status TEXT NOT NULL DEFAULT 'open',
       target_instance_id TEXT,
       case_count INTEGER NOT NULL DEFAULT 0,
-      metadata_json TEXT NOT NULL DEFAULT '{}'
+      metadata_json TEXT NOT NULL DEFAULT '{}',
+      target_key_fingerprint TEXT,
+      format_version INTEGER
     );
     CREATE UNIQUE INDEX IF NOT EXISTS idx_case_handover_exports_package ON case_handover_exports(package_id);
     CREATE TABLE IF NOT EXISTS case_handover_export_items (
@@ -34,6 +37,13 @@ export function ensureCaseHandoverExportLedgerSchema(db: DatabaseAdapter): void 
   const columns = db.prepare<{ name: string }>('PRAGMA table_info(case_handover_export_items)').all();
   if (!columns.some((column) => column.name === 'baseline_sha256')) {
     db.exec('ALTER TABLE case_handover_export_items ADD COLUMN baseline_sha256 TEXT');
+  }
+  const exportColumns = db.prepare<{ name: string }>('PRAGMA table_info(case_handover_exports)').all();
+  if (!exportColumns.some((column) => column.name === 'target_key_fingerprint')) {
+    db.exec('ALTER TABLE case_handover_exports ADD COLUMN target_key_fingerprint TEXT');
+  }
+  if (!exportColumns.some((column) => column.name === 'format_version')) {
+    db.exec('ALTER TABLE case_handover_exports ADD COLUMN format_version INTEGER');
   }
 }
 
@@ -66,6 +76,43 @@ export function recordCaseHandoverExport(
         id, handover_export_id, package_ref, local_entity_type, local_entity_id, exported_at, baseline_sha256
       ) VALUES (?, ?, ?, ?, ?, ?, ?)
     `).run(randomUUID(), exportId, item.ref, item.type, item.localId, payload.createdAt, caseHandoverBaselineHash(item.data, item.contentBase64));
+  }
+}
+
+export function recordVacationV5Export(db: DatabaseAdapter, input: {
+  packageId: string;
+  createdAt: string;
+  expiresAt: string;
+  targetInstanceId: string;
+  targetKeyFingerprint: string;
+  sourceByRef: VacationV5SourceByRef;
+}): void {
+  if (!/^handover_[A-Za-z0-9_-]{4,120}$/.test(input.packageId)
+    || !/^[0-9a-f]{64}$/.test(input.targetKeyFingerprint)
+    || !input.targetInstanceId || !Number.isFinite(Date.parse(input.createdAt)) || !Number.isFinite(Date.parse(input.expiresAt))) {
+    throw new Error('Format-5-Exportledger enthält ungültige Paket- oder Zielbindung.');
+  }
+  ensureCaseHandoverExportLedgerSchema(db);
+  const exportId = randomUUID();
+  const sourceEntries = Object.entries(input.sourceByRef);
+  const counts = sourceEntries.reduce<Record<string, number>>((result, [, entry]) => {
+    result[entry.kind] = (result[entry.kind] ?? 0) + 1;
+    return result;
+  }, {});
+  db.prepare(`INSERT INTO case_handover_exports
+    (id, package_id, exported_at, valid_until, package_type, status, target_instance_id,
+      target_key_fingerprint, format_version, case_count, metadata_json)
+    VALUES (?, ?, ?, ?, 'vacation_handover', 'open', ?, ?, 5, 0, ?)`)
+    .run(exportId, input.packageId, input.createdAt, input.expiresAt,
+      input.targetInstanceId, input.targetKeyFingerprint, JSON.stringify({ sectionCounts: counts }));
+  for (const [ref, source] of sourceEntries) {
+    if (!/^[a-z_]+_[1-9][0-9]*$/.test(ref) || !source.localId || !/^[0-9a-f]{64}$/.test(source.baselineSha256)) {
+      throw new Error('Format-5-Exportledger enthält ungültige Quellreferenzen.');
+    }
+    db.prepare(`INSERT INTO case_handover_export_items
+      (id, handover_export_id, package_ref, local_entity_type, local_entity_id, exported_at, baseline_sha256)
+      VALUES (?, ?, ?, ?, ?, ?, ?)`)
+      .run(randomUUID(), exportId, ref, source.kind, source.localId, input.createdAt, source.baselineSha256);
   }
 }
 

@@ -42,7 +42,11 @@ export const CASE_HANDOVER_IMPORTS_REQUIRED_COLUMNS = [
   'mode',
   'created_case_count',
   'updated_case_count',
-  'metadata_json'
+  'metadata_json',
+  'origin_key_fingerprint',
+  'target_key_fingerprint',
+  'format_version',
+  'source_package_id',
 ] as const;
 
 export const CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS = [
@@ -51,7 +55,8 @@ export const CASE_HANDOVER_IMPORT_ITEMS_REQUIRED_COLUMNS = [
   'local_entity_type',
   'local_entity_id',
   'package_ref',
-  'created_at'
+  'created_at',
+  'baseline_sha256',
 ] as const;
 
 export const CASE_HANDOVER_EXPORTS_REQUIRED_COLUMNS = [
@@ -63,7 +68,9 @@ export const CASE_HANDOVER_EXPORTS_REQUIRED_COLUMNS = [
   'status',
   'target_instance_id',
   'case_count',
-  'metadata_json'
+  'metadata_json',
+  'target_key_fingerprint',
+  'format_version',
 ] as const;
 
 export const CASE_HANDOVER_EXPORT_ITEMS_REQUIRED_COLUMNS = [

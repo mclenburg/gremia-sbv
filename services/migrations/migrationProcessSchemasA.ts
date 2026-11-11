@@ -145,7 +145,11 @@ export class MigrationProcessSchemasA extends MigrationExecutor {
           mode TEXT NOT NULL DEFAULT 'create_new',
           created_case_count INTEGER NOT NULL DEFAULT 0,
           updated_case_count INTEGER NOT NULL DEFAULT 0,
-          metadata_json TEXT NOT NULL DEFAULT '{}'
+          metadata_json TEXT NOT NULL DEFAULT '{}',
+          origin_key_fingerprint TEXT,
+          target_key_fingerprint TEXT,
+          format_version INTEGER,
+          source_package_id TEXT
         );
         CREATE UNIQUE INDEX IF NOT EXISTS idx_case_handover_package ON case_handover_imports(package_id);
         CREATE TABLE IF NOT EXISTS case_handover_import_items (
@@ -154,10 +158,16 @@ export class MigrationProcessSchemasA extends MigrationExecutor {
           local_entity_type TEXT NOT NULL,
           local_entity_id TEXT NOT NULL,
           package_ref TEXT NOT NULL,
-          created_at TEXT NOT NULL
+          created_at TEXT NOT NULL,
+          baseline_sha256 TEXT
         );
         CREATE INDEX IF NOT EXISTS idx_case_handover_items_local ON case_handover_import_items(local_entity_type, local_entity_id);
       `);
+      this.addColumnIfMissing('case_handover_imports', 'origin_key_fingerprint', 'TEXT');
+      this.addColumnIfMissing('case_handover_imports', 'target_key_fingerprint', 'TEXT');
+      this.addColumnIfMissing('case_handover_imports', 'format_version', 'INTEGER');
+      this.addColumnIfMissing('case_handover_imports', 'source_package_id', 'TEXT');
+      this.addColumnIfMissing('case_handover_import_items', 'baseline_sha256', 'TEXT');
       this.addColumnIfMissing('cases', 'handover_import_id', 'TEXT REFERENCES case_handover_imports(id) ON DELETE SET NULL');
       this.addColumnIfMissing('cases', 'handover_package_id', 'TEXT');
       this.addColumnIfMissing('cases', 'handover_valid_until', 'TEXT');
