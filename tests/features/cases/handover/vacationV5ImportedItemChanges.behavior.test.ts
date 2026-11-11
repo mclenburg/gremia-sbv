@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import type { DatabaseAdapter } from '../../../../services/databaseService';
 import { caseHandoverBaselineHash } from '../../../../services/caseHandoverBaselineHash';
 import { DocumentContainerService } from '../../../../services/documentContainerService';
-import { listVacationV5ImportedItemChanges } from '../../../../services/vacationV5ImportedItemChanges';
+import { listVacationV5ImportedItemChanges, listVacationV5OriginItemChanges } from '../../../../services/vacationV5ImportedItemChanges';
 
 function database() {
   const raw = new DatabaseSync(':memory:');
@@ -19,6 +19,28 @@ function database() {
 }
 
 describe('Format-5-Änderungsbestand', () => {
+  it('prüft den Ursprungsbestand gegen die beim Export gespeicherte Basis', () => {
+    const { raw, adapter } = database();
+    try {
+      raw.exec(`
+        INSERT INTO case_handover_exports (id, package_id, exported_at, package_type, format_version)
+          VALUES ('export-1', 'handover_origin', '2026-11-11', 'vacation_handover', 5);
+        INSERT INTO sbv_meetings (id, meeting_type, title, starts_at, status, created_at, updated_at)
+          VALUES ('meeting-origin', 'other', 'Sitzung', '2099-11-20', 'draft', '2026-11-11', '2026-11-11');
+      `);
+      const baseline = caseHandoverBaselineHash(raw.prepare('SELECT * FROM sbv_meetings').get()!);
+      raw.prepare(`INSERT INTO case_handover_export_items
+        (id, handover_export_id, package_ref, local_entity_type, local_entity_id, exported_at, baseline_sha256)
+        VALUES ('item-origin', 'export-1', 'meeting_1', 'meeting', 'meeting-origin', '2026-11-11', ?)`).run(baseline);
+      expect(listVacationV5OriginItemChanges(adapter, 'handover_origin', '').items[0].status).toBe('unchanged');
+      raw.prepare("UPDATE sbv_meetings SET title = 'Geändert' WHERE id = 'meeting-origin'").run();
+      expect(listVacationV5OriginItemChanges(adapter, 'handover_origin', '').items[0].status).toBe('changed');
+      raw.prepare("DELETE FROM sbv_meetings WHERE id = 'meeting-origin'").run();
+      expect(listVacationV5OriginItemChanges(adapter, 'handover_origin', '').items[0].status).toBe('missing');
+      expect(() => listVacationV5OriginItemChanges(adapter, 'handover_unknown', '')).toThrow();
+    } finally { raw.close(); }
+  });
+
   it('erkennt unveränderte, geänderte und fehlende Kopien anhand der Import-Baselines samt Dokumentbytes', async () => {
     const { raw, adapter } = database();
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'gremia-v5-return-inventory-'));
