@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import type { DatabaseAdapter } from '../../../../services/databaseService';
 import { collectVacationV5Sections } from '../../../../services/vacationV5SectionCollector';
 import { assertVacationV5Sections } from '../../../../services/vacationV5SectionManifest';
+import { importVacationV5Sections } from '../../../../services/vacationV5SectionImporter';
 
 const empty = { caseIds: [], standaloneDeadlineIds: [], meetingIds: [], recruitingIds: [], employerObligationIds: [], inclusionAgreementIds: [], violationIds: [], assemblyIds: [] };
 
@@ -38,6 +39,13 @@ describe('Format-5-Collector für fallfreie Arbeit', () => {
       expect(JSON.stringify(result.sections)).not.toContain('meeting-local');
       expect(JSON.stringify(result.sections)).not.toContain('deadline-local');
       expect(assertVacationV5Sections(result.sections, result.manifest)).toEqual(result.sections);
+      const destination = database();
+      try {
+        expect(importVacationV5Sections(destination.adapter, 'handover_cross_case_test', '2099-11-30', result.sections, result.manifest).importedCount).toBe(3);
+        expect(destination.raw.prepare('SELECT COUNT(*) AS count FROM sbv_meetings').get()).toEqual({ count: 1 });
+        expect(destination.raw.prepare('SELECT COUNT(*) AS count FROM sbv_meeting_agenda_items').get()).toEqual({ count: 1 });
+        expect(destination.raw.prepare('SELECT COUNT(*) AS count FROM deadlines WHERE case_id IS NULL').get()).toEqual({ count: 1 });
+      } finally { destination.raw.close(); }
     } finally { raw.close(); }
   });
 
@@ -73,6 +81,15 @@ describe('Format-5-Collector für fallfreie Arbeit', () => {
       expect(JSON.stringify(result.sections)).not.toContain('general-local');
       expect(JSON.stringify(result.sections)).not.toContain('interview-local');
       expect(assertVacationV5Sections(result.sections, result.manifest)).toEqual(result.sections);
+      const destination = database();
+      try {
+        expect(importVacationV5Sections(destination.adapter, 'handover_all_groups_test', '2099-11-30', result.sections, result.manifest).importedCount).toBe(9);
+        for (const table of ['recruiting_participations', 'recruiting_interview_events', 'sbv_employer_obligation_reviews',
+          'sbv_inclusion_agreements', 'sbv_inclusion_agreement_topics', 'sbv_inclusion_officer_snapshots',
+          'sbv_participation_violations', 'sbv_participation_violation_events', 'sbv_assemblies']) {
+          expect(destination.raw.prepare(`SELECT COUNT(*) AS count FROM ${table}`).get(), table).toEqual({ count: 1 });
+        }
+      } finally { destination.raw.close(); }
     } finally { raw.close(); }
   });
 });
