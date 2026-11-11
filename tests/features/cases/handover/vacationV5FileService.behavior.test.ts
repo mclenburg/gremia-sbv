@@ -10,6 +10,7 @@ import { TransferRecipientProfileService } from '../../../../services/transferRe
 import { VacationV5FileService } from '../../../../services/vacationV5FileService';
 import { DocumentContainerService } from '../../../../services/documentContainerService';
 import { listVacationV5ImportedItemChanges, listVacationV5OriginItemChanges } from '../../../../services/vacationV5ImportedItemChanges';
+import { collectVacationV5ReturnChanges } from '../../../../services/vacationV5ReturnCollector';
 
 const empty = { caseIds: [], standaloneDeadlineIds: [], meetingIds: [], recruitingIds: [], employerObligationIds: [],
   inclusionAgreementIds: [], violationIds: [], assemblyIds: [] };
@@ -129,6 +130,14 @@ describe('Format-5-Dateiservice für fallfreie Arbeit', () => {
         ]);
       expect(listVacationV5OriginItemChanges(source.adapter, exported.packageId, sourceDirectory).items
         .every((item) => item.status === 'unchanged')).toBe(true);
+      expect(collectVacationV5ReturnChanges(target.adapter, exported.packageId, targetDirectory).changes).toEqual([]);
+      target.raw.prepare("UPDATE generated_documents SET title = 'Bearbeitetes Protokoll' WHERE id = ?").run(linked.id);
+      const changes = collectVacationV5ReturnChanges(target.adapter, exported.packageId, targetDirectory).changes;
+      expect(changes).toHaveLength(1);
+      expect(changes[0]).toMatchObject({ kind: 'generated_document', operation: 'upsert',
+        contentBase64: plain.toString('base64') });
+      expect(changes[0].data).not.toHaveProperty('storage_path');
+      expect(changes[0].data).not.toHaveProperty('document_key');
     } finally { source.raw.close(); target.raw.close(); fs.rmSync(directory, { recursive: true, force: true }); }
   });
 
