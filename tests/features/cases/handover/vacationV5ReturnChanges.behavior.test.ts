@@ -34,5 +34,8 @@ describe('Format-5-Rückgabeänderungen', () => {
       deputyBaselineSha256: hash('a'), deputyCurrentSha256: hash('b'),
       data: { process_type: 'custom', deadline_type: 'custom', title: 'Frist', due_at: '2099-11-20', status: 'open' } };
     expect(assertVacationV5ReturnChanges([deadline])).toHaveLength(1);
+    const addition = { ...agenda, ref: 'return_meeting_agenda_1', deputyBaselineSha256: null };
+    expect(assertVacationV5ReturnChanges([addition])).toHaveLength(1);
+    expect(() => assertVacationV5ReturnChanges([{ ...addition, ref: 'agenda_2' }])).toThrow();
   });
 });

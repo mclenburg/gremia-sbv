@@ -52,6 +52,15 @@ describe('Format-5-Rückgabebestand', () => {
       expect(changes[0].links).toEqual({ meetingRef: 'meeting_1' });
       expect(changes[0].data).not.toHaveProperty('id');
       expect(changes[2]).toMatchObject({ reason: 'Termin entfällt' });
+      raw.prepare(`INSERT INTO sbv_meeting_agenda_items (id, meeting_id, title, created_at, updated_at)
+        VALUES ('agenda-new', 'meeting-a', 'Neuer TOP', '2026-11-12', '2026-11-12')`).run();
+      const withAddition = collectVacationV5ReturnChanges(adapter, 'handover_delta', '',
+        [{ ref: 'meeting_2', reason: 'Termin entfällt' }],
+        [{ kind: 'meeting_agenda', localId: 'agenda-new' }]).changes;
+      expect(withAddition.at(-1)).toMatchObject({ ref: 'return_meeting_agenda_1', kind: 'meeting_agenda',
+        operation: 'upsert', deputyBaselineSha256: null, links: { meetingRef: 'meeting_1' } });
+      expect(() => collectVacationV5ReturnChanges(adapter, 'handover_delta', '', [],
+        [{ kind: 'meeting_agenda', localId: 'agenda-new' }])).toThrow(/Stornowunsch/);
       expect(() => collectVacationV5ReturnChanges(adapter, 'handover_delta', '')).toThrow(/Stornowunsch/);
       expect(() => collectVacationV5ReturnChanges(adapter, 'handover_delta', '',
         [{ ref: 'unknown_1', reason: 'Unbekannt' }])).toThrow();

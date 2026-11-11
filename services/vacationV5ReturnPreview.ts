@@ -27,13 +27,15 @@ export function previewVacationV5ReturnPayload(database: DatabaseAdapter, payloa
   sourcePackageId: string; origin: { keyFingerprint: string }; changes: unknown;
 }, dataDirectory: string): { exportId: string; items: VacationV5PlannedReturnItem[] } {
   const changes = assertVacationV5ReturnChanges(payload.changes);
-  const deputyItems: VacationV5ReturnInventoryItem[] = changes.map((change) => ({
-    ref: change.ref, kind: change.kind, baselineSha256: change.deputyBaselineSha256,
+  const existing = changes.filter((change) => change.deputyBaselineSha256 !== null);
+  const deputyItems: VacationV5ReturnInventoryItem[] = existing.map((change) => ({
+    ref: change.ref, kind: change.kind, baselineSha256: change.deputyBaselineSha256!,
     currentSha256: change.deputyCurrentSha256,
     status: change.deputyCurrentSha256 === null ? 'missing'
       : change.deputyCurrentSha256 === change.deputyBaselineSha256 ? 'unchanged' : 'changed',
   }));
   return previewVacationV5Return(database, payload.sourcePackageId, payload.origin.keyFingerprint,
     deputyItems, dataDirectory, { cancellationRefs: changes.filter((change) => change.operation === 'cancel_request')
-      .map((change) => change.ref) });
+      .map((change) => change.ref), additions: changes.filter((change) => change.deputyBaselineSha256 === null)
+        .map((change) => ({ ref: change.ref, kind: change.kind, currentSha256: change.deputyCurrentSha256! })) });
 }

@@ -90,6 +90,11 @@ describe('Format-5-Rückgabevorschau', () => {
         origin: { keyFingerprint: fingerprint }, changes: [{ ref: 'meeting_1', kind: 'meeting', operation: 'cancel_request',
           deputyBaselineSha256: deputyBaseline, deputyCurrentSha256: null, reason: 'Termin entfällt' }] }, '').items)
         .toEqual([{ ref: 'meeting_1', kind: 'meeting', decision: 'review_removal' }]);
+      expect(previewVacationV5ReturnPayload(adapter, { sourcePackageId: 'handover_preview',
+        origin: { keyFingerprint: fingerprint }, changes: [{ ref: 'return_meeting_1', kind: 'meeting', operation: 'upsert',
+          deputyBaselineSha256: null, deputyCurrentSha256: deputyCurrent,
+          data: { meeting_type: 'other', title: 'Neue Sitzung', starts_at: '2099-11-21', status: 'draft' } }] }, '').items)
+        .toEqual([{ ref: 'return_meeting_1', kind: 'meeting', decision: 'review_addition' }]);
       raw.prepare("UPDATE sbv_meetings SET title = 'Parallel geändert' WHERE id = 'meeting-origin'").run();
       expect(previewVacationV5Return(adapter, 'handover_preview', fingerprint, [item], '').items[0].decision)
         .toBe('review_conflict');

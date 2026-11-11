@@ -1,7 +1,8 @@
 import type { DatabaseAdapter } from './databaseService.js';
 import { caseHandoverBaselineHash } from './caseHandoverBaselineHash.js';
 import { listVacationV5ImportedItemChanges } from './vacationV5ImportedItemChanges.js';
-import { vacationV5SourceTable, type VacationV5PackageSourceKind } from './vacationV5PackageSource.js';
+import { isVacationV5PackageSourceKind, vacationV5SourceTable,
+  type VacationV5PackageSourceKind } from './vacationV5PackageSource.js';
 import { projectVacationV5CaseRow, VACATION_V5_CASE_ROW_FIELDS } from './vacationV5CaseRowPolicy.js';
 import { projectVacationV5Row, VACATION_V5_ROW_FIELDS } from './vacationV5RowPolicy.js';
 import { projectVacationV5OfficeDocumentData } from './vacationV5OfficeDocumentGraph.js';
@@ -12,7 +13,7 @@ export interface VacationV5ReturnChange {
   ref: string;
   kind: VacationV5PackageSourceKind;
   operation: 'upsert' | 'cancel_request';
-  deputyBaselineSha256: string;
+  deputyBaselineSha256: string | null;
   deputyCurrentSha256: string | null;
   data?: Record<string, string | number | boolean | null>;
   links?: Record<string, string>;
@@ -80,11 +81,26 @@ function relations(kind: VacationV5PackageSourceKind, row: Record<string, unknow
 
 /** Collects existing imported rows only. New local descendants need an explicit later selection. */
 export function collectVacationV5ReturnChanges(database: DatabaseAdapter, sourcePackageId: string,
-  dataDirectory: string, cancellationRequests: readonly { ref: string; reason: string }[] = []):
+  dataDirectory: string, cancellationRequests: readonly { ref: string; reason: string }[] = [],
+  additionalItems: readonly { kind: VacationV5PackageSourceKind; localId: string }[] = []):
   { importId: string; changes: VacationV5ReturnChange[] } {
   const inventory = listVacationV5ImportedItemChanges(database, sourcePackageId, dataDirectory);
   const byRef = new Map(inventory.items.map((item) => [item.ref, item]));
   const refByLocal = new Map(inventory.items.map((item) => [`${item.kind}:${item.localId}`, item.ref]));
+  if (additionalItems.length > 1000) throw new Error('Rückgabe enthält zu viele neue Vorgänge.');
+  const additions: Array<{ kind: VacationV5PackageSourceKind; localId: string; ref: string }> = [];
+  const additionCounts = new Map<string, number>();
+  for (const item of additionalItems) {
+    if (!isVacationV5PackageSourceKind(item.kind) || typeof item.localId !== 'string' || !item.localId.trim()
+      || refByLocal.has(`${item.kind}:${item.localId}`)) {
+      throw new Error('Neuer Rückgabevorgang ist unbekannt oder bereits im Ausgangspaket vorhanden.');
+    }
+    const count = (additionCounts.get(item.kind) ?? 0) + 1;
+    additionCounts.set(item.kind, count);
+    const ref = `return_${item.kind}_${count}`;
+    refByLocal.set(`${item.kind}:${item.localId}`, ref);
+    additions.push({ ...item, ref });
+  }
   const cancellations = new Map<string, string>();
   for (const request of cancellationRequests) {
     if (!byRef.has(request.ref) || cancellations.has(request.ref)
@@ -122,6 +138,18 @@ export function collectVacationV5ReturnChanges(database: DatabaseAdapter, source
       data: project(item.kind, row), ...(Object.keys(links).length ? { links } : {}),
       ...(contentBase64 === undefined ? {} : { contentBase64 }),
     });
+  }
+  for (const item of additions) {
+    const table = vacationV5SourceTable(item.kind);
+    const row = database.prepare<Record<string, unknown>>(`SELECT * FROM ${table} WHERE id = ?`).get(item.localId);
+    if (!row) throw new Error('Ausgewählter neuer Rückgabevorgang wurde nicht gefunden.');
+    const contentBase64 = item.kind === 'case_document' || item.kind === 'generated_document'
+      ? encodeSelectedVacationV5Document(row, dataDirectory).contentBase64 : undefined;
+    const links = relations(item.kind, row, refFor);
+    changes.push({ ref: item.ref, kind: item.kind, operation: 'upsert', deputyBaselineSha256: null,
+      deputyCurrentSha256: caseHandoverBaselineHash(row, contentBase64), data: project(item.kind, row),
+      ...(Object.keys(links).length ? { links } : {}),
+      ...(contentBase64 === undefined ? {} : { contentBase64 }) });
   }
   return { importId: inventory.importId, changes: assertVacationV5ReturnChanges(changes) };
 }

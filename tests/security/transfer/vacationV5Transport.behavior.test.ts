@@ -25,7 +25,10 @@ describe('Format-5-Transport', () => {
         issuedAt: '2026-11-11T10:00:00.000Z' };
       const changes = [{ ref: 'meeting_1', kind: 'meeting', operation: 'upsert',
         deputyBaselineSha256: 'a'.repeat(64), deputyCurrentSha256: 'b'.repeat(64),
-        data: { meeting_type: 'other', title: 'Geändert', starts_at: '2099-11-20', status: 'draft' } }];
+        data: { meeting_type: 'other', title: 'Geändert', starts_at: '2099-11-20', status: 'draft' } },
+      { ref: 'return_meeting_1', kind: 'meeting', operation: 'upsert', deputyBaselineSha256: null,
+        deputyCurrentSha256: 'c'.repeat(64),
+        data: { meeting_type: 'other', title: 'Neu', starts_at: '2099-11-21', status: 'draft' } }];
       const envelope = sealVacationV5ReturnTransport({ packageId: 'handover_return_v5',
         sourcePackageId: 'handover_source_v5', expiresAt: '2099-11-30', changes,
         capabilities, passphrase: 'lange Transport-Passphrase', sender: sender.privateIdentity,

@@ -67,7 +67,7 @@ export function assertVacationV5ReturnChanges(input: unknown): VacationV5ReturnC
   for (const source of input) {
     if (!record(source) || !ref(source.ref) || refs.has(source.ref)
       || typeof source.kind !== 'string' || !isVacationV5PackageSourceKind(source.kind)
-      || !hash(source.deputyBaselineSha256)
+      || (source.deputyBaselineSha256 !== null && !hash(source.deputyBaselineSha256))
       || (source.deputyCurrentSha256 !== null && !hash(source.deputyCurrentSha256))) {
       throw new Error('Format-5-Rückgabe enthält ungültige oder doppelte Referenzen.');
     }
@@ -75,6 +75,7 @@ export function assertVacationV5ReturnChanges(input: unknown): VacationV5ReturnC
     const kind = source.kind;
     if (source.operation === 'cancel_request') {
       if (!exact(source, ['ref', 'kind', 'operation', 'deputyBaselineSha256', 'deputyCurrentSha256', 'reason'])
+        || !hash(source.deputyBaselineSha256)
         || typeof source.reason !== 'string' || !source.reason.trim() || source.reason.length > 2000) {
         throw new Error('Format-5-Rückgabe enthält einen ungültigen Stornowunsch.');
       }
@@ -84,6 +85,8 @@ export function assertVacationV5ReturnChanges(input: unknown): VacationV5ReturnC
     } else if (source.operation === 'upsert') {
       if (!exact(source, ['ref', 'kind', 'operation', 'deputyBaselineSha256', 'deputyCurrentSha256', 'data'],
         ['links', 'contentBase64']) || !hash(source.deputyCurrentSha256)
+        || (source.deputyBaselineSha256 === null
+          && !new RegExp(`^return_${kind}_[1-9][0-9]*$`).test(source.ref))
         || source.deputyCurrentSha256 === source.deputyBaselineSha256) {
         throw new Error('Format-5-Rückgabe enthält keinen geänderten Stand.');
       }
