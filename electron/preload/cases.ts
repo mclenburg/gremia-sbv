@@ -17,6 +17,8 @@ import type { CaseDocumentRecord } from "../../src/domain/models/case-document.m
 import type { UnifiedSearchDetail, UnifiedSearchPage, UnifiedSearchQuery } from '../../src/domain/models/unified-search.model.js';
 import type { CaseHandoverChecklist, CaseHandoverChecklistInput, CaseHandoverCockpit, CaseHandoverContinueExpiredResult, CaseHandoverExportInput, CaseHandoverExportResult, CaseHandoverImportInput, CaseHandoverImportResult, CaseHandoverInspectResult, CaseHandoverReturnDeltaExportInput } from "../../src/domain/models/case-handover.model.js";
 import type { MobileCompanionDevice, MobileCompanionDeviceStatus, MobileCompanionPairingRequestResult, MobileCompanionReturnImportInput, MobileCompanionReturnImportResult, MobileCompanionReturnInspectResult, MobileCompanionSnapshotInput, MobileCompanionSnapshotResult, SaveMobileCompanionDeviceInput } from "../../src/domain/models/mobile-companion.model.js";
+import type { VacationV5ReturnImportInput, VacationV5ReturnImportResult,
+  VacationV5ReturnReview } from '../../src/domain/transfer/vacationV5ReturnReview.js';
 import type {
   CaseMeasureNoteProcessType,
   CaseMeasureNoteRecord,
@@ -53,6 +55,10 @@ function createCaseHandoverApi(invokeIpc: IpcInvoker) {
       invokeIpc(IPC_CHANNELS.caseHandoverExport, input, suggestedFileName),
     exportReturnDelta: (input: CaseHandoverReturnDeltaExportInput, suggestedFileName?: string): Promise<CaseHandoverExportResult> =>
       invokeIpc(IPC_CHANNELS.caseHandoverReturnDeltaExport, input, suggestedFileName),
+    reviewV5Return: (fileToken: string, passphrase: string): Promise<VacationV5ReturnReview> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverV5ReturnReview, fileToken, passphrase),
+    importV5Return: (input: VacationV5ReturnImportInput): Promise<VacationV5ReturnImportResult> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverV5ReturnImport, input),
     selectFile: (): Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string }> =>
       invokeIpc(IPC_CHANNELS.caseHandoverSelectFile),
     inspect: (filePath: string, passphrase: string): Promise<CaseHandoverInspectResult> =>

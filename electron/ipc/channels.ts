@@ -29,6 +29,8 @@ export const IPC_CHANNELS = Object.freeze({
   caseHandoverCockpit: "caseHandover:cockpit",
   caseHandoverExport: "caseHandover:export",
   caseHandoverReturnDeltaExport: "caseHandover:return-delta-export",
+  caseHandoverV5ReturnReview: "caseHandover:v5:return:review",
+  caseHandoverV5ReturnImport: "caseHandover:v5:return:import",
   caseHandoverImport: "caseHandover:import",
   caseHandoverInspect: "caseHandover:inspect",
   caseHandoverMobileDeviceStatus: "caseHandover:mobile:device-status",

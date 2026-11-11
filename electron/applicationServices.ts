@@ -1,6 +1,7 @@
 import { ActivityJournalPreferenceService, ActivityJournalService, PersonalDataAuditLogService, MeasureLifecycleAuditService, SearchIndexService, BackupService, BemService, CaseAnonymizationService, CaseHandoverService, CaseMeasureService, CaseService, ComplianceIncidentService, ComplianceSelfCheckService, ContactService, DeadlineService, DsarPrefillService, EqualizationService, EqualizationIntakeService, EmployerQuotaSettingsService, GremiaBrAuthService, GremiaBrCacheService, GremiaBrExternalReferenceService, GremiaBrSettingsService, GremiaBrWorkspaceActionService, KnowledgeService, MobileCompanionReturnService, MobileCompanionService, ParticipationService, PersonAnonymizationService, PersonImportService, PersonStatusExpiryService, PreventionService, PrivacyReviewService, ProtectedPersonService, RecruitingParticipationService, ReportService, RetentionService, SbvControlProtocolService, SbvParticipationViolationDocumentService, SbvParticipationViolationService, SbvParticipationViolationTemplateService, SbvResourceService, TemplateDefaultService, TemplateService, TransferInstanceIdentityService, TransferRecipientProfileService, TerminationService, WorkplaceAccommodationService, SbvMeetingService, SbvAssemblyService, EmployerObligationService, InclusionAgreementService, ComplaintWorkflowService, SbvOfficeDocumentService, SbvOfficeWorkflowDocumentAdapter, SbvElectionService, SbvElectionDocumentService, ElectionExecutionService, ElectionArchiveService, ElectionTransferService, type DatabaseAdapter, type SecurityService } from './applicationServiceDependencies.js';
 import { TextEntityReferenceService } from '../services/textEntityReferenceService.js';
 import { UnifiedSearchIndexService } from '../services/search/unifiedSearchIndexService.js';
+import { VacationV5ReturnFileService } from '../services/vacationV5ReturnFileService.js';
 /**
  * Central composition root for Electron main-process application services.
  *
@@ -76,6 +77,9 @@ export class ApplicationServices {
     this.databaseService('caseMeasures', (database) => new CaseMeasureService(database, this.auditLog(), this.lifecycleAudit(), this.searchIndex()));
   caseHandover = (): CaseHandoverService =>
     this.databaseService('caseHandover', (database) => new CaseHandoverService(database, () => this.security.getDataDirectory()));
+  vacationV5Return = (): VacationV5ReturnFileService =>
+    this.databaseService('vacationV5Return', (database) => new VacationV5ReturnFileService(database,
+      () => this.security.getDataDirectory()));
   caseAnonymization = (): CaseAnonymizationService =>
     this.databaseService('caseAnonymization', (database) => new CaseAnonymizationService(database, () => this.security.getDataDirectory()));
   contacts = (): ContactService =>

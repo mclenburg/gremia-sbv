@@ -11,7 +11,8 @@ import { openVacationV5ReturnTransport, sealVacationV5ReturnTransport,
   type VacationV5ReturnPayload } from './vacationV5ReturnTransport.js';
 import { previewVacationV5ReturnPayload } from './vacationV5ReturnPreview.js';
 import type { VacationV5PlannedReturnItem } from '../src/domain/transfer/vacationV5ReturnPlan.js';
-import { collectVacationV5ReturnChanges, type VacationV5ReturnSourceByRef } from './vacationV5ReturnCollector.js';
+import { collectVacationV5ReturnChanges, projectVacationV5ReturnData,
+  type VacationV5ReturnSourceByRef } from './vacationV5ReturnCollector.js';
 import { assertTransferCapabilities } from './transferCapabilityDocument.js';
 import { vacationV5SourceTable } from './vacationV5PackageSource.js';
 import { caseHandoverBaselineHash } from './caseHandoverBaselineHash.js';
@@ -21,7 +22,9 @@ import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { recordVacationV5ReturnExport } from './caseHandoverExportLedger.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { auditCaseHandoverExported } from './auditEventBuilders.js';
-import { importConfirmedVacationV5Return, type VacationV5ReturnChoice } from './vacationV5ReturnImporter.js';
+import { importConfirmedVacationV5Return } from './vacationV5ReturnImporter.js';
+import { listVacationV5OriginItemChanges } from './vacationV5ImportedItemChanges.js';
+import type { VacationV5ReturnChoice, VacationV5ReturnReview } from '../src/domain/transfer/vacationV5ReturnReview.js';
 
 type ProfileRow = { recipient_token: string; key_fingerprint: string; active: number; capabilities_json: string | null };
 
@@ -125,6 +128,28 @@ export class VacationV5ReturnFileService {
     const preview = previewVacationV5ReturnPayload(this.database, payload, this.dataDirectoryProvider());
     return { packageId: payload.packageId, sourcePackageId: payload.sourcePackageId,
       exportId: preview.exportId, items: preview.items };
+  }
+
+  reviewFromFile(filePath: string, passphrase: string): VacationV5ReturnReview {
+    const payload = this.openVerifiedPayload(filePath, passphrase);
+    const directory = this.dataDirectoryProvider();
+    const preview = previewVacationV5ReturnPayload(this.database, payload, directory);
+    const origin = new Map(listVacationV5OriginItemChanges(this.database, payload.sourcePackageId,
+      directory).items.map((item) => [item.ref, item]));
+    const changes = new Map(payload.changes.map((change) => [change.ref, change]));
+    return { packageId: payload.packageId, sourcePackageId: payload.sourcePackageId,
+      expiresAt: payload.expiresAt, senderInstanceId: payload.origin.instanceId,
+      items: preview.items.map((planned) => {
+        const current = origin.get(planned.ref);
+        const change = changes.get(planned.ref)!;
+        const row = current?.currentSha256
+          ? this.database.prepare<Record<string, unknown>>(
+            `SELECT * FROM ${vacationV5SourceTable(current.kind)} WHERE id = ?`).get(current.localId) : undefined;
+        return { ...planned, expectedOriginSha256: current?.currentSha256 ?? null,
+          originData: row ? projectVacationV5ReturnData(current!.kind, row)! : null,
+          deputyData: change.data ?? null,
+          ...(change.reason === undefined ? {} : { cancellationReason: change.reason }) };
+      }) };
   }
 
   importConfirmedFromFile(filePath: string, passphrase: string,

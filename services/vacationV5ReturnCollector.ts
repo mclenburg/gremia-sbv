@@ -35,7 +35,8 @@ const WORKFLOW_OWNER: Readonly<Record<string, VacationV5PackageSourceKind>> = {
   inclusion_agreement: 'inclusion_agreement',
 };
 
-function project(kind: VacationV5PackageSourceKind, row: Record<string, unknown>): VacationV5ReturnChange['data'] {
+export function projectVacationV5ReturnData(kind: VacationV5PackageSourceKind,
+  row: Record<string, unknown>): VacationV5ReturnChange['data'] {
   if (kind === 'case_deadline') return projectVacationV5Row('deadline', row);
   if (Object.hasOwn(VACATION_V5_CASE_ROW_FIELDS, kind)) return projectVacationV5CaseRow(kind, row);
   if (Object.hasOwn(VACATION_V5_ROW_FIELDS, kind)) return projectVacationV5Row(kind, row);
@@ -139,7 +140,7 @@ export function collectVacationV5ReturnChanges(database: DatabaseAdapter, source
     const links = relations(item.kind, row, refFor);
     changes.push({ ref: item.ref, kind: item.kind, operation: 'upsert',
       deputyBaselineSha256: item.baselineSha256, deputyCurrentSha256: item.currentSha256!,
-      data: project(item.kind, row), ...(Object.keys(links).length ? { links } : {}),
+      data: projectVacationV5ReturnData(item.kind, row), ...(Object.keys(links).length ? { links } : {}),
       ...(contentBase64 === undefined ? {} : { contentBase64 }),
     });
   }
@@ -151,7 +152,7 @@ export function collectVacationV5ReturnChanges(database: DatabaseAdapter, source
       ? encodeSelectedVacationV5Document(row, dataDirectory).contentBase64 : undefined;
     const links = relations(item.kind, row, refFor);
     changes.push({ ref: item.ref, kind: item.kind, operation: 'upsert', deputyBaselineSha256: null,
-      deputyCurrentSha256: caseHandoverBaselineHash(row, contentBase64), data: project(item.kind, row),
+      deputyCurrentSha256: caseHandoverBaselineHash(row, contentBase64), data: projectVacationV5ReturnData(item.kind, row),
       ...(Object.keys(links).length ? { links } : {}),
       ...(contentBase64 === undefined ? {} : { contentBase64 }) });
   }

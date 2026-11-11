@@ -77,6 +77,14 @@ describe('Format-5-Rückgabedatei', () => {
         .toEqual([{ ref: 'meeting_1', kind: 'meeting', decision: 'propose_update' },
           { ref: 'return_meeting_agenda_1', kind: 'meeting_agenda', decision: 'review_addition' }]);
       const originHash = listVacationV5OriginItemChanges(origin.adapter, handover.packageId, '').items[0].currentSha256;
+      expect(new VacationV5ReturnFileService(origin.adapter).reviewFromFile(returnPath,
+        'lange Transport-Passphrase').items).toEqual(expect.arrayContaining([
+          expect.objectContaining({ ref: 'meeting_1', expectedOriginSha256: originHash,
+            originData: expect.objectContaining({ title: 'Sitzung' }),
+            deputyData: expect.objectContaining({ title: 'Vertretung hat geändert' }) }),
+          expect.objectContaining({ ref: 'return_meeting_agenda_1', expectedOriginSha256: null,
+            originData: null, deputyData: expect.objectContaining({ title: 'Neuer TOP' }) }),
+        ]));
       const choice = [{ ref: 'meeting_1', action: 'accept_update' as const, expectedOriginSha256: originHash },
         { ref: 'return_meeting_agenda_1', action: 'accept_addition' as const, expectedOriginSha256: null }];
       origin.raw.prepare("UPDATE sbv_meetings SET title = 'Lokal überarbeitet' WHERE id = ?").run('meeting-source');

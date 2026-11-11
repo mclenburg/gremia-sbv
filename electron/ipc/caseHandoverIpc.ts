@@ -9,6 +9,7 @@ import { issueSelectedFileCapability, resolveSelectedFileCapability, SELECTED_FI
 import { registerMobilePairingFileIpc } from './mobilePairingFileIpc.js';
 import { validateMobileReturnImportInput } from './mobileReturnIpcValidation.js';
 import { resolveCaseHandoverExportVersion } from '../../services/caseHandoverPolicy.js';
+import { registerVacationV5ReturnIpc } from './vacationV5ReturnIpc.js';
 
 function validateMobileDeviceInput(input: unknown): SaveMobileCompanionDeviceInput {
   const value = assertRecordInput<Record<string, unknown>>(input, 'caseHandover:mobile:devices:save');
@@ -32,6 +33,7 @@ function validateMobileSnapshotInput(input: unknown): MobileCompanionSnapshotInp
 
 export function registerCaseHandoverIpc(ipcMain: IpcMain, security: SecurityService, services: ApplicationServices): void {
   registerMobilePairingFileIpc(ipcMain, services);
+  registerVacationV5ReturnIpc(ipcMain, services);
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverCockpit, async () => services.caseHandover().listCockpit());
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverChecklist, async (_event, input: unknown) =>

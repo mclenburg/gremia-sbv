@@ -9,12 +9,7 @@ import { caseHandoverBaselineHash } from './caseHandoverBaselineHash.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { auditCaseHandoverImported } from './auditEventBuilders.js';
 import type { VacationV5ReturnPayload } from './vacationV5ReturnTransport.js';
-
-export interface VacationV5ReturnChoice {
-  ref: string;
-  action: 'accept_update' | 'accept_conflict_update' | 'accept_addition' | 'keep_origin' | 'acknowledge_cancellation';
-  expectedOriginSha256: string | null;
-}
+import type { VacationV5ReturnChoice } from '../src/domain/transfer/vacationV5ReturnReview.js';
 
 const LINK_COLUMN: Readonly<Record<string, Record<string, { kind: string; column: string }>>> = {
   meeting_agenda: { meetingRef: { kind: 'meeting', column: 'meeting_id' } },
