@@ -85,6 +85,10 @@ export function createVacationV5Manifest(input: unknown): VacationV5Manifest {
   return { sections: sections.map((section) => ({ type: section.type, count: section.count, sha256: hash(section) })) };
 }
 
+export function hashVacationV5Manifest(manifest: VacationV5Manifest): string {
+  return createHash('sha256').update(canonical(manifest), 'utf8').digest('hex');
+}
+
 export function assertVacationV5Sections(input: unknown, manifestInput: unknown): VacationV5Section[] {
   const sections = validateSections(input);
   if (!isRecord(manifestInput) || !exactKeys(manifestInput, ['sections']) || !Array.isArray(manifestInput.sections)

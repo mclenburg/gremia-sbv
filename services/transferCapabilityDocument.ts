@@ -16,7 +16,7 @@ function requireIdentity(identity: PublicIdentity): void {
   if (createPublicKey(identity.publicKeyPem).asymmetricKeyType !== 'x25519') throw new Error(ERROR);
 }
 
-function requireCapabilities(input: unknown): TransferCapabilities {
+export function assertTransferCapabilities(input: unknown): TransferCapabilities {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error(ERROR);
   const value = input as Record<string, unknown>;
   if (!own(value, ['protocolVersion', 'readFormats', 'writeFormats', 'features', 'buildVersion', 'revision', 'issuedAt'])
@@ -55,7 +55,7 @@ export function createTransferCapabilityDocument(sender: TransferInstancePrivate
   capabilities: TransferCapabilities): TransferCapabilityDocument {
   requireIdentity(sender);
   requireIdentity(target);
-  const validated = requireCapabilities(capabilities);
+  const validated = assertTransferCapabilities(capabilities);
   const unsigned = {
     kind: 'gremia-sbv-capability' as const, version: 1 as const,
     origin: { instanceId: sender.instanceId, keyFingerprint: sender.keyFingerprint },
@@ -80,7 +80,7 @@ export function verifyTransferCapabilityDocument(input: unknown, recipient: Tran
       || document.target.instanceId !== recipient.instanceId || document.target.keyFingerprint !== recipient.keyFingerprint
       || !document.proof || !own(document.proof, ['scheme', 'mac'])
       || document.proof.scheme !== 'x25519-hkdf-hmac-sha256-v1' || !/^[A-Za-z0-9+/]{43}=$/.test(document.proof.mac)) throw new Error(ERROR);
-    const capabilities = requireCapabilities(document.capabilities);
+    const capabilities = assertTransferCapabilities(document.capabilities);
     const unsigned = { kind: document.kind, version: document.version, origin: document.origin, target: document.target, capabilities };
     const expected = mac(unsigned, recipient.privateKeyPem, knownSender.publicKeyPem);
     const supplied = Buffer.from(document.proof.mac, 'base64');

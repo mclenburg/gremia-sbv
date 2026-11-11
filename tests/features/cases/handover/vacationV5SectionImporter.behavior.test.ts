@@ -32,6 +32,7 @@ describe('Format-5-Import übergreifender Vorgänge', () => {
       expect(raw.prepare('SELECT case_id, process_id, process_type FROM deadlines').get()).toEqual({ case_id: null, process_id: meeting.id, process_type: 'sbv_meeting' });
       expect(raw.prepare('SELECT package_ref, local_entity_id FROM case_handover_import_items ORDER BY package_ref').all())
         .toEqual(expect.arrayContaining([expect.objectContaining({ package_ref: 'meeting_1', local_entity_id: meeting.id })]));
+      expect(raw.prepare("SELECT COUNT(*) AS count FROM personal_data_audit_log WHERE subject_type = 'case_handover'").get()).toEqual({ count: 1 });
       expect(() => importVacationV5Sections(db, 'handover_v5_import_test', '2099-11-30', sections, createVacationV5Manifest(sections))).toThrow(/bereits importiert/);
     } finally { raw.close(); }
   });
@@ -48,6 +49,7 @@ describe('Format-5-Import übergreifender Vorgänge', () => {
       expect(() => importVacationV5Sections(db, 'handover_v5_conflict_test', '2099-11-30', sections, createVacationV5Manifest(sections))).toThrow();
       expect(raw.prepare('SELECT COUNT(*) AS count FROM sbv_meetings').get()).toEqual({ count: 0 });
       expect(raw.prepare('SELECT COUNT(*) AS count FROM case_handover_imports').get()).toEqual({ count: 0 });
+      expect(raw.prepare("SELECT COUNT(*) AS count FROM personal_data_audit_log WHERE subject_type = 'case_handover'").get()).toEqual({ count: 0 });
       expect(raw.prepare('SELECT id FROM sbv_employer_obligation_reviews').all()).toEqual([{ id: 'existing' }]);
     } finally { raw.close(); }
   });

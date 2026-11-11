@@ -3,6 +3,8 @@ import type { DatabaseAdapter } from './databaseService.js';
 import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { assertVacationV5Sections, type VacationV5Manifest, type VacationV5Section, type VacationV5SectionItem } from './vacationV5SectionManifest.js';
 import { VACATION_V5_ROW_FIELDS } from './vacationV5RowPolicy.js';
+import { PersonalDataAuditLogService } from './auditLogService.js';
+import { auditCaseHandoverImported } from './auditEventBuilders.js';
 
 type RowKind = keyof typeof VACATION_V5_ROW_FIELDS;
 
@@ -63,6 +65,10 @@ export function importVacationV5Sections(database: DatabaseAdapter, packageId: s
           VALUES (?, ?, ?, ?, ?, ?)`).run(randomUUID(), importId, kind, localId, item.ref, timestamp);
       }
     }
+    new PersonalDataAuditLogService(database).append(auditCaseHandoverImported({
+      packageId, caseCount: 0, deadlineCount: byType.get('deadline')?.count ?? 0,
+      mode: 'vacation_v5', validUntilPresent: true, result: 'success',
+    }));
     return { importId, importedCount: localByRef.size, localByRef: Object.fromEntries(localByRef) };
   });
 }
