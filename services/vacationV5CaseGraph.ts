@@ -34,6 +34,10 @@ const record = (value: unknown): value is Record<string, unknown> => typeof valu
 const exact = (value: Record<string, unknown>, keys: readonly string[]) =>
   Object.keys(value).length === keys.length && keys.every((key) => Object.hasOwn(value, key));
 
+export function isVacationV5CaseSectionType(value: string): value is VacationV5CaseSectionType {
+  return Object.hasOwn(LINK_TYPES, value);
+}
+
 export function assertVacationV5CaseGraph(input: unknown): VacationV5CaseSection[] {
   if (!Array.isArray(input) || input.length > Object.keys(LINK_TYPES).length) throw new Error('Ungültige Fallabschnitte.');
   const sections: VacationV5CaseSection[] = [];

@@ -37,7 +37,7 @@ function canonical(value: unknown): string {
   return JSON.stringify(value);
 }
 
-function hash(section: VacationV5Section): string {
+export function hashVacationV5Section(section: unknown): string {
   return createHash('sha256').update(canonical(section), 'utf8').digest('hex');
 }
 
@@ -82,7 +82,7 @@ function validateSections(input: unknown): VacationV5Section[] {
 
 export function createVacationV5Manifest(input: unknown): VacationV5Manifest {
   const sections = validateSections(input);
-  return { sections: sections.map((section) => ({ type: section.type, count: section.count, sha256: hash(section) })) };
+  return { sections: sections.map((section) => ({ type: section.type, count: section.count, sha256: hashVacationV5Section(section) })) };
 }
 
 export function hashVacationV5Manifest(manifest: VacationV5Manifest): string {
@@ -97,7 +97,7 @@ export function assertVacationV5Sections(input: unknown, manifestInput: unknown)
     const entry = manifestInput.sections[index];
     if (!isRecord(entry) || !exactKeys(entry, ['type', 'count', 'sha256']) || entry.type !== section.type || entry.count !== section.count
       || typeof entry.sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(entry.sha256)) throw new Error('Abschnittsmanifest stimmt nicht überein.');
-    const expected = Buffer.from(hash(section), 'hex');
+    const expected = Buffer.from(hashVacationV5Section(section), 'hex');
     const supplied = Buffer.from(entry.sha256, 'hex');
     if (!timingSafeEqual(expected, supplied)) throw new Error('Abschnittsmanifest stimmt nicht überein.');
   }
