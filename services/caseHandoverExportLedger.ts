@@ -3,6 +3,7 @@ import type { CaseHandoverPackageType } from '../src/domain/models/case-handover
 import type { MobileCompanionSnapshotPayload } from '../src/domain/models/mobile-companion.model.js';
 import type { DatabaseAdapter } from './databaseService.js';
 import type { PackagePayload } from './caseHandoverSupport.js';
+import { caseHandoverBaselineHash } from './caseHandoverBaselineHash.js';
 
 export function ensureCaseHandoverExportLedgerSchema(db: DatabaseAdapter): void {
   db.exec(`
@@ -24,11 +25,16 @@ export function ensureCaseHandoverExportLedgerSchema(db: DatabaseAdapter): void 
       package_ref TEXT NOT NULL,
       local_entity_type TEXT NOT NULL,
       local_entity_id TEXT NOT NULL,
-      exported_at TEXT NOT NULL
+      exported_at TEXT NOT NULL,
+      baseline_sha256 TEXT
     );
     CREATE INDEX IF NOT EXISTS idx_case_handover_export_items_package_ref ON case_handover_export_items(handover_export_id, package_ref);
     CREATE INDEX IF NOT EXISTS idx_case_handover_export_items_local ON case_handover_export_items(local_entity_type, local_entity_id);
   `);
+  const columns = db.prepare<{ name: string }>('PRAGMA table_info(case_handover_export_items)').all();
+  if (!columns.some((column) => column.name === 'baseline_sha256')) {
+    db.exec('ALTER TABLE case_handover_export_items ADD COLUMN baseline_sha256 TEXT');
+  }
 }
 
 export function recordCaseHandoverExport(
@@ -57,9 +63,9 @@ export function recordCaseHandoverExport(
   for (const item of exportItems(payload)) {
     db.prepare(`
       INSERT INTO case_handover_export_items (
-        id, handover_export_id, package_ref, local_entity_type, local_entity_id, exported_at
-      ) VALUES (?, ?, ?, ?, ?, ?)
-    `).run(randomUUID(), exportId, item.ref, item.type, item.localId, payload.createdAt);
+        id, handover_export_id, package_ref, local_entity_type, local_entity_id, exported_at, baseline_sha256
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(randomUUID(), exportId, item.ref, item.type, item.localId, payload.createdAt, caseHandoverBaselineHash(item.data, item.contentBase64));
   }
 }
 
@@ -101,14 +107,14 @@ export function recordMobileCompanionSnapshotExport(
   }
 }
 
-function exportItems(payload: PackagePayload): Array<{ ref: string; type: string; localId: string }> {
+function exportItems(payload: PackagePayload): Array<{ ref: string; type: string; localId: string; data: Record<string, unknown>; contentBase64?: string }> {
   return [
-    ...payload.cases.map((item) => ({ ref: item.ref, type: 'case', localId: item.data.id })),
-    ...payload.protectedPersons.map((item) => ({ ref: item.ref, type: 'protected_person', localId: item.data.id })),
-    ...payload.notes.map((item) => ({ ref: item.ref, type: 'case_note', localId: item.data.id })),
-    ...payload.measures.map((item) => ({ ref: item.ref, type: 'case_measure', localId: item.data.id })),
-    ...payload.measureNotes.map((item) => ({ ref: item.ref, type: 'case_measure_note', localId: item.data.id })),
-    ...payload.deadlines.map((item) => ({ ref: item.ref, type: 'deadline', localId: item.data.id })),
-    ...payload.documents.map((item) => ({ ref: item.ref, type: 'case_document', localId: item.data.id })),
+    ...payload.cases.map((item) => ({ ref: item.ref, type: 'case', localId: item.data.id, data: item.data })),
+    ...payload.protectedPersons.map((item) => ({ ref: item.ref, type: 'protected_person', localId: item.data.id, data: item.data })),
+    ...payload.notes.map((item) => ({ ref: item.ref, type: 'case_note', localId: item.data.id, data: item.data })),
+    ...payload.measures.map((item) => ({ ref: item.ref, type: 'case_measure', localId: item.data.id, data: item.data })),
+    ...payload.measureNotes.map((item) => ({ ref: item.ref, type: 'case_measure_note', localId: item.data.id, data: item.data })),
+    ...payload.deadlines.map((item) => ({ ref: item.ref, type: 'deadline', localId: item.data.id, data: item.data })),
+    ...payload.documents.map((item) => ({ ref: item.ref, type: 'case_document', localId: item.data.id, data: item.data, contentBase64: item.contentBase64 })),
   ].filter((item) => item.localId);
 }

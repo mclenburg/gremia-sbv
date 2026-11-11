@@ -61,6 +61,46 @@ function countDocuments(database: DatabaseAdapter, caseId: string): number {
 }
 
 describe('Fallübergabe P1 – Rückgabe-Delta', () => {
+  it('übernimmt eine zurückgegebene Frist nicht, wenn die Ausgangsfrist nach dem Export geändert wurde', async () => {
+    insertSourceCase(sourceDb, 'source-case-conflict');
+    const createdAt = '2026-09-05T09:00:00.000Z';
+    sourceDb.prepare(`INSERT INTO deadlines (id, case_id, process_type, deadline_type, title, due_at, status, created_at, updated_at) VALUES (?, ?, 'case', 'follow_up', ?, ?, 'open', ?, ?)`)
+      .run('deadline-conflict', 'source-case-conflict', 'Ausgangsfrist', '2099-01-01T09:00:00.000Z', createdAt, createdAt);
+    const source = new CaseHandoverService(sourceDb, () => path.join(tempRoot, 'source-data'));
+    const substitute = new CaseHandoverService(substituteDb, () => path.join(tempRoot, 'substitute-data'));
+    const passphrase = 'lange Transport-Passphrase für Konflikt';
+    const handoverFile = path.join(tempRoot, 'conflict-out.gsbvtransfer');
+    const returnFile = path.join(tempRoot, 'conflict-return.gsbvtransfer');
+    const expiresAt = '2099-12-31T23:59:59.000Z';
+    const checklist = new CaseHandoverChecklistService(sourceDb).build({ packageType: 'vacation_handover', caseIds: ['source-case-conflict'], expiresAt });
+    const exported = await source.exportToFile({
+      caseIds: ['source-case-conflict'], expiresAt, passphrase,
+      targetRecipientToken: new TransferInstanceIdentityService(substituteDb).getPublicIdentity().recipientToken,
+      checklist: { version: 1, acknowledgedItemIds: checklist.requiredAcknowledgementIds },
+    }, handoverFile);
+    const imported = await substitute.importFromFile({ filePath: handoverFile, passphrase, mode: 'create_new' });
+    const substituteDeadline = substituteDb.prepare<{ id: string }>('SELECT id FROM deadlines WHERE case_id = ?').get(imported.createdCaseIds[0]);
+    expect(substituteDeadline).toBeDefined();
+    substituteDb.prepare('UPDATE deadlines SET title = ?, updated_at = ? WHERE id = ?')
+      .run('Frist der Stellvertretung', '2099-01-02T09:00:00.000Z', substituteDeadline!.id);
+    const returnChecklist = new CaseHandoverChecklistService(substituteDb).build({ packageType: 'return_delta', caseIds: imported.createdCaseIds });
+    await substitute.exportReturnDeltaToFile({
+      sourcePackageId: imported.packageId, caseIds: imported.createdCaseIds, passphrase,
+      targetRecipientToken: new TransferInstanceIdentityService(sourceDb).getPublicIdentity().recipientToken,
+      checklist: { version: 1, acknowledgedItemIds: returnChecklist.requiredAcknowledgementIds },
+    }, returnFile);
+
+    sourceDb.prepare('UPDATE deadlines SET title = ? WHERE id = ?')
+      .run('Frist der Ausgangsinstanz', 'deadline-conflict');
+
+    await expect(source.importFromFile({ filePath: returnFile, passphrase, mode: 'merge_existing' })).rejects.toThrow(/beidseitig|Konflikt/);
+    expect(sourceDb.prepare<{ title: string }>('SELECT title FROM deadlines WHERE id = ?').get('deadline-conflict')?.title).toBe('Frist der Ausgangsinstanz');
+    expect(sourceDb.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM case_handover_imports WHERE package_id != ?').get(exported.packageId)?.count).toBe(0);
+    sourceDb.prepare('UPDATE deadlines SET title = ? WHERE id = ?').run('Ausgangsfrist', 'deadline-conflict');
+    await source.importFromFile({ filePath: returnFile, passphrase, mode: 'merge_existing' });
+    expect(sourceDb.prepare<{ title: string }>('SELECT title FROM deadlines WHERE id = ?').get('deadline-conflict')?.title).toBe('Frist der Stellvertretung');
+  });
+
   it('verweigert ein Rückgabe-Delta mit einer mobilen Momentaufnahme als Ausgangspaket', () => {
     insertSourceCase(sourceDb, 'source-case-1');
     const snapshot = {

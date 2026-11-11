@@ -15,9 +15,11 @@ import { nowIso, safeString, type PackagePayload, type Row } from './caseHandove
 import { PrivacyReviewService } from './privacyReviewService.js';
 import type { TrackImportedFile } from './caseHandoverImportUnitOfWork.js';
 import { CaseHandoverChecklistService } from './caseHandoverChecklistService.js';
+import { caseHandoverBaselineHash } from './caseHandoverBaselineHash.js';
 
 type ImportItemMap = Map<string, { packageRef: string; type: string }>;
-type ExportTargetMap = Map<string, { localId: string; type: string }>;
+type ExportTarget = { localId: string; type: string; exportedAt: string; baselineSha256: string | null };
+type ExportTargetMap = Map<string, ExportTarget>;
 
 export class CaseHandoverReturnDeltaService {
   constructor(private readonly database: DatabaseAdapter, private readonly dataDirProvider: () => string) {}
@@ -75,6 +77,7 @@ export class CaseHandoverReturnDeltaService {
     const duplicate = this.database.prepare<{ id: string }>('SELECT id FROM case_handover_imports WHERE package_id = ?').get(payload.packageId);
     if (duplicate) throw new Error('Dieses Rückgabepaket wurde bereits importiert.');
     const exportMap = this.loadExportMap(payload.sourcePackageId);
+    this.assertNoChangedSourceConflicts(payload, exportMap);
     const caseRefToLocal = new Map<string, string>();
     for (const item of payload.cases) {
       const target = exportMap.get(item.ref);
@@ -204,14 +207,36 @@ export class CaseHandoverReturnDeltaService {
   }
 
   private loadExportMap(sourcePackageId: string): ExportTargetMap {
-    const rows = this.database.prepare<{ package_ref: string; local_entity_type: string; local_entity_id: string }>(`
-      SELECT i.package_ref, i.local_entity_type, i.local_entity_id
+    const rows = this.database.prepare<{ package_ref: string; local_entity_type: string; local_entity_id: string; exported_at: string; baseline_sha256: string | null }>(`
+      SELECT i.package_ref, i.local_entity_type, i.local_entity_id, i.exported_at, i.baseline_sha256
       FROM case_handover_export_items i
       JOIN case_handover_exports e ON e.id = i.handover_export_id
       WHERE e.package_id = ? AND e.package_type = 'vacation_handover'
     `).all(sourcePackageId);
     if (!rows.length) throw new Error('Rückgabepaket kann nicht zugeordnet werden: Das Ausgangspaket ist auf dieser Instanz nicht bekannt.');
-    return new Map(rows.map((item) => [item.package_ref, { type: item.local_entity_type, localId: item.local_entity_id }]));
+    return new Map(rows.map((item) => [item.package_ref, { type: item.local_entity_type, localId: item.local_entity_id, exportedAt: item.exported_at, baselineSha256: item.baseline_sha256 }]));
+  }
+
+  private assertNoChangedSourceConflicts(payload: PackagePayload, exportMap: ExportTargetMap): void {
+    for (const item of payload.measures) {
+      if (!payload.changedRefs?.measures?.includes(item.ref)) continue;
+      this.assertSourceItemUnchanged(exportMap.get(item.ref), 'case_measure');
+    }
+    for (const item of payload.deadlines) this.assertSourceItemUnchanged(exportMap.get(item.ref), 'deadline');
+  }
+
+  private assertSourceItemUnchanged(target: ExportTarget | undefined, type: 'case_measure' | 'deadline'): void {
+    if (!target) return; // A new item has no original row to overwrite.
+    if (target.type !== type) throw new Error('Rückgabepaket enthält eine widersprüchliche Vorgangsreferenz.');
+    const table = type === 'deadline' ? 'deadlines' : 'case_measures';
+    const current = this.database.prepare<Record<string, unknown>>(`SELECT * FROM ${table} WHERE id = ?`).get(target.localId);
+    const currentUpdatedAt = typeof current?.updated_at === 'string' ? current.updated_at : '';
+    const currentTime = Date.parse(currentUpdatedAt);
+    const exportedTime = Date.parse(target.exportedAt);
+    const baselineChanged = target.baselineSha256 ? !current || caseHandoverBaselineHash(current) !== target.baselineSha256 : false;
+    if (!current || baselineChanged || !Number.isFinite(currentTime) || !Number.isFinite(exportedTime) || currentTime > exportedTime) {
+      throw new Error('Konflikt bei der Rückgabe: Ein Ausgangsvorgang wurde seit der Übergabe beidseitig geändert oder entfernt. Bitte den Stand einzeln prüfen.');
+    }
   }
 
   private resolveMeasureTargets(payload: PackagePayload, exportMap: ExportTargetMap, caseRefToLocal: Map<string, string>): Map<string, string> {

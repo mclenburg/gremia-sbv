@@ -1226,7 +1226,8 @@ CREATE TABLE IF NOT EXISTS case_handover_export_items (
   package_ref TEXT NOT NULL,
   local_entity_type TEXT NOT NULL,
   local_entity_id TEXT NOT NULL,
-  exported_at TEXT NOT NULL
+  exported_at TEXT NOT NULL,
+  baseline_sha256 TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_case_handover_export_items_package_ref ON case_handover_export_items(handover_export_id, package_ref);
 CREATE INDEX IF NOT EXISTS idx_case_handover_export_items_local ON case_handover_export_items(local_entity_type, local_entity_id);

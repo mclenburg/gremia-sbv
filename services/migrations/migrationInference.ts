@@ -218,6 +218,8 @@ export class MigrationInference extends MigrationCore {
             Boolean(this.db.prepare("SELECT 1 AS present FROM sqlite_master WHERE type='trigger' AND name=?").get(name)));
         case '0066':
           return this.columnExists('personal_data_audit_log', 'entry_mac');
+        case '0069':
+          return this.columnExists('case_handover_export_items', 'baseline_sha256');
       default:
         return false;
     }

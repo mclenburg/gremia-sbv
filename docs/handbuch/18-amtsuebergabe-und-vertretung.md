@@ -29,6 +29,8 @@ Die Zielinstanz zeigt unter **Einstellungen** ihre kurze Instanz-ID und die voll
 9. Nach der Vertretung erzeugt sie im Register **Rückgabe** ein Rückgabe-Delta für die geänderten Inhalte.
 10. Die ursprüngliche SBV prüft und importiert das Delta. Die Zuordnung erfolgt über das protokollierte Ausgangspaket.
 
+Wenn eine ursprünglich übergebene Frist oder Maßnahme inzwischen auf beiden Instanzen bearbeitet wurde, stoppt die Rückgabe vor der Übernahme. Prüfe den betroffenen Vorgang und kläre den Arbeitsstand fachlich; die App überschreibt den lokalen Stand nicht automatisch.
+
 Abgelaufene Pakete dürfen nicht importiert werden. Bereits importierte Vertretungsdaten werden nach Ablauf sichtbar als prüfbedürftig markiert. Eine fachlich erforderliche Fortführung muss begründet werden.
 
 ## Begleit-App

@@ -72,7 +72,8 @@ export const CASE_HANDOVER_EXPORT_ITEMS_REQUIRED_COLUMNS = [
   'package_ref',
   'local_entity_type',
   'local_entity_id',
-  'exported_at'
+  'exported_at',
+  'baseline_sha256'
 ] as const;
 
 export const MOBILE_COMPANION_DEVICES_REQUIRED_COLUMNS = [

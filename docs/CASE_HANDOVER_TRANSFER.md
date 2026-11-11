@@ -66,6 +66,8 @@ Gremia.SBV erstellt vor dem Import einen Importplan. Dieser Plan zeigt Umfang, A
 
 Bei echten Konflikten ist eine Zusammenführung technisch gesperrt. Das Paket kann dann nur als neue lokale Übergabeakte importiert und anschließend fachlich geprüft werden. Dadurch bleibt die empfangende SBV arbeitsfähig, ohne fremde oder widersprüchliche Daten in einen bestehenden Fall zu mischen.
 
+Bei einer Rückgabe vergleicht die Ausgangsinstanz vorhandene Fristen und Maßnahmen vor einer Aktualisierung mit dem beim Export protokollierten Inhaltsstand. Ist der Ausgangsvorgang inzwischen verändert oder entfernt, wird der Import als Konflikt gestoppt; bereits begonnene Datenbank- und Dateischritte werden zurückgerollt. Ältere Exportprotokolle ohne Inhalts-Hash verwenden als Kompatibilitätsgrenze den Exportzeitpunkt.
+
 Nach jedem erfolgreichen Import entsteht für die betroffenen Fallakten ein konkreter Datenschutzprüfauftrag. Diese Vormerkung ersetzt keine automatische Löschung. Sie zwingt nur zur bewussten Prüfung von Zweck, Vertretungsende, Fortführung oder Bereinigung der übernommenen Daten.
 
 ## Gültigkeit und Ablaufdatum
