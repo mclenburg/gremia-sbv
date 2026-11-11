@@ -11,6 +11,12 @@
       "sourceAssertions": 1,
       "category": "A",
       "rationale": "Der verschlüsselte Anker ist selbst das geprüfte Dateiartefakt; der Test stellt sicher, dass der Kettenkopf nicht im Klartext gespeichert wird."
+    },
+    {
+      "file": "tests/features/cases/handover/vacationV5FileService.behavior.test.ts",
+      "sourceAssertions": 1,
+      "category": "A",
+      "rationale": "Die verschlüsselte Übergabedatei ist selbst das geprüfte Artefakt; der Test stellt sicher, dass ein fachlicher Klartext nicht im Envelope steht."
     }
   ]
 }

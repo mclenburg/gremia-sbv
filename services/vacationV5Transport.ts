@@ -68,9 +68,13 @@ export function sealVacationV5Transport(input: {
     capabilities: assertTransferCapabilities(input.capabilities), sections, references: references(sections), manifest,
   };
   const target = { ...input.target, recipientToken: formatTransferRecipientToken(input.target) };
+  const payloadText = JSON.stringify(payload);
+  if (Buffer.byteLength(payloadText, 'utf8') > 36 * 1024 * 1024) {
+    throw new Error('Das Format-5-Paket überschreitet die zulässige Nutzdatengröße.');
+  }
   const encrypted = encryptTargetBoundTransferPayload({
     format: payload.format, version: 5, packageId: payload.packageId, createdAt,
-    expiresAt: payload.expiresAt, payloadText: JSON.stringify(payload), passphrase: input.passphrase, recipient: target,
+    expiresAt: payload.expiresAt, payloadText, passphrase: input.passphrase, recipient: target,
   });
   return { ...encrypted, senderProof: createCaseHandoverV5OriginProof(encrypted,
     { packageType: payload.packageType, manifestSha256: hashVacationV5Manifest(manifest) }, input.sender, input.target) };
