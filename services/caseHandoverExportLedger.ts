@@ -4,7 +4,7 @@ import type { MobileCompanionSnapshotPayload } from '../src/domain/models/mobile
 import type { DatabaseAdapter } from './databaseService.js';
 import type { PackagePayload } from './caseHandoverSupport.js';
 import { caseHandoverBaselineHash } from './caseHandoverBaselineHash.js';
-import type { VacationV5SourceByRef } from './vacationV5SectionCollector.js';
+import type { VacationV5PackageSourceByRef } from './vacationV5PackageSource.js';
 
 export function ensureCaseHandoverExportLedgerSchema(db: DatabaseAdapter): void {
   db.exec(`
@@ -85,7 +85,7 @@ export function recordVacationV5Export(db: DatabaseAdapter, input: {
   expiresAt: string;
   targetInstanceId: string;
   targetKeyFingerprint: string;
-  sourceByRef: VacationV5SourceByRef;
+  sourceByRef: VacationV5PackageSourceByRef;
 }): void {
   if (!/^handover_[A-Za-z0-9_-]{4,120}$/.test(input.packageId)
     || !/^[0-9a-f]{64}$/.test(input.targetKeyFingerprint)
@@ -102,9 +102,9 @@ export function recordVacationV5Export(db: DatabaseAdapter, input: {
   db.prepare(`INSERT INTO case_handover_exports
     (id, package_id, exported_at, valid_until, package_type, status, target_instance_id,
       target_key_fingerprint, format_version, case_count, metadata_json)
-    VALUES (?, ?, ?, ?, 'vacation_handover', 'open', ?, ?, 5, 0, ?)`)
+    VALUES (?, ?, ?, ?, 'vacation_handover', 'open', ?, ?, 5, ?, ?)`)
     .run(exportId, input.packageId, input.createdAt, input.expiresAt,
-      input.targetInstanceId, input.targetKeyFingerprint, JSON.stringify({ sectionCounts: counts }));
+      input.targetInstanceId, input.targetKeyFingerprint, counts.case ?? 0, JSON.stringify({ sectionCounts: counts }));
   for (const [ref, source] of sourceEntries) {
     if (!/^[a-z_]+_[1-9][0-9]*$/.test(ref) || !source.localId || !/^[0-9a-f]{64}$/.test(source.baselineSha256)) {
       throw new Error('Format-5-Exportledger enthält ungültige Quellreferenzen.');

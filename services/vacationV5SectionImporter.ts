@@ -41,14 +41,16 @@ function insertRow(database: DatabaseAdapter, kind: RowKind, item: VacationV5Sec
 
 export function importVacationV5Sections(database: DatabaseAdapter, packageId: string, expiresAt: string,
   sectionInput: unknown, manifest: VacationV5Manifest,
-  binding: { originKeyFingerprint: string; targetKeyFingerprint: string }): { importId: string; importedCount: number; localByRef: Record<string, string> } {
+  binding: { originKeyFingerprint: string; targetKeyFingerprint: string },
+  options: { allowEmptyForCases?: boolean; allSectionCounts?: Array<{ type: string; count: number }> } = {}):
+  { importId: string; importedCount: number; localByRef: Record<string, string> } {
   if (!/^handover_[A-Za-z0-9_-]{4,120}$/.test(packageId)) throw new Error('Ungültige Paketkennung für die Urlaubsvertretung.');
   if (!/^[0-9a-f]{64}$/.test(binding.originKeyFingerprint) || !/^[0-9a-f]{64}$/.test(binding.targetKeyFingerprint)) {
     throw new Error('Format-5-Import enthält keine verifizierte Schlüsselbindung.');
   }
   if (!Number.isFinite(Date.parse(expiresAt)) || Date.parse(expiresAt) <= Date.now()) throw new Error('Das Vertretungspaket ist abgelaufen.');
   const sections = assertVacationV5Sections(sectionInput, manifest);
-  if (!sections.length) throw new Error('Das Vertretungspaket enthält keine übergreifende Arbeit.');
+  if (!sections.length && !options.allowEmptyForCases) throw new Error('Das Vertretungspaket enthält keine übergreifende Arbeit.');
   const byType = new Map(sections.map((section) => [section.type, section]));
   const timestamp = new Date().toISOString();
   const importId = randomUUID();
@@ -58,7 +60,8 @@ export function importVacationV5Sections(database: DatabaseAdapter, packageId: s
     database.prepare(`INSERT INTO case_handover_imports (id, package_id, imported_at, valid_until, status, mode, metadata_json,
       origin_key_fingerprint, target_key_fingerprint, format_version)
       VALUES (?, ?, ?, ?, 'active', 'create_new', ?, ?, ?, 5)`).run(importId, packageId, timestamp, expiresAt,
-      JSON.stringify({ formatVersion: 5, sectionCounts: sections.map((section) => ({ type: section.type, count: section.count })) }),
+      JSON.stringify({ formatVersion: 5, sectionCounts: options.allSectionCounts
+        ?? sections.map((section) => ({ type: section.type, count: section.count })) }),
       binding.originKeyFingerprint, binding.targetKeyFingerprint);
     const localByRef = new Map<string, string>();
     for (const kind of IMPORT_ORDER) {
@@ -74,7 +77,7 @@ export function importVacationV5Sections(database: DatabaseAdapter, packageId: s
           VALUES (?, ?, ?, ?, ?, ?, ?)`).run(randomUUID(), importId, kind, localId, item.ref, timestamp, caseHandoverBaselineHash(stored));
       }
     }
-    new PersonalDataAuditLogService(database).append(auditCaseHandoverImported({
+    if (sections.length) new PersonalDataAuditLogService(database).append(auditCaseHandoverImported({
       packageId, caseCount: 0, deadlineCount: byType.get('deadline')?.count ?? 0,
       mode: 'vacation_v5', validUntilPresent: true, result: 'success',
     }));

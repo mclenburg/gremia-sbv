@@ -8,11 +8,11 @@ import { assertTransferCapabilities } from './transferCapabilityDocument.js';
 import { parseTransferRecipientToken } from './transferInstanceIdentityPolicy.js';
 import { TransferInstanceIdentityService } from './transferInstanceIdentityService.js';
 import { collectVacationV5Sections } from './vacationV5SectionCollector.js';
-import type { VacationV5SourceByRef } from './vacationV5SectionCollector.js';
-import { VACATION_V5_ROW_FIELDS } from './vacationV5RowPolicy.js';
+import { collectVacationV5CaseSections } from './vacationV5CaseCollector.js';
+import { vacationV5SourceTable, type VacationV5PackageSourceByRef } from './vacationV5PackageSource.js';
 import { caseHandoverBaselineHash } from './caseHandoverBaselineHash.js';
 import { sealVacationV5Transport, openVacationV5Transport, type VacationV5Payload } from './vacationV5Transport.js';
-import { importVacationV5Sections } from './vacationV5SectionImporter.js';
+import { importVacationV5Package } from './vacationV5PackageImporter.js';
 import { recordVacationV5Export } from './caseHandoverExportLedger.js';
 import { writeCaseHandoverFile } from './caseHandoverAtomicFile.js';
 import { CASE_HANDOVER_FILE_EXTENSION, inspectCaseHandoverFilePath } from './caseHandoverFilePolicy.js';
@@ -55,9 +55,9 @@ function assertOutputPath(filePath: string): void {
   }
 }
 
-function assertSourceUnchanged(database: DatabaseAdapter, sourceByRef: VacationV5SourceByRef): void {
+function assertSourceUnchanged(database: DatabaseAdapter, sourceByRef: VacationV5PackageSourceByRef): void {
   for (const source of Object.values(sourceByRef)) {
-    const table = VACATION_V5_ROW_FIELDS[source.kind].table;
+    const table = vacationV5SourceTable(source.kind);
     const row = database.prepare<Record<string, unknown>>(`SELECT * FROM ${table} WHERE id = ?`).get(source.localId);
     if (!row || caseHandoverBaselineHash(row) !== source.baselineSha256) {
       throw new Error('Ein ausgewählter Vorgang hat sich während des Exports geändert. Bitte die Vorschau erneut prüfen.');
@@ -65,7 +65,7 @@ function assertSourceUnchanged(database: DatabaseAdapter, sourceByRef: VacationV
   }
 }
 
-/** Internal format-5 path for the fully modelled case-free sections. */
+/** Internal format-5 path for modelled case and case-free sections. */
 export class VacationV5FileService {
   constructor(private readonly database: DatabaseAdapter) {}
 
@@ -73,17 +73,21 @@ export class VacationV5FileService {
     packageId: string; sectionCounts: Array<{ type: string; count: number }>; targetInstanceId: string;
   }> {
     assertOutputPath(input.targetPath);
-    if (input.selection.caseIds.length) throw new Error('Fallakten sind im Format-5-Abschnittscollector noch nicht verfügbar.');
     const targetProfile = checkedProfile(this.database, input.profileId, true);
     const target = parseTransferRecipientToken(targetProfile.recipient_token);
     const capabilities = assertTransferCapabilities(input.capabilities);
     if (!capabilities.writeFormats.includes(5) || !capabilities.features.includes('vacation_scope_v5')) {
       throw new Error('Die abgebende Instanz bietet Format 5 nicht an.');
     }
-    const collected = collectVacationV5Sections(this.database, input.selection);
+    const other = collectVacationV5Sections(this.database, input.selection);
+    const cases = input.selection.caseIds.length
+      ? collectVacationV5CaseSections(this.database, { caseIds: input.selection.caseIds })
+      : { sections: [], sourceByRef: {} };
+    const sections = [...cases.sections, ...other.sections];
+    const sourceByRef: VacationV5PackageSourceByRef = { ...cases.sourceByRef, ...other.sourceByRef };
     const sender = new TransferInstanceIdentityService(this.database).getPrivateIdentity();
     const envelope = sealVacationV5Transport({ packageId: `handover_${randomUUID()}`, expiresAt: input.expiresAt,
-      sections: collected.sections, capabilities, passphrase: input.passphrase, sender, target });
+      sections, capabilities, passphrase: input.passphrase, sender, target });
     const confirmedProfile = checkedProfile(this.database, input.profileId, true);
     if (confirmedProfile.key_fingerprint !== target.keyFingerprint || confirmedProfile.recipient_token !== targetProfile.recipient_token) {
       throw new Error('Die Zielbindung hat sich während des Exports geändert.');
@@ -93,12 +97,14 @@ export class VacationV5FileService {
       await new DatabaseUnitOfWork(this.database).runAsync(async () => {
         await writeCaseHandoverFile(input.targetPath, JSON.stringify(envelope), { replaceExisting: false });
         written = true;
-        assertSourceUnchanged(this.database, collected.sourceByRef);
+        assertSourceUnchanged(this.database, sourceByRef);
         recordVacationV5Export(this.database, { packageId: envelope.packageId, createdAt: envelope.createdAt,
           expiresAt: envelope.expiresAt ?? input.expiresAt, targetInstanceId: target.instanceId,
-          targetKeyFingerprint: target.keyFingerprint, sourceByRef: collected.sourceByRef });
+          targetKeyFingerprint: target.keyFingerprint, sourceByRef });
         new PersonalDataAuditLogService(this.database).append(auditCaseHandoverExported({
-          packageId: envelope.packageId, caseCount: 0, deadlineCount: collected.sections.find((section) => section.type === 'deadline')?.count ?? 0,
+          packageId: envelope.packageId, caseCount: cases.sections.find((section) => section.type === 'case')?.count ?? 0,
+          deadlineCount: sections.filter((section) => section.type === 'deadline' || section.type === 'case_deadline')
+            .reduce((total, section) => total + section.count, 0),
           validUntilPresent: true, result: 'success',
         }));
       });
@@ -107,7 +113,7 @@ export class VacationV5FileService {
       throw error;
     }
     return { packageId: envelope.packageId, targetInstanceId: target.instanceId,
-      sectionCounts: collected.sections.map((section) => ({ type: section.type, count: section.count })) };
+      sectionCounts: sections.map((section) => ({ type: section.type, count: section.count })) };
   }
 
   importFromFile(filePath: string, passphrase: string): { importId: string; importedCount: number; packageId: string } {
@@ -128,8 +134,8 @@ export class VacationV5FileService {
     if (!payload.capabilities.writeFormats.includes(5) || !payload.capabilities.features.includes('vacation_scope_v5')) {
       throw new Error('Die abgebende Instanz bietet Format 5 nicht an.');
     }
-    const imported = importVacationV5Sections(this.database, payload.packageId, payload.expiresAt,
-      payload.sections, payload.manifest, { originKeyFingerprint: sender.keyFingerprint, targetKeyFingerprint: recipient.keyFingerprint });
+    const imported = importVacationV5Package(this.database, payload,
+      { originKeyFingerprint: sender.keyFingerprint, targetKeyFingerprint: recipient.keyFingerprint });
     return { ...imported, packageId: payload.packageId };
   }
 }
