@@ -1,8 +1,10 @@
 import fs from 'node:fs';
 import { decryptEncryptedDocumentBytes, resolveEncryptedDocumentStoragePath } from './documentContainerService.js';
 
-export const VACATION_V5_MAX_DOCUMENT_BYTES = 100 * 1024 * 1024;
-export const VACATION_V5_MAX_DOCUMENT_TOTAL_BYTES = 180 * 1024 * 1024;
+// JSON and encrypted envelope each base64-encode the bytes. Leave space inside the
+// 36 MiB plaintext and 48 MiB ciphertext limits for sections and metadata.
+export const VACATION_V5_MAX_DOCUMENT_BYTES = 20 * 1024 * 1024;
+export const VACATION_V5_MAX_DOCUMENT_TOTAL_BYTES = 24 * 1024 * 1024;
 
 export function encodeSelectedVacationV5Document(row: Record<string, unknown>, storageRoot: string,
   previousBytes = 0): { contentBase64: string; contentSha256: string; sizeBytes: number; totalBytes: number } {

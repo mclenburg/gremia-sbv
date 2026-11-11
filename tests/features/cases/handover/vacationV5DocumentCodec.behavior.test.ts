@@ -18,6 +18,8 @@ describe('Format-5-Dokumentauswahl', () => {
       expect(Buffer.from(encoded.contentBase64, 'base64')).toEqual(plain);
       expect(encoded.totalBytes).toBe(plain.length);
       expect(() => encodeSelectedVacationV5Document({ ...row, size_bytes: plain.length + 1 }, directory)).toThrow(/Größe/);
+      expect(() => encodeSelectedVacationV5Document({ ...row, size_bytes: 25 * 1024 * 1024 }, directory))
+        .toThrow(/Größenlimit/);
       expect(() => encodeSelectedVacationV5Document(row, directory, VACATION_V5_MAX_DOCUMENT_TOTAL_BYTES)).toThrow(/Größenlimit/);
       expect(() => encodeSelectedVacationV5Document({ ...row, document_key: null }, directory)).toThrow(/fehlende Metadaten/);
       fs.rmSync(stored.storagePath);
