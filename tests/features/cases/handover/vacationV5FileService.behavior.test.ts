@@ -68,6 +68,10 @@ describe('Format-5-Dateiservice für fallfreie Arbeit', () => {
       expect(exported.sectionCounts.map((entry) => entry.type))
         .toEqual(['violation', 'generated_document', 'violation_document_link']);
       new VacationV5FileService(target.adapter, () => targetDirectory).importFromFile(filePath, 'lange Transport-Passphrase');
+      expect(new TransferRecipientProfileService(target.adapter).list().find((item) =>
+        item.keyFingerprint === source.identity.keyFingerprint)).toMatchObject({
+        capabilityStatus: 'verified', capabilities: { revision: 1, writeFormats: [2, 4, 5] },
+      });
       const row = target.raw.prepare(`SELECT d.violation_id, l.violation_id AS linked_violation_id, v.id AS local_violation_id
         FROM generated_documents d JOIN sbv_participation_violation_documents l ON l.document_id = d.id
         JOIN sbv_participation_violations v ON v.id = l.violation_id`).get();

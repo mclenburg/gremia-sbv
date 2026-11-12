@@ -38,6 +38,27 @@ function recipientToken() {
 }
 
 describe('TransferRecipientProfileService', () => {
+  it('übernimmt Paketfähigkeiten nur für den aktiven bekannten Schlüssel und nur bei neuerer Revision', () => {
+    const target = database();
+    const source = database();
+    try {
+      const service = new TransferRecipientProfileService(target.database);
+      const sender = new TransferInstanceIdentityService(source.database).getPublicIdentity();
+      const profile = service.save({ label: 'Quelle', recipientToken: sender.recipientToken });
+      const capabilities = {
+        protocolVersion: 1 as const, readFormats: [1, 2, 3, 4, 5], writeFormats: [2, 4, 5],
+        features: ['manual_capability_exchange', 'return_scope_v5'], buildVersion: '0.9.8',
+        revision: 2, issuedAt: '2026-11-11T10:00:00.000Z',
+      };
+      expect(service.recordAuthenticatedPackageCapabilities(sender, capabilities)).toBe(true);
+      expect(service.recordAuthenticatedPackageCapabilities(sender, { ...capabilities, revision: 1 })).toBe(false);
+      expect(service.list()[0]).toMatchObject({ id: profile.id, capabilities, capabilityStatus: 'verified' });
+      expect(() => service.recordAuthenticatedPackageCapabilities({ ...sender, keyFingerprint: 'unknown' }, capabilities)).toThrow(/bekannten/);
+      service.setActive(profile.id, false);
+      expect(() => service.recordAuthenticatedPackageCapabilities(sender, { ...capabilities, revision: 3 })).toThrow(/aktiven/);
+      expect(service.list()[0].capabilities?.revision).toBe(2);
+    } finally { target.raw.close(); source.raw.close(); }
+  });
   it('erstellt für bekannte aktive Ziele fortlaufend nummerierte, überprüfbare Fähigkeitsdateien', () => {
     const source = database();
     const target = database();

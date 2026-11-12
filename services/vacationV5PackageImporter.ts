@@ -9,6 +9,7 @@ import { importVacationV5CaseSections } from './vacationV5CaseImporter.js';
 import { isVacationV5OfficeDocumentSectionType, type VacationV5OfficeDocumentSection } from './vacationV5OfficeDocumentGraph.js';
 import { importVacationV5OfficeDocuments } from './vacationV5OfficeDocumentImporter.js';
 import type { VacationV5Payload } from './vacationV5Transport.js';
+import { TransferRecipientProfileService } from './transferRecipientProfileService.js';
 
 export function importVacationV5Package(database: DatabaseAdapter, payload: VacationV5Payload,
   binding: { originKeyFingerprint: string; targetKeyFingerprint: string },
@@ -36,6 +37,8 @@ export function importVacationV5Package(database: DatabaseAdapter, payload: Vaca
     const roots = rootSections.flatMap((section) => section.items.map((item) => ({ ref: item.ref, type: section.type })));
     const office = importVacationV5OfficeDocuments(database, others.importId, payload.packageId, officeSections, roots,
       { ...others.localByRef, ...cases.localByRef }, dataDirectoryProvider(), trackFile);
+    new TransferRecipientProfileService(database).recordAuthenticatedPackageCapabilities(
+      payload.origin, payload.capabilities);
     return { importId: others.importId, importedCount: others.importedCount + cases.importedCount + office.importedCount,
       localByRef: { ...others.localByRef, ...cases.localByRef, ...office.localByRef } };
   });

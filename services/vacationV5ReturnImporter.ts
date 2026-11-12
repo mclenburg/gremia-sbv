@@ -14,6 +14,7 @@ import { insertVacationV5ReturnOfficeItem } from './vacationV5ReturnOfficeImport
 import { PrivacyReviewService } from './privacyReviewService.js';
 import { uniqueImportedCaseNumber } from './caseHandoverCaseNumber.js';
 import { replaceVacationV5ReturnDocument } from './vacationV5ReturnDocumentUpdate.js';
+import { TransferRecipientProfileService } from './transferRecipientProfileService.js';
 import type { VacationV5ReturnPayload } from './vacationV5ReturnTransport.js';
 import type { VacationV5ReturnChoice } from '../src/domain/transfer/vacationV5ReturnReview.js';
 
@@ -340,6 +341,7 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
         .run(randomUUID(), importId, item.kind, item.localId, item.ref, timestamp, item.baselineSha256);
     }
     database.prepare("UPDATE case_handover_exports SET status = 'taken_over' WHERE id = ?").run(preview.exportId);
+    new TransferRecipientProfileService(database).recordAuthenticatedPackageCapabilities(payload.origin, payload.capabilities);
     new PersonalDataAuditLogService(database).append(auditCaseHandoverImported({
       packageId: payload.packageId, caseCount: affectedCaseIds.size, mode: 'return_delta', result: 'success',
     }));

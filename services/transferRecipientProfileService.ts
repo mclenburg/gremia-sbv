@@ -5,9 +5,11 @@ import type {
   TransferRecipientProfile,
 } from '../src/domain/models/transfer-recipient-profile.model.js';
 import { parseTransferRecipientToken } from './transferInstanceIdentityPolicy.js';
-import { createTransferCapabilityDocument, verifyTransferCapabilityDocument, type TransferCapabilityDocument } from './transferCapabilityDocument.js';
+import { assertTransferCapabilities, createTransferCapabilityDocument, verifyTransferCapabilityDocument,
+  type TransferCapabilityDocument } from './transferCapabilityDocument.js';
 import type { TransferInstancePrivateIdentity } from './transferInstanceIdentityService.js';
-import type { PersonalDataAuditLogService } from './auditLogService.js';
+import { PersonalDataAuditLogService } from './auditLogService.js';
+import type { TransferCapabilities } from '../src/domain/models/transfer-capability.model.js';
 
 type RecipientProfileRow = {
   id: string;
@@ -96,6 +98,29 @@ export class TransferRecipientProfileService {
       purpose: 'Übergabefähigkeiten verifiziert', metadata: { revision: capabilities.revision },
     });
     return this.requireProfile(id);
+  }
+
+  /** Call only after the format-5 transport authenticated the known sender and target. */
+  recordAuthenticatedPackageCapabilities(sender: { instanceId: string; keyFingerprint: string },
+    input: TransferCapabilities): boolean {
+    const capabilities = assertTransferCapabilities(input);
+    const profile = this.database.prepare<RecipientProfileRow>(`
+      SELECT * FROM transfer_recipient_profiles WHERE instance_id = ? AND key_fingerprint = ? AND active = 1
+    `).get(sender.instanceId, sender.keyFingerprint);
+    if (!profile) throw new Error('Paketfähigkeiten gehören zu keiner aktiven bekannten Gegeninstanz.');
+    const timestamp = nowIso();
+    const result = this.database.prepare(`UPDATE transfer_recipient_profiles
+      SET capabilities_json = ?, capability_revision = ?, capability_confirmed_at = ?, updated_at = ?
+      WHERE id = ? AND (capability_revision IS NULL OR capability_revision < ?)`)
+      .run(JSON.stringify(capabilities), capabilities.revision, timestamp, timestamp,
+        profile.id, capabilities.revision) as { changes?: number };
+    if (!result.changes) return false;
+    const auditLog = this.auditLog ?? new PersonalDataAuditLogService(this.database);
+    auditLog.append({
+      action: 'update', subjectType: 'transfer_recipient_profile', subjectId: profile.id,
+      purpose: 'Paketfähigkeiten verifiziert', metadata: { revision: capabilities.revision },
+    });
+    return true;
   }
 
   save(input: SaveTransferRecipientProfileInput): TransferRecipientProfile {

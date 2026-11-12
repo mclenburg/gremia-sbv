@@ -53,6 +53,7 @@ describe('Format-5-Rückgabedatei', () => {
         capabilities, targetPath: handoverPath,
       });
       new VacationV5FileService(deputy.adapter).importFromFile(handoverPath, 'lange Transport-Passphrase');
+      const updatedCapabilities = { ...capabilities, revision: 2, issuedAt: '2026-11-12T10:00:00.000Z' };
       deputy.raw.prepare("UPDATE sbv_meetings SET title = 'Vertretung hat geändert' WHERE title = 'Sitzung'").run();
       const deputyMeeting = deputy.raw.prepare("SELECT id FROM sbv_meetings WHERE title = 'Vertretung hat geändert'").get() as { id: string };
       deputy.raw.prepare(`INSERT INTO sbv_meeting_agenda_items
@@ -62,7 +63,7 @@ describe('Format-5-Rückgabedatei', () => {
       deputy.raw.exec(`CREATE TRIGGER reject_return_ledger BEFORE INSERT ON case_handover_exports
         BEGIN SELECT RAISE(ABORT, 'return ledger failed'); END`);
       await expect(service.exportToFile({ sourcePackageId: handover.packageId, profileId: originProfile.id,
-        expiresAt: '2099-12-01T00:00:00.000Z', passphrase: 'lange Transport-Passphrase', capabilities,
+        expiresAt: '2099-12-01T00:00:00.000Z', passphrase: 'lange Transport-Passphrase', capabilities: updatedCapabilities,
         targetPath: returnPath, cancellationRequests: [{ ref: 'meeting_2', reason: 'Termin entfällt' }],
         additionalItems: [{ kind: 'meeting_agenda', localId: 'new-agenda' }]
       })).rejects.toThrow(/return ledger failed/);
@@ -71,7 +72,7 @@ describe('Format-5-Rückgabedatei', () => {
         .toEqual({ status: 'active' });
       deputy.raw.exec('DROP TRIGGER reject_return_ledger');
       const returned = await service.exportToFile({ sourcePackageId: handover.packageId, profileId: originProfile.id,
-        expiresAt: '2099-12-01T00:00:00.000Z', passphrase: 'lange Transport-Passphrase', capabilities,
+        expiresAt: '2099-12-01T00:00:00.000Z', passphrase: 'lange Transport-Passphrase', capabilities: updatedCapabilities,
         targetPath: returnPath, cancellationRequests: [{ ref: 'meeting_2', reason: 'Termin entfällt' }],
         additionalItems: [{ kind: 'meeting_agenda', localId: 'new-agenda' }] });
       expect(returned.changeCount).toBe(3);
@@ -138,6 +139,8 @@ describe('Format-5-Rückgabedatei', () => {
         .toEqual({ title: 'Abzusagende Sitzung' });
       expect(origin.raw.prepare('SELECT status FROM case_handover_exports WHERE package_id = ?').get(handover.packageId))
         .toEqual({ status: 'taken_over' });
+      expect(new TransferRecipientProfileService(origin.adapter).list().find((item) =>
+        item.keyFingerprint === deputy.identity.keyFingerprint)?.capabilities?.revision).toBe(2);
       expect(() => new VacationV5ReturnFileService(origin.adapter).importConfirmedFromFile(returnPath,
         'lange Transport-Passphrase', conflictChoice)).toThrow();
       await expect(service.exportToFile({ sourcePackageId: handover.packageId, profileId: originProfile.id,
