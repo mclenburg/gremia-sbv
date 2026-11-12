@@ -37,6 +37,10 @@ const PROCESS_PARENT: Readonly<Record<string, string>> = {
   employer_obligation_review: 'employer_obligation', inclusion_agreement: 'inclusion_agreement',
   sbv_participation_violation: 'violation', sbv_assembly: 'assembly',
 };
+const WORKFLOW_OWNER_KIND: Readonly<Record<string, string>> = {
+  meeting: 'meeting', assembly: 'assembly', employer_obligation_review: 'employer_obligation',
+  inclusion_agreement: 'inclusion_agreement',
+};
 const ADDITION_ORDER = ['protected_person', 'case', 'meeting', 'recruiting', 'employer_obligation', 'inclusion_agreement',
   'violation', 'assembly', 'inclusion_officer', 'meeting_agenda', 'recruiting_interview',
   'inclusion_topic', 'violation_event', 'deadline', 'case_measure', 'case_note',
@@ -142,6 +146,9 @@ function assertOriginalLinks(kind: string, links: Record<string, string> | undef
   row: Record<string, unknown>, targets: Map<string, { kind: string; localId: string }>): void {
   const expected = kind === 'deadline' && links?.processRef
     ? { processRef: { kind: PROCESS_PARENT[String(row.process_type)], column: 'process_id' } }
+    : kind === 'workflow_document_link'
+      ? { ownerRef: { kind: WORKFLOW_OWNER_KIND[String(row.owner_type)], column: 'owner_id' },
+        documentRef: { kind: 'generated_document', column: 'document_id' } }
     : LINK_COLUMN[kind] ?? {};
   for (const [name, ref] of Object.entries(links ?? {})) {
     const rule = expected[name];
@@ -284,7 +291,7 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
           || (planned.decision === 'review_conflict' && choice.action === 'accept_conflict_update'))
         || change.operation !== 'upsert' || !change.data
         || !supportedRow(change.kind)
-        || ['workflow_document_link', 'violation_document_link'].includes(change.kind)) {
+        || change.kind === 'violation_document_link') {
         throw new Error('Diese Rückgabe kann nur nach gesonderter fachlicher Prüfung übernommen werden.');
       }
       const target = targets.get(change.ref);
