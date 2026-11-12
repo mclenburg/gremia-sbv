@@ -99,7 +99,7 @@ export function sealVacationV5ReturnTransport(input: {
     createdAt, expiresAt: input.expiresAt,
     origin: { instanceId: input.sender.instanceId, keyFingerprint: input.sender.keyFingerprint },
     target: { instanceId: input.target.instanceId, keyFingerprint: input.target.keyFingerprint },
-    capabilities, sections, references: changes.map((item) => ({ ref: item.ref, type: item.kind })), manifest };
+    capabilities, sections, references: sections.flatMap((section) => section.items.map((item) => ({ ref: item.ref, type: item.kind }))), manifest };
   const payloadText = JSON.stringify(payload);
   if (Buffer.byteLength(payloadText, 'utf8') > 36 * 1024 * 1024) throw new Error('Format-5-Rückgabe ist zu groß.');
   const encrypted = encryptTargetBoundTransferPayload({ format: payload.format, version: 5,

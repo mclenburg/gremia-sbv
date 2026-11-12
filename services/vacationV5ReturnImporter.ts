@@ -14,6 +14,10 @@ import type { VacationV5ReturnChoice } from '../src/domain/transfer/vacationV5Re
 
 const LINK_COLUMN: Readonly<Record<string, Record<string, { kind: string; column: string }>>> = {
   case_note: { caseRef: { kind: 'case', column: 'case_id' } },
+  case_measure_note: { caseRef: { kind: 'case', column: 'case_id' },
+    measureRef: { kind: 'case_measure', column: 'measure_id' } },
+  case_deadline: { caseRef: { kind: 'case', column: 'case_id' },
+    measureRef: { kind: 'case_measure', column: 'measure_id' } },
   meeting_agenda: { meetingRef: { kind: 'meeting', column: 'meeting_id' } },
   recruiting_interview: { recruitingRef: { kind: 'recruiting', column: 'recruiting_participation_id' } },
   inclusion_topic: { agreementRef: { kind: 'inclusion_agreement', column: 'agreement_id' } },
@@ -26,14 +30,16 @@ const PROCESS_PARENT: Readonly<Record<string, string>> = {
 };
 const ADDITION_ORDER = ['meeting', 'recruiting', 'employer_obligation', 'inclusion_agreement',
   'violation', 'assembly', 'inclusion_officer', 'meeting_agenda', 'recruiting_interview',
-  'inclusion_topic', 'violation_event', 'deadline', 'case_note'] as const;
+  'inclusion_topic', 'violation_event', 'deadline', 'case_note', 'case_measure_note', 'case_deadline'] as const;
 
 function supportedRow(kind: string): boolean {
-  return kind === 'case_note' || Object.hasOwn(VACATION_V5_ROW_FIELDS, kind);
+  return ['case_note', 'case_measure_note', 'case_deadline'].includes(kind)
+    || Object.hasOwn(VACATION_V5_ROW_FIELDS, kind);
 }
 
 function rowConfiguration(kind: string): { table: string; fields: readonly string[] } {
-  if (kind === 'case_note') return VACATION_V5_CASE_ROW_FIELDS.case_note;
+  if (kind === 'case_note' || kind === 'case_measure_note') return VACATION_V5_CASE_ROW_FIELDS[kind];
+  if (kind === 'case_deadline') return VACATION_V5_ROW_FIELDS.deadline;
   if (!Object.hasOwn(VACATION_V5_ROW_FIELDS, kind)) throw new Error('Rückgabe enthält einen nicht unterstützten Vorgang.');
   return VACATION_V5_ROW_FIELDS[kind as keyof typeof VACATION_V5_ROW_FIELDS];
 }
@@ -48,6 +54,11 @@ function insertAddition(database: DatabaseAdapter, change: { ref: string; kind: 
   };
   if ((config.fields as readonly string[]).includes('updated_at')) values.updated_at = timestamp;
   if (change.kind === 'violation') values.source_context_id = localId;
+  if (change.kind === 'case_deadline') {
+    if (change.data.process_type !== 'case') throw new Error('Fallfrist enthält einen fremden Vorgangsbezug.');
+    values.process_id = null;
+    values.person_id = null;
+  }
   const rules = change.kind === 'deadline' && change.links?.processRef
     ? { processRef: { kind: PROCESS_PARENT[String(change.data.process_type)], column: 'process_id' } }
     : LINK_COLUMN[change.kind] ?? {};
@@ -59,10 +70,22 @@ function insertAddition(database: DatabaseAdapter, change: { ref: string; kind: 
     }
     values[rule.column] = target.localId;
   }
+  assertCaseMeasureLinks(database, change.kind, values);
   const fields = Object.keys(values);
   database.prepare(`INSERT INTO ${config.table} (${fields.join(', ')}) VALUES (${fields.map(() => '?').join(', ')})`)
     .run(...fields.map((field) => values[field]));
   return localId;
+}
+
+function assertCaseMeasureLinks(database: DatabaseAdapter, kind: string,
+  row: Record<string, unknown>): void {
+  if ((kind !== 'case_measure_note' && kind !== 'case_deadline') || !row.measure_id) return;
+  const measure = database.prepare<{ case_id: string; type: string }>(
+    'SELECT case_id, type FROM case_measures WHERE id = ?').get(row.measure_id);
+  if (!measure || measure.case_id !== row.case_id
+    || kind === 'case_measure_note' && measure.type !== row.measure_type) {
+    throw new Error('Rückgabe enthält eine Maßnahme außerhalb der zugeordneten Fallakte.');
+  }
 }
 
 function assertOriginalLinks(kind: string, links: Record<string, string> | undefined,
@@ -160,10 +183,13 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
       const row = database.prepare<Record<string, unknown>>(`SELECT * FROM ${config.table} WHERE id = ?`).get(target.localId);
       if (!row) throw new Error('Ausgangsvorgang wurde entfernt.');
       if (change.kind === 'deadline' && change.data.process_type !== row.process_type
+        || change.kind === 'case_deadline' && change.data.process_type !== 'case'
+        || change.kind === 'case_measure_note' && change.data.measure_type !== row.measure_type
         || change.kind === 'violation' && change.data.source_context_type !== row.source_context_type) {
         throw new Error('Rückgabe ändert die Zuordnung eines Ausgangsvorgangs; bitte einzeln klären.');
       }
       assertOriginalLinks(change.kind, change.links, row, targets);
+      assertCaseMeasureLinks(database, change.kind, row);
       const fields = Object.keys(change.data).filter((field) => field !== 'created_at' && field !== 'updated_at');
       if ((config.fields as readonly string[]).includes('updated_at')) fields.push('updated_at');
       if (!fields.length) throw new Error('Rückgabe enthält keine übernehmbaren Felder.');

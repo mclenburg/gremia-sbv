@@ -205,4 +205,73 @@ describe('Format-5-Rückgabedatei', () => {
           { case_id: 'source-case', title: 'Nachtrag', content: 'Neu' }]);
     } finally { origin.raw.close(); deputy.raw.close(); fs.rmSync(directory, { recursive: true, force: true }); }
   });
+
+  it('übernimmt Maßnahmennotizen und Fallfristen mit ihren ursprünglichen Fall- und Maßnahmebezügen', async () => {
+    const origin = database(); const deputy = database();
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'gremia-v5-return-measure-'));
+    const handoverPath = path.join(directory, 'handover.gsbvtransfer');
+    const returnPath = path.join(directory, 'return.gsbvtransfer');
+    try {
+      origin.raw.exec(`INSERT INTO cases (id, case_number, display_name, category, opened_at, created_at, updated_at)
+        VALUES ('source-case', 'SBV-43', 'Einzelfall', 'sonstiges', '2026-11-11', '2026-11-11', '2026-11-11');
+        INSERT INTO case_measures (id, case_id, type, title, opened_at, created_at, updated_at)
+        VALUES ('source-measure', 'source-case', 'bem', 'BEM', '2026-11-11', '2026-11-11', '2026-11-11');
+        INSERT INTO case_measure_notes (id, case_id, measure_type, measure_id, title, note_at, content, created_at, updated_at)
+        VALUES ('source-measure-note', 'source-case', 'bem', 'source-measure', 'Gespräch', '2026-11-11', 'Ursprung', '2026-11-11', '2026-11-11');
+        INSERT INTO deadlines (id, case_id, measure_id, title, due_at, created_at, updated_at)
+        VALUES ('source-deadline', 'source-case', 'source-measure', 'Wiedervorlage', '2099-11-22', '2026-11-11', '2026-11-11')`);
+      const deputyProfile = new TransferRecipientProfileService(origin.adapter).save({ label: 'Vertretung',
+        recipientToken: formatTransferRecipientToken(deputy.identity) });
+      const originProfile = new TransferRecipientProfileService(deputy.adapter).save({ label: 'Ursprung',
+        recipientToken: formatTransferRecipientToken(origin.identity) });
+      for (const [raw, id] of [[origin.raw, deputyProfile.id], [deputy.raw, originProfile.id]] as const) {
+        raw.prepare('UPDATE transfer_recipient_profiles SET capabilities_json = ? WHERE id = ?')
+          .run(JSON.stringify(capabilities), id);
+      }
+      const handover = await new VacationV5FileService(origin.adapter).exportToFile({
+        selection: { ...empty, caseIds: ['source-case'] }, profileId: deputyProfile.id,
+        expiresAt: '2099-11-30T00:00:00.000Z', passphrase: 'lange Transport-Passphrase',
+        capabilities, targetPath: handoverPath,
+      });
+      new VacationV5FileService(deputy.adapter).importFromFile(handoverPath, 'lange Transport-Passphrase');
+      const deputyMeasure = deputy.raw.prepare('SELECT id, case_id FROM case_measures').get() as { id: string; case_id: string };
+      deputy.raw.prepare("UPDATE case_measure_notes SET content = 'Geändert' WHERE title = 'Gespräch'").run();
+      deputy.raw.prepare("UPDATE deadlines SET title = 'Neue Frist' WHERE title = 'Wiedervorlage'").run();
+      deputy.raw.prepare(`INSERT INTO case_measure_notes
+        (id, case_id, measure_type, measure_id, title, note_at, content, created_at, updated_at)
+        VALUES ('new-measure-note', ?, 'bem', ?, 'Nachtrag', '2026-11-12', 'Neu', '2026-11-12', '2026-11-12')`)
+        .run(deputyMeasure.case_id, deputyMeasure.id);
+      deputy.raw.prepare(`INSERT INTO deadlines (id, case_id, measure_id, title, due_at, created_at, updated_at)
+        VALUES ('new-case-deadline', ?, ?, 'Zusatzfrist', '2099-11-23', '2026-11-12', '2026-11-12')`)
+        .run(deputyMeasure.case_id, deputyMeasure.id);
+      await new VacationV5ReturnFileService(deputy.adapter).exportToFile({
+        sourcePackageId: handover.packageId, profileId: originProfile.id,
+        expiresAt: '2099-12-01T00:00:00.000Z', passphrase: 'lange Transport-Passphrase',
+        capabilities, targetPath: returnPath,
+        additionalItems: [{ kind: 'case_measure_note', localId: 'new-measure-note' },
+          { kind: 'case_deadline', localId: 'new-case-deadline' }],
+      });
+      const service = new VacationV5ReturnFileService(origin.adapter);
+      expect(service.previewFromFile(returnPath, 'lange Transport-Passphrase').items).toEqual([
+        { ref: 'case_deadline_1', kind: 'case_deadline', decision: 'propose_update' },
+        { ref: 'measure_note_1', kind: 'case_measure_note', decision: 'propose_update' },
+        { ref: 'return_case_deadline_1', kind: 'case_deadline', decision: 'review_addition' },
+        { ref: 'return_case_measure_note_1', kind: 'case_measure_note', decision: 'review_addition' },
+      ]);
+      const originals = new Map(listVacationV5OriginItemChanges(origin.adapter, handover.packageId, '').items
+        .map((item) => [item.ref, item.currentSha256]));
+      const choices = service.previewFromFile(returnPath, 'lange Transport-Passphrase').items.map((item) => ({
+        ref: item.ref, action: item.decision === 'review_addition' ? 'accept_addition' : 'accept_update',
+        expectedOriginSha256: originals.get(item.ref) ?? null,
+      })) as Array<{ ref: string; action: 'accept_addition' | 'accept_update'; expectedOriginSha256: string | null }>;
+      expect(service.importConfirmedFromFile(returnPath, 'lange Transport-Passphrase', choices))
+        .toMatchObject({ acceptedCount: 4 });
+      expect(origin.raw.prepare('SELECT case_id, measure_id, title, content FROM case_measure_notes ORDER BY title').all())
+        .toEqual([{ case_id: 'source-case', measure_id: 'source-measure', title: 'Gespräch', content: 'Geändert' },
+          { case_id: 'source-case', measure_id: 'source-measure', title: 'Nachtrag', content: 'Neu' }]);
+      expect(origin.raw.prepare('SELECT case_id, measure_id, title FROM deadlines ORDER BY title').all())
+        .toEqual([{ case_id: 'source-case', measure_id: 'source-measure', title: 'Neue Frist' },
+          { case_id: 'source-case', measure_id: 'source-measure', title: 'Zusatzfrist' }]);
+    } finally { origin.raw.close(); deputy.raw.close(); fs.rmSync(directory, { recursive: true, force: true }); }
+  });
 });
