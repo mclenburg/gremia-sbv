@@ -16,6 +16,7 @@ import type { VacationV5ReturnPayload } from './vacationV5ReturnTransport.js';
 import type { VacationV5ReturnChoice } from '../src/domain/transfer/vacationV5ReturnReview.js';
 
 const LINK_COLUMN: Readonly<Record<string, Record<string, { kind: string; column: string }>>> = {
+  case: { protectedPersonRef: { kind: 'protected_person', column: 'protected_person_id' } },
   case_measure: { caseRef: { kind: 'case', column: 'case_id' } },
   case_note: { caseRef: { kind: 'case', column: 'case_id' } },
   case_measure_note: { caseRef: { kind: 'case', column: 'case_id' },
@@ -39,15 +40,18 @@ const ADDITION_ORDER = ['meeting', 'recruiting', 'employer_obligation', 'inclusi
   'inclusion_topic', 'violation_event', 'deadline', 'case_measure', 'case_note',
   'case_measure_note', 'case_deadline', 'case_document', 'generated_document',
   'workflow_document_link', 'violation_document_link'] as const;
+const CASE_WORK_FIELDS = ['display_name', 'category', 'status', 'priority', 'closed_at',
+  'summary', 'risk_level', 'review_at'] as const;
 
 function supportedRow(kind: string): boolean {
-  return ['case_measure', 'case_note', 'case_measure_note', 'case_deadline', 'case_document',
+  return ['case', 'case_measure', 'case_note', 'case_measure_note', 'case_deadline', 'case_document',
     'generated_document', 'workflow_document_link', 'violation_document_link'].includes(kind)
     || Object.hasOwn(VACATION_V5_ROW_FIELDS, kind);
 }
 
 function rowConfiguration(kind: string): { table: string; fields: readonly string[] } {
-  if (kind === 'case_measure' || kind === 'case_note' || kind === 'case_measure_note' || kind === 'case_document') {
+  if (kind === 'case' || kind === 'case_measure' || kind === 'case_note'
+    || kind === 'case_measure_note' || kind === 'case_document') {
     return VACATION_V5_CASE_ROW_FIELDS[kind];
   }
   if (kind === 'case_deadline') return VACATION_V5_ROW_FIELDS.deadline;
@@ -174,6 +178,24 @@ function refreshOfficeDocumentBaselines(database: DatabaseAdapter,
   }
 }
 
+function updateOriginRow(database: DatabaseAdapter, table: string, fieldsInPolicy: readonly string[],
+  kind: string, data: Record<string, string | number | boolean | null>, localId: string, timestamp: string): void {
+  const fields = kind === 'case'
+    ? CASE_WORK_FIELDS.filter((field) => Object.hasOwn(data, field)) as string[]
+    : Object.keys(data).filter((field) => field !== 'created_at' && field !== 'updated_at'
+      && (kind !== 'case_measure' || field !== 'created_from'));
+  if (fieldsInPolicy.includes('updated_at')) fields.push('updated_at');
+  if (!fields.length) throw new Error('Rückgabe enthält keine übernehmbaren Felder.');
+  if (kind === 'case' && !String(data.display_name).replace(/^\[Übergabe\] /, '').trim()) {
+    throw new Error('Rückgabe enthält keine gültige Fallbezeichnung.');
+  }
+  const values = fields.map((field) => field === 'updated_at' ? timestamp
+    : kind === 'case' && field === 'display_name'
+      ? String(data.display_name).replace(/^\[Übergabe\] /, '') : data[field]);
+  database.prepare(`UPDATE ${table} SET ${fields.map((field) => `${field} = ?`).join(', ')} WHERE id = ?`)
+    .run(...values, localId);
+}
+
 export function importConfirmedVacationV5Return(database: DatabaseAdapter, payload: VacationV5ReturnPayload,
   choices: readonly VacationV5ReturnChoice[], dataDirectory: string):
   { importId: string; acceptedCount: number; reviewedCount: number } {
@@ -221,7 +243,7 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
       if (choice.action === 'keep_origin') { reviewedCount += 1; continue; }
       if (planned.decision === 'review_addition' && choice.action === 'accept_addition'
         && change.operation === 'upsert' && change.deputyBaselineSha256 === null
-        && change.data && supportedRow(change.kind)) {
+        && change.data && supportedRow(change.kind) && change.kind !== 'case') {
         const localId = insertAddition(database, change as typeof change & {
           data: Record<string, string | number | boolean | null> }, targets, timestamp, dataDirectory, trackFile);
         targets.set(change.ref, { kind: change.kind, localId });
@@ -258,16 +280,11 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
       }
       assertOriginalLinks(change.kind, change.links, row, targets);
       assertCaseMeasureLinks(database, change.kind, row);
-      const fields = Object.keys(change.data).filter((field) => field !== 'created_at' && field !== 'updated_at'
-        && (change.kind !== 'case_measure' || field !== 'created_from'));
-      if ((config.fields as readonly string[]).includes('updated_at')) fields.push('updated_at');
-      if (!fields.length) throw new Error('Rückgabe enthält keine übernehmbaren Felder.');
-      const values = fields.map((field) => field === 'updated_at' ? timestamp : change.data![field]);
-      database.prepare(`UPDATE ${config.table} SET ${fields.map((field) => `${field} = ?`).join(', ')} WHERE id = ?`)
-        .run(...values, target.localId);
+      updateOriginRow(database, config.table, config.fields, change.kind, change.data, target.localId, timestamp);
       const stored = database.prepare<Record<string, unknown>>(`SELECT * FROM ${config.table} WHERE id = ?`).get(target.localId);
       if (!stored) throw new Error('Übernommener Rückgabevorgang konnte nicht bestätigt werden.');
       if (typeof stored.case_id === 'string') affectedCaseIds.add(stored.case_id);
+      if (change.kind === 'case') affectedCaseIds.add(target.localId);
       accepted.push({ ref: change.ref, kind: change.kind, localId: target.localId,
         baselineSha256: caseHandoverBaselineHash(stored) });
     }
