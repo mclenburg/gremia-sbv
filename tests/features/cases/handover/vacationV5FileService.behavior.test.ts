@@ -67,6 +67,14 @@ describe('Format-5-Dateiservice für fallfreie Arbeit', () => {
       });
       expect(exported.sectionCounts.map((entry) => entry.type))
         .toEqual(['violation', 'generated_document', 'violation_document_link']);
+      const review = new VacationV5FileService(target.adapter, () => targetDirectory)
+        .reviewFromFile(filePath, 'lange Transport-Passphrase');
+      expect(review).toMatchObject({ packageId: exported.packageId, senderInstanceId: source.identity.instanceId,
+        documentCount: 1, documentBytes: plain.length,
+        documents: [{ filename: 'anfrage.pdf', owner: 'Anfrage', sizeBytes: plain.length }] });
+      expect(target.raw.prepare('SELECT COUNT(*) AS count FROM case_handover_imports').get()).toMatchObject({ count: 0 });
+      expect(() => new VacationV5FileService(target.adapter, () => targetDirectory)
+        .importFromFile(filePath, 'lange Transport-Passphrase', 'anderes-paket')).toThrow(/Vorschau/);
       new VacationV5FileService(target.adapter, () => targetDirectory).importFromFile(filePath, 'lange Transport-Passphrase');
       expect(new TransferRecipientProfileService(target.adapter).list().find((item) =>
         item.keyFingerprint === source.identity.keyFingerprint)).toMatchObject({

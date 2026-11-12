@@ -19,15 +19,16 @@ function harness() {
   } });
   const exportToFile = vi.fn().mockResolvedValue({ packageId: 'handover-1', targetInstanceId: 'target', sectionCounts: [] });
   const importFromFile = vi.fn().mockReturnValue({ importId: 'import-1', importedCount: 1, packageId: 'handover-1' });
+  const reviewFromFile = vi.fn().mockReturnValue({ packageId: 'handover-1', sectionCounts: [] });
   const exportReturn = vi.fn().mockResolvedValue({ packageId: 'return-1', changeCount: 1, targetInstanceId: 'target' });
   registerVacationV5FileIpc(ipcMain as never, {
     transferRecipientProfiles: () => ({ createCapability }),
     transferIdentity: () => ({ getPrivateIdentity: () => ({}) }),
-    vacationV5: () => ({ exportToFile, importFromFile }),
+    vacationV5: () => ({ exportToFile, importFromFile, reviewFromFile }),
     vacationV5Return: () => ({ exportToFile: exportReturn }),
   } as never);
   return { invoke: (channel: string, ...args: unknown[]) => handlers.get(channel)?.(trustedIpcEvent(ipcMain), ...args),
-    createCapability, exportToFile, importFromFile, exportReturn };
+    createCapability, exportToFile, importFromFile, reviewFromFile, exportReturn };
 }
 
 const selection = { caseIds: [], standaloneDeadlineIds: [], meetingIds: ['meeting-1'], recruitingIds: [],
@@ -50,13 +51,16 @@ describe('Format-5-Dateiwege über IPC', () => {
   });
 
   it('akzeptiert beim Import ausschließlich einen nativ ausgewählten Datei-Token', async () => {
-    const { invoke, importFromFile } = harness();
-    await expect(invoke(IPC_CHANNELS.caseHandoverV5Import, '/chosen/handover.gsbvtransfer', 'lange Passphrase'))
+    const { invoke, importFromFile, reviewFromFile } = harness();
+    await expect(invoke(IPC_CHANNELS.caseHandoverV5Import, '/chosen/handover.gsbvtransfer', 'lange Passphrase', 'handover-1'))
       .rejects.toThrow(/VALIDATION_FAILED/);
     const token = issueSelectedFileCapability('/chosen/handover.gsbvtransfer', SELECTED_FILE_PURPOSE.caseHandover).fileToken;
-    await expect(invoke(IPC_CHANNELS.caseHandoverV5Import, token, 'lange Passphrase'))
+    await expect(invoke(IPC_CHANNELS.caseHandoverV5Review, token, 'lange Passphrase'))
+      .resolves.toMatchObject({ packageId: 'handover-1' });
+    expect(reviewFromFile).toHaveBeenCalledWith('/chosen/handover.gsbvtransfer', 'lange Passphrase');
+    await expect(invoke(IPC_CHANNELS.caseHandoverV5Import, token, 'lange Passphrase', 'handover-1'))
       .resolves.toMatchObject({ importedCount: 1 });
-    expect(importFromFile).toHaveBeenCalledWith('/chosen/handover.gsbvtransfer', 'lange Passphrase');
+    expect(importFromFile).toHaveBeenCalledWith('/chosen/handover.gsbvtransfer', 'lange Passphrase', 'handover-1');
   });
 
   it('prüft Rückgabeauswahl vor dem Dialog und schützt den Exportpfad', async () => {

@@ -78,11 +78,19 @@ export function registerVacationV5FileIpc(ipcMain: IpcMain, services: Applicatio
     return { exported: true, filePath: targetPath, ...result };
   });
 
-  registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverV5Import, async (_event, fileToken: unknown, passphrase: unknown) => {
+  registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverV5Import, async (_event, fileToken: unknown, passphrase: unknown, packageId: unknown) => {
     const filePath = resolveSelectedFileCapability(fileToken, SELECTED_FILE_PURPOSE.caseHandover,
       IPC_CHANNELS.caseHandoverV5Import);
     return services.vacationV5().importFromFile(filePath,
-      assertString(passphrase, IPC_CHANNELS.caseHandoverV5Import, 'Transport-Passphrase', { minLength: 0, maxLength: 500 }));
+      assertString(passphrase, IPC_CHANNELS.caseHandoverV5Import, 'Transport-Passphrase', { minLength: 0, maxLength: 500 }),
+      assertString(packageId, IPC_CHANNELS.caseHandoverV5Import, 'bestätigte Paketkennung', { minLength: 1, maxLength: 130 }));
+  });
+
+  registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverV5Review, async (_event, fileToken: unknown, passphrase: unknown) => {
+    const filePath = resolveSelectedFileCapability(fileToken, SELECTED_FILE_PURPOSE.caseHandover,
+      IPC_CHANNELS.caseHandoverV5Review);
+    return services.vacationV5().reviewFromFile(filePath,
+      assertString(passphrase, IPC_CHANNELS.caseHandoverV5Review, 'Transport-Passphrase', { minLength: 0, maxLength: 500 }));
   });
 
   registerIpcHandler(ipcMain, IPC_CHANNELS.caseHandoverV5ReturnExport,

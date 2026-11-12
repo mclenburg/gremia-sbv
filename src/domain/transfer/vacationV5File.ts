@@ -18,6 +18,16 @@ export type VacationV5ExportResult = { exported: false } | {
   sectionCounts: Array<{ type: string; count: number }>;
 };
 
+export interface VacationV5PackageReview {
+  packageId: string;
+  expiresAt: string;
+  senderInstanceId: string;
+  sectionCounts: Array<{ type: string; count: number }>;
+  documentCount: number;
+  documentBytes: number;
+  documents: Array<{ filename: string; owner: string; sizeBytes: number }>;
+}
+
 export interface VacationV5ReturnExportRequest {
   sourcePackageId: string;
   profileId: string;

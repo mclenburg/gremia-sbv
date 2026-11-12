@@ -130,7 +130,47 @@ export class VacationV5FileService {
       sectionCounts: sections.map((section) => ({ type: section.type, count: section.count })) };
   }
 
-  importFromFile(filePath: string, passphrase: string): { importId: string; importedCount: number; packageId: string } {
+  importFromFile(filePath: string, passphrase: string, expectedPackageId?: string): { importId: string; importedCount: number; packageId: string } {
+    const { payload, sender, recipient } = this.openPayloadFromFile(filePath, passphrase);
+    if (expectedPackageId !== undefined && payload.packageId !== expectedPackageId) {
+      throw new Error('Das ausgewählte Paket stimmt nicht mehr mit der bestätigten Vorschau überein.');
+    }
+    const imported = importVacationV5Package(this.database, payload,
+      { originKeyFingerprint: sender.keyFingerprint, targetKeyFingerprint: recipient.keyFingerprint }, this.dataDirectoryProvider);
+    return { ...imported, packageId: payload.packageId };
+  }
+
+  reviewFromFile(filePath: string, passphrase: string): {
+    packageId: string; expiresAt: string; senderInstanceId: string;
+    sectionCounts: Array<{ type: string; count: number }>; documentCount: number; documentBytes: number;
+    documents: Array<{ filename: string; owner: string; sizeBytes: number }>;
+  } {
+    const { payload } = this.openPayloadFromFile(filePath, passphrase);
+    const names = new Map(payload.sections.flatMap((section) => section.items.map((item) => [item.ref,
+      String(item.data.case_number ?? item.data.title ?? item.data.subject ?? item.data.vacancy_title ?? section.type)] as const)));
+    const officeOwners = new Map(payload.sections.flatMap((section) =>
+      section.type === 'workflow_document_link' || section.type === 'violation_document_link'
+        ? section.items.flatMap((item) => 'documentRef' in item && 'ownerRef' in item
+          ? [[String(item.documentRef), String(item.ownerRef)] as const] : []) : []));
+    const documents = payload.sections.flatMap((section) => section.items.filter((item) =>
+      section.type === 'case_document' || section.type === 'generated_document').map((item) => {
+      const ownerRef = 'links' in item ? item.links.caseRef : officeOwners.get(item.ref);
+      return { filename: String(item.data.filename ?? 'Dokument'), owner: names.get(ownerRef ?? '') ?? 'Vorgang',
+        sizeBytes: Buffer.from('contentBase64' in item && typeof item.contentBase64 === 'string'
+          ? item.contentBase64 : '', 'base64').length };
+    }));
+    return { packageId: payload.packageId, expiresAt: payload.expiresAt,
+      senderInstanceId: payload.origin.instanceId,
+      sectionCounts: payload.sections.map((section) => ({ type: section.type, count: section.count })),
+      documentCount: documents.length,
+      documentBytes: documents.reduce((sum, item) => sum + item.sizeBytes, 0), documents };
+  }
+
+  private openPayloadFromFile(filePath: string, passphrase: string): {
+    payload: VacationV5Payload;
+    sender: ReturnType<typeof parseTransferRecipientToken>;
+    recipient: ReturnType<TransferInstanceIdentityService['getPrivateIdentity']>;
+  } {
     const file = inspectCaseHandoverFilePath(filePath);
     let parsed: unknown;
     try { parsed = JSON.parse(fs.readFileSync(file.filePath, 'utf8')) as unknown; }
@@ -148,8 +188,6 @@ export class VacationV5FileService {
     if (!payload.capabilities.writeFormats.includes(5) || !payload.capabilities.features.includes('vacation_scope_v5')) {
       throw new Error('Die abgebende Instanz bietet Format 5 nicht an.');
     }
-    const imported = importVacationV5Package(this.database, payload,
-      { originKeyFingerprint: sender.keyFingerprint, targetKeyFingerprint: recipient.keyFingerprint }, this.dataDirectoryProvider);
-    return { ...imported, packageId: payload.packageId };
+    return { payload, sender, recipient };
   }
 }

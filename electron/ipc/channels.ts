@@ -31,6 +31,7 @@ export const IPC_CHANNELS = Object.freeze({
   caseHandoverReturnDeltaExport: "caseHandover:return-delta-export",
   caseHandoverV5Export: "caseHandover:v5:export",
   caseHandoverV5Import: "caseHandover:v5:import",
+  caseHandoverV5Review: "caseHandover:v5:review",
   caseHandoverV5ReturnExport: "caseHandover:v5:return:export",
   caseHandoverV5ReturnReview: "caseHandover:v5:return:review",
   caseHandoverV5ReturnImport: "caseHandover:v5:return:import",
