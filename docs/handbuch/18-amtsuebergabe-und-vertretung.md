@@ -39,7 +39,7 @@ Die Zielinstanz zeigt unter **Einstellungen** ihre kurze Instanz-ID und die voll
 6. Trage Transport-Passphrase und Vertretungsende ein.
 7. Exportiere das Paket und übermittle Datei und Passphrase getrennt.
 8. Die Stellvertretung prüft das Paket im Register **Import** vor dem Schreiben und übernimmt es als lokale Vertretungsakte.
-9. Nach der Vertretung erzeugt sie im Register **Rückgabe** ein Rückgabe-Delta für die geänderten Inhalte.
+9. Nach der Vertretung erzeugt sie im Register **Rückgabe** ein Rückgabe-Delta für die geänderten Inhalte, sofern ihre Version diese Funktion bereits bietet.
 10. Die ursprüngliche SBV prüft und importiert das Delta. Die Zuordnung erfolgt über das protokollierte Ausgangspaket.
 
 Wenn eine ursprünglich übergebene Frist oder Maßnahme inzwischen auf beiden Instanzen bearbeitet wurde, stoppt die Rückgabe vor der Übernahme. Prüfe den betroffenen Vorgang und kläre den Arbeitsstand fachlich; die App überschreibt den lokalen Stand nicht automatisch.

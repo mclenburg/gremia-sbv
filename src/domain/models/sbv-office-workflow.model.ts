@@ -1,5 +1,8 @@
 export type SbvMeetingType = 'works_council' | 'council_committee' | 'health_safety' | 'employer_council_meeting' | 'works_assembly' | 'other';
 export type SbvMeetingStatus = 'draft' | 'planned' | 'held' | 'closed';
+export const SBV_MEETING_STATUS_LABELS: Record<SbvMeetingStatus, string> = {
+  draft: 'Entwurf', planned: 'Geplant', held: 'Durchgeführt', closed: 'Abgeschlossen',
+};
 export type EmployerReportStatus = 'not_requested' | 'requested' | 'promised' | 'completed' | 'not_completed';
 export type ObligationStatus = 'not_due' | 'due' | 'requested' | 'received' | 'reviewing' | 'compliant' | 'issue_found' | 'follow_up' | 'closed';
 export type AgreementStatus = 'not_started' | 'negotiation_requested' | 'negotiating' | 'stalled' | 'agreed' | 'review_due' | 'superseded';

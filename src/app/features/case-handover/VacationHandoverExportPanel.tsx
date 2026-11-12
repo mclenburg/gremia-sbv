@@ -75,12 +75,15 @@ export function VacationHandoverExportPanel({ cases, onCompleted }: { cases: Cas
   return <IndustrialPanel ariaLabel="Urlaubsvertretung übergeben" kicker="Ausgabe" title="Urlaubsvertretung übergeben" description="Ausgewählte Fallakten werden als ein verschlüsseltes, zielgebundenes Paket übergeben." helpId="caseHandover.vacation">
     <form className="industrial-stack" onSubmit={submit}>
       <CaseHandoverCasePicker cases={cases} selectedIds={caseIds} onChange={setCaseIds} legend="Fallakten für die Vertretung" />
-      <TransferProtectionFields value={protection} onChange={setProtection} onRecipientProfileChange={selectRecipientProfile} targetLabel="Öffentliche Empfängerkennung der Vertretungsinstanz" />
+      <TransferProtectionFields value={protection} onChange={setProtection} onRecipientProfileChange={selectRecipientProfile}
+        allowRecipientKeyOnly={formatVersion !== 2} targetLabel="Öffentliche Empfängerkennung der Vertretungsinstanz" />
       {selectedProfile?.capabilityStatus === 'verified' ? <div className="industrial-settings-note" role="status">Verifizierte Zielformate zum Lesen: {selectedProfile.capabilities?.readFormats.join(', ') || 'keine'} · Rückgabeformate zum Schreiben: {selectedProfile.capabilities?.writeFormats.join(', ') || 'keine'}</div>
         : <div className="industrial-settings-note" role="status">Übergabefähigkeiten der Zielinstanz unbekannt. Bitte das tatsächlich unterstützte Format unabhängig prüfen.</div>}
-      {formatPlan.available.length ? <SelectInput label="Übergabeformat" value={String(formatVersion)} options={formatPlan.available.map((format) => ({
+      {formatPlan.available.length ? <SelectInput label="Zielformat der Vertretungsinstanz" value={String(formatVersion)} options={formatPlan.available.map((format) => ({
         value: String(format), label: format === 4 ? 'Format 4 – aktuelle Fallübergabe' : 'Format 2 – ältere Zielinstanz',
-      }))} onValueChange={(value) => setFormatVersion(value === '2' ? 2 : 4)} helpText="Format 2 benötigt eine Transport-Passphrase. Die tatsächliche Rückgabefähigkeit einer älteren Zielinstanz ist gesondert zu prüfen." wide />
+      }))} onValueChange={(value) => { const next = value === '2' ? 2 : 4; setFormatVersion(next);
+        if (next === 2) setProtection((current) => ({ ...current, protectionMode: 'passphrase_and_recipient_key' })); }}
+      helpText="Format 2 benötigt eine Transport-Passphrase. Die tatsächliche Rückgabefähigkeit einer älteren Zielinstanz ist gesondert zu prüfen." wide />
         : <div className="industrial-message industrial-message-warning" role="alert">Dieses verifizierte Empfängerprofil kann keines der derzeit schreibbaren Urlaubsübergabeformate lesen.</div>}
       <DateInput label="Vertretung endet am" value={validUntil} onValueChange={setValidUntil} required />
       <CaseHandoverChecklistPanel packageType="vacation_handover" caseIds={caseIds} expiresAt={toHandoverExpiry(validUntil)} acknowledgements={acknowledgedItemIds} onAcknowledgementsChange={setAcknowledgedItemIds} />

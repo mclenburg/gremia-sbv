@@ -99,9 +99,10 @@ function useCaseHandoverActions(selectedCase: CaseRecord | undefined, setSelecte
     targetRecipientToken?: string,
     protectionMode?: TransferProtectionMode,
     checklist?: CaseHandoverChecklistConfirmation,
+    targetFormatVersion?: 2 | 4,
   ) => {
     if (!selectedCase) throw new Error("Bitte zuerst eine Fallakte auswählen.");
-    const result = await window.gremiaSbv.caseHandover.export({ caseIds: [selectedCase.id], expiresAt, purpose: "Urlaubsübergabe / SBV-Vertretung", passphrase, targetRecipientToken: targetRecipientToken ?? "", protectionMode, checklist }, `${selectedCase.caseNumber}-falluebergabe.gsbvtransfer`);
+    const result = await window.gremiaSbv.caseHandover.export({ caseIds: [selectedCase.id], expiresAt, purpose: "Urlaubsübergabe / SBV-Vertretung", passphrase, targetRecipientToken: targetRecipientToken ?? "", protectionMode, checklist, targetFormatVersion }, `${selectedCase.caseNumber}-falluebergabe.gsbvtransfer`);
     pushCaseToast(formatCaseHandoverExportResultMessage(result), result.exported ? "ok" : "warning"); return result;
   };
   const importCaseHandover = async (input: { filePath: string; passphrase: string; mode: "create_new" | "merge_existing"; targetCaseId?: string }) => {

@@ -11,9 +11,11 @@ import type {
   CreateSbvMeetingInput,
   SbvMeetingAgendaItemRecord,
   SbvMeetingRecord,
+  SbvMeetingStatus,
   SbvMeetingType,
   UpsertSbvMeetingAgendaInput,
 } from '../../../../domain/models/sbv-office-workflow.model';
+import { SBV_MEETING_STATUS_LABELS } from '../../../../domain/models/sbv-office-workflow.model';
 import { dispatchActivityJournalPrefill } from '../../activity-journal/activityJournalEvents';
 import { SbvControlPanel } from './SbvControlPanel';
 
@@ -120,6 +122,7 @@ export function filterMeetings(records: SbvMeetingRecord[], query: string): SbvM
       meetingTypeLabels[record.meetingType],
       record.location ?? '',
       record.status,
+      SBV_MEETING_STATUS_LABELS[record.status],
       startsAt.toLocaleDateString('de-DE'),
       startsAt.toLocaleString('de-DE'),
       paddedDate,
@@ -138,11 +141,12 @@ export function pageMeetings(records: SbvMeetingRecord[], page: number, pageSize
   return records.slice(start, start + pageSize);
 }
 
-export function MeetingsWorkspace({ records, targetAgendaId, targetSourceEvent, onCreate, onAgenda, onAgendaFollowUp, onJournal }: {
+export function MeetingsWorkspace({ records, targetAgendaId, targetSourceEvent, onCreate, onUpdate, onAgenda, onAgendaFollowUp, onJournal }: {
   records: SbvMeetingRecord[];
   targetAgendaId?: string;
   targetSourceEvent?: string;
   onCreate: (input: CreateSbvMeetingInput) => Promise<SbvMeetingRecord>;
+  onUpdate: (id: string, input: { status: SbvMeetingStatus }) => Promise<SbvMeetingRecord>;
   onAgenda: (id: string, input: UpsertSbvMeetingAgendaInput) => Promise<SbvMeetingAgendaItemRecord>;
   onAgendaFollowUp: (agendaId: string, dueAt: string) => Promise<void>;
   onJournal: (id: string, activity: JournalActivity) => Promise<ActivityJournalPrefill>;
@@ -218,7 +222,7 @@ export function MeetingsWorkspace({ records, targetAgendaId, targetSourceEvent, 
         <div className="industrial-table-wrap">
           <table className="industrial-table sbv-meeting-register-table">
             <thead><tr><th>Datum / Zeit</th><th>Sitzungstyp</th><th>Titel</th><th>TOPs</th><th>Status</th></tr></thead>
-            <tbody>{visibleMeetings.map((record) => <tr key={record.id} className={record.id === selectedMeetingId ? 'selected' : ''} tabIndex={0} aria-label={`Sitzung ${record.title} auswählen`} onClick={() => { setSelectedMeetingId(record.id); setSelectedAgendaId(''); }} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setSelectedMeetingId(record.id); setSelectedAgendaId(''); } }}><td>{new Date(record.startsAt).toLocaleString('de-DE')}</td><td>{meetingTypeLabels[record.meetingType]}</td><td><strong>{record.title}</strong></td><td>{record.agenda.length}</td><td>{record.status}</td></tr>)}</tbody>
+            <tbody>{visibleMeetings.map((record) => <tr key={record.id} className={record.id === selectedMeetingId ? 'selected' : ''} tabIndex={0} aria-label={`Sitzung ${record.title} auswählen`} onClick={() => { setSelectedMeetingId(record.id); setSelectedAgendaId(''); }} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setSelectedMeetingId(record.id); setSelectedAgendaId(''); } }}><td>{new Date(record.startsAt).toLocaleString('de-DE')}</td><td>{meetingTypeLabels[record.meetingType]}</td><td><strong>{record.title}</strong></td><td>{record.agenda.length}</td><td>{SBV_MEETING_STATUS_LABELS[record.status]}</td></tr>)}</tbody>
           </table>
           {!visibleMeetings.length ? <div className="industrial-message industrial-message-info">Keine Sitzungen für den aktuellen Filter.</div> : null}
         </div>
@@ -234,6 +238,7 @@ export function MeetingsWorkspace({ records, targetAgendaId, targetSourceEvent, 
           <div><p className="industrial-kicker">Sitzung bearbeiten</p><h3 id="meeting-editor-heading">{current.title}</h3><p className="industrial-meta">{new Date(current.startsAt).toLocaleString('de-DE')} · {meetingTypeLabels[current.meetingType]}</p></div>
           <div className="industrial-action-row sbv-meeting-journal-actions" aria-label="Tätigkeitsjournal"><IndustrialButton variant="secondary" onClick={() => journal('preparation')}>Vorbereitung ins Journal</IndustrialButton><IndustrialButton variant="secondary" onClick={() => journal('attendance')}>Teilnahme ins Journal</IndustrialButton></div>
         </div>
+        <MeetingStatusEditor key={current.id} meeting={current} onUpdate={onUpdate} />
         <div className="industrial-table-wrap"><table className="industrial-table"><thead><tr><th>Pos.</th><th>TOP</th><th>SBV</th><th>Aussetzung</th></tr></thead><tbody>{current.agenda.map((item) => <tr key={item.id}><td>{item.position}</td><td><button type="button" className="industrial-link-button" onClick={() => setSelectedAgendaId(item.id)}>{item.title}</button></td><td>{item.sbvRelevance ? 'relevant' : '—'}</td><td>{item.suspensionDueAt ? new Date(item.suspensionDueAt).toLocaleString('de-DE') : '—'}</td></tr>)}</tbody></table></div>
         <div className="industrial-form-grid sbv-meeting-new-agenda-grid">
           <TextInput label="Neuer Tagesordnungspunkt" value={newAgendaTitle} onValueChange={setNewAgendaTitle} />
@@ -244,6 +249,37 @@ export function MeetingsWorkspace({ records, targetAgendaId, targetSourceEvent, 
       </section> : null}
     </SbvControlPanel>
   );
+}
+
+function MeetingStatusEditor({ meeting, onUpdate }: {
+  meeting: SbvMeetingRecord;
+  onUpdate: (id: string, input: { status: SbvMeetingStatus }) => Promise<SbvMeetingRecord>;
+}) {
+  const [status, setStatus] = useState<SbvMeetingStatus>(meeting.status);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+
+  useEffect(() => { setStatus(meeting.status); }, [meeting.status]);
+
+  async function save() {
+    setBusy(true);
+    setMessage('');
+    try {
+      const saved = await onUpdate(meeting.id, { status });
+      setStatus(saved.status);
+      setMessage(`Sitzungsstatus „${SBV_MEETING_STATUS_LABELS[saved.status]}“ gespeichert.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Sitzungsstatus konnte nicht gespeichert werden.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return <div className="industrial-form-grid sbv-meeting-new-agenda-grid">
+    <SelectInput label="Sitzungsstatus" value={status} onValueChange={(value) => { setStatus(value as SbvMeetingStatus); setMessage(''); }} options={Object.entries(SBV_MEETING_STATUS_LABELS).map(([value, label]) => ({ value, label }))} />
+    <div className="industrial-action-row"><IndustrialButton variant="secondary" disabled={busy || status === meeting.status} onClick={() => void save()}>{busy ? 'Speichern …' : 'Status speichern'}</IndustrialButton></div>
+    {message ? <div className="industrial-message industrial-message-info" role="status">{message}</div> : null}
+  </div>;
 }
 
 function AgendaEditor({ meetingId, agenda, targetSourceEvent, onAgenda, onAgendaFollowUp, onJournal }: {
@@ -311,7 +347,7 @@ function AgendaEditor({ meetingId, agenda, targetSourceEvent, onAgenda, onAgenda
         <SelectInput label="Bezug" value={referenceScope} onValueChange={setReferenceScope} options={[{ value: 'none', label: 'ohne Personenbezug' }, { value: 'individual', label: 'Einzelbezug' }, { value: 'group', label: 'Gruppenbezug' }]} />
         <TextInput label="Unterlagenstatus" value={documentsStatus} onValueChange={setDocumentsStatus} />
       </div>
-      <TextareaInput label="Eigene SBV-Position" value={ownPosition} onValueChange={setOwnPosition} wide />
+      <TextareaInput label="Eigene SBV-Position / Notizen zum TOP" value={ownPosition} onValueChange={setOwnPosition} wide />
     </section>
 
     <section className="sbv-control-section sbv-agenda-section" aria-labelledby={`agenda-${agenda.id}-request`}>

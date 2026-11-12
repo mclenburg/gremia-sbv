@@ -14,7 +14,10 @@ export const CASE_HANDOVER_PASSPHRASE_VERSION = 3;
 export const CASE_HANDOVER_VERSION = 4;
 
 export function resolveCaseHandoverExportVersion(input: CaseHandoverExportInput): 2 | 4 {
-  const version = input.formatVersion ?? CASE_HANDOVER_VERSION;
+  if (input.formatVersion && input.targetFormatVersion && input.formatVersion !== input.targetFormatVersion) {
+    throw new Error('Die gewählten Übergabeformate widersprechen sich.');
+  }
+  const version = input.formatVersion ?? input.targetFormatVersion ?? CASE_HANDOVER_VERSION;
   if (version !== CASE_HANDOVER_TARGET_BOUND_LEGACY_VERSION && version !== CASE_HANDOVER_VERSION) {
     throw new Error('Das gewählte Übergabeformat wird nicht unterstützt.');
   }

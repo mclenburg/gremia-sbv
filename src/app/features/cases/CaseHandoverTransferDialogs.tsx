@@ -7,6 +7,7 @@ import type {
   CaseHandoverImportMode,
   CaseHandoverInspectResult,
   TransferProtectionMode,
+  VacationHandoverFormatVersion,
 } from "../../../domain/models/case-handover.model";
 import {
   DateInput,
@@ -17,6 +18,7 @@ import {
 } from "../../shared/components/IndustrialForm";
 import { CaseHandoverChecklistPanel, handoverChecklistConfirmation } from "../case-handover/CaseHandoverChecklistPanel";
 import { requiresPassphrase, TransferProtectionFields, type TransferProtectionState } from "../case-handover/TransferProtectionFields";
+import { VacationHandoverCompatibilityField } from "../case-handover/VacationHandoverCompatibilityField";
 import {
   GhostButton,
   IndustrialButton,
@@ -54,6 +56,7 @@ type CaseHandoverTransferDialogsProps = {
     targetRecipientToken?: string,
     protectionMode?: TransferProtectionMode,
     checklist?: CaseHandoverChecklistConfirmation,
+    targetFormatVersion?: VacationHandoverFormatVersion,
   ) => Promise<CaseHandoverExportResult>;
   onSelectImportFile: () => Promise<ImportFileSelection>;
   onInspectImport: (
@@ -93,12 +96,13 @@ function reasonLabel(reason: string): string {
 
 function useHandoverExport({ exportOpen, selectedCase, onExport }: Pick<CaseHandoverTransferDialogsProps, "exportOpen" | "selectedCase" | "onExport">) {
   const [protection, setProtection] = useState<TransferProtectionState>({ targetRecipientToken: "", passphrase: "", protectionMode: "passphrase_and_recipient_key" as TransferProtectionMode });
+  const [targetFormatVersion, setTargetFormatVersion] = useState<VacationHandoverFormatVersion>(4);
   const [acknowledgedItemIds, setAcknowledgedItemIds] = useState<string[]>([]);
   const [validUntil, setValidUntil] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<CaseHandoverExportResult | null>(null);
-  useEffect(() => { if (!exportOpen) { setProtection({ targetRecipientToken: "", passphrase: "", protectionMode: "passphrase_and_recipient_key" }); setAcknowledgedItemIds([]); setValidUntil(""); setError(""); setBusy(false); setResult(null); } }, [exportOpen]);
+  useEffect(() => { if (!exportOpen) { setProtection({ targetRecipientToken: "", passphrase: "", protectionMode: "passphrase_and_recipient_key" }); setTargetFormatVersion(4); setAcknowledgedItemIds([]); setValidUntil(""); setError(""); setBusy(false); setResult(null); } }, [exportOpen]);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError("");
     if (!selectedCase) return setError("Bitte zuerst eine Fallakte auswählen.");
@@ -113,13 +117,14 @@ function useHandoverExport({ exportOpen, selectedCase, onExport }: Pick<CaseHand
         protection.targetRecipientToken,
         protection.protectionMode,
         handoverChecklistConfirmation(acknowledgedItemIds),
+        targetFormatVersion,
       );
       if (!next.exported) return setError("Export wurde abgebrochen.");
       setResult(next);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Übergabepaket konnte nicht erstellt werden."); }
     finally { setBusy(false); }
   }
-  return { protection, setProtection, acknowledgedItemIds, setAcknowledgedItemIds, validUntil, setValidUntil, error, busy, result, submit };
+  return { protection, setProtection, targetFormatVersion, setTargetFormatVersion, acknowledgedItemIds, setAcknowledgedItemIds, validUntil, setValidUntil, error, busy, result, submit };
 }
 
 function useHandoverImport({ importOpen, onCloseImport, onSelectImportFile, onInspectImport, onImport }: Pick<CaseHandoverTransferDialogsProps, "importOpen" | "onCloseImport" | "onSelectImportFile" | "onInspectImport" | "onImport">) {
@@ -206,7 +211,8 @@ function HandoverExportDialog({ open, selectedCase, onClose, state }: { open: bo
   return <IndustrialModal title="Übergabepaket exportieren" kicker="Fallübergabe / Vertretung" description="Die ausgewählte Fallakte wird verschlüsselt als eigenständiges Übergabepaket gespeichert. Der Speicherort wird über den Systemdialog gewählt; es gibt keinen Browser-Download." icon={<Download className="industrial-icon-md" />} onClose={onClose}>
     <form className="industrial-modal-grid" onSubmit={state.submit}>
       <TextInput label="Fallakte" value={selectedCase ? `${selectedCase.caseNumber} · ${selectedCase.displayName}` : "Keine Fallakte ausgewählt"} readOnly wide onValueChange={() => undefined} />
-      <TransferProtectionFields value={state.protection} onChange={state.setProtection} />
+      <VacationHandoverCompatibilityField value={state.targetFormatVersion} onChange={(next) => { state.setTargetFormatVersion(next); if (next === 2) state.setProtection((current) => ({ ...current, protectionMode: 'passphrase_and_recipient_key' })); }} />
+      <TransferProtectionFields value={state.protection} onChange={state.setProtection} allowRecipientKeyOnly={state.targetFormatVersion !== 2} />
       <DateInput label="Gültig bis (optional)" value={state.validUntil} wide onValueChange={state.setValidUntil} />
       {selectedCase ? <div className="industrial-modal-wide"><CaseHandoverChecklistPanel packageType="vacation_handover" caseIds={[selectedCase.id]} expiresAt={toIsoEndOfDay(state.validUntil)} acknowledgements={state.acknowledgedItemIds} onAcknowledgementsChange={state.setAcknowledgedItemIds} /></div> : null}
       <p className="industrial-modal-preview industrial-modal-wide">Nach Ablauf darf die Übergabedatei nicht mehr importiert werden. Bereits importierte Vertretungsakten werden danach als abgelaufen markiert.</p>

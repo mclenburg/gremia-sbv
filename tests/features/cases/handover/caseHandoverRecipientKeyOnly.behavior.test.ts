@@ -82,4 +82,38 @@ describe('Fallübergabe mit öffentlichem Empfängerschlüssel', () => {
     expect(imported.createdCaseIds).toHaveLength(1);
     expect(target.prepare<{ count: number }>('SELECT COUNT(*) AS count FROM cases').get()?.count).toBe(1);
   });
+
+  it('exportiert Urlaubsvertretungen auf Wunsch im ersten zielgebundenen Format für ältere Instanzen', async () => {
+    insertSourceCase();
+    const packagePath = path.join(temporaryRoot, 'legacy-target.gsbvtransfer');
+    const targetIdentity = new TransferInstanceIdentityService(target).getPublicIdentity();
+    const exported = await new CaseHandoverService(source, () => path.join(temporaryRoot, 'source-data')).exportToFile({
+      caseIds: ['case-key-only-1'],
+      passphrase: 'Transport-Passphrase für ältere Instanz',
+      targetRecipientToken: targetIdentity.recipientToken,
+      protectionMode: 'passphrase_and_recipient_key',
+      targetFormatVersion: 2,
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    }, packagePath);
+
+    const envelope = JSON.parse(fs.readFileSync(packagePath, 'utf8')) as { version: number; crypto: { kdf: string }; recipientBinding: { scheme: string } };
+    expect(envelope.version).toBe(2);
+    expect(envelope.crypto.kdf).toBe('scrypt');
+    expect(envelope.recipientBinding.scheme).toBe('x25519-scrypt-hkdf-sha256');
+    expect(exported.formatVersion).toBe(2);
+
+    const recipient = new CaseHandoverService(target, () => path.join(temporaryRoot, 'target-data'));
+    expect(recipient.inspect(packagePath, 'Transport-Passphrase für ältere Instanz')).toMatchObject({ valid: true, integrity: { formatVersion: 2 } });
+    const imported = await recipient.importFromFile({
+      filePath: packagePath,
+      passphrase: 'Transport-Passphrase für ältere Instanz',
+      mode: 'create_new',
+      allowLegacyPackage: true,
+    });
+    expect(imported.createdCaseIds).toHaveLength(1);
+    await expect(new CaseHandoverService(source).exportToFile({
+      caseIds: ['case-key-only-1'], passphrase: '', targetRecipientToken: targetIdentity.recipientToken,
+      protectionMode: 'recipient_key_only', targetFormatVersion: 2,
+    }, path.join(temporaryRoot, 'invalid.gsbvtransfer'))).rejects.toThrow(/Passphrase|Schutzart/);
+  });
 });
