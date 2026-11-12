@@ -162,6 +162,18 @@ function requestPrivacyReview(database: DatabaseAdapter, caseIds: ReadonlySet<st
   }
 }
 
+function refreshOfficeDocumentBaselines(database: DatabaseAdapter,
+  accepted: Array<{ ref: string; kind: string; localId: string; baselineSha256: string }>,
+  changes: Map<string, ReturnType<typeof assertVacationV5ReturnChanges>[number]>): void {
+  for (const item of accepted.filter((entry) => entry.kind === 'generated_document')) {
+    const stored = database.prepare<Record<string, unknown>>('SELECT * FROM generated_documents WHERE id = ?')
+      .get(item.localId);
+    const content = changes.get(item.ref)?.contentBase64;
+    if (!stored || !content) throw new Error('Übernommenes Amtsdokument konnte nicht bestätigt werden.');
+    item.baselineSha256 = caseHandoverBaselineHash(stored, content);
+  }
+}
+
 export function importConfirmedVacationV5Return(database: DatabaseAdapter, payload: VacationV5ReturnPayload,
   choices: readonly VacationV5ReturnChoice[], dataDirectory: string):
   { importId: string; acceptedCount: number; reviewedCount: number } {
@@ -259,6 +271,7 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
       accepted.push({ ref: change.ref, kind: change.kind, localId: target.localId,
         baselineSha256: caseHandoverBaselineHash(stored) });
     }
+    refreshOfficeDocumentBaselines(database, accepted, changeByRef);
     requestPrivacyReview(database, affectedCaseIds, timestamp);
     database.prepare(`INSERT INTO case_handover_imports
       (id, package_id, imported_at, valid_until, status, mode, updated_case_count, metadata_json,
