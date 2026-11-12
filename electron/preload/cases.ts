@@ -20,7 +20,9 @@ import type { MobileCompanionDevice, MobileCompanionDeviceStatus, MobileCompanio
 import type { VacationV5ReturnImportInput, VacationV5ReturnImportResult,
   VacationV5ReturnReview } from '../../src/domain/transfer/vacationV5ReturnReview.js';
 import type { VacationV5ExportRequest, VacationV5ExportResult, VacationV5PackageReview, VacationV5ReturnExportRequest,
-  VacationV5ReturnExportResult } from '../../src/domain/transfer/vacationV5File.js';
+  VacationV5SelectionRequest, VacationV5ExportPreview, VacationV5ScopeCandidate,
+  VacationV5ReturnExportResult, VacationV5ReturnPackageOption, VacationV5ReturnInventory,
+  VacationV5ReturnSelection, VacationV5ReturnExportPreview } from '../../src/domain/transfer/vacationV5File.js';
 import type {
   CaseMeasureNoteProcessType,
   CaseMeasureNoteRecord,
@@ -59,12 +61,22 @@ function createCaseHandoverApi(invokeIpc: IpcInvoker) {
       invokeIpc(IPC_CHANNELS.caseHandoverReturnDeltaExport, input, suggestedFileName),
     exportV5: (input: VacationV5ExportRequest, suggestedFileName?: string): Promise<VacationV5ExportResult> =>
       invokeIpc(IPC_CHANNELS.caseHandoverV5Export, input, suggestedFileName),
+    listV5Candidates: (expiresAt: string): Promise<VacationV5ScopeCandidate[]> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverV5Candidates, expiresAt),
+    previewV5Export: (input: VacationV5SelectionRequest): Promise<VacationV5ExportPreview> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverV5Preview, input),
     importV5: (fileToken: string, passphrase: string, expectedPackageId: string): Promise<{ importId: string; importedCount: number; packageId: string }> =>
       invokeIpc(IPC_CHANNELS.caseHandoverV5Import, fileToken, passphrase, expectedPackageId),
     reviewV5: (fileToken: string, passphrase: string): Promise<VacationV5PackageReview> =>
       invokeIpc(IPC_CHANNELS.caseHandoverV5Review, fileToken, passphrase),
     exportV5Return: (input: VacationV5ReturnExportRequest, suggestedFileName?: string): Promise<VacationV5ReturnExportResult> =>
       invokeIpc(IPC_CHANNELS.caseHandoverV5ReturnExport, input, suggestedFileName),
+    listV5ReturnPackages: (): Promise<VacationV5ReturnPackageOption[]> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverV5ReturnPackages),
+    reviewV5ReturnExportInventory: (sourcePackageId: string): Promise<VacationV5ReturnInventory> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverV5ReturnInventory, sourcePackageId),
+    previewV5ReturnExport: (input: VacationV5ReturnSelection): Promise<VacationV5ReturnExportPreview> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverV5ReturnPreviewExport, input),
     reviewV5Return: (fileToken: string, passphrase: string): Promise<VacationV5ReturnReview> =>
       invokeIpc(IPC_CHANNELS.caseHandoverV5ReturnReview, fileToken, passphrase),
     importV5Return: (input: VacationV5ReturnImportInput): Promise<VacationV5ReturnImportResult> =>

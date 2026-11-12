@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import type { TransferCapabilities } from '../src/domain/models/transfer-capability.model.js';
 import type { VacationV5PackageSourceKind } from './vacationV5PackageSource.js';
@@ -25,6 +25,8 @@ import { auditCaseHandoverExported } from './auditEventBuilders.js';
 import { importConfirmedVacationV5Return } from './vacationV5ReturnImporter.js';
 import { listVacationV5OriginItemChanges } from './vacationV5ImportedItemChanges.js';
 import type { VacationV5ReturnChoice, VacationV5ReturnReview } from '../src/domain/transfer/vacationV5ReturnReview.js';
+import { listVacationV5ReturnPackages, previewVacationV5ReturnExport,
+  reviewVacationV5ReturnInventory } from './vacationV5ReturnExportReview.js';
 
 type ProfileRow = { recipient_token: string; key_fingerprint: string; active: number; capabilities_json: string | null };
 
@@ -37,6 +39,7 @@ export interface VacationV5ReturnFileExportInput {
   targetPath: string;
   cancellationRequests?: readonly { ref: string; reason: string }[];
   additionalItems?: readonly { kind: VacationV5PackageSourceKind; localId: string }[];
+  previewDigest?: string;
 }
 
 function assertReturnSourceUnchanged(database: DatabaseAdapter, sources: VacationV5ReturnSourceByRef,
@@ -56,6 +59,18 @@ function assertReturnSourceUnchanged(database: DatabaseAdapter, sources: Vacatio
 export class VacationV5ReturnFileService {
   constructor(private readonly database: DatabaseAdapter,
     private readonly dataDirectoryProvider: () => string = () => path.join(process.cwd(), 'data')) {}
+
+  listReturnPackages() { return listVacationV5ReturnPackages(this.database); }
+
+  reviewExportInventory(sourcePackageId: string) {
+    return reviewVacationV5ReturnInventory(this.database, this.dataDirectoryProvider(), sourcePackageId);
+  }
+
+  previewExport(input: { sourcePackageId: string;
+    cancellationRequests?: readonly { ref: string; reason: string }[];
+    additionalItems?: readonly { kind: VacationV5PackageSourceKind; localId: string }[] }) {
+    return previewVacationV5ReturnExport(this.database, this.dataDirectoryProvider(), input);
+  }
 
   async exportToFile(input: VacationV5ReturnFileExportInput): Promise<{
     packageId: string; changeCount: number; targetInstanceId: string;
@@ -84,6 +99,10 @@ export class VacationV5ReturnFileService {
     const collected = collectVacationV5ReturnChanges(this.database, input.sourcePackageId,
       this.dataDirectoryProvider(), input.cancellationRequests, input.additionalItems);
     if (!collected.changes.length) throw new Error('Rückgabe enthält keine ausgewählten Änderungen.');
+    if (input.previewDigest && input.previewDigest !== createHash('sha256')
+      .update(JSON.stringify(collected.changes)).digest('hex')) {
+      throw new Error('Rückgabe weicht von der bestätigten Vorschau ab. Bitte erneut prüfen.');
+    }
     const sender = new TransferInstanceIdentityService(this.database).getPrivateIdentity();
     const envelope = sealVacationV5ReturnTransport({ packageId: `handover_${randomUUID()}`,
       sourcePackageId: input.sourcePackageId, expiresAt: input.expiresAt, changes: collected.changes,

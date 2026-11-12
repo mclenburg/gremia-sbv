@@ -37,6 +37,13 @@ export function importVacationV5Package(database: DatabaseAdapter, payload: Vaca
     const roots = rootSections.flatMap((section) => section.items.map((item) => ({ ref: item.ref, type: section.type })));
     const office = importVacationV5OfficeDocuments(database, others.importId, payload.packageId, officeSections, roots,
       { ...others.localByRef, ...cases.localByRef }, dataDirectoryProvider(), trackFile);
+    if (payload.handoverNote) {
+      const stored = database.prepare<{ metadata_json: string }>(
+        'SELECT metadata_json FROM case_handover_imports WHERE id = ?').get(others.importId);
+      const metadata = JSON.parse(stored?.metadata_json ?? '{}') as Record<string, unknown>;
+      database.prepare('UPDATE case_handover_imports SET metadata_json = ? WHERE id = ?')
+        .run(JSON.stringify({ ...metadata, handoverNote: payload.handoverNote }), others.importId);
+    }
     new TransferRecipientProfileService(database).recordAuthenticatedPackageCapabilities(
       payload.origin, payload.capabilities);
     return { importId: others.importId, importedCount: others.importedCount + cases.importedCount + office.importedCount,

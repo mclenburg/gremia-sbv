@@ -178,6 +178,8 @@ export interface CaseHandoverCockpitItem {
   caseLabels: string[];
   targetInstanceId?: string;
   canExportReturnDelta: boolean;
+  formatVersion?: number;
+  handoverNote?: string;
 }
 
 export interface CaseHandoverCockpit {

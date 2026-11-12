@@ -37,6 +37,10 @@ export function HandoverOverviewTab({
           Amtsübergabe starten
         </IndustrialButton>
       </div>
+      {cockpit.incoming.filter((item) => item.formatVersion === 5 && item.handoverNote
+        && item.status !== 'returned').map((item) => <div className="industrial-settings-note" key={item.id}>
+        <strong>Übergabehinweis · {item.packageId}</strong><p>{item.handoverNote}</p>
+      </div>)}
       {hasOpenWork ? (
         <div className="industrial-message industrial-message-warning" role="status">
           {cockpit.returnableCount > 0 ? `${cockpit.returnableCount} Vertretung(en) können zurückgegeben werden. ` : null}

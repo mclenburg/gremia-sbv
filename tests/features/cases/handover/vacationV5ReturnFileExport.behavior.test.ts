@@ -60,21 +60,33 @@ describe('Format-5-Rückgabedatei', () => {
         (id, meeting_id, position, title, status, created_at, updated_at) VALUES (?, ?, 1, 'Neuer TOP', 'open', ?, ?)`)
         .run('new-agenda', deputyMeeting.id, '2026-11-11', '2026-11-11');
       const service = new VacationV5ReturnFileService(deputy.adapter);
+      expect(service.listReturnPackages()).toEqual([expect.objectContaining({ sourcePackageId: handover.packageId,
+        itemCount: 2 })]);
+      expect(service.reviewExportInventory(handover.packageId)).toMatchObject({ profileId: originProfile.id,
+        items: expect.arrayContaining([expect.objectContaining({ ref: 'meeting_1', status: 'changed' })]),
+        additions: expect.arrayContaining([expect.objectContaining({ key: 'meeting_agenda:new-agenda' })]) });
+      const returnSelection = { sourcePackageId: handover.packageId,
+        cancellationRequests: [{ ref: 'meeting_2', reason: 'Termin entfällt' }],
+        additionalItems: [{ kind: 'meeting_agenda' as const, localId: 'new-agenda' }] };
+      const returnPreview = service.previewExport(returnSelection);
+      expect(returnPreview.changes).toHaveLength(3);
+      await expect(service.exportToFile({ ...returnSelection, previewDigest: '0'.repeat(64),
+        profileId: originProfile.id, expiresAt: '2099-12-01T00:00:00.000Z',
+        passphrase: 'lange Transport-Passphrase', capabilities: updatedCapabilities,
+        targetPath: returnPath })).rejects.toThrow(/Vorschau/);
       deputy.raw.exec(`CREATE TRIGGER reject_return_ledger BEFORE INSERT ON case_handover_exports
         BEGIN SELECT RAISE(ABORT, 'return ledger failed'); END`);
-      await expect(service.exportToFile({ sourcePackageId: handover.packageId, profileId: originProfile.id,
+      await expect(service.exportToFile({ ...returnSelection, previewDigest: returnPreview.digest, profileId: originProfile.id,
         expiresAt: '2099-12-01T00:00:00.000Z', passphrase: 'lange Transport-Passphrase', capabilities: updatedCapabilities,
-        targetPath: returnPath, cancellationRequests: [{ ref: 'meeting_2', reason: 'Termin entfällt' }],
-        additionalItems: [{ kind: 'meeting_agenda', localId: 'new-agenda' }]
+        targetPath: returnPath,
       })).rejects.toThrow(/return ledger failed/);
       expect(fs.existsSync(returnPath)).toBe(false);
       expect(deputy.raw.prepare('SELECT status FROM case_handover_imports WHERE package_id = ?').get(handover.packageId))
         .toEqual({ status: 'active' });
       deputy.raw.exec('DROP TRIGGER reject_return_ledger');
-      const returned = await service.exportToFile({ sourcePackageId: handover.packageId, profileId: originProfile.id,
+      const returned = await service.exportToFile({ ...returnSelection, previewDigest: returnPreview.digest, profileId: originProfile.id,
         expiresAt: '2099-12-01T00:00:00.000Z', passphrase: 'lange Transport-Passphrase', capabilities: updatedCapabilities,
-        targetPath: returnPath, cancellationRequests: [{ ref: 'meeting_2', reason: 'Termin entfällt' }],
-        additionalItems: [{ kind: 'meeting_agenda', localId: 'new-agenda' }] });
+        targetPath: returnPath });
       expect(returned.changeCount).toBe(3);
       expect(deputy.raw.prepare('SELECT status FROM case_handover_imports WHERE package_id = ?').get(handover.packageId))
         .toEqual({ status: 'returned' });

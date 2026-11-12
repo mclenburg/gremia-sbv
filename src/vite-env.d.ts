@@ -274,9 +274,14 @@ declare global {
       export: (input: CaseHandoverExportInput, suggestedFileName?: string) => Promise<CaseHandoverExportResult>;
       exportReturnDelta: (input: CaseHandoverReturnDeltaExportInput, suggestedFileName?: string) => Promise<CaseHandoverExportResult>;
       exportV5: (input: import('./domain/transfer/vacationV5File').VacationV5ExportRequest, suggestedFileName?: string) => Promise<import('./domain/transfer/vacationV5File').VacationV5ExportResult>;
+      listV5Candidates: (expiresAt: string) => Promise<import('./domain/transfer/vacationV5File').VacationV5ScopeCandidate[]>;
+      previewV5Export: (input: import('./domain/transfer/vacationV5File').VacationV5SelectionRequest) => Promise<import('./domain/transfer/vacationV5File').VacationV5ExportPreview>;
       importV5: (fileToken: string, passphrase: string, expectedPackageId: string) => Promise<{ importId: string; importedCount: number; packageId: string }>;
       reviewV5: (fileToken: string, passphrase: string) => Promise<import('./domain/transfer/vacationV5File').VacationV5PackageReview>;
       exportV5Return: (input: import('./domain/transfer/vacationV5File').VacationV5ReturnExportRequest, suggestedFileName?: string) => Promise<import('./domain/transfer/vacationV5File').VacationV5ReturnExportResult>;
+      listV5ReturnPackages: () => Promise<import('./domain/transfer/vacationV5File').VacationV5ReturnPackageOption[]>;
+      reviewV5ReturnExportInventory: (sourcePackageId: string) => Promise<import('./domain/transfer/vacationV5File').VacationV5ReturnInventory>;
+      previewV5ReturnExport: (input: import('./domain/transfer/vacationV5File').VacationV5ReturnSelection) => Promise<import('./domain/transfer/vacationV5File').VacationV5ReturnExportPreview>;
       reviewV5Return: (fileToken: string, passphrase: string) => Promise<import('./domain/transfer/vacationV5ReturnReview').VacationV5ReturnReview>;
       importV5Return: (input: import('./domain/transfer/vacationV5ReturnReview').VacationV5ReturnImportInput) => Promise<import('./domain/transfer/vacationV5ReturnReview').VacationV5ReturnImportResult>;
       selectFile: () => Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string }>;

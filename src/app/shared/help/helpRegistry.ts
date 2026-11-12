@@ -275,17 +275,17 @@ export const HELP_REGISTRY = {
     id: "caseHandover.overview", kicker: "Übergaben", title: "Übergaben und Vertretung steuern",
     summary: "Der Bereich trennt zeitlich begrenzte Vertretung, Rückgabe, Amtsübergabe und Import in eigene Abläufe.",
     blocks: [
-      { type: "paragraph", text: "Eine Urlaubs- oder Krankheitsvertretung überträgt nur ausgewählte Fallakten und läuft ab. Eine Amtsübergabe ist dauerhaft und enthält zusätzlich den erforderlichen Amtsbestand." },
+      { type: "paragraph", text: "Eine Urlaubs- oder Krankheitsvertretung überträgt nur ausgewählte offene Vorgänge und läuft ab. Die erweiterte Vertretung kann auch fallfreie Fristen und Amtsvorgänge enthalten. Eine Amtsübergabe ist dauerhaft." },
       { type: "paragraph", text: "Ein Übergabepaket ersetzt kein Backup und keine Synchronisation. Jede Instanz bleibt eigenständig; Import und Rückgabe werden vor dem Schreiben geprüft." },
     ],
   },
   "caseHandover.vacation": {
     id: "caseHandover.vacation", kicker: "Vertretung", title: "Zeitlich begrenzte Vertretung",
-    summary: "Nur die Fallakten auswählen, die während der Vertretung wirklich bearbeitet werden müssen.",
+    summary: "Nur die Vorgänge und Dokumente auswählen, die während der Vertretung wirklich benötigt werden.",
     blocks: [
       { type: "list", items: [
-        "Fallauswahl fachlich begrenzen und bei großen Beständen über Suche filtern.",
-        "Zielinstanz anhand der kurzen ID prüfen und den öffentlichen Empfänger-Token verwenden.",
+        "Für Format 5 offene Fallakten, fallfreie Fristen und Amtsvorgänge bewusst auswählen; Dokumente einzeln markieren und die Vorschau prüfen.",
+        "Für Format 5 ein aktives Zielprofil mit offline verifizierter Lesefähigkeit wählen; ältere Formate übertragen nur Fallakten.",
         "Vertretungsende setzen; nach Ablauf werden importierte Vertretungsdaten prüfbedürftig.",
       ] },
     ],
@@ -314,6 +314,7 @@ export const HELP_REGISTRY = {
     summary: "Das Rückgabe-Delta enthält nur Änderungen aus einer übernommenen Vertretung.",
     blocks: [
       { type: "paragraph", text: "Die Zuordnung erfolgt über das protokollierte Ausgangspaket. Dadurch wird verhindert, dass fremde oder nicht zusammengehörige Fallakten versehentlich vermischt werden." },
+      { type: "paragraph", text: "Bei Format 5 das aktive Ausgangspaket wählen, geänderte Vorgänge prüfen und neue Vorgänge oder Dokumente bewusst hinzufügen. Stornowünsche benötigen eine Begründung und löschen auf der Ausgangsinstanz nichts automatisch." },
     ],
   },
   "caseHandover.office": {

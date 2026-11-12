@@ -1,5 +1,6 @@
 import type { CaseRecord } from '../../../domain/models/case.model';
 import { VacationHandoverExportPanel } from './VacationHandoverExportPanel';
+import { VacationV5ExportPanel } from './VacationV5ExportPanel';
 
 export function HandoverVacationTab({
   cases,
@@ -8,5 +9,8 @@ export function HandoverVacationTab({
   cases: CaseRecord[];
   onCompleted: () => Promise<void>;
 }) {
-  return <VacationHandoverExportPanel cases={cases} onCompleted={onCompleted} />;
+  return <div className="industrial-stack">
+    <VacationV5ExportPanel onCompleted={onCompleted} />
+    <VacationHandoverExportPanel cases={cases} onCompleted={onCompleted} />
+  </div>;
 }

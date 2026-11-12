@@ -12,6 +12,7 @@ type HeaderRow = {
   target_instance_id?: string | null;
   case_count?: number | null;
   metadata_json?: string | null;
+  format_version?: number | null;
 };
 
 type CaseLinkRow = {
@@ -33,7 +34,8 @@ export class CaseHandoverCockpitService {
     return {
       activeVacationCount: vacationItems.filter((item) => item.status === 'active').length,
       expiredVacationCount: vacationItems.filter((item) => item.status === 'expired').length,
-      returnableCount: incoming.filter((item) => item.canExportReturnDelta).length,
+      returnableCount: incoming.filter((item) => item.canExportReturnDelta
+        || item.formatVersion === 5 && item.status !== 'returned').length,
       officeHandoverCount: officeItems.length,
       officeInventory: this.officeInventory(),
       outgoing,
@@ -43,7 +45,7 @@ export class CaseHandoverCockpitService {
 
   private outgoing(): CaseHandoverCockpitItem[] {
     const headers = this.database.prepare<HeaderRow>(`
-      SELECT id, package_id, exported_at AS created_at, valid_until, package_type, target_instance_id, case_count, status, metadata_json
+      SELECT id, package_id, exported_at AS created_at, valid_until, package_type, target_instance_id, case_count, status, metadata_json, format_version
       FROM case_handover_exports
       ORDER BY exported_at DESC
     `).all();
@@ -59,7 +61,7 @@ export class CaseHandoverCockpitService {
 
   private incoming(): CaseHandoverCockpitItem[] {
     const headers = this.database.prepare<HeaderRow>(`
-      SELECT id, package_id, imported_at AS created_at, valid_until, status, mode, created_case_count + updated_case_count AS case_count, metadata_json
+      SELECT id, package_id, imported_at AS created_at, valid_until, status, mode, created_case_count + updated_case_count AS case_count, metadata_json, format_version
       FROM case_handover_imports
       ORDER BY imported_at DESC
     `).all();
@@ -82,6 +84,7 @@ export class CaseHandoverCockpitService {
   private toItem(header: HeaderRow, direction: 'outgoing' | 'incoming', cases: CaseLinkRow[]): CaseHandoverCockpitItem {
     const packageType = this.packageType(header);
     const status = statusFrom(header.status, header.valid_until);
+    const metadata = parseMetadata(header.metadata_json);
     return {
       id: header.id,
       direction,
@@ -94,7 +97,11 @@ export class CaseHandoverCockpitService {
       caseIds: cases.map((item) => item.case_id),
       caseLabels: cases.map((item) => `${item.case_number} · ${item.display_name}`),
       targetInstanceId: header.target_instance_id ?? undefined,
-      canExportReturnDelta: direction === 'incoming' && packageType === 'vacation_handover' && status !== 'returned' && cases.length > 0,
+      formatVersion: header.format_version ?? undefined,
+      ...(header.format_version === 5 && typeof metadata.handoverNote === 'string'
+        ? { handoverNote: metadata.handoverNote } : {}),
+      canExportReturnDelta: direction === 'incoming' && packageType === 'vacation_handover'
+        && header.format_version !== 5 && status !== 'returned' && cases.length > 0,
     };
   }
 

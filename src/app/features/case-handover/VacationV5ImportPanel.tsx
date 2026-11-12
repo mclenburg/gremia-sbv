@@ -72,6 +72,8 @@ export function VacationV5ImportPanel({ onCompleted }: { onCompleted: () => Prom
         <TextInput label="Geprüfte Datei" value={file.name} onValueChange={() => undefined} readOnly />
         <p>Abgebende Instanz: {review.senderInstanceId}</p>
         <p>Gültig bis: {new Date(review.expiresAt).toLocaleString('de-DE')}</p>
+        {review.handoverNote ? <div className="industrial-settings-note"><strong>Übergabehinweis:</strong>
+          <p>{review.handoverNote}</p></div> : null}
         <ul>{review.sectionCounts.map((section) => <li key={section.type}>{labels[section.type] ?? section.type}: {section.count}</li>)}</ul>
         <p>{review.documentCount} Dokumente · {new Intl.NumberFormat('de-DE').format(review.documentBytes)} Byte Dokumentinhalt.</p>
         {review.documents.length ? <ul aria-label="Dokumente im Paket">{review.documents.map((document, index) =>

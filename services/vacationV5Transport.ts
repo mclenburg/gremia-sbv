@@ -25,6 +25,7 @@ export interface VacationV5Payload {
   sections: VacationV5PackageSection[];
   references: Array<{ ref: string; type: string }>;
   manifest: VacationV5Manifest;
+  handoverNote?: string;
 }
 
 export type VacationV5Envelope = TargetBoundTransferEnvelope & { senderProof: CaseHandoverV5OriginProof };
@@ -54,6 +55,7 @@ export function assertVacationV5Envelope(input: unknown): VacationV5Envelope {
 export function sealVacationV5Transport(input: {
   packageId: string; expiresAt: string; sections: unknown; capabilities: TransferCapabilities;
   passphrase: string; sender: TransferInstancePrivateIdentity; target: PublicIdentity;
+  handoverNote?: string;
 }): VacationV5Envelope {
   if (!/^handover_[A-Za-z0-9_-]{4,120}$/.test(input.packageId) || !Number.isFinite(Date.parse(input.expiresAt))
     || Date.parse(input.expiresAt) <= Date.now()) throw new Error('Ungültiges oder abgelaufenes Vertretungspaket.');
@@ -61,12 +63,17 @@ export function sealVacationV5Transport(input: {
   const sections = assertVacationV5PackageSections(input.sections, manifest);
   if (!sections.length) throw new Error('Format-5-Paket enthält keinen ausgewählten Vertretungsumfang.');
   const createdAt = new Date().toISOString();
+  const handoverNote = input.handoverNote?.trim();
+  if (handoverNote && (handoverNote.length > 2000 || /[\u0000-\u0008\u000B-\u001F\u007F]/u.test(handoverNote))) {
+    throw new Error('Der Übergabehinweis ist zu lang oder enthält unzulässige Zeichen.');
+  }
   const payload: VacationV5Payload = {
     format: 'gremia-sbv-case-handover', version: 5, packageType: 'vacation_handover',
     packageId: input.packageId, createdAt, expiresAt: input.expiresAt,
     origin: { instanceId: input.sender.instanceId, keyFingerprint: input.sender.keyFingerprint },
     target: { instanceId: input.target.instanceId, keyFingerprint: input.target.keyFingerprint },
     capabilities: assertTransferCapabilities(input.capabilities), sections, references: references(sections), manifest,
+    ...(handoverNote ? { handoverNote } : {}),
   };
   const target = { ...input.target, recipientToken: formatTransferRecipientToken(input.target) };
   const payloadText = JSON.stringify(payload);
@@ -89,14 +96,19 @@ export function openVacationV5Transport(input: unknown, passphrase: string, reci
   const decrypted = decryptTargetBoundTransferPayload(envelope, passphrase, recipient, { format: 'gremia-sbv-case-handover', version: 5 });
   let parsed: unknown;
   try { parsed = JSON.parse(decrypted.payloadText); } catch { throw new Error('Format-5-Nutzdaten sind ungültig.'); }
-  if (!isRecord(parsed) || !exactKeys(parsed, ['format', 'version', 'packageType', 'packageId', 'createdAt', 'expiresAt', 'origin', 'target', 'capabilities', 'sections', 'references', 'manifest'])
+  if (!isRecord(parsed) || !exactKeys(parsed, ['format', 'version', 'packageType', 'packageId', 'createdAt', 'expiresAt', 'origin', 'target', 'capabilities', 'sections', 'references', 'manifest'], ['handoverNote'])
     || parsed.format !== envelope.format || parsed.version !== 5 || parsed.packageType !== 'vacation_handover'
     || parsed.packageId !== envelope.packageId || parsed.createdAt !== envelope.createdAt || parsed.expiresAt !== envelope.expiresAt
     || !isRecord(parsed.origin) || !exactKeys(parsed.origin, ['instanceId', 'keyFingerprint'])
     || parsed.origin.instanceId !== knownSender.instanceId || parsed.origin.keyFingerprint !== knownSender.keyFingerprint
     || !isRecord(parsed.target) || !exactKeys(parsed.target, ['instanceId', 'keyFingerprint'])
     || parsed.target.instanceId !== recipient.instanceId || parsed.target.keyFingerprint !== recipient.keyFingerprint
-    || !isRecord(parsed.manifest)) throw new Error('Format-5-Nutzdaten enthalten widersprüchliche Metadaten.');
+    || !isRecord(parsed.manifest)
+    || (parsed.handoverNote !== undefined && (typeof parsed.handoverNote !== 'string'
+      || !parsed.handoverNote.trim() || parsed.handoverNote.length > 2000
+      || /[\u0000-\u0008\u000B-\u001F\u007F]/u.test(parsed.handoverNote)))) {
+    throw new Error('Format-5-Nutzdaten enthalten widersprüchliche Metadaten.');
+  }
   const sections = assertVacationV5PackageSections(parsed.sections, parsed.manifest);
   if (!sections.length || hashVacationV5Manifest(parsed.manifest as unknown as VacationV5Manifest) !== proof.manifestSha256) {
     throw new Error('Format-5-Manifest stimmt nicht mit dem Herkunftsnachweis überein.');

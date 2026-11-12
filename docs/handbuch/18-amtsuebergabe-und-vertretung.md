@@ -4,7 +4,7 @@ Der Bereich **Übergaben** liegt als letzter Punkt der Kernarbeit in der Navigat
 
 Der Bereich unterstützt drei unterschiedliche Situationen:
 
-- Eine **Urlaubs- oder Krankheitsvertretung** ist zeitlich begrenzt. Ausgewählte Fallakten werden an die Stellvertretung übergeben und Änderungen später als Rückgabe-Delta zurückgeführt.
+- Eine **Urlaubs- oder Krankheitsvertretung** ist zeitlich begrenzt. Format 5 überträgt bewusst ausgewählte offene Fallakten, fallfreie Fristen und Amtsvorgänge; Änderungen kommen später als geprüfte Rückgabe zurück.
 - Die **Begleit-App** erhält nur eine reduzierte mobile Arbeitsprojektion für kurze Arbeitssituationen außerhalb des Desktop-Arbeitsplatzes.
 - Eine **Amtsübergabe** ist dauerhaft. Die gewählte Nachfolge übernimmt den erforderlichen Arbeits- und Nachweisbestand in ihre eigene Gremia.SBV-Instanz.
 
@@ -17,6 +17,19 @@ Die Zielinstanz zeigt unter **Einstellungen** ihre kurze Instanz-ID und die voll
 Übermittle Datei und Passphrase über getrennte Wege. Prüfe die Empfängerkennung sorgfältig, bevor du den Export speicherst.
 
 ## Urlaubsvertretung
+
+### Erweiterte Vertretung mit Format 5
+
+1. Öffne **Übergaben > Urlaubsvertretung** und setze das Vertretungsende.
+2. Wähle ein aktives Zielprofil mit verifizierter Format-5-Fähigkeit. Unter **Einstellungen > Übergaben** können bekannte Instanzen ihre Fähigkeiten mit einer `.gsbvcap`-Datei offline aktualisieren.
+3. Lade die offenen Vorgänge. Wähle nur die nötigen Fallakten, fallfreien Fristen, Sitzungen, Stellenbesetzungen, Arbeitgeberpflichten, Inklusionsvereinbarungen, allgemeinen Beteiligungsverstöße und Versammlungen. Vorgeschlagene Vorgänge werden erst nach deinem Klick übernommen. Ein Paket ohne Fallakte ist möglich.
+4. Wähle Dokumente beim jeweiligen Vorgang einzeln aus. Ein kurzer verschlüsselter Übergabehinweis für Prioritäten und nächste Schritte ist optional.
+5. Prüfe in der Vorschau die Anzahlen, Dokumentnamen, Dokumentbytes und sensiblen Inhalte. Bestätige die Vorschau, gib die Transport-Passphrase ein und speichere die Datei. Übermittle Datei und Passphrase getrennt.
+6. Die Stellvertretung öffnet das Paket unter **Import**, prüft die Vorschau und übernimmt es. Die Vorgänge sind danach in ihren jeweiligen Modulen bearbeitbar; der Übergabehinweis steht in der Übersicht.
+7. Für die Rückgabe wählt sie unter **Rückgabe** das aktive Ausgangspaket. Geänderte Vorgänge erscheinen, neue Vorgänge und Dokumente sowie begründete Stornowünsche werden bewusst ausgewählt. Nach Prüfung speichert sie das verschlüsselte Rückgabepaket.
+8. Die Ausgangsinstanz prüft Konflikte vor der Übernahme. Stornowünsche sind Prüfhinweise; es erfolgt keine automatische fachliche Löschung.
+
+### Fallbezogene Übergabe an ältere Instanzen
 
 1. Öffne **Übergaben**.
 2. Öffne das Register **Urlaubsvertretung**.

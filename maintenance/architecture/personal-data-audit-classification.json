@@ -73,6 +73,11 @@
     "sbv_retention_legal_holds"
   ],
   "exceptions": {
+    "services/vacationV5PackageImporter.ts#<module>.importVacationV5Package": {
+      "classification": "delegated",
+      "owner": "importVacationV5Sections/importVacationV5CaseSections",
+      "reason": "Speichert den verschlüsselten Übergabehinweis als Teil desselben atomaren Format-5-Imports; der Abschnitts- oder Fallimport auditiert den Gesamtimport in dieser Transaktion."
+    },
     "services/vacationV5ReturnDocumentUpdate.ts#<module>.replaceVacationV5ReturnDocument": {
       "classification": "delegated",
       "owner": "importConfirmedVacationV5Return",

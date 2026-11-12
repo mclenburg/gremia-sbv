@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
 import type { TransferCapabilities } from '../src/domain/models/transfer-capability.model.js';
 import type { VacationV5ScopeSelection } from '../src/domain/transfer/vacationV5ScopePolicy.js';
@@ -21,6 +21,9 @@ import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { auditCaseHandoverExported } from './auditEventBuilders.js';
 import { encodeSelectedVacationV5Document } from './vacationV5DocumentCodec.js';
+import { summarizeVacationV5Sections } from './vacationV5PreviewSummary.js';
+import { listVacationV5ScopeCandidates } from './vacationV5ScopeCandidates.js';
+import type { VacationV5SelectionRequest, VacationV5ExportPreview } from '../src/domain/transfer/vacationV5File.js';
 
 type ProfileRow = { id: string; instance_id: string; key_fingerprint: string; recipient_token: string;
   active: number; capabilities_json: string | null };
@@ -35,6 +38,26 @@ export interface VacationV5FileExportInput {
   passphrase: string;
   capabilities: TransferCapabilities;
   targetPath: string;
+  previewDigest?: string;
+  handoverNote?: string;
+}
+
+function collectExport(database: DatabaseAdapter, input: VacationV5SelectionRequest, dataDirectory: string) {
+  if (!input.selection.caseIds.length && (input.documentIds?.length || input.measureIds?.length)) {
+    throw new Error('Dokumente und Maßnahmen erfordern eine ausgewählte Fallakte.');
+  }
+  const other = collectVacationV5Sections(database, input.selection);
+  const cases = input.selection.caseIds.length
+    ? collectVacationV5CaseSections(database, { caseIds: input.selection.caseIds,
+      measureIds: input.measureIds, documentIds: input.documentIds, dataDirectory })
+    : { sections: [], sourceByRef: {} };
+  const office = collectVacationV5OfficeDocuments(database, input.officeDocumentIds ?? [],
+    other.sourceByRef, dataDirectory);
+  const sections = [...cases.sections, ...other.sections, ...office.sections];
+  const sourceByRef: VacationV5PackageSourceByRef = { ...cases.sourceByRef, ...other.sourceByRef, ...office.sourceByRef };
+  const digest = createHash('sha256').update(JSON.stringify({ sections,
+    handoverNote: input.handoverNote?.trim() || null })).digest('hex');
+  return { sections, sourceByRef, digest };
 }
 
 function checkedProfile(database: DatabaseAdapter, id: string, requireReadFive: boolean): ProfileRow {
@@ -77,31 +100,34 @@ export class VacationV5FileService {
   constructor(private readonly database: DatabaseAdapter,
     private readonly dataDirectoryProvider: () => string = () => path.join(process.cwd(), 'data')) {}
 
+  listCandidates(expiresAt: string) {
+    return listVacationV5ScopeCandidates(this.database, expiresAt);
+  }
+
+  previewExport(input: VacationV5SelectionRequest): VacationV5ExportPreview {
+    const collected = collectExport(this.database, input, this.dataDirectoryProvider());
+    return { digest: collected.digest, ...summarizeVacationV5Sections(collected.sections) };
+  }
+
   async exportToFile(input: VacationV5FileExportInput): Promise<{
     packageId: string; sectionCounts: Array<{ type: string; count: number }>; targetInstanceId: string;
   }> {
     assertOutputPath(input.targetPath);
-    if (!input.selection.caseIds.length && (input.documentIds?.length || input.measureIds?.length)) {
-      throw new Error('Dokumente und Maßnahmen erfordern eine ausgewählte Fallakte.');
-    }
     const targetProfile = checkedProfile(this.database, input.profileId, true);
     const target = parseTransferRecipientToken(targetProfile.recipient_token);
     const capabilities = assertTransferCapabilities(input.capabilities);
     if (!capabilities.writeFormats.includes(5) || !capabilities.features.includes('vacation_scope_v5')) {
       throw new Error('Die abgebende Instanz bietet Format 5 nicht an.');
     }
-    const other = collectVacationV5Sections(this.database, input.selection);
-    const cases = input.selection.caseIds.length
-      ? collectVacationV5CaseSections(this.database, { caseIds: input.selection.caseIds,
-        measureIds: input.measureIds, documentIds: input.documentIds, dataDirectory: this.dataDirectoryProvider() })
-      : { sections: [], sourceByRef: {} };
-    const office = collectVacationV5OfficeDocuments(this.database, input.officeDocumentIds ?? [],
-      other.sourceByRef, this.dataDirectoryProvider());
-    const sections = [...cases.sections, ...other.sections, ...office.sections];
-    const sourceByRef: VacationV5PackageSourceByRef = { ...cases.sourceByRef, ...other.sourceByRef, ...office.sourceByRef };
+    const { sections, sourceByRef, digest } = collectExport(this.database, input, this.dataDirectoryProvider());
+    if (input.previewDigest !== undefined && input.previewDigest !== digest) {
+      throw new Error('Die ausgewählten Vorgänge weichen von der bestätigten Vorschau ab. Bitte erneut prüfen.');
+    }
+    const caseCount = sections.find((section) => section.type === 'case')?.count ?? 0;
     const sender = new TransferInstanceIdentityService(this.database).getPrivateIdentity();
     const envelope = sealVacationV5Transport({ packageId: `handover_${randomUUID()}`, expiresAt: input.expiresAt,
-      sections, capabilities, passphrase: input.passphrase, sender, target });
+      sections, capabilities, passphrase: input.passphrase, sender, target,
+      handoverNote: input.handoverNote });
     const confirmedProfile = checkedProfile(this.database, input.profileId, true);
     if (confirmedProfile.key_fingerprint !== target.keyFingerprint || confirmedProfile.recipient_token !== targetProfile.recipient_token) {
       throw new Error('Die Zielbindung hat sich während des Exports geändert.');
@@ -116,7 +142,7 @@ export class VacationV5FileService {
           expiresAt: envelope.expiresAt ?? input.expiresAt, targetInstanceId: target.instanceId,
           targetKeyFingerprint: target.keyFingerprint, sourceByRef });
         new PersonalDataAuditLogService(this.database).append(auditCaseHandoverExported({
-          packageId: envelope.packageId, caseCount: cases.sections.find((section) => section.type === 'case')?.count ?? 0,
+          packageId: envelope.packageId, caseCount,
           deadlineCount: sections.filter((section) => section.type === 'deadline' || section.type === 'case_deadline')
             .reduce((total, section) => total + section.count, 0),
           validUntilPresent: true, result: 'success',
@@ -141,29 +167,18 @@ export class VacationV5FileService {
   }
 
   reviewFromFile(filePath: string, passphrase: string): {
-    packageId: string; expiresAt: string; senderInstanceId: string;
+    packageId: string; expiresAt: string; senderInstanceId: string; handoverNote?: string;
     sectionCounts: Array<{ type: string; count: number }>; documentCount: number; documentBytes: number;
     documents: Array<{ filename: string; owner: string; sizeBytes: number }>;
   } {
     const { payload } = this.openPayloadFromFile(filePath, passphrase);
-    const names = new Map(payload.sections.flatMap((section) => section.items.map((item) => [item.ref,
-      String(item.data.case_number ?? item.data.title ?? item.data.subject ?? item.data.vacancy_title ?? section.type)] as const)));
-    const officeOwners = new Map(payload.sections.flatMap((section) =>
-      section.type === 'workflow_document_link' || section.type === 'violation_document_link'
-        ? section.items.flatMap((item) => 'documentRef' in item && 'ownerRef' in item
-          ? [[String(item.documentRef), String(item.ownerRef)] as const] : []) : []));
-    const documents = payload.sections.flatMap((section) => section.items.filter((item) =>
-      section.type === 'case_document' || section.type === 'generated_document').map((item) => {
-      const ownerRef = 'links' in item ? item.links.caseRef : officeOwners.get(item.ref);
-      return { filename: String(item.data.filename ?? 'Dokument'), owner: names.get(ownerRef ?? '') ?? 'Vorgang',
-        sizeBytes: Buffer.from('contentBase64' in item && typeof item.contentBase64 === 'string'
-          ? item.contentBase64 : '', 'base64').length };
-    }));
+    const summary = summarizeVacationV5Sections(payload.sections);
     return { packageId: payload.packageId, expiresAt: payload.expiresAt,
       senderInstanceId: payload.origin.instanceId,
-      sectionCounts: payload.sections.map((section) => ({ type: section.type, count: section.count })),
-      documentCount: documents.length,
-      documentBytes: documents.reduce((sum, item) => sum + item.sizeBytes, 0), documents };
+      ...(payload.handoverNote ? { handoverNote: payload.handoverNote } : {}),
+      sectionCounts: summary.sectionCounts,
+      documentCount: summary.documents.length,
+      documentBytes: summary.documentBytes, documents: summary.documents };
   }
 
   private openPayloadFromFile(filePath: string, passphrase: string): {

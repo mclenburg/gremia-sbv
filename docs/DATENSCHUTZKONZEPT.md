@@ -53,7 +53,7 @@ Die optionale Gremia.BR-Anbindung bleibt eine manuell ausgelöste Kooperationsbr
 
 ## Fallübergabe / Vertretung
 
-Für Urlaubsvertretung, Krankheit, Amtswechsel oder Nachfolge kann die SBV einzelne Fallakten mit erforderlichen zugehörigen Inhalten als verschlüsseltes Übergabepaket exportieren. Diese Funktion ist selektiv und zweckgebunden. Sie ersetzt kein Backup und keine Synchronisation.
+Für Urlaubsvertretung, Krankheit, Amtswechsel oder Nachfolge kann die SBV einzelne Fallakten mit erforderlichen zugehörigen Inhalten als verschlüsseltes Übergabepaket exportieren. Die erweiterte Vertretung erlaubt zusätzlich eine bewusste Auswahl fallfreier Fristen und Amtsvorgänge samt einzeln gewählter Dokumente. Ein Paket ohne Fallakte ist möglich. Ein optionaler Übergabehinweis wird im Paket verschlüsselt; sein Inhalt gehört nicht in technische Protokolle. Diese Funktion ist selektiv und zweckgebunden. Sie ersetzt kein Backup und keine Synchronisation.
 
 Abgelaufene Übergabepakete dürfen nicht importiert werden. Bereits importierte Übergabedaten werden nach Ablauf der Vertretungszeit als abgelaufen markiert. Eine weitere Bearbeitung erfordert eine bewusste Bestätigung mit Begründung. Export, Import und Fortführung nach Ablauf werden ohne Personennamen, Diagnosen, Falltitel, Dokumentnamen oder Freitexte auditiert.
 

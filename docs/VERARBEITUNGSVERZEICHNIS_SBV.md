@@ -64,8 +64,8 @@
 
 **Zweck:** Selektive Übergabe erforderlicher Informationen an berechtigte SBV-Stellvertretung oder Nachfolge, insbesondere bei Urlaub, Krankheit oder Amtswechsel.
 
-**Datenkategorien:** ausgewählte Fallakte, erforderlicher Personenbezug, Notizen, Maßnahmen, Maßnahmennotizen, Fristen, Dokumente und technische Paketmetadaten.
+**Datenkategorien:** ausgewählte Fallakte, erforderlicher Personenbezug, Notizen, Maßnahmen, Maßnahmennotizen, fallbezogene oder fallfreie Fristen, ausgewählte Sitzungs-, Stellenbesetzungs-, Arbeitgeberpflichten-, Inklusions-, Beteiligungs- und Versammlungsvorgänge, einzeln ausgewählte Dokumente, optionaler verschlüsselter Übergabehinweis und technische Paketmetadaten.
 
 **Empfänger:** berechtigte SBV-Stellvertretung oder Nachfolge nach organisatorischer Freigabe. Die App versendet die Datei nicht selbst an Dritte.
 
-**Schutzmaßnahmen:** verschlüsseltes `.gsbvtransfer`-Paket, Transport-Passphrase, selektiver Export, optionales Ablaufdatum, Importverweigerung abgelaufener Pakete, keine automatische Vollsynchronisation, keine Übernahme fachlicher IDs der exportierenden Instanz, Audit ohne personenbezogene Inhalte.
+**Schutzmaßnahmen:** zielgebunden verschlüsseltes `.gsbvtransfer`-Paket, Transport-Passphrase, selektiver Export mit bestätigter Vorschau, verifizierte Empfängerfähigkeit für den erweiterten Umfang, Ablaufdatum, Importverweigerung abgelaufener Pakete, konfliktgeprüfte Rückgabe ohne automatische Löschung, keine automatische Vollsynchronisation, neue lokale IDs statt fachlicher IDs der exportierenden Instanz, Audit ohne personenbezogene Inhalte.

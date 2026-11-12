@@ -61,21 +61,38 @@ describe('Format-5-Dateiservice für fallfreie Arbeit', () => {
         .run(JSON.stringify(capabilities), profile.id);
       new TransferRecipientProfileService(target.adapter).save({ label: 'Abgebende SBV',
         recipientToken: formatTransferRecipientToken(source.identity) });
-      const exported = await new VacationV5FileService(source.adapter, () => sourceDirectory).exportToFile({
-        selection: { ...empty, violationIds: ['violation-source'] }, officeDocumentIds: ['violation-document'], profileId: profile.id,
-        expiresAt: '2099-11-30T00:00:00.000Z', passphrase: 'lange Transport-Passphrase', capabilities, targetPath: filePath,
-      });
+      const sourceService = new VacationV5FileService(source.adapter, () => sourceDirectory);
+      expect(sourceService.listCandidates('2099-11-30T00:00:00.000Z')).toEqual(expect.arrayContaining([
+        expect.objectContaining({ id: 'violation-source', scopeKey: 'violationIds', recommended: false,
+          documents: [expect.objectContaining({ id: 'violation-document', filename: 'anfrage.pdf' })] }),
+      ]));
+      const selection = { selection: { ...empty, violationIds: ['violation-source'] },
+        officeDocumentIds: ['violation-document'], handoverNote: 'Bitte zuerst den Verstoß prüfen.' };
+      const preview = sourceService.previewExport(selection);
+      expect(preview).toMatchObject({ documentBytes: plain.length,
+        documents: [expect.objectContaining({ filename: 'anfrage.pdf', owner: 'Anfrage' })] });
+      await expect(sourceService.exportToFile({ ...selection, previewDigest: '0'.repeat(64),
+        profileId: profile.id, expiresAt: '2099-11-30T00:00:00.000Z',
+        passphrase: 'lange Transport-Passphrase', capabilities, targetPath: filePath })).rejects.toThrow(/Vorschau/);
+      expect(fs.existsSync(filePath)).toBe(false);
+      const exported = await sourceService.exportToFile({ ...selection, previewDigest: preview.digest,
+        profileId: profile.id, expiresAt: '2099-11-30T00:00:00.000Z',
+        passphrase: 'lange Transport-Passphrase', capabilities, targetPath: filePath });
       expect(exported.sectionCounts.map((entry) => entry.type))
         .toEqual(['violation', 'generated_document', 'violation_document_link']);
       const review = new VacationV5FileService(target.adapter, () => targetDirectory)
         .reviewFromFile(filePath, 'lange Transport-Passphrase');
       expect(review).toMatchObject({ packageId: exported.packageId, senderInstanceId: source.identity.instanceId,
+        handoverNote: 'Bitte zuerst den Verstoß prüfen.',
         documentCount: 1, documentBytes: plain.length,
         documents: [{ filename: 'anfrage.pdf', owner: 'Anfrage', sizeBytes: plain.length }] });
       expect(target.raw.prepare('SELECT COUNT(*) AS count FROM case_handover_imports').get()).toMatchObject({ count: 0 });
       expect(() => new VacationV5FileService(target.adapter, () => targetDirectory)
         .importFromFile(filePath, 'lange Transport-Passphrase', 'anderes-paket')).toThrow(/Vorschau/);
       new VacationV5FileService(target.adapter, () => targetDirectory).importFromFile(filePath, 'lange Transport-Passphrase');
+      const importedMetadata = target.raw.prepare('SELECT metadata_json FROM case_handover_imports WHERE package_id = ?')
+        .get(exported.packageId) as { metadata_json: string };
+      expect(JSON.parse(importedMetadata.metadata_json)).toMatchObject({ handoverNote: 'Bitte zuerst den Verstoß prüfen.' });
       expect(new TransferRecipientProfileService(target.adapter).list().find((item) =>
         item.keyFingerprint === source.identity.keyFingerprint)).toMatchObject({
         capabilityStatus: 'verified', capabilities: { revision: 1, writeFormats: [2, 4, 5] },
