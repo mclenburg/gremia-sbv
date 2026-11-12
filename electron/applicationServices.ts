@@ -2,6 +2,7 @@ import { ActivityJournalPreferenceService, ActivityJournalService, PersonalDataA
 import { TextEntityReferenceService } from '../services/textEntityReferenceService.js';
 import { UnifiedSearchIndexService } from '../services/search/unifiedSearchIndexService.js';
 import { VacationV5ReturnFileService } from '../services/vacationV5ReturnFileService.js';
+import { VacationV5FileService } from '../services/vacationV5FileService.js';
 /**
  * Central composition root for Electron main-process application services.
  *
@@ -79,6 +80,9 @@ export class ApplicationServices {
     this.databaseService('caseHandover', (database) => new CaseHandoverService(database, () => this.security.getDataDirectory()));
   vacationV5Return = (): VacationV5ReturnFileService =>
     this.databaseService('vacationV5Return', (database) => new VacationV5ReturnFileService(database,
+      () => this.security.getDataDirectory()));
+  vacationV5 = (): VacationV5FileService =>
+    this.databaseService('vacationV5', (database) => new VacationV5FileService(database,
       () => this.security.getDataDirectory()));
   caseAnonymization = (): CaseAnonymizationService =>
     this.databaseService('caseAnonymization', (database) => new CaseAnonymizationService(database, () => this.security.getDataDirectory()));

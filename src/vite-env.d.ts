@@ -273,6 +273,9 @@ declare global {
       checklist: (input: CaseHandoverChecklistInput) => Promise<CaseHandoverChecklist>;
       export: (input: CaseHandoverExportInput, suggestedFileName?: string) => Promise<CaseHandoverExportResult>;
       exportReturnDelta: (input: CaseHandoverReturnDeltaExportInput, suggestedFileName?: string) => Promise<CaseHandoverExportResult>;
+      exportV5: (input: import('./domain/transfer/vacationV5File').VacationV5ExportRequest, suggestedFileName?: string) => Promise<import('./domain/transfer/vacationV5File').VacationV5ExportResult>;
+      importV5: (fileToken: string, passphrase: string) => Promise<{ importId: string; importedCount: number; packageId: string }>;
+      exportV5Return: (input: import('./domain/transfer/vacationV5File').VacationV5ReturnExportRequest, suggestedFileName?: string) => Promise<import('./domain/transfer/vacationV5File').VacationV5ReturnExportResult>;
       reviewV5Return: (fileToken: string, passphrase: string) => Promise<import('./domain/transfer/vacationV5ReturnReview').VacationV5ReturnReview>;
       importV5Return: (input: import('./domain/transfer/vacationV5ReturnReview').VacationV5ReturnImportInput) => Promise<import('./domain/transfer/vacationV5ReturnReview').VacationV5ReturnImportResult>;
       selectFile: () => Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string }>;

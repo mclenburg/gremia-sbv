@@ -78,8 +78,9 @@ export class TransferRecipientProfileService {
     const revision = Number(row?.value);
     if (!Number.isSafeInteger(revision) || revision < 1) throw new Error('Fähigkeitsrevision konnte nicht vergeben werden.');
     return createTransferCapabilityDocument(sender, recipient, {
-      protocolVersion: 1, readFormats: [1, 2, 3, 4], writeFormats: [2, 4],
-      features: ['manual_capability_exchange'], buildVersion, revision, issuedAt: nowIso(),
+      protocolVersion: 1, readFormats: [1, 2, 3, 4, 5], writeFormats: [2, 4, 5],
+      features: ['manual_capability_exchange', 'vacation_scope_v5', 'return_scope_v5'],
+      buildVersion, revision, issuedAt: nowIso(),
     });
   }
 

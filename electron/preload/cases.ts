@@ -19,6 +19,8 @@ import type { CaseHandoverChecklist, CaseHandoverChecklistInput, CaseHandoverCoc
 import type { MobileCompanionDevice, MobileCompanionDeviceStatus, MobileCompanionPairingRequestResult, MobileCompanionReturnImportInput, MobileCompanionReturnImportResult, MobileCompanionReturnInspectResult, MobileCompanionSnapshotInput, MobileCompanionSnapshotResult, SaveMobileCompanionDeviceInput } from "../../src/domain/models/mobile-companion.model.js";
 import type { VacationV5ReturnImportInput, VacationV5ReturnImportResult,
   VacationV5ReturnReview } from '../../src/domain/transfer/vacationV5ReturnReview.js';
+import type { VacationV5ExportRequest, VacationV5ExportResult, VacationV5ReturnExportRequest,
+  VacationV5ReturnExportResult } from '../../src/domain/transfer/vacationV5File.js';
 import type {
   CaseMeasureNoteProcessType,
   CaseMeasureNoteRecord,
@@ -55,6 +57,12 @@ function createCaseHandoverApi(invokeIpc: IpcInvoker) {
       invokeIpc(IPC_CHANNELS.caseHandoverExport, input, suggestedFileName),
     exportReturnDelta: (input: CaseHandoverReturnDeltaExportInput, suggestedFileName?: string): Promise<CaseHandoverExportResult> =>
       invokeIpc(IPC_CHANNELS.caseHandoverReturnDeltaExport, input, suggestedFileName),
+    exportV5: (input: VacationV5ExportRequest, suggestedFileName?: string): Promise<VacationV5ExportResult> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverV5Export, input, suggestedFileName),
+    importV5: (fileToken: string, passphrase: string): Promise<{ importId: string; importedCount: number; packageId: string }> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverV5Import, fileToken, passphrase),
+    exportV5Return: (input: VacationV5ReturnExportRequest, suggestedFileName?: string): Promise<VacationV5ReturnExportResult> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverV5ReturnExport, input, suggestedFileName),
     reviewV5Return: (fileToken: string, passphrase: string): Promise<VacationV5ReturnReview> =>
       invokeIpc(IPC_CHANNELS.caseHandoverV5ReturnReview, fileToken, passphrase),
     importV5Return: (input: VacationV5ReturnImportInput): Promise<VacationV5ReturnImportResult> =>

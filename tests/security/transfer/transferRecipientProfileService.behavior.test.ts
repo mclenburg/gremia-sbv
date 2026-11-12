@@ -71,6 +71,9 @@ describe('TransferRecipientProfileService', () => {
       const second = service.createCapability(profile.id, sender, '0.9.8');
       expect(first.capabilities.revision).toBe(1);
       expect(second.capabilities.revision).toBe(2);
+      expect(second.capabilities.readFormats).toContain(5);
+      expect(second.capabilities.writeFormats).toContain(5);
+      expect(second.capabilities.features).toEqual(expect.arrayContaining(['vacation_scope_v5', 'return_scope_v5']));
       expect(JSON.stringify(first)).not.toContain('PRIVATE KEY');
       const receiving = new TransferRecipientProfileService(target.database);
       const reverseProfile = receiving.save({ label: 'Quelle', recipientToken: new TransferInstanceIdentityService(source.database).getPublicIdentity().recipientToken });
