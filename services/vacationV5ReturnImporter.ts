@@ -179,6 +179,16 @@ function requestPrivacyReview(database: DatabaseAdapter, caseIds: ReadonlySet<st
   }
 }
 
+function collectAffectedCases(database: DatabaseAdapter, kind: string, localId: string,
+  stored: Record<string, unknown>, caseIds: Set<string>): void {
+  if (typeof stored.case_id === 'string') caseIds.add(stored.case_id);
+  if (kind === 'case') caseIds.add(localId);
+  if (kind === 'protected_person') {
+    for (const row of database.prepare<{ id: string }>(
+      'SELECT id FROM cases WHERE protected_person_id = ?').all(localId)) caseIds.add(row.id);
+  }
+}
+
 function refreshOfficeDocumentBaselines(database: DatabaseAdapter,
   accepted: Array<{ ref: string; kind: string; localId: string; baselineSha256: string }>,
   changes: Map<string, ReturnType<typeof assertVacationV5ReturnChanges>[number]>): void {
@@ -263,8 +273,7 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
         const config = rowConfiguration(change.kind);
         const stored = database.prepare<Record<string, unknown>>(`SELECT * FROM ${config.table} WHERE id = ?`).get(localId);
         if (!stored) throw new Error('Neuer Rückgabevorgang konnte nicht bestätigt werden.');
-        if (typeof stored.case_id === 'string') affectedCaseIds.add(stored.case_id);
-        if (change.kind === 'case') affectedCaseIds.add(localId);
+        collectAffectedCases(database, change.kind, localId, stored, affectedCaseIds);
         accepted.push({ ref: change.ref, kind: change.kind, localId,
           baselineSha256: caseHandoverBaselineHash(stored,
             change.kind === 'case_document' || change.kind === 'generated_document' ? change.contentBase64 : undefined) });
@@ -297,8 +306,7 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
       updateOriginRow(database, config.table, config.fields, change.kind, change.data, target.localId, timestamp);
       const stored = database.prepare<Record<string, unknown>>(`SELECT * FROM ${config.table} WHERE id = ?`).get(target.localId);
       if (!stored) throw new Error('Übernommener Rückgabevorgang konnte nicht bestätigt werden.');
-      if (typeof stored.case_id === 'string') affectedCaseIds.add(stored.case_id);
-      if (change.kind === 'case') affectedCaseIds.add(target.localId);
+      collectAffectedCases(database, change.kind, target.localId, stored, affectedCaseIds);
       accepted.push({ ref: change.ref, kind: change.kind, localId: target.localId,
         baselineSha256: caseHandoverBaselineHash(stored) });
     }

@@ -137,4 +137,51 @@ describe('Format-5-Fallaktenrückgabe', () => {
         privacy_review_required: 1, person_binding_state: 'active', first_name: 'Alex', content: 'Verlauf' });
     } finally { origin.raw.close(); deputy.raw.close(); fs.rmSync(directory, { recursive: true, force: true }); }
   });
+
+  it('übernimmt geänderte Personendaten mit Datenschutzprüfung und erhält lokale Aufbewahrungsangaben', async () => {
+    const origin = database(); const deputy = database();
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'gremia-v5-return-person-'));
+    const handoverPath = path.join(directory, 'handover.gsbvtransfer');
+    const returnPath = path.join(directory, 'return.gsbvtransfer');
+    try {
+      origin.raw.exec(`INSERT INTO protected_persons
+        (id, first_name, last_name, protection_status, retention_reason, created_at, updated_at)
+        VALUES ('source-person', 'Alex', 'Beispiel', 'unclear', 'Lokale Entscheidung', '2026-11-11', '2026-11-11');
+        INSERT INTO cases
+        (id, case_number, protected_person_id, person_binding_state, display_name, category, opened_at, created_at, updated_at)
+        VALUES ('source-case', 'SBV-48', 'source-person', 'active', 'Einzelfall', 'sonstiges', '2026-11-11', '2026-11-11', '2026-11-11')`);
+      const deputyProfile = new TransferRecipientProfileService(origin.adapter).save({ label: 'Vertretung',
+        recipientToken: formatTransferRecipientToken(deputy.identity) });
+      const originProfile = new TransferRecipientProfileService(deputy.adapter).save({ label: 'Ursprung',
+        recipientToken: formatTransferRecipientToken(origin.identity) });
+      for (const [raw, id] of [[origin.raw, deputyProfile.id], [deputy.raw, originProfile.id]] as const) {
+        raw.prepare('UPDATE transfer_recipient_profiles SET capabilities_json = ? WHERE id = ?')
+          .run(JSON.stringify(capabilities), id);
+      }
+      const handover = await new VacationV5FileService(origin.adapter).exportToFile({
+        selection: { ...empty, caseIds: ['source-case'] }, profileId: deputyProfile.id,
+        expiresAt: '2099-11-30T00:00:00.000Z', passphrase: 'lange Transport-Passphrase',
+        capabilities, targetPath: handoverPath,
+      });
+      new VacationV5FileService(deputy.adapter).importFromFile(handoverPath, 'lange Transport-Passphrase');
+      deputy.raw.exec("UPDATE protected_persons SET notes = 'Rückmeldung' WHERE first_name = 'Alex'");
+      await new VacationV5ReturnFileService(deputy.adapter).exportToFile({
+        sourcePackageId: handover.packageId, profileId: originProfile.id,
+        expiresAt: '2099-12-01T00:00:00.000Z', passphrase: 'lange Transport-Passphrase',
+        capabilities, targetPath: returnPath,
+      });
+      const service = new VacationV5ReturnFileService(origin.adapter);
+      expect(service.previewFromFile(returnPath, 'lange Transport-Passphrase').items)
+        .toEqual([{ ref: 'person_1', kind: 'protected_person', decision: 'propose_update' }]);
+      const baseline = listVacationV5OriginItemChanges(origin.adapter, handover.packageId, '').items
+        .find((item) => item.ref === 'person_1')?.currentSha256 ?? null;
+      expect(service.importConfirmedFromFile(returnPath, 'lange Transport-Passphrase', [
+        { ref: 'person_1', action: 'accept_update', expectedOriginSha256: baseline },
+      ])).toMatchObject({ acceptedCount: 1 });
+      expect(origin.raw.prepare('SELECT notes, retention_reason FROM protected_persons WHERE id = ?')
+        .get('source-person')).toEqual({ notes: 'Rückmeldung', retention_reason: 'Lokale Entscheidung' });
+      expect(origin.raw.prepare('SELECT privacy_review_required FROM cases WHERE id = ?')
+        .get('source-case')).toEqual({ privacy_review_required: 1 });
+    } finally { origin.raw.close(); deputy.raw.close(); fs.rmSync(directory, { recursive: true, force: true }); }
+  });
 });
