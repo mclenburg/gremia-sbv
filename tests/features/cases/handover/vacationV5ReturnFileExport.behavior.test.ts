@@ -144,4 +144,65 @@ describe('Format-5-Rückgabedatei', () => {
         targetPath: path.join(directory, 'second.gsbvtransfer') })).rejects.toThrow();
     } finally { origin.raw.close(); deputy.raw.close(); fs.rmSync(directory, { recursive: true, force: true }); }
   });
+
+  it('übernimmt bestehende und neue Fallnotizen nur mit gebundener Fallreferenz', async () => {
+    const origin = database(); const deputy = database();
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'gremia-v5-return-notes-'));
+    const handoverPath = path.join(directory, 'handover.gsbvtransfer');
+    const returnPath = path.join(directory, 'return.gsbvtransfer');
+    try {
+      origin.raw.exec(`INSERT INTO cases (id, case_number, display_name, category, opened_at, created_at, updated_at)
+        VALUES ('source-case', 'SBV-42', 'Einzelfall', 'sonstiges', '2026-11-11', '2026-11-11', '2026-11-11');
+        INSERT INTO case_notes (id, case_id, title, note_date, note_type, content, created_at, updated_at)
+        VALUES ('source-note', 'source-case', 'Gespräch', '2026-11-11', 'conversation', 'Ursprung', '2026-11-11', '2026-11-11')`);
+      const deputyProfile = new TransferRecipientProfileService(origin.adapter).save({ label: 'Vertretung',
+        recipientToken: formatTransferRecipientToken(deputy.identity) });
+      const originProfile = new TransferRecipientProfileService(deputy.adapter).save({ label: 'Ursprung',
+        recipientToken: formatTransferRecipientToken(origin.identity) });
+      for (const [raw, id] of [[origin.raw, deputyProfile.id], [deputy.raw, originProfile.id]] as const) {
+        raw.prepare('UPDATE transfer_recipient_profiles SET capabilities_json = ? WHERE id = ?')
+          .run(JSON.stringify(capabilities), id);
+      }
+      const handover = await new VacationV5FileService(origin.adapter).exportToFile({
+        selection: { ...empty, caseIds: ['source-case'] }, profileId: deputyProfile.id,
+        expiresAt: '2099-11-30T00:00:00.000Z', passphrase: 'lange Transport-Passphrase',
+        capabilities, targetPath: handoverPath,
+      });
+      new VacationV5FileService(deputy.adapter).importFromFile(handoverPath, 'lange Transport-Passphrase');
+      const deputyCase = deputy.raw.prepare('SELECT id FROM cases').get() as { id: string };
+      deputy.raw.prepare("UPDATE case_notes SET content = 'Geändert' WHERE title = 'Gespräch'").run();
+      deputy.raw.prepare(`INSERT INTO case_notes (id, case_id, title, note_date, note_type, content, created_at, updated_at)
+        VALUES ('new-note', ?, 'Nachtrag', '2026-11-12', 'conversation', 'Neu', '2026-11-12', '2026-11-12')`)
+        .run(deputyCase.id);
+      await new VacationV5ReturnFileService(deputy.adapter).exportToFile({
+        sourcePackageId: handover.packageId, profileId: originProfile.id,
+        expiresAt: '2099-12-01T00:00:00.000Z', passphrase: 'lange Transport-Passphrase',
+        capabilities, targetPath: returnPath,
+        additionalItems: [{ kind: 'case_note', localId: 'new-note' }],
+      });
+      const service = new VacationV5ReturnFileService(origin.adapter);
+      expect(service.previewFromFile(returnPath, 'lange Transport-Passphrase').items).toEqual([
+        { ref: 'note_1', kind: 'case_note', decision: 'propose_update' },
+        { ref: 'return_case_note_1', kind: 'case_note', decision: 'review_addition' },
+      ]);
+      const original = listVacationV5OriginItemChanges(origin.adapter, handover.packageId, '').items
+        .find((item) => item.ref === 'note_1');
+      const choices = [
+        { ref: 'note_1', action: 'accept_update', expectedOriginSha256: original?.currentSha256 ?? null },
+        { ref: 'return_case_note_1', action: 'accept_addition', expectedOriginSha256: null },
+      ] as const;
+      origin.raw.exec(`CREATE TRIGGER reject_return_note BEFORE INSERT ON case_notes
+        BEGIN SELECT RAISE(ABORT, 'note insert failed'); END`);
+      expect(() => service.importConfirmedFromFile(returnPath, 'lange Transport-Passphrase', choices))
+        .toThrow(/note insert failed/);
+      expect(origin.raw.prepare('SELECT content FROM case_notes WHERE id = ?').get('source-note'))
+        .toEqual({ content: 'Ursprung' });
+      origin.raw.exec('DROP TRIGGER reject_return_note');
+      expect(service.importConfirmedFromFile(returnPath, 'lange Transport-Passphrase', choices))
+        .toMatchObject({ acceptedCount: 2 });
+      expect(origin.raw.prepare('SELECT case_id, title, content FROM case_notes ORDER BY title').all())
+        .toEqual([{ case_id: 'source-case', title: 'Gespräch', content: 'Geändert' },
+          { case_id: 'source-case', title: 'Nachtrag', content: 'Neu' }]);
+    } finally { origin.raw.close(); deputy.raw.close(); fs.rmSync(directory, { recursive: true, force: true }); }
+  });
 });

@@ -5,6 +5,7 @@ import { assertVacationV5ReturnChanges } from './vacationV5ReturnChanges.js';
 import { previewVacationV5ReturnPayload } from './vacationV5ReturnPreview.js';
 import { listVacationV5OriginItemChanges } from './vacationV5ImportedItemChanges.js';
 import { VACATION_V5_ROW_FIELDS } from './vacationV5RowPolicy.js';
+import { VACATION_V5_CASE_ROW_FIELDS } from './vacationV5CaseRowPolicy.js';
 import { caseHandoverBaselineHash } from './caseHandoverBaselineHash.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { auditCaseHandoverImported } from './auditEventBuilders.js';
@@ -12,6 +13,7 @@ import type { VacationV5ReturnPayload } from './vacationV5ReturnTransport.js';
 import type { VacationV5ReturnChoice } from '../src/domain/transfer/vacationV5ReturnReview.js';
 
 const LINK_COLUMN: Readonly<Record<string, Record<string, { kind: string; column: string }>>> = {
+  case_note: { caseRef: { kind: 'case', column: 'case_id' } },
   meeting_agenda: { meetingRef: { kind: 'meeting', column: 'meeting_id' } },
   recruiting_interview: { recruitingRef: { kind: 'recruiting', column: 'recruiting_participation_id' } },
   inclusion_topic: { agreementRef: { kind: 'inclusion_agreement', column: 'agreement_id' } },
@@ -24,12 +26,22 @@ const PROCESS_PARENT: Readonly<Record<string, string>> = {
 };
 const ADDITION_ORDER = ['meeting', 'recruiting', 'employer_obligation', 'inclusion_agreement',
   'violation', 'assembly', 'inclusion_officer', 'meeting_agenda', 'recruiting_interview',
-  'inclusion_topic', 'violation_event', 'deadline'] as const;
+  'inclusion_topic', 'violation_event', 'deadline', 'case_note'] as const;
+
+function supportedRow(kind: string): boolean {
+  return kind === 'case_note' || Object.hasOwn(VACATION_V5_ROW_FIELDS, kind);
+}
+
+function rowConfiguration(kind: string): { table: string; fields: readonly string[] } {
+  if (kind === 'case_note') return VACATION_V5_CASE_ROW_FIELDS.case_note;
+  if (!Object.hasOwn(VACATION_V5_ROW_FIELDS, kind)) throw new Error('Rückgabe enthält einen nicht unterstützten Vorgang.');
+  return VACATION_V5_ROW_FIELDS[kind as keyof typeof VACATION_V5_ROW_FIELDS];
+}
 
 function insertAddition(database: DatabaseAdapter, change: { ref: string; kind: string;
   data: Record<string, string | number | boolean | null>; links?: Record<string, string> },
   targets: Map<string, { kind: string; localId: string }>, timestamp: string): string {
-  const config = VACATION_V5_ROW_FIELDS[change.kind as keyof typeof VACATION_V5_ROW_FIELDS];
+  const config = rowConfiguration(change.kind);
   const localId = randomUUID();
   const values: Record<string, string | number | boolean | null> = {
     ...change.data, id: localId, created_at: timestamp,
@@ -123,11 +135,11 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
       if (choice.action === 'keep_origin') { reviewedCount += 1; continue; }
       if (planned.decision === 'review_addition' && choice.action === 'accept_addition'
         && change.operation === 'upsert' && change.deputyBaselineSha256 === null
-        && change.data && Object.hasOwn(VACATION_V5_ROW_FIELDS, change.kind)) {
+        && change.data && supportedRow(change.kind)) {
         const localId = insertAddition(database, change as typeof change & {
           data: Record<string, string | number | boolean | null> }, targets, timestamp);
         targets.set(change.ref, { kind: change.kind, localId });
-        const config = VACATION_V5_ROW_FIELDS[change.kind as keyof typeof VACATION_V5_ROW_FIELDS];
+        const config = rowConfiguration(change.kind);
         const stored = database.prepare<Record<string, unknown>>(`SELECT * FROM ${config.table} WHERE id = ?`).get(localId);
         if (!stored) throw new Error('Neuer Rückgabevorgang konnte nicht bestätigt werden.');
         accepted.push({ ref: change.ref, kind: change.kind, localId, baselineSha256: caseHandoverBaselineHash(stored) });
@@ -136,7 +148,7 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
       if (!((planned.decision === 'propose_update' && choice.action === 'accept_update')
           || (planned.decision === 'review_conflict' && choice.action === 'accept_conflict_update'))
         || change.operation !== 'upsert' || !change.data
-        || !Object.hasOwn(VACATION_V5_ROW_FIELDS, change.kind)) {
+        || !supportedRow(change.kind)) {
         throw new Error('Diese Rückgabe kann nur nach gesonderter fachlicher Prüfung übernommen werden.');
       }
       const target = targets.get(change.ref);
@@ -144,7 +156,7 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
         || current.status !== (choice.action === 'accept_update' ? 'unchanged' : 'changed')) {
         throw new Error('Rückgabe kann keinem unveränderten Ausgangsvorgang zugeordnet werden.');
       }
-      const config = VACATION_V5_ROW_FIELDS[change.kind as keyof typeof VACATION_V5_ROW_FIELDS];
+      const config = rowConfiguration(change.kind);
       const row = database.prepare<Record<string, unknown>>(`SELECT * FROM ${config.table} WHERE id = ?`).get(target.localId);
       if (!row) throw new Error('Ausgangsvorgang wurde entfernt.');
       if (change.kind === 'deadline' && change.data.process_type !== row.process_type

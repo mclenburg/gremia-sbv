@@ -19,7 +19,7 @@ const FIELD_LABELS: Readonly<Record<string, string>> = {
   starts_at: 'Beginn', due_at: 'Fälligkeit', filename: 'Dateiname',
   vacancy_title: 'Stelle', finding: 'Feststellung', content: 'Inhalt',
 };
-const ROW_KINDS = new Set(['deadline', 'meeting', 'meeting_agenda', 'recruiting', 'recruiting_interview',
+const ROW_KINDS = new Set(['case_note', 'deadline', 'meeting', 'meeting_agenda', 'recruiting', 'recruiting_interview',
   'employer_obligation', 'inclusion_officer', 'inclusion_agreement', 'inclusion_topic',
   'violation', 'violation_event', 'assembly']);
 
