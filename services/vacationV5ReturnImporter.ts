@@ -13,6 +13,7 @@ import type { VacationV5ReturnPayload } from './vacationV5ReturnTransport.js';
 import type { VacationV5ReturnChoice } from '../src/domain/transfer/vacationV5ReturnReview.js';
 
 const LINK_COLUMN: Readonly<Record<string, Record<string, { kind: string; column: string }>>> = {
+  case_measure: { caseRef: { kind: 'case', column: 'case_id' } },
   case_note: { caseRef: { kind: 'case', column: 'case_id' } },
   case_measure_note: { caseRef: { kind: 'case', column: 'case_id' },
     measureRef: { kind: 'case_measure', column: 'measure_id' } },
@@ -30,15 +31,18 @@ const PROCESS_PARENT: Readonly<Record<string, string>> = {
 };
 const ADDITION_ORDER = ['meeting', 'recruiting', 'employer_obligation', 'inclusion_agreement',
   'violation', 'assembly', 'inclusion_officer', 'meeting_agenda', 'recruiting_interview',
-  'inclusion_topic', 'violation_event', 'deadline', 'case_note', 'case_measure_note', 'case_deadline'] as const;
+  'inclusion_topic', 'violation_event', 'deadline', 'case_measure', 'case_note',
+  'case_measure_note', 'case_deadline'] as const;
 
 function supportedRow(kind: string): boolean {
-  return ['case_note', 'case_measure_note', 'case_deadline'].includes(kind)
+  return ['case_measure', 'case_note', 'case_measure_note', 'case_deadline'].includes(kind)
     || Object.hasOwn(VACATION_V5_ROW_FIELDS, kind);
 }
 
 function rowConfiguration(kind: string): { table: string; fields: readonly string[] } {
-  if (kind === 'case_note' || kind === 'case_measure_note') return VACATION_V5_CASE_ROW_FIELDS[kind];
+  if (kind === 'case_measure' || kind === 'case_note' || kind === 'case_measure_note') {
+    return VACATION_V5_CASE_ROW_FIELDS[kind];
+  }
   if (kind === 'case_deadline') return VACATION_V5_ROW_FIELDS.deadline;
   if (!Object.hasOwn(VACATION_V5_ROW_FIELDS, kind)) throw new Error('Rückgabe enthält einen nicht unterstützten Vorgang.');
   return VACATION_V5_ROW_FIELDS[kind as keyof typeof VACATION_V5_ROW_FIELDS];
@@ -54,6 +58,10 @@ function insertAddition(database: DatabaseAdapter, change: { ref: string; kind: 
   };
   if ((config.fields as readonly string[]).includes('updated_at')) values.updated_at = timestamp;
   if (change.kind === 'violation') values.source_context_id = localId;
+  if (change.kind === 'case_measure') {
+    values.created_from = 'import';
+    values.source_id = null;
+  }
   if (change.kind === 'case_deadline') {
     if (change.data.process_type !== 'case') throw new Error('Fallfrist enthält einen fremden Vorgangsbezug.');
     values.process_id = null;
@@ -102,6 +110,21 @@ function assertOriginalLinks(kind: string, links: Record<string, string> | undef
   }
 }
 
+function indexReturnChoices(choices: readonly VacationV5ReturnChoice[], count: number): Map<string, VacationV5ReturnChoice> {
+  const byRef = new Map<string, VacationV5ReturnChoice>();
+  for (const choice of choices) {
+    if (!choice || typeof choice.ref !== 'string' || byRef.has(choice.ref)
+      || !['accept_update', 'accept_conflict_update', 'accept_addition', 'keep_origin',
+        'acknowledge_cancellation'].includes(choice.action)
+      || (choice.expectedOriginSha256 !== null && !/^[0-9a-f]{64}$/.test(choice.expectedOriginSha256))) {
+      throw new Error('Rückgabeentscheidung enthält ungültige oder doppelte Referenzen.');
+    }
+    byRef.set(choice.ref, choice);
+  }
+  if (byRef.size !== count) throw new Error('Nicht alle Rückgabeänderungen wurden entschieden.');
+  return byRef;
+}
+
 export function importConfirmedVacationV5Return(database: DatabaseAdapter, payload: VacationV5ReturnPayload,
   choices: readonly VacationV5ReturnChoice[], dataDirectory: string):
   { importId: string; acceptedCount: number; reviewedCount: number } {
@@ -116,17 +139,7 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
     if (source?.status !== 'open') throw new Error('Das Ausgangspaket wurde bereits zurückgenommen.');
     const currentByRef = new Map(listVacationV5OriginItemChanges(database, payload.sourcePackageId,
       dataDirectory).items.map((item) => [item.ref, item]));
-    const choicesByRef = new Map<string, VacationV5ReturnChoice>();
-    for (const choice of choices) {
-      if (!choice || typeof choice.ref !== 'string' || choicesByRef.has(choice.ref)
-        || !['accept_update', 'accept_conflict_update', 'accept_addition', 'keep_origin',
-          'acknowledge_cancellation'].includes(choice.action)
-        || (choice.expectedOriginSha256 !== null && !/^[0-9a-f]{64}$/.test(choice.expectedOriginSha256))) {
-        throw new Error('Rückgabeentscheidung enthält ungültige oder doppelte Referenzen.');
-      }
-      choicesByRef.set(choice.ref, choice);
-    }
-    if (choicesByRef.size !== preview.items.length) throw new Error('Nicht alle Rückgabeänderungen wurden entschieden.');
+    const choicesByRef = indexReturnChoices(choices, preview.items.length);
     const exportItems = database.prepare<{ package_ref: string; local_entity_type: string; local_entity_id: string }>(`
       SELECT package_ref, local_entity_type, local_entity_id FROM case_handover_export_items
       WHERE handover_export_id = ?`).all(preview.exportId);
@@ -184,13 +197,15 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
       if (!row) throw new Error('Ausgangsvorgang wurde entfernt.');
       if (change.kind === 'deadline' && change.data.process_type !== row.process_type
         || change.kind === 'case_deadline' && change.data.process_type !== 'case'
+        || change.kind === 'case_measure' && change.data.type !== row.type
         || change.kind === 'case_measure_note' && change.data.measure_type !== row.measure_type
         || change.kind === 'violation' && change.data.source_context_type !== row.source_context_type) {
         throw new Error('Rückgabe ändert die Zuordnung eines Ausgangsvorgangs; bitte einzeln klären.');
       }
       assertOriginalLinks(change.kind, change.links, row, targets);
       assertCaseMeasureLinks(database, change.kind, row);
-      const fields = Object.keys(change.data).filter((field) => field !== 'created_at' && field !== 'updated_at');
+      const fields = Object.keys(change.data).filter((field) => field !== 'created_at' && field !== 'updated_at'
+        && (change.kind !== 'case_measure' || field !== 'created_from'));
       if ((config.fields as readonly string[]).includes('updated_at')) fields.push('updated_at');
       if (!fields.length) throw new Error('Rückgabe enthält keine übernehmbaren Felder.');
       const values = fields.map((field) => field === 'updated_at' ? timestamp : change.data![field]);

@@ -235,12 +235,16 @@ describe('Format-5-Rückgabedatei', () => {
       });
       new VacationV5FileService(deputy.adapter).importFromFile(handoverPath, 'lange Transport-Passphrase');
       const deputyMeasure = deputy.raw.prepare('SELECT id, case_id FROM case_measures').get() as { id: string; case_id: string };
+      deputy.raw.prepare("UPDATE case_measures SET title = 'BEM fortgeführt' WHERE id = ?").run(deputyMeasure.id);
       deputy.raw.prepare("UPDATE case_measure_notes SET content = 'Geändert' WHERE title = 'Gespräch'").run();
       deputy.raw.prepare("UPDATE deadlines SET title = 'Neue Frist' WHERE title = 'Wiedervorlage'").run();
+      deputy.raw.prepare(`INSERT INTO case_measures (id, case_id, type, title, opened_at, created_at, updated_at)
+        VALUES ('new-measure', ?, 'bem', 'Weitere Maßnahme', '2026-11-12', '2026-11-12', '2026-11-12')`)
+        .run(deputyMeasure.case_id);
       deputy.raw.prepare(`INSERT INTO case_measure_notes
         (id, case_id, measure_type, measure_id, title, note_at, content, created_at, updated_at)
         VALUES ('new-measure-note', ?, 'bem', ?, 'Nachtrag', '2026-11-12', 'Neu', '2026-11-12', '2026-11-12')`)
-        .run(deputyMeasure.case_id, deputyMeasure.id);
+        .run(deputyMeasure.case_id, 'new-measure');
       deputy.raw.prepare(`INSERT INTO deadlines (id, case_id, measure_id, title, due_at, created_at, updated_at)
         VALUES ('new-case-deadline', ?, ?, 'Zusatzfrist', '2099-11-23', '2026-11-12', '2026-11-12')`)
         .run(deputyMeasure.case_id, deputyMeasure.id);
@@ -249,13 +253,16 @@ describe('Format-5-Rückgabedatei', () => {
         expiresAt: '2099-12-01T00:00:00.000Z', passphrase: 'lange Transport-Passphrase',
         capabilities, targetPath: returnPath,
         additionalItems: [{ kind: 'case_measure_note', localId: 'new-measure-note' },
+          { kind: 'case_measure', localId: 'new-measure' },
           { kind: 'case_deadline', localId: 'new-case-deadline' }],
       });
       const service = new VacationV5ReturnFileService(origin.adapter);
       expect(service.previewFromFile(returnPath, 'lange Transport-Passphrase').items).toEqual([
         { ref: 'case_deadline_1', kind: 'case_deadline', decision: 'propose_update' },
+        { ref: 'measure_1', kind: 'case_measure', decision: 'propose_update' },
         { ref: 'measure_note_1', kind: 'case_measure_note', decision: 'propose_update' },
         { ref: 'return_case_deadline_1', kind: 'case_deadline', decision: 'review_addition' },
+        { ref: 'return_case_measure_1', kind: 'case_measure', decision: 'review_addition' },
         { ref: 'return_case_measure_note_1', kind: 'case_measure_note', decision: 'review_addition' },
       ]);
       const originals = new Map(listVacationV5OriginItemChanges(origin.adapter, handover.packageId, '').items
@@ -265,10 +272,14 @@ describe('Format-5-Rückgabedatei', () => {
         expectedOriginSha256: originals.get(item.ref) ?? null,
       })) as Array<{ ref: string; action: 'accept_addition' | 'accept_update'; expectedOriginSha256: string | null }>;
       expect(service.importConfirmedFromFile(returnPath, 'lange Transport-Passphrase', choices))
-        .toMatchObject({ acceptedCount: 4 });
-      expect(origin.raw.prepare('SELECT case_id, measure_id, title, content FROM case_measure_notes ORDER BY title').all())
-        .toEqual([{ case_id: 'source-case', measure_id: 'source-measure', title: 'Gespräch', content: 'Geändert' },
-          { case_id: 'source-case', measure_id: 'source-measure', title: 'Nachtrag', content: 'Neu' }]);
+        .toMatchObject({ acceptedCount: 6 });
+      expect(origin.raw.prepare('SELECT title, created_from FROM case_measures ORDER BY title').all())
+        .toEqual([{ title: 'BEM fortgeführt', created_from: 'manual' },
+          { title: 'Weitere Maßnahme', created_from: 'import' }]);
+      expect(origin.raw.prepare(`SELECT n.case_id, m.title AS measure_title, n.title, n.content
+        FROM case_measure_notes n JOIN case_measures m ON m.id = n.measure_id ORDER BY n.title`).all())
+        .toEqual([{ case_id: 'source-case', measure_title: 'BEM fortgeführt', title: 'Gespräch', content: 'Geändert' },
+          { case_id: 'source-case', measure_title: 'Weitere Maßnahme', title: 'Nachtrag', content: 'Neu' }]);
       expect(origin.raw.prepare('SELECT case_id, measure_id, title FROM deadlines ORDER BY title').all())
         .toEqual([{ case_id: 'source-case', measure_id: 'source-measure', title: 'Neue Frist' },
           { case_id: 'source-case', measure_id: 'source-measure', title: 'Zusatzfrist' }]);
