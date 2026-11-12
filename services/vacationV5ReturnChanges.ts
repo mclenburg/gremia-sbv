@@ -132,5 +132,14 @@ export function assertVacationV5ReturnChanges(input: unknown): VacationV5ReturnC
     metadataBytes += Buffer.byteLength(JSON.stringify({ ...source, contentBase64: undefined }), 'utf8');
     if (metadataBytes > 32 * 1024 * 1024) throw new Error('Format-5-Rückgabemetadaten sind zu groß.');
   }
+  for (const document of changes.filter((item) => item.kind === 'generated_document'
+    && item.operation === 'upsert' && item.deputyBaselineSha256 === null)) {
+    const expectedLinkKind = document.data?.document_kind === 'sbv_participation_violation'
+      ? 'violation_document_link' : 'workflow_document_link';
+    if (!changes.some((item) => item.kind === expectedLinkKind && item.operation === 'upsert'
+      && item.deputyBaselineSha256 === null && item.links?.documentRef === document.ref)) {
+      throw new Error('Neues Amtsdokument benötigt einen ausdrücklich ausgewählten Dokumentbezug.');
+    }
+  }
   return changes;
 }

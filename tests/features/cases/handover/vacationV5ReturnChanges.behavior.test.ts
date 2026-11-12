@@ -38,4 +38,21 @@ describe('Format-5-Rückgabeänderungen', () => {
     expect(assertVacationV5ReturnChanges([addition])).toHaveLength(1);
     expect(() => assertVacationV5ReturnChanges([{ ...addition, ref: 'agenda_2' }])).toThrow();
   });
+
+  it('verlangt für ein neues Amtsdokument einen ausdrücklich ausgewählten Dokumentbezug', () => {
+    const plain = Buffer.from('Anlage', 'utf8');
+    const document = { ref: 'return_generated_document_1', kind: 'generated_document', operation: 'upsert',
+      deputyBaselineSha256: null, deputyCurrentSha256: hash('d'),
+      data: { title: 'Anlage', filename: 'anlage.pdf', mime_type: 'application/pdf', document_kind: 'generic',
+        sha256: createHash('sha256').update(plain).digest('hex'), size_bytes: plain.length },
+      contentBase64: plain.toString('base64') };
+    const link = { ref: 'return_workflow_document_link_1', kind: 'workflow_document_link', operation: 'upsert',
+      deputyBaselineSha256: null, deputyCurrentSha256: hash('e'),
+      data: { purpose: 'Protokoll', document_class: 'generated_document' },
+      links: { ownerRef: 'meeting_1', documentRef: document.ref } };
+    expect(() => assertVacationV5ReturnChanges([document])).toThrow(/Dokumentbezug/);
+    expect(assertVacationV5ReturnChanges([document, link])).toHaveLength(2);
+    expect(() => assertVacationV5ReturnChanges([document, { ...link,
+      links: { ...link.links, documentRef: 'generated_document_1' } }])).toThrow(/Dokumentbezug/);
+  });
 });
