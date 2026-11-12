@@ -11,6 +11,7 @@ import { PersonalDataAuditLogService } from './auditLogService.js';
 import { auditCaseHandoverImported } from './auditEventBuilders.js';
 import { storeImportedCaseDocument } from './caseHandoverImportedDocumentStore.js';
 import { insertVacationV5ReturnOfficeItem } from './vacationV5ReturnOfficeImport.js';
+import { PrivacyReviewService } from './privacyReviewService.js';
 import type { VacationV5ReturnPayload } from './vacationV5ReturnTransport.js';
 import type { VacationV5ReturnChoice } from '../src/domain/transfer/vacationV5ReturnReview.js';
 
@@ -148,6 +149,19 @@ function indexReturnChoices(choices: readonly VacationV5ReturnChoice[], count: n
   return byRef;
 }
 
+function requestPrivacyReview(database: DatabaseAdapter, caseIds: ReadonlySet<string>, timestamp: string): void {
+  if (!caseIds.size) return;
+  const privacyReview = new PrivacyReviewService(database);
+  privacyReview.ensureSchema();
+  for (const caseId of caseIds) {
+    const person = database.prepare<{ protected_person_id: string | null }>(
+      'SELECT protected_person_id FROM cases WHERE id = ?').get(caseId);
+    if (!person) throw new Error('Übernommener Rückgabevorgang hat keine Fallakte.');
+    privacyReview.createForCase(caseId, person.protected_person_id, 'handover_imported',
+      { returnDeltaReviewRequired: true }, timestamp, 'high');
+  }
+}
+
 export function importConfirmedVacationV5Return(database: DatabaseAdapter, payload: VacationV5ReturnPayload,
   choices: readonly VacationV5ReturnChoice[], dataDirectory: string):
   { importId: string; acceptedCount: number; reviewedCount: number } {
@@ -172,6 +186,7 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
     const timestamp = new Date().toISOString();
     const importId = randomUUID();
     const accepted: Array<{ ref: string; kind: string; localId: string; baselineSha256: string }> = [];
+    const affectedCaseIds = new Set<string>();
     let reviewedCount = 0;
     const plannedItems = [...preview.items].sort((a, b) => {
       if (a.decision !== 'review_addition' && b.decision === 'review_addition') return -1;
@@ -201,6 +216,7 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
         const config = rowConfiguration(change.kind);
         const stored = database.prepare<Record<string, unknown>>(`SELECT * FROM ${config.table} WHERE id = ?`).get(localId);
         if (!stored) throw new Error('Neuer Rückgabevorgang konnte nicht bestätigt werden.');
+        if (typeof stored.case_id === 'string') affectedCaseIds.add(stored.case_id);
         accepted.push({ ref: change.ref, kind: change.kind, localId,
           baselineSha256: caseHandoverBaselineHash(stored,
             change.kind === 'case_document' || change.kind === 'generated_document' ? change.contentBase64 : undefined) });
@@ -239,15 +255,17 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
         .run(...values, target.localId);
       const stored = database.prepare<Record<string, unknown>>(`SELECT * FROM ${config.table} WHERE id = ?`).get(target.localId);
       if (!stored) throw new Error('Übernommener Rückgabevorgang konnte nicht bestätigt werden.');
+      if (typeof stored.case_id === 'string') affectedCaseIds.add(stored.case_id);
       accepted.push({ ref: change.ref, kind: change.kind, localId: target.localId,
         baselineSha256: caseHandoverBaselineHash(stored) });
     }
+    requestPrivacyReview(database, affectedCaseIds, timestamp);
     database.prepare(`INSERT INTO case_handover_imports
       (id, package_id, imported_at, valid_until, status, mode, updated_case_count, metadata_json,
         origin_key_fingerprint, target_key_fingerprint, format_version, source_package_id)
-      VALUES (?, ?, ?, ?, 'taken_over', 'return_delta', 0, ?, ?, ?, 5, ?)`)
+      VALUES (?, ?, ?, ?, 'taken_over', 'return_delta', ?, ?, ?, ?, 5, ?)`)
       .run(importId, payload.packageId, timestamp, payload.expiresAt,
-        JSON.stringify({ acceptedCount: accepted.length, reviewedCount }),
+        affectedCaseIds.size, JSON.stringify({ acceptedCount: accepted.length, reviewedCount }),
         payload.origin.keyFingerprint, payload.target.keyFingerprint, payload.sourcePackageId);
     for (const item of accepted) {
       database.prepare(`INSERT INTO case_handover_import_items
@@ -257,7 +275,7 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
     }
     database.prepare("UPDATE case_handover_exports SET status = 'taken_over' WHERE id = ?").run(preview.exportId);
     new PersonalDataAuditLogService(database).append(auditCaseHandoverImported({
-      packageId: payload.packageId, caseCount: 0, mode: 'return_delta', result: 'success',
+      packageId: payload.packageId, caseCount: affectedCaseIds.size, mode: 'return_delta', result: 'success',
     }));
     return { importId, acceptedCount: accepted.length, reviewedCount };
   });

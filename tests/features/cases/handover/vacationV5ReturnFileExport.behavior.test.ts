@@ -198,9 +198,13 @@ describe('Format-5-Rückgabedatei', () => {
         .toThrow(/note insert failed/);
       expect(origin.raw.prepare('SELECT content FROM case_notes WHERE id = ?').get('source-note'))
         .toEqual({ content: 'Ursprung' });
+      expect(origin.raw.prepare('SELECT privacy_review_required FROM cases WHERE id = ?').get('source-case'))
+        .toEqual({ privacy_review_required: 0 });
       origin.raw.exec('DROP TRIGGER reject_return_note');
       expect(service.importConfirmedFromFile(returnPath, 'lange Transport-Passphrase', choices))
         .toMatchObject({ acceptedCount: 2 });
+      expect(origin.raw.prepare('SELECT privacy_review_required, privacy_review_priority FROM cases WHERE id = ?')
+        .get('source-case')).toEqual({ privacy_review_required: 1, privacy_review_priority: 'high' });
       expect(origin.raw.prepare('SELECT case_id, title, content FROM case_notes ORDER BY title').all())
         .toEqual([{ case_id: 'source-case', title: 'Gespräch', content: 'Geändert' },
           { case_id: 'source-case', title: 'Nachtrag', content: 'Neu' }]);
