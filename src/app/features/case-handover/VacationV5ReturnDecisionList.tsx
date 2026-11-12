@@ -19,7 +19,7 @@ const FIELD_LABELS: Readonly<Record<string, string>> = {
   starts_at: 'Beginn', due_at: 'Fälligkeit', filename: 'Dateiname',
   vacancy_title: 'Stelle', finding: 'Feststellung', content: 'Inhalt',
 };
-const ROW_KINDS = new Set(['case', 'case_measure', 'case_note', 'case_measure_note', 'case_deadline', 'deadline',
+const ROW_KINDS = new Set(['protected_person', 'case', 'case_measure', 'case_note', 'case_measure_note', 'case_deadline', 'deadline',
   'meeting', 'meeting_agenda', 'recruiting', 'recruiting_interview',
   'employer_obligation', 'inclusion_officer', 'inclusion_agreement', 'inclusion_topic',
   'violation', 'violation_event', 'assembly']);
@@ -42,7 +42,7 @@ function actionOptions(item: VacationV5ReturnReviewItem): Array<{ value: string;
   if (item.decision === 'review_conflict' && item.expectedOriginSha256) {
     options.push({ value: 'accept_conflict_update', label: 'Konflikt bewusst übernehmen' });
   }
-  if (item.decision === 'review_addition' && item.kind !== 'case') {
+  if (item.decision === 'review_addition') {
     options.push({ value: 'accept_addition', label: 'Neuen Vorgang übernehmen' });
   }
   return options;
@@ -82,11 +82,9 @@ export function VacationV5ReturnDecisionList({ items, choices, onChange }: {
           {item.deputyData ? <details><summary>Stand der Vertretung ansehen</summary>
             {dataView(item.deputyData)}</details> : null}
           {item.cancellationReason ? <p>Begründung: {item.cancellationReason}</p> : null}
-          {item.kind === 'case' && item.decision !== 'review_removal' ? <p>
+          {item.kind === 'case' && item.decision !== 'review_removal' && item.decision !== 'review_addition' ? <p>
             Bei Fallakten bleiben lokale Fallnummer, Personenbindung und Datenschutzstatus erhalten.
           </p> : null}
-          {item.kind === 'case' && item.decision === 'review_addition'
-            ? <p>Neue Fallakten benötigen eine gesonderte fachliche Prüfung.</p> : null}
           {!ROW_KINDS.has(item.kind) && (!DOCUMENT_ADDITION_KINDS.has(item.kind) || item.decision !== 'review_addition')
             && item.decision !== 'review_removal'
             ? <p>Dieser Inhalt kann derzeit nur zur Prüfung zurückgestellt werden.</p> : null}

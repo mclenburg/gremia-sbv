@@ -74,4 +74,67 @@ describe('Format-5-Fallaktenrückgabe', () => {
       });
     } finally { origin.raw.close(); deputy.raw.close(); fs.rmSync(directory, { recursive: true, force: true }); }
   });
+
+  it('ordnet neue Fallakte, geschützte Person und Fallnotiz atomar zu', async () => {
+    const origin = database(); const deputy = database();
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'gremia-v5-return-new-case-'));
+    const handoverPath = path.join(directory, 'handover.gsbvtransfer');
+    const returnPath = path.join(directory, 'return.gsbvtransfer');
+    try {
+      origin.raw.exec(`INSERT INTO cases (id, case_number, display_name, category, opened_at, created_at, updated_at)
+        VALUES ('source-case', 'SBV-46', 'Ausgangsfall', 'sonstiges', '2026-11-11', '2026-11-11', '2026-11-11'),
+          ('other-case', 'SBV-47', 'Lokaler Fall', 'sonstiges', '2026-11-11', '2026-11-11', '2026-11-11')`);
+      const deputyProfile = new TransferRecipientProfileService(origin.adapter).save({ label: 'Vertretung',
+        recipientToken: formatTransferRecipientToken(deputy.identity) });
+      const originProfile = new TransferRecipientProfileService(deputy.adapter).save({ label: 'Ursprung',
+        recipientToken: formatTransferRecipientToken(origin.identity) });
+      for (const [raw, id] of [[origin.raw, deputyProfile.id], [deputy.raw, originProfile.id]] as const) {
+        raw.prepare('UPDATE transfer_recipient_profiles SET capabilities_json = ? WHERE id = ?')
+          .run(JSON.stringify(capabilities), id);
+      }
+      const handover = await new VacationV5FileService(origin.adapter).exportToFile({
+        selection: { ...empty, caseIds: ['source-case'] }, profileId: deputyProfile.id,
+        expiresAt: '2099-11-30T00:00:00.000Z', passphrase: 'lange Transport-Passphrase',
+        capabilities, targetPath: handoverPath,
+      });
+      new VacationV5FileService(deputy.adapter).importFromFile(handoverPath, 'lange Transport-Passphrase');
+      deputy.raw.exec(`INSERT INTO protected_persons
+        (id, first_name, last_name, protection_status, created_at, updated_at)
+        VALUES ('new-person', 'Alex', 'Neu', 'unclear', '2026-11-12', '2026-11-12');
+        INSERT INTO cases
+        (id, case_number, protected_person_id, person_binding_state, display_name, category, opened_at, created_at, updated_at)
+        VALUES ('new-case', 'SBV-47', 'new-person', 'active', 'Neuer Fall', 'sonstiges', '2026-11-12', '2026-11-12', '2026-11-12');
+        INSERT INTO case_notes (id, case_id, title, note_date, note_type, content, created_at, updated_at)
+        VALUES ('new-case-note', 'new-case', 'Gespräch', '2026-11-12', 'conversation', 'Verlauf', '2026-11-12', '2026-11-12')`);
+      await new VacationV5ReturnFileService(deputy.adapter).exportToFile({
+        sourcePackageId: handover.packageId, profileId: originProfile.id,
+        expiresAt: '2099-12-01T00:00:00.000Z', passphrase: 'lange Transport-Passphrase',
+        capabilities, targetPath: returnPath,
+        additionalItems: [{ kind: 'case_note', localId: 'new-case-note' },
+          { kind: 'case', localId: 'new-case' }, { kind: 'protected_person', localId: 'new-person' }],
+      });
+      const service = new VacationV5ReturnFileService(origin.adapter);
+      const review = service.previewFromFile(returnPath, 'lange Transport-Passphrase');
+      expect(review.items.map((item) => [item.kind, item.decision])).toEqual([
+        ['case', 'review_addition'], ['case_note', 'review_addition'], ['protected_person', 'review_addition'],
+      ]);
+      const choices = review.items.map((item) => ({ ref: item.ref, action: 'accept_addition' as const,
+        expectedOriginSha256: null }));
+      origin.raw.exec(`CREATE TRIGGER reject_new_case_note BEFORE INSERT ON case_notes
+        BEGIN SELECT RAISE(ABORT, 'new case note failed'); END`);
+      expect(() => service.importConfirmedFromFile(returnPath, 'lange Transport-Passphrase', choices))
+        .toThrow(/new case note failed/);
+      expect(origin.raw.prepare('SELECT COUNT(*) AS count FROM protected_persons').get()).toEqual({ count: 0 });
+      expect(origin.raw.prepare('SELECT COUNT(*) AS count FROM cases').get()).toEqual({ count: 2 });
+      origin.raw.exec('DROP TRIGGER reject_new_case_note');
+      expect(service.importConfirmedFromFile(returnPath, 'lange Transport-Passphrase', choices))
+        .toMatchObject({ acceptedCount: 3 });
+      const row = origin.raw.prepare(`SELECT c.case_number, c.display_name, c.privacy_review_required,
+        c.person_binding_state, p.first_name, n.content
+        FROM cases c JOIN protected_persons p ON p.id = c.protected_person_id
+        JOIN case_notes n ON n.case_id = c.id WHERE n.title = 'Gespräch'`).get();
+      expect(row).toEqual({ case_number: 'SBV-47-IMPORT', display_name: 'Neuer Fall',
+        privacy_review_required: 1, person_binding_state: 'active', first_name: 'Alex', content: 'Verlauf' });
+    } finally { origin.raw.close(); deputy.raw.close(); fs.rmSync(directory, { recursive: true, force: true }); }
+  });
 });

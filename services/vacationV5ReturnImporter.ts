@@ -12,6 +12,7 @@ import { auditCaseHandoverImported } from './auditEventBuilders.js';
 import { storeImportedCaseDocument } from './caseHandoverImportedDocumentStore.js';
 import { insertVacationV5ReturnOfficeItem } from './vacationV5ReturnOfficeImport.js';
 import { PrivacyReviewService } from './privacyReviewService.js';
+import { uniqueImportedCaseNumber } from './caseHandoverCaseNumber.js';
 import type { VacationV5ReturnPayload } from './vacationV5ReturnTransport.js';
 import type { VacationV5ReturnChoice } from '../src/domain/transfer/vacationV5ReturnReview.js';
 
@@ -35,7 +36,7 @@ const PROCESS_PARENT: Readonly<Record<string, string>> = {
   employer_obligation_review: 'employer_obligation', inclusion_agreement: 'inclusion_agreement',
   sbv_participation_violation: 'violation', sbv_assembly: 'assembly',
 };
-const ADDITION_ORDER = ['meeting', 'recruiting', 'employer_obligation', 'inclusion_agreement',
+const ADDITION_ORDER = ['protected_person', 'case', 'meeting', 'recruiting', 'employer_obligation', 'inclusion_agreement',
   'violation', 'assembly', 'inclusion_officer', 'meeting_agenda', 'recruiting_interview',
   'inclusion_topic', 'violation_event', 'deadline', 'case_measure', 'case_note',
   'case_measure_note', 'case_deadline', 'case_document', 'generated_document',
@@ -44,13 +45,13 @@ const CASE_WORK_FIELDS = ['display_name', 'category', 'status', 'priority', 'clo
   'summary', 'risk_level', 'review_at'] as const;
 
 function supportedRow(kind: string): boolean {
-  return ['case', 'case_measure', 'case_note', 'case_measure_note', 'case_deadline', 'case_document',
+  return ['protected_person', 'case', 'case_measure', 'case_note', 'case_measure_note', 'case_deadline', 'case_document',
     'generated_document', 'workflow_document_link', 'violation_document_link'].includes(kind)
     || Object.hasOwn(VACATION_V5_ROW_FIELDS, kind);
 }
 
 function rowConfiguration(kind: string): { table: string; fields: readonly string[] } {
-  if (kind === 'case' || kind === 'case_measure' || kind === 'case_note'
+  if (kind === 'protected_person' || kind === 'case' || kind === 'case_measure' || kind === 'case_note'
     || kind === 'case_measure_note' || kind === 'case_document') {
     return VACATION_V5_CASE_ROW_FIELDS[kind];
   }
@@ -76,6 +77,18 @@ function insertAddition(database: DatabaseAdapter, change: { ref: string; kind: 
   };
   if ((config.fields as readonly string[]).includes('updated_at')) values.updated_at = timestamp;
   if (change.kind === 'violation') values.source_context_id = localId;
+  if (change.kind === 'case') {
+    values.case_number = uniqueImportedCaseNumber(database, String(change.data.case_number), true);
+    values.display_name = String(change.data.display_name).replace(/^\[Übergabe\] /, '');
+    if (!String(values.display_name).trim()) throw new Error('Neue Rückgabefallakte benötigt eine Bezeichnung.');
+    values.protected_person_id = null;
+    values.person_id = null;
+    values.is_locked = 0;
+    values.handover_status = 'none';
+    if (!change.links?.protectedPersonRef && values.person_binding_state === 'active') {
+      values.person_binding_state = 'legacy_unlinked';
+    }
+  }
   if (change.kind === 'case_measure') {
     values.created_from = 'import';
     values.source_id = null;
@@ -243,7 +256,7 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
       if (choice.action === 'keep_origin') { reviewedCount += 1; continue; }
       if (planned.decision === 'review_addition' && choice.action === 'accept_addition'
         && change.operation === 'upsert' && change.deputyBaselineSha256 === null
-        && change.data && supportedRow(change.kind) && change.kind !== 'case') {
+        && change.data && supportedRow(change.kind)) {
         const localId = insertAddition(database, change as typeof change & {
           data: Record<string, string | number | boolean | null> }, targets, timestamp, dataDirectory, trackFile);
         targets.set(change.ref, { kind: change.kind, localId });
@@ -251,6 +264,7 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
         const stored = database.prepare<Record<string, unknown>>(`SELECT * FROM ${config.table} WHERE id = ?`).get(localId);
         if (!stored) throw new Error('Neuer Rückgabevorgang konnte nicht bestätigt werden.');
         if (typeof stored.case_id === 'string') affectedCaseIds.add(stored.case_id);
+        if (change.kind === 'case') affectedCaseIds.add(localId);
         accepted.push({ ref: change.ref, kind: change.kind, localId,
           baselineSha256: caseHandoverBaselineHash(stored,
             change.kind === 'case_document' || change.kind === 'generated_document' ? change.contentBase64 : undefined) });
