@@ -10,6 +10,7 @@ import { formatTransferRecipientToken } from '../../../../services/transferInsta
 import { VacationV5FileService } from '../../../../services/vacationV5FileService';
 import { VacationV5ReturnFileService } from '../../../../services/vacationV5ReturnFileService';
 import { listVacationV5OriginItemChanges } from '../../../../services/vacationV5ImportedItemChanges';
+import { DocumentContainerService } from '../../../../services/documentContainerService';
 
 const empty = { caseIds: [], standaloneDeadlineIds: [], meetingIds: [], recruitingIds: [], employerObligationIds: [],
   inclusionAgreementIds: [], violationIds: [], assemblyIds: [] };
@@ -283,6 +284,72 @@ describe('Format-5-Rückgabedatei', () => {
       expect(origin.raw.prepare('SELECT case_id, measure_id, title FROM deadlines ORDER BY title').all())
         .toEqual([{ case_id: 'source-case', measure_id: 'source-measure', title: 'Neue Frist' },
           { case_id: 'source-case', measure_id: 'source-measure', title: 'Zusatzfrist' }]);
+    } finally { origin.raw.close(); deputy.raw.close(); fs.rmSync(directory, { recursive: true, force: true }); }
+  });
+
+  it('speichert ein neues Rückgabedokument verschlüsselt und räumt es bei Ledgerfehler ab', async () => {
+    const origin = database(); const deputy = database();
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'gremia-v5-return-document-'));
+    const originDirectory = path.join(directory, 'origin');
+    const deputyDirectory = path.join(directory, 'deputy');
+    const handoverPath = path.join(directory, 'handover.gsbvtransfer');
+    const returnPath = path.join(directory, 'return.gsbvtransfer');
+    try {
+      origin.raw.exec(`INSERT INTO cases (id, case_number, display_name, category, opened_at, created_at, updated_at)
+        VALUES ('source-case', 'SBV-44', 'Einzelfall', 'sonstiges', '2026-11-11', '2026-11-11', '2026-11-11')`);
+      const deputyProfile = new TransferRecipientProfileService(origin.adapter).save({ label: 'Vertretung',
+        recipientToken: formatTransferRecipientToken(deputy.identity) });
+      const originProfile = new TransferRecipientProfileService(deputy.adapter).save({ label: 'Ursprung',
+        recipientToken: formatTransferRecipientToken(origin.identity) });
+      for (const [raw, id] of [[origin.raw, deputyProfile.id], [deputy.raw, originProfile.id]] as const) {
+        raw.prepare('UPDATE transfer_recipient_profiles SET capabilities_json = ? WHERE id = ?')
+          .run(JSON.stringify(capabilities), id);
+      }
+      const handover = await new VacationV5FileService(origin.adapter, () => originDirectory).exportToFile({
+        selection: { ...empty, caseIds: ['source-case'] }, profileId: deputyProfile.id,
+        expiresAt: '2099-11-30T00:00:00.000Z', passphrase: 'lange Transport-Passphrase',
+        capabilities, targetPath: handoverPath,
+      });
+      new VacationV5FileService(deputy.adapter, () => deputyDirectory)
+        .importFromFile(handoverPath, 'lange Transport-Passphrase');
+      const deputyCase = deputy.raw.prepare('SELECT id FROM cases').get() as { id: string };
+      const plain = Buffer.from('Vertrauliches Rückgabedokument – Grüße', 'utf8');
+      const stored = await new DocumentContainerService().writeEncryptedContainer({ plain, storageRoot: deputyDirectory,
+        subdirectory: 'documents', documentId: 'new-document', filename: 'Bericht.pdf', mimeType: 'application/pdf' });
+      deputy.raw.prepare(`INSERT INTO case_documents
+        (id, case_id, filename, storage_path, sha256, document_key, iv, auth_tag, size_bytes, created_at)
+        VALUES ('new-document', ?, 'Bericht.pdf', ?, ?, ?, ?, ?, ?, '2026-11-12')`)
+        .run(deputyCase.id, stored.storageReference, stored.sha256, stored.documentKey,
+          stored.iv, stored.authTag, stored.sizeBytes);
+      await new VacationV5ReturnFileService(deputy.adapter, () => deputyDirectory).exportToFile({
+        sourcePackageId: handover.packageId, profileId: originProfile.id,
+        expiresAt: '2099-12-01T00:00:00.000Z', passphrase: 'lange Transport-Passphrase',
+        capabilities, targetPath: returnPath,
+        additionalItems: [{ kind: 'case_document', localId: 'new-document' }],
+      });
+      const service = new VacationV5ReturnFileService(origin.adapter, () => originDirectory);
+      expect(service.previewFromFile(returnPath, 'lange Transport-Passphrase').items).toEqual([
+        { ref: 'return_case_document_1', kind: 'case_document', decision: 'review_addition' },
+      ]);
+      const choice = [{ ref: 'return_case_document_1', action: 'accept_addition' as const,
+        expectedOriginSha256: null }];
+      origin.raw.exec(`CREATE TRIGGER reject_return_document_ledger BEFORE INSERT ON case_handover_import_items
+        WHEN NEW.local_entity_type = 'case_document' BEGIN SELECT RAISE(ABORT, 'document ledger failed'); END`);
+      expect(() => service.importConfirmedFromFile(returnPath, 'lange Transport-Passphrase', choice))
+        .toThrow(/document ledger failed/);
+      expect(origin.raw.prepare('SELECT COUNT(*) AS count FROM case_documents').get()).toEqual({ count: 0 });
+      expect(fs.readdirSync(originDirectory, { recursive: true }).filter((item) => String(item).endsWith('.gsbvdoc')))
+        .toEqual([]);
+      origin.raw.exec('DROP TRIGGER reject_return_document_ledger');
+      expect(service.importConfirmedFromFile(returnPath, 'lange Transport-Passphrase', choice))
+        .toMatchObject({ acceptedCount: 1 });
+      const document = origin.raw.prepare('SELECT * FROM case_documents').get() as Record<string, string>;
+      expect(document.case_id).toBe('source-case');
+      expect(document.storage_path).not.toBe(stored.storagePath);
+      const recovered = await new DocumentContainerService().readEncryptedContainer({ storageRoot: originDirectory,
+        storagePath: document.storage_path, documentKey: document.document_key, iv: document.iv,
+        authTag: document.auth_tag, expectedSha256: document.sha256 });
+      expect(recovered).toEqual(plain);
     } finally { origin.raw.close(); deputy.raw.close(); fs.rmSync(directory, { recursive: true, force: true }); }
   });
 });

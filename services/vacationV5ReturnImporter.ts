@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseAdapter } from './databaseService.js';
-import { DatabaseUnitOfWork } from './databaseUnitOfWork.js';
+import { CaseHandoverImportUnitOfWork, type TrackImportedFile } from './caseHandoverImportUnitOfWork.js';
 import { assertVacationV5ReturnChanges } from './vacationV5ReturnChanges.js';
 import { previewVacationV5ReturnPayload } from './vacationV5ReturnPreview.js';
 import { listVacationV5OriginItemChanges } from './vacationV5ImportedItemChanges.js';
@@ -9,6 +9,7 @@ import { VACATION_V5_CASE_ROW_FIELDS } from './vacationV5CaseRowPolicy.js';
 import { caseHandoverBaselineHash } from './caseHandoverBaselineHash.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { auditCaseHandoverImported } from './auditEventBuilders.js';
+import { storeImportedCaseDocument } from './caseHandoverImportedDocumentStore.js';
 import type { VacationV5ReturnPayload } from './vacationV5ReturnTransport.js';
 import type { VacationV5ReturnChoice } from '../src/domain/transfer/vacationV5ReturnReview.js';
 
@@ -18,6 +19,8 @@ const LINK_COLUMN: Readonly<Record<string, Record<string, { kind: string; column
   case_measure_note: { caseRef: { kind: 'case', column: 'case_id' },
     measureRef: { kind: 'case_measure', column: 'measure_id' } },
   case_deadline: { caseRef: { kind: 'case', column: 'case_id' },
+    measureRef: { kind: 'case_measure', column: 'measure_id' } },
+  case_document: { caseRef: { kind: 'case', column: 'case_id' },
     measureRef: { kind: 'case_measure', column: 'measure_id' } },
   meeting_agenda: { meetingRef: { kind: 'meeting', column: 'meeting_id' } },
   recruiting_interview: { recruitingRef: { kind: 'recruiting', column: 'recruiting_participation_id' } },
@@ -32,15 +35,15 @@ const PROCESS_PARENT: Readonly<Record<string, string>> = {
 const ADDITION_ORDER = ['meeting', 'recruiting', 'employer_obligation', 'inclusion_agreement',
   'violation', 'assembly', 'inclusion_officer', 'meeting_agenda', 'recruiting_interview',
   'inclusion_topic', 'violation_event', 'deadline', 'case_measure', 'case_note',
-  'case_measure_note', 'case_deadline'] as const;
+  'case_measure_note', 'case_deadline', 'case_document'] as const;
 
 function supportedRow(kind: string): boolean {
-  return ['case_measure', 'case_note', 'case_measure_note', 'case_deadline'].includes(kind)
+  return ['case_measure', 'case_note', 'case_measure_note', 'case_deadline', 'case_document'].includes(kind)
     || Object.hasOwn(VACATION_V5_ROW_FIELDS, kind);
 }
 
 function rowConfiguration(kind: string): { table: string; fields: readonly string[] } {
-  if (kind === 'case_measure' || kind === 'case_note' || kind === 'case_measure_note') {
+  if (kind === 'case_measure' || kind === 'case_note' || kind === 'case_measure_note' || kind === 'case_document') {
     return VACATION_V5_CASE_ROW_FIELDS[kind];
   }
   if (kind === 'case_deadline') return VACATION_V5_ROW_FIELDS.deadline;
@@ -49,8 +52,9 @@ function rowConfiguration(kind: string): { table: string; fields: readonly strin
 }
 
 function insertAddition(database: DatabaseAdapter, change: { ref: string; kind: string;
-  data: Record<string, string | number | boolean | null>; links?: Record<string, string> },
-  targets: Map<string, { kind: string; localId: string }>, timestamp: string): string {
+  data: Record<string, string | number | boolean | null>; links?: Record<string, string>; contentBase64?: string },
+  targets: Map<string, { kind: string; localId: string }>, timestamp: string,
+  dataDirectory: string, trackFile: TrackImportedFile): string {
   const config = rowConfiguration(change.kind);
   const localId = randomUUID();
   const values: Record<string, string | number | boolean | null> = {
@@ -79,6 +83,16 @@ function insertAddition(database: DatabaseAdapter, change: { ref: string; kind: 
     values[rule.column] = target.localId;
   }
   assertCaseMeasureLinks(database, change.kind, values);
+  if (change.kind === 'case_document') {
+    if (!change.contentBase64 || typeof values.case_id !== 'string') {
+      throw new Error('Rückgabedokument enthält keine auflösbaren Bytes oder Fallbeziehung.');
+    }
+    storeImportedCaseDocument(database, { id: localId, caseId: values.case_id,
+      measureId: typeof values.measure_id === 'string' ? values.measure_id : null,
+      data: change.data, contentBase64: change.contentBase64, timestamp, dataDirectory,
+      titlePrefix: '[Rückgabe] ', trackFile });
+    return localId;
+  }
   const fields = Object.keys(values);
   database.prepare(`INSERT INTO ${config.table} (${fields.join(', ')}) VALUES (${fields.map(() => '?').join(', ')})`)
     .run(...fields.map((field) => values[field]));
@@ -87,7 +101,7 @@ function insertAddition(database: DatabaseAdapter, change: { ref: string; kind: 
 
 function assertCaseMeasureLinks(database: DatabaseAdapter, kind: string,
   row: Record<string, unknown>): void {
-  if ((kind !== 'case_measure_note' && kind !== 'case_deadline') || !row.measure_id) return;
+  if ((kind !== 'case_measure_note' && kind !== 'case_deadline' && kind !== 'case_document') || !row.measure_id) return;
   const measure = database.prepare<{ case_id: string; type: string }>(
     'SELECT case_id, type FROM case_measures WHERE id = ?').get(row.measure_id);
   if (!measure || measure.case_id !== row.case_id
@@ -130,7 +144,7 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
   { importId: string; acceptedCount: number; reviewedCount: number } {
   if (payload.packageType !== 'return_delta' || payload.version !== 5) throw new Error('Kein Format-5-Rückgabepaket.');
   const changes = assertVacationV5ReturnChanges(payload.changes);
-  return new DatabaseUnitOfWork(database).run(() => {
+  return new CaseHandoverImportUnitOfWork(database, () => dataDirectory).run((trackFile) => {
     if (database.prepare<{ id: string }>('SELECT id FROM case_handover_imports WHERE package_id = ?').get(payload.packageId)) {
       throw new Error('Dieses Rückgabepaket wurde bereits übernommen.');
     }
@@ -173,18 +187,19 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
         && change.operation === 'upsert' && change.deputyBaselineSha256 === null
         && change.data && supportedRow(change.kind)) {
         const localId = insertAddition(database, change as typeof change & {
-          data: Record<string, string | number | boolean | null> }, targets, timestamp);
+          data: Record<string, string | number | boolean | null> }, targets, timestamp, dataDirectory, trackFile);
         targets.set(change.ref, { kind: change.kind, localId });
         const config = rowConfiguration(change.kind);
         const stored = database.prepare<Record<string, unknown>>(`SELECT * FROM ${config.table} WHERE id = ?`).get(localId);
         if (!stored) throw new Error('Neuer Rückgabevorgang konnte nicht bestätigt werden.');
-        accepted.push({ ref: change.ref, kind: change.kind, localId, baselineSha256: caseHandoverBaselineHash(stored) });
+        accepted.push({ ref: change.ref, kind: change.kind, localId,
+          baselineSha256: caseHandoverBaselineHash(stored, change.kind === 'case_document' ? change.contentBase64 : undefined) });
         continue;
       }
       if (!((planned.decision === 'propose_update' && choice.action === 'accept_update')
           || (planned.decision === 'review_conflict' && choice.action === 'accept_conflict_update'))
         || change.operation !== 'upsert' || !change.data
-        || !supportedRow(change.kind)) {
+        || !supportedRow(change.kind) || change.kind === 'case_document') {
         throw new Error('Diese Rückgabe kann nur nach gesonderter fachlicher Prüfung übernommen werden.');
       }
       const target = targets.get(change.ref);

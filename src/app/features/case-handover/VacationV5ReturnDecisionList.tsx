@@ -30,6 +30,10 @@ function actionOptions(item: VacationV5ReturnReviewItem): Array<{ value: string;
     { value: 'acknowledge_cancellation', label: 'Stornowunsch zur Kenntnis nehmen (keine Löschung)' },
   ];
   const options = [{ value: '', label: 'Bitte entscheiden' }, { value: 'keep_origin', label: 'Ursprung behalten' }];
+  if (item.kind === 'case_document') {
+    if (item.decision === 'review_addition') options.push({ value: 'accept_addition', label: 'Neues Dokument übernehmen' });
+    return options;
+  }
   if (!ROW_KINDS.has(item.kind)) return options;
   if (item.decision === 'propose_update') options.push({ value: 'accept_update', label: 'Änderung übernehmen' });
   if (item.decision === 'review_conflict' && item.expectedOriginSha256) {
@@ -73,7 +77,8 @@ export function VacationV5ReturnDecisionList({ items, choices, onChange }: {
           {item.deputyData ? <details><summary>Stand der Vertretung ansehen</summary>
             {dataView(item.deputyData)}</details> : null}
           {item.cancellationReason ? <p>Begründung: {item.cancellationReason}</p> : null}
-          {!ROW_KINDS.has(item.kind) && item.decision !== 'review_removal'
+          {!ROW_KINDS.has(item.kind) && (item.kind !== 'case_document' || item.decision !== 'review_addition')
+            && item.decision !== 'review_removal'
             ? <p>Dieser Inhalt kann derzeit nur zur Prüfung zurückgestellt werden.</p> : null}
           <SelectInput label={`Entscheidung für ${label}`} value={choices[item.ref] ?? ''}
             options={actionOptions(item)} onValueChange={(value) =>
