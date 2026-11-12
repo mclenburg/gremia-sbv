@@ -13,6 +13,7 @@ import { storeImportedCaseDocument } from './caseHandoverImportedDocumentStore.j
 import { insertVacationV5ReturnOfficeItem } from './vacationV5ReturnOfficeImport.js';
 import { PrivacyReviewService } from './privacyReviewService.js';
 import { uniqueImportedCaseNumber } from './caseHandoverCaseNumber.js';
+import { replaceVacationV5ReturnDocument } from './vacationV5ReturnDocumentUpdate.js';
 import type { VacationV5ReturnPayload } from './vacationV5ReturnTransport.js';
 import type { VacationV5ReturnChoice } from '../src/domain/transfer/vacationV5ReturnReview.js';
 
@@ -224,7 +225,7 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
   { importId: string; acceptedCount: number; reviewedCount: number } {
   if (payload.packageType !== 'return_delta' || payload.version !== 5) throw new Error('Kein Format-5-Rückgabepaket.');
   const changes = assertVacationV5ReturnChanges(payload.changes);
-  return new CaseHandoverImportUnitOfWork(database, () => dataDirectory).run((trackFile) => {
+  return new CaseHandoverImportUnitOfWork(database, () => dataDirectory).run((trackFile, retireFile) => {
     if (database.prepare<{ id: string }>('SELECT id FROM case_handover_imports WHERE package_id = ?').get(payload.packageId)) {
       throw new Error('Dieses Rückgabepaket wurde bereits übernommen.');
     }
@@ -283,7 +284,7 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
           || (planned.decision === 'review_conflict' && choice.action === 'accept_conflict_update'))
         || change.operation !== 'upsert' || !change.data
         || !supportedRow(change.kind)
-        || ['case_document', 'generated_document', 'workflow_document_link', 'violation_document_link'].includes(change.kind)) {
+        || ['workflow_document_link', 'violation_document_link'].includes(change.kind)) {
         throw new Error('Diese Rückgabe kann nur nach gesonderter fachlicher Prüfung übernommen werden.');
       }
       const target = targets.get(change.ref);
@@ -303,12 +304,18 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
       }
       assertOriginalLinks(change.kind, change.links, row, targets);
       assertCaseMeasureLinks(database, change.kind, row);
-      updateOriginRow(database, config.table, config.fields, change.kind, change.data, target.localId, timestamp);
+      if (change.kind === 'case_document' || change.kind === 'generated_document') {
+        if (!change.contentBase64) throw new Error('Geändertes Rückgabedokument enthält keine geprüften Bytes.');
+        replaceVacationV5ReturnDocument(database, { kind: change.kind, localId: target.localId,
+          origin: row, data: change.data, contentBase64: change.contentBase64,
+          dataDirectory, timestamp, trackFile, retireFile });
+      } else updateOriginRow(database, config.table, config.fields, change.kind, change.data, target.localId, timestamp);
       const stored = database.prepare<Record<string, unknown>>(`SELECT * FROM ${config.table} WHERE id = ?`).get(target.localId);
       if (!stored) throw new Error('Übernommener Rückgabevorgang konnte nicht bestätigt werden.');
       collectAffectedCases(database, change.kind, target.localId, stored, affectedCaseIds);
       accepted.push({ ref: change.ref, kind: change.kind, localId: target.localId,
-        baselineSha256: caseHandoverBaselineHash(stored) });
+        baselineSha256: caseHandoverBaselineHash(stored,
+          change.kind === 'case_document' || change.kind === 'generated_document' ? change.contentBase64 : undefined) });
     }
     refreshOfficeDocumentBaselines(database, accepted, changeByRef);
     requestPrivacyReview(database, affectedCaseIds, timestamp);

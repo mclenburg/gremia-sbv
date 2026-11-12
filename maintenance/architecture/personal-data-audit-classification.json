@@ -73,6 +73,11 @@
     "sbv_retention_legal_holds"
   ],
   "exceptions": {
+    "services/vacationV5ReturnDocumentUpdate.ts#<module>.replaceVacationV5ReturnDocument": {
+      "classification": "delegated",
+      "owner": "importConfirmedVacationV5Return",
+      "reason": "Verschlüsselte Dokumentersetzung innerhalb des atomaren Format-5-Rückgabeimports; der aufrufende Import schreibt das datensparsame Erfolgsaudit in derselben Transaktion."
+    },
     "services/vacationV5ReturnOfficeImport.ts#<module>.insertVacationV5ReturnOfficeItem": {
       "classification": "delegated",
       "owner": "importConfirmedVacationV5Return",

@@ -33,6 +33,12 @@ function actionOptions(item: VacationV5ReturnReviewItem): Array<{ value: string;
   ];
   const options = [{ value: '', label: 'Bitte entscheiden' }, { value: 'keep_origin', label: 'Ursprung behalten' }];
   if (DOCUMENT_ADDITION_KINDS.has(item.kind)) {
+    if (item.kind === 'case_document' || item.kind === 'generated_document') {
+      if (item.decision === 'propose_update') options.push({ value: 'accept_update', label: 'Dokumentänderung übernehmen' });
+      if (item.decision === 'review_conflict' && item.expectedOriginSha256) {
+        options.push({ value: 'accept_conflict_update', label: 'Dokumentkonflikt bewusst übernehmen' });
+      }
+    }
     if (item.decision === 'review_addition') options.push({ value: 'accept_addition',
       label: item.kind.endsWith('_link') ? 'Neuen Dokumentbezug übernehmen' : 'Neues Dokument übernehmen' });
     return options;
@@ -85,7 +91,8 @@ export function VacationV5ReturnDecisionList({ items, choices, onChange }: {
           {item.kind === 'case' && item.decision !== 'review_removal' && item.decision !== 'review_addition' ? <p>
             Bei Fallakten bleiben lokale Fallnummer, Personenbindung und Datenschutzstatus erhalten.
           </p> : null}
-          {!ROW_KINDS.has(item.kind) && (!DOCUMENT_ADDITION_KINDS.has(item.kind) || item.decision !== 'review_addition')
+          {!ROW_KINDS.has(item.kind) && (!DOCUMENT_ADDITION_KINDS.has(item.kind)
+            || item.kind.endsWith('_link') && item.decision !== 'review_addition')
             && item.decision !== 'review_removal'
             ? <p>Dieser Inhalt kann derzeit nur zur Prüfung zurückgestellt werden.</p> : null}
           <SelectInput label={`Entscheidung für ${label}`} value={choices[item.ref] ?? ''}
