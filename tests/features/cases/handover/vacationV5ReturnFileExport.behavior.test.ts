@@ -352,4 +352,78 @@ describe('Format-5-Rückgabedatei', () => {
       expect(recovered).toEqual(plain);
     } finally { origin.raw.close(); deputy.raw.close(); fs.rmSync(directory, { recursive: true, force: true }); }
   });
+
+  it('übernimmt ein neues Amtsdokument mit Sitzungsbezug atomar', async () => {
+    const origin = database(); const deputy = database();
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'gremia-v5-return-office-doc-'));
+    const originDirectory = path.join(directory, 'origin');
+    const deputyDirectory = path.join(directory, 'deputy');
+    const handoverPath = path.join(directory, 'handover.gsbvtransfer');
+    const returnPath = path.join(directory, 'return.gsbvtransfer');
+    try {
+      origin.raw.exec(`INSERT INTO sbv_meetings (id, meeting_type, title, starts_at, status, created_at, updated_at)
+        VALUES ('meeting-source', 'other', 'Sitzung', '2099-11-20', 'draft', '2026-11-11', '2026-11-11')`);
+      const deputyProfile = new TransferRecipientProfileService(origin.adapter).save({ label: 'Vertretung',
+        recipientToken: formatTransferRecipientToken(deputy.identity) });
+      const originProfile = new TransferRecipientProfileService(deputy.adapter).save({ label: 'Ursprung',
+        recipientToken: formatTransferRecipientToken(origin.identity) });
+      for (const [raw, id] of [[origin.raw, deputyProfile.id], [deputy.raw, originProfile.id]] as const) {
+        raw.prepare('UPDATE transfer_recipient_profiles SET capabilities_json = ? WHERE id = ?')
+          .run(JSON.stringify(capabilities), id);
+      }
+      const handover = await new VacationV5FileService(origin.adapter, () => originDirectory).exportToFile({
+        selection: { ...empty, meetingIds: ['meeting-source'] }, profileId: deputyProfile.id,
+        expiresAt: '2099-11-30T00:00:00.000Z', passphrase: 'lange Transport-Passphrase',
+        capabilities, targetPath: handoverPath,
+      });
+      new VacationV5FileService(deputy.adapter, () => deputyDirectory)
+        .importFromFile(handoverPath, 'lange Transport-Passphrase');
+      const deputyMeeting = deputy.raw.prepare('SELECT id FROM sbv_meetings').get() as { id: string };
+      const plain = Buffer.from('Sitzungsprotokoll – äöü', 'utf8');
+      const stored = await new DocumentContainerService().writeEncryptedContainer({ plain, storageRoot: deputyDirectory,
+        subdirectory: 'office/meeting', documentId: 'new-office-document', filename: 'Protokoll.pdf',
+        mimeType: 'application/pdf' });
+      deputy.raw.prepare(`INSERT INTO generated_documents
+        (id, title, storage_path, filename, mime_type, sha256, document_key, iv, auth_tag, size_bytes, created_at)
+        VALUES ('new-office-document', 'Protokoll', ?, ?, ?, ?, ?, ?, ?, ?, '2026-11-12')`)
+        .run(stored.storageReference, stored.filename, stored.mimeType, stored.sha256,
+          stored.documentKey, stored.iv, stored.authTag, stored.sizeBytes);
+      deputy.raw.prepare(`INSERT INTO sbv_workflow_document_links
+        (id, owner_type, owner_id, document_id, purpose, created_at)
+        VALUES ('new-office-link', 'meeting', ?, 'new-office-document', 'Protokoll', '2026-11-12')`)
+        .run(deputyMeeting.id);
+      await new VacationV5ReturnFileService(deputy.adapter, () => deputyDirectory).exportToFile({
+        sourcePackageId: handover.packageId, profileId: originProfile.id,
+        expiresAt: '2099-12-01T00:00:00.000Z', passphrase: 'lange Transport-Passphrase',
+        capabilities, targetPath: returnPath,
+        additionalItems: [{ kind: 'workflow_document_link', localId: 'new-office-link' },
+          { kind: 'generated_document', localId: 'new-office-document' }],
+      });
+      const service = new VacationV5ReturnFileService(origin.adapter, () => originDirectory);
+      expect(service.previewFromFile(returnPath, 'lange Transport-Passphrase').items).toEqual([
+        { ref: 'return_generated_document_1', kind: 'generated_document', decision: 'review_addition' },
+        { ref: 'return_workflow_document_link_1', kind: 'workflow_document_link', decision: 'review_addition' },
+      ]);
+      const choices = [
+        { ref: 'return_generated_document_1', action: 'accept_addition' as const, expectedOriginSha256: null },
+        { ref: 'return_workflow_document_link_1', action: 'accept_addition' as const, expectedOriginSha256: null },
+      ];
+      origin.raw.exec(`CREATE TRIGGER reject_return_office_link BEFORE INSERT ON sbv_workflow_document_links
+        BEGIN SELECT RAISE(ABORT, 'office link failed'); END`);
+      expect(() => service.importConfirmedFromFile(returnPath, 'lange Transport-Passphrase', choices))
+        .toThrow(/office link failed/);
+      expect(origin.raw.prepare('SELECT COUNT(*) AS count FROM generated_documents').get()).toEqual({ count: 0 });
+      expect(fs.readdirSync(originDirectory, { recursive: true }).filter((item) => String(item).endsWith('.gsbvdoc')))
+        .toEqual([]);
+      origin.raw.exec('DROP TRIGGER reject_return_office_link');
+      expect(service.importConfirmedFromFile(returnPath, 'lange Transport-Passphrase', choices))
+        .toMatchObject({ acceptedCount: 2 });
+      const linked = origin.raw.prepare(`SELECT d.*, l.owner_id FROM generated_documents d
+        JOIN sbv_workflow_document_links l ON l.document_id = d.id`).get() as Record<string, string>;
+      expect(linked.owner_id).toBe('meeting-source');
+      expect(await new DocumentContainerService().readEncryptedContainer({ storageRoot: originDirectory,
+        storagePath: linked.storage_path, documentKey: linked.document_key, iv: linked.iv,
+        authTag: linked.auth_tag, expectedSha256: linked.sha256 })).toEqual(plain);
+    } finally { origin.raw.close(); deputy.raw.close(); fs.rmSync(directory, { recursive: true, force: true }); }
+  });
 });

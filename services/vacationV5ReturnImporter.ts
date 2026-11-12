@@ -10,6 +10,7 @@ import { caseHandoverBaselineHash } from './caseHandoverBaselineHash.js';
 import { PersonalDataAuditLogService } from './auditLogService.js';
 import { auditCaseHandoverImported } from './auditEventBuilders.js';
 import { storeImportedCaseDocument } from './caseHandoverImportedDocumentStore.js';
+import { insertVacationV5ReturnOfficeItem } from './vacationV5ReturnOfficeImport.js';
 import type { VacationV5ReturnPayload } from './vacationV5ReturnTransport.js';
 import type { VacationV5ReturnChoice } from '../src/domain/transfer/vacationV5ReturnReview.js';
 
@@ -35,10 +36,12 @@ const PROCESS_PARENT: Readonly<Record<string, string>> = {
 const ADDITION_ORDER = ['meeting', 'recruiting', 'employer_obligation', 'inclusion_agreement',
   'violation', 'assembly', 'inclusion_officer', 'meeting_agenda', 'recruiting_interview',
   'inclusion_topic', 'violation_event', 'deadline', 'case_measure', 'case_note',
-  'case_measure_note', 'case_deadline', 'case_document'] as const;
+  'case_measure_note', 'case_deadline', 'case_document', 'generated_document',
+  'workflow_document_link', 'violation_document_link'] as const;
 
 function supportedRow(kind: string): boolean {
-  return ['case_measure', 'case_note', 'case_measure_note', 'case_deadline', 'case_document'].includes(kind)
+  return ['case_measure', 'case_note', 'case_measure_note', 'case_deadline', 'case_document',
+    'generated_document', 'workflow_document_link', 'violation_document_link'].includes(kind)
     || Object.hasOwn(VACATION_V5_ROW_FIELDS, kind);
 }
 
@@ -47,6 +50,9 @@ function rowConfiguration(kind: string): { table: string; fields: readonly strin
     return VACATION_V5_CASE_ROW_FIELDS[kind];
   }
   if (kind === 'case_deadline') return VACATION_V5_ROW_FIELDS.deadline;
+  if (kind === 'generated_document') return { table: 'generated_documents', fields: ['created_at'] };
+  if (kind === 'workflow_document_link') return { table: 'sbv_workflow_document_links', fields: ['created_at'] };
+  if (kind === 'violation_document_link') return { table: 'sbv_participation_violation_documents', fields: ['created_at'] };
   if (!Object.hasOwn(VACATION_V5_ROW_FIELDS, kind)) throw new Error('Rückgabe enthält einen nicht unterstützten Vorgang.');
   return VACATION_V5_ROW_FIELDS[kind as keyof typeof VACATION_V5_ROW_FIELDS];
 }
@@ -55,6 +61,9 @@ function insertAddition(database: DatabaseAdapter, change: { ref: string; kind: 
   data: Record<string, string | number | boolean | null>; links?: Record<string, string>; contentBase64?: string },
   targets: Map<string, { kind: string; localId: string }>, timestamp: string,
   dataDirectory: string, trackFile: TrackImportedFile): string {
+  if (['generated_document', 'workflow_document_link', 'violation_document_link'].includes(change.kind)) {
+    return insertVacationV5ReturnOfficeItem(database, change, targets, timestamp, dataDirectory, trackFile);
+  }
   const config = rowConfiguration(change.kind);
   const localId = randomUUID();
   const values: Record<string, string | number | boolean | null> = {
@@ -193,13 +202,15 @@ export function importConfirmedVacationV5Return(database: DatabaseAdapter, paylo
         const stored = database.prepare<Record<string, unknown>>(`SELECT * FROM ${config.table} WHERE id = ?`).get(localId);
         if (!stored) throw new Error('Neuer Rückgabevorgang konnte nicht bestätigt werden.');
         accepted.push({ ref: change.ref, kind: change.kind, localId,
-          baselineSha256: caseHandoverBaselineHash(stored, change.kind === 'case_document' ? change.contentBase64 : undefined) });
+          baselineSha256: caseHandoverBaselineHash(stored,
+            change.kind === 'case_document' || change.kind === 'generated_document' ? change.contentBase64 : undefined) });
         continue;
       }
       if (!((planned.decision === 'propose_update' && choice.action === 'accept_update')
           || (planned.decision === 'review_conflict' && choice.action === 'accept_conflict_update'))
         || change.operation !== 'upsert' || !change.data
-        || !supportedRow(change.kind) || change.kind === 'case_document') {
+        || !supportedRow(change.kind)
+        || ['case_document', 'generated_document', 'workflow_document_link', 'violation_document_link'].includes(change.kind)) {
         throw new Error('Diese Rückgabe kann nur nach gesonderter fachlicher Prüfung übernommen werden.');
       }
       const target = targets.get(change.ref);

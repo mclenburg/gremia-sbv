@@ -73,6 +73,11 @@
     "sbv_retention_legal_holds"
   ],
   "exceptions": {
+    "services/vacationV5ReturnOfficeImport.ts#<module>.insertVacationV5ReturnOfficeItem": {
+      "classification": "delegated",
+      "owner": "importConfirmedVacationV5Return",
+      "reason": "Schreibt Amtsdokument und explizite Beziehung innerhalb des atomaren Format-5-Rückgabeimports; der aufrufende Import schreibt das datensparsame Erfolgsaudit in derselben Transaktion."
+    },
     "services/vacationV5OfficeDocumentImporter.ts#<module>.recordImportedItem": {
       "classification": "delegated",
       "owner": "importVacationV5OfficeDocuments",
@@ -115,7 +120,7 @@
     },
     "services/caseHandoverImportedDocumentStore.ts#<module>.storeImportedCaseDocument": {
       "classification": "delegated",
-      "owner": "CaseHandoverService.importFromFile / CaseHandoverReturnDeltaService.importPayload",
+      "owner": "CaseHandoverService.importFromFile / CaseHandoverReturnDeltaService.importPayload / importConfirmedVacationV5Return",
       "reason": "Gemeinsamer verschlüsselter Dokument-Persistenzschritt innerhalb eines fachlich auditierten Übergabe- oder Rückgabeimports."
     },
     "services/officeHandoverDocumentStore.ts#<module>.storeImportedElectionDocument": {
