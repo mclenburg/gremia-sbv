@@ -1,9 +1,9 @@
 {
   "schemaVersion": 3,
-  "lockSha256": "60e8395ea1779c5f0ae848517dd520b5825db8046e051f9819159d8212182e71",
-  "packageCount": 545,
-  "inventorySha256": "3c403e6a530e6c40eeaeb498debb48b0bbc45e0b1f725943198d0c65935a82db",
-  "noticesSha256": "d14e1124c82d024572d7253a974cbbafe7b6168dda816f1f6cc227f5c26f0853",
+  "lockSha256": "de9e18d5f5a13fd590c55f58c2f39703b26555dc46c167c948d830dc0864510b",
+  "packageCount": 546,
+  "inventorySha256": "709a00fcc8faaf0d3ae419c50d552460bdc0f70554447425855e7204cda43680",
+  "noticesSha256": "65caf5bb9b6b668160f8666b506986160fee632a009f618e4a06b528e7828f23",
   "licenseFiles": [
     {
       "name": "0BSD.txt",
@@ -23,7 +23,7 @@
     },
     {
       "name": "BlueOak-1.0.0.txt",
-      "sha256": "814b8868771beee50ecaf134b7f33683b21400986a27709ab3280c7155491f36"
+      "sha256": "bdac8514453d2aafe2fde387fd6dfceb42704fa50e222cfada1ea2a902fe6a12"
     },
     {
       "name": "CC-BY-4.0.txt",

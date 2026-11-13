@@ -3,14 +3,6 @@ License file: BlueOak-1.0.0
 This file is stored once for all packages using this license in Gremia.SBV.
 Package-specific copyright and notice hints are collected in THIRD_PARTY_NOTICES.txt.
 
-All packages under `src/` are licensed according to the terms in
-their respective `LICENSE` or `LICENSE.md` files.
-
-The remainder of this project is licensed under the Blue Oak
-Model License, as follows:
-
------
-
 # Blue Oak Model License
 
 Version 1.0.0

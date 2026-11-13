@@ -689,6 +689,13 @@ Copyright notices:
 - copyright notice and this permission notice appear in all copies.
 License text: LICENSES/ISC.txt
 
+@isaacs/nonrecursive-glob-match@1.1.0
+License: BlueOak-1.0.0
+Copyright notices:
+- ## Copyright
+- copyright in it.
+License text: LICENSES/BlueOak-1.0.0.txt
+
 @jridgewell/gen-mapping@0.3.13
 License: MIT
 Repository: git+https://github.com/jridgewell/sourcemaps.git
@@ -1754,6 +1761,16 @@ Copyright notices:
 License text: LICENSES/MIT.txt
 
 brace-expansion@1.1.21
+License: MIT
+Repository: git://github.com/juliangruber/brace-expansion.git
+Homepage: https://github.com/juliangruber/brace-expansion
+Copyright notices:
+- Copyright (c) 2013 Julian Gruber <julian@juliangruber.com>
+- The above copyright notice and this permission notice shall be included in all
+- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+License text: LICENSES/MIT.txt
+
+brace-expansion@1.1.22
 License: MIT
 Repository: git://github.com/juliangruber/brace-expansion.git
 Homepage: https://github.com/juliangruber/brace-expansion
@@ -3514,9 +3531,9 @@ Copyright notices:
 - with or without fee is hereby granted, provided that the above copyright notice
 License text: LICENSES/ISC.txt
 
-minimatch@10.2.6
+minimatch@11.0.8
 License: BlueOak-1.0.0
-Repository: git@github.com:isaacs/minimatch
+Repository: git+ssh://git@github.com/isaacs/minimatch.git
 Copyright notices:
 - ## Copyright
 - copyright in it.
@@ -3531,14 +3548,6 @@ Copyright notices:
 License text: LICENSES/ISC.txt
 
 minimatch@5.1.9
-License: ISC
-Repository: git://github.com/isaacs/minimatch.git
-Copyright notices:
-- Copyright (c) 2011-2023 Isaac Z. Schlueter and Contributors
-- copyright notice and this permission notice appear in all copies.
-License text: LICENSES/ISC.txt
-
-minimatch@9.0.9
 License: ISC
 Repository: git://github.com/isaacs/minimatch.git
 Copyright notices:

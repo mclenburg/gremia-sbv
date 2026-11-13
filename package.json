@@ -103,7 +103,7 @@
     "dev:electron:demo": "wait-on tcp:5173 && tsc -p tsconfig.electron.json && npm run build:preload && node scripts/write-electron-cjs-package.cjs && electron . --demo",
     "dev:demo": "concurrently -k --success first \"npm:dev:renderer\" \"npm:dev:electron:demo\"",
     "start:demo": "npm run build && electron . --demo",
-    "security:audit": "npm audit --audit-level=high",
+    "security:audit": "npm audit --audit-level=moderate",
     "licenses:generate": "node scripts/generate-third-party-licenses-fast.cjs",
     "licenses:check": "node scripts/check-third-party-licenses.cjs",
     "build:quality": "npm run security:audit && npm run licenses:check && npm run build:verify",
@@ -214,7 +214,9 @@
   },
   "overrides": {
     "shell-quote": "1.12.0",
-    "@electron/get": "5.1.0"
+    "@electron/get": "5.1.0",
+    "minimatch@^9.0.0": "11.0.8",
+    "minimatch@^10.0.0": "11.0.8"
   },
   "build": {
     "appId": "de.gremia.sbv",

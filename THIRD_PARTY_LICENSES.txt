@@ -239,6 +239,9 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - @isaacs/fs-minipass@4.0.1
   License: ISC
   License text: LICENSES/ISC.txt
+- @isaacs/nonrecursive-glob-match@1.1.0
+  License: BlueOak-1.0.0
+  License text: LICENSES/BlueOak-1.0.0.txt
 - @jridgewell/gen-mapping@0.3.13
   License: MIT
   License text: LICENSES/MIT.txt
@@ -612,6 +615,9 @@ License texts are stored once per used license below LICENSES/. Copyright notice
   License: MIT
   License text: LICENSES/MIT.txt
 - brace-expansion@1.1.21
+  License: MIT
+  License text: LICENSES/MIT.txt
+- brace-expansion@1.1.22
   License: MIT
   License text: LICENSES/MIT.txt
 - brace-expansion@2.1.7
@@ -1179,16 +1185,13 @@ License texts are stored once per used license below LICENSES/. Copyright notice
 - minimalistic-assert@1.0.1
   License: ISC
   License text: LICENSES/ISC.txt
-- minimatch@10.2.6
+- minimatch@11.0.8
   License: BlueOak-1.0.0
   License text: LICENSES/BlueOak-1.0.0.txt
 - minimatch@3.1.5
   License: ISC
   License text: LICENSES/ISC.txt
 - minimatch@5.1.9
-  License: ISC
-  License text: LICENSES/ISC.txt
-- minimatch@9.0.9
   License: ISC
   License text: LICENSES/ISC.txt
 - minimist@1.2.8
