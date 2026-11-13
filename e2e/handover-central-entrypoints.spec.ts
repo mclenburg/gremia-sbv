@@ -56,3 +56,42 @@ test('führt nach Dateiauswahl zum erkannten Importformat und hält die Formatau
   await expect(page.getByRole('heading', { name: 'Format 4 erkannt' })).toBeFocused();
   await expect(page.getByRole('form', { name: 'Format-1-bis-4-Paket prüfen und importieren' })).toBeVisible();
 });
+
+test('zeigt nach Checklistenfehler eine erneute Prüfung statt eines endlosen Ladestatus', async ({ page }) => {
+  await page.evaluate(() => {
+    const original = window.gremiaSbv.caseHandover.checklist;
+    window.gremiaSbv.caseHandover.checklist = async (input) => {
+      if (window.localStorage.getItem('test-checklist-retry') !== 'ok') {
+        throw new Error('Checkliste vorübergehend nicht erreichbar.');
+      }
+      return original(input);
+    };
+  });
+  await page.getByRole('navigation', { name: 'Hauptnavigation' })
+    .getByRole('button', { name: 'Übergaben', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Übergabe-Arbeitsbereiche Navigation' })
+    .getByRole('button', { name: /^Urlaubsvertretung/ }).click();
+  const checklist = page.getByRole('group', { name: 'Übergabe-Checkliste' });
+  await expect(checklist.getByRole('alert')).toContainText('nicht geprüft');
+  await expect(checklist.getByText('Checkliste wird geprüft …')).toHaveCount(0);
+  await page.evaluate(() => window.localStorage.setItem('test-checklist-retry', 'ok'));
+  await checklist.getByRole('button', { name: 'Erneut prüfen' }).click();
+  await expect(checklist.getByRole('button', { name: 'Erneut prüfen' })).toHaveCount(0);
+  await expect(checklist.locator('[aria-label="Prüfpunkte der Übergabe"]')).toBeVisible();
+});
+
+test('verwirft die vorige Datei, wenn die nächste Dateiauswahl abgebrochen wird', async ({ page }) => {
+  await page.getByRole('navigation', { name: 'Hauptnavigation' })
+    .getByRole('button', { name: 'Übergaben', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Übergabe-Arbeitsbereiche Navigation' })
+    .getByRole('button', { name: /^Import/ }).click();
+  const importRegion = page.getByRole('region', { name: 'Übergabepaket auswählen und importieren' });
+  await importRegion.getByRole('button', { name: 'Übergabedatei auswählen' }).click();
+  await expect(importRegion.getByRole('heading', { name: 'Format 4 erkannt' })).toBeVisible();
+  await page.evaluate(() => {
+    window.gremiaSbv.caseHandover.selectFile = async () => ({ canceled: true });
+  });
+  await importRegion.getByRole('button', { name: 'Übergabedatei auswählen' }).click();
+  await expect(importRegion.getByRole('heading', { name: 'Format 4 erkannt' })).toHaveCount(0);
+  await expect(importRegion.getByRole('status')).toContainText('Kein Paket ausgewählt');
+});

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import type { CaseHandoverChecklist, CaseHandoverChecklistConfirmation, CaseHandoverPackageType } from '../../../domain/models/case-handover.model';
-import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
+import { ToolbarButton } from '../../shared/components/IndustrialButton';
 
 function stateLabel(state: string): string {
   if (state === 'blocking') return 'Blockierend';
@@ -21,30 +21,31 @@ export function CaseHandoverChecklistPanel({
   acknowledgements: readonly string[];
   onAcknowledgementsChange: Dispatch<SetStateAction<string[]>>;
 }) {
-  const announce = useAnnouncer();
   const [checklist, setChecklist] = useState<CaseHandoverChecklist | null>(null);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [retry, setRetry] = useState(0);
   const caseIdKey = useMemo(() => JSON.stringify([...caseIds].sort()), [caseIds]);
   const selectedCaseIds = useMemo(() => JSON.parse(caseIdKey) as string[], [caseIdKey]);
 
   useEffect(() => {
     let cancelled = false;
-    setError('');
+    setError(''); setChecklist(null); setLoading(true);
     void window.gremiaSbv.caseHandover.checklist({ packageType, caseIds: selectedCaseIds, expiresAt })
       .then((next) => {
         if (cancelled) return;
-        setChecklist(next);
+        setChecklist(next); setLoading(false);
         const allowed = new Set(next.requiredAcknowledgementIds);
         onAcknowledgementsChange((current) => current.filter((id) => allowed.has(id)));
       })
       .catch((cause) => {
         if (cancelled) return;
         const message = cause instanceof Error ? cause.message : 'Übergabe-Checkliste konnte nicht geprüft werden.';
-        setError(message);
-        announce(message, 'assertive');
+        setChecklist(null); setLoading(false); setError(message);
+        onAcknowledgementsChange([]);
       });
     return () => { cancelled = true; };
-  }, [packageType, selectedCaseIds, expiresAt, onAcknowledgementsChange, announce]);
+  }, [packageType, selectedCaseIds, expiresAt, onAcknowledgementsChange, retry]);
 
   function toggle(itemId: string) {
     onAcknowledgementsChange((current) => current.includes(itemId)
@@ -54,8 +55,11 @@ export function CaseHandoverChecklistPanel({
 
   return <fieldset className="industrial-selection-card handover-checklist">
     <legend>Übergabe-Checkliste</legend>
-    {error ? <div className="industrial-message industrial-message-warning" role="alert">{error}</div> : null}
-    {!checklist ? <p className="industrial-meta">Checkliste wird geprüft …</p> : <>
+    {error ? <div className="industrial-message industrial-message-warning" role="alert">
+      {error} Die Checkliste ist nicht geprüft. <ToolbarButton type="button" onClick={() => setRetry((value) => value + 1)}>Erneut prüfen</ToolbarButton>
+    </div> : null}
+    {loading ? <p className="industrial-meta" role="status">Checkliste wird geprüft …</p> : null}
+    {checklist ? <>
       <div className="industrial-list" aria-label="Prüfpunkte der Übergabe">
         {checklist.items.map((entry) => <div key={entry.id} className={`handover-checklist-item handover-checklist-item-${entry.state}`}>
           <span className="industrial-status-badge">{stateLabel(entry.state)}</span>
@@ -70,7 +74,7 @@ export function CaseHandoverChecklistPanel({
         </div>)}
       </div>
       {checklist.blockingItemIds.length ? <div className="industrial-message industrial-message-warning" role="alert">Diese Übergabe ist noch nicht exportfähig. Bitte die blockierenden Punkte korrigieren.</div> : null}
-    </>}
+    </> : null}
   </fieldset>;
 }
 

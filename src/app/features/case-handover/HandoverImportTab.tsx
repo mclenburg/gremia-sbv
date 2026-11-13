@@ -19,11 +19,11 @@ export function HandoverImportTab({ onCompleted }: { onCompleted: () => Promise<
   useEffect(() => { if (selected) selectionHeading.current?.focus(); }, [selected]);
 
   async function chooseFile() {
-    setBusy(true); setError(''); setStatus('');
+    setBusy(true); setSelected(null); setError(''); setStatus('');
     try {
       const bridge = await requireCaseHandoverBridge();
       const file = await bridge.selectFile();
-      if (file.canceled) { setStatus('Dateiauswahl abgebrochen.'); return; }
+      if (file.canceled) { setStatus('Dateiauswahl abgebrochen. Kein Paket ausgewählt.'); return; }
       const route = await bridge.classifyFile(file.filePath);
       setSelected({ token: file.filePath, name: file.fileName, ...route });
     } catch (cause) {

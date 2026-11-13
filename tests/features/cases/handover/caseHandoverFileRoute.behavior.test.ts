@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { afterAll, afterEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
 import { classifyCaseHandoverFile } from '../../../../services/caseHandoverFileRoute';
 
 const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'gremia-route-'));
@@ -31,5 +31,25 @@ describe('Übergabedatei automatisch zuordnen', () => {
       .toThrow(/neuere Format 99.*aktualisieren/);
     expect(() => classifyCaseHandoverFile(fixture('missing-type', { format: 'gremia-sbv-case-handover', version: 5 })))
       .toThrow(/Pakettyp/);
+  });
+
+  it('ordnet auch große Pakete und umsortierte Hüllen mit begrenztem Lesepuffer zu', () => {
+    const file = path.join(directory, 'large.gsbvtransfer');
+    fs.writeFileSync(file, JSON.stringify({ payload: 'a'.repeat(8 * 1024 * 1024),
+      senderProof: { packageType: 'return_delta' }, version: 5,
+      format: 'gremia-sbv-case-handover' }));
+    const wholeFileRead = vi.spyOn(fs, 'readFileSync').mockImplementation(() => {
+      throw new Error('Eine vollständige Dateilesung ist beim Routing nicht erlaubt.');
+    });
+    try { expect(classifyCaseHandoverFile(file)).toEqual({ formatVersion: 5, kind: 'return_v5' }); }
+    finally { wholeFileRead.mockRestore(); }
+  });
+
+  it('lehnt abgeschnittene und nachgestellte Hüllendaten ab', () => {
+    const file = fixture('trailing', { format: 'gremia-sbv-case-handover', version: 2 });
+    fs.appendFileSync(file, 'x');
+    expect(() => classifyCaseHandoverFile(file)).toThrow(/gültiges JSON/);
+    fs.writeFileSync(file, '{"format":"gremia-sbv-case-handover","version":2');
+    expect(() => classifyCaseHandoverFile(file)).toThrow(/gültiges JSON/);
   });
 });
