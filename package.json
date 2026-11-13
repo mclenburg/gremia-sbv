@@ -103,7 +103,7 @@
     "dev:electron:demo": "wait-on tcp:5173 && tsc -p tsconfig.electron.json && npm run build:preload && node scripts/write-electron-cjs-package.cjs && electron . --demo",
     "dev:demo": "concurrently -k --success first \"npm:dev:renderer\" \"npm:dev:electron:demo\"",
     "start:demo": "npm run build && electron . --demo",
-    "security:audit": "npm audit --audit-level=moderate",
+    "security:audit": "npm audit --audit-level=high",
     "licenses:generate": "node scripts/generate-third-party-licenses-fast.cjs",
     "licenses:check": "node scripts/check-third-party-licenses.cjs",
     "build:quality": "npm run security:audit && npm run licenses:check && npm run build:verify",
