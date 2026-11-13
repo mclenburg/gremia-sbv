@@ -16,6 +16,7 @@ Fall- und Amtsübergabepakete haben die Dateiendung `.gsbvtransfer`. Mobile Begl
 
 1. Den Bereich `Übergaben` als letzten Punkt der Kernarbeit öffnen.
 2. Das passende Register wählen: `Urlaubsvertretung`, `Begleit-App`, `Rückgabe`, `Amtsübergabe`, `Import` oder `Protokoll`.
+   Die Übergabeschaltflächen in der Fallakte führen ebenfalls in diese Register; eine zuvor gewählte Fallakte wird für den Export übernommen.
 3. Empfängerprofil wählen oder die vollständige öffentliche Empfängerkennung der Zielinstanz einfügen. Die Anwendung schlägt das neueste verifiziert lesbare Format vor und zeigt nur dessen Exportablauf. Ohne bestätigte Fähigkeit schlägt sie vorsichtig Format 2 vor; Format 4 bleibt wählbar. Format 5 setzt ein verifiziertes Zielprofil voraus.
 4. Die angezeigte Zielinstanz-ID und das vorgeschlagene Format prüfen. Bei Format 5 offene Vorgänge aus Fallarbeit und Amtsarbeit über die filterbare Auswahl übernehmen; jeder Vorschlag und jedes Dokument muss bewusst ausgewählt werden. Formate 2 und 4 enthalten nur Fallakten.
 5. Transport-Passphrase vergeben, sofern die gewählte Schutzart eine Passphrase verlangt.
@@ -43,6 +44,8 @@ Format 5 kann ohne Fallakte nur fallfreie Fristen oder Amtsvorgänge übertragen
 Ohne ausdrückliche Entscheidung findet keine Zusammenführung statt.
 
 Bei Format 5 zeigt die Importvorschau Vorgangsgruppen, Dokumentnamen und deren Umfang. Der Import legt fremde Vorgänge mit neuen lokalen IDs an und hält die Paketbezüge für eine spätere Rückgabe fest. Die Vertretung sieht den verschlüsselten Übergabehinweis in der Übersicht. Für die Rückgabe wird das aktive Ausgangspaket ausgewählt; geänderte Vorgänge, neue Vorgänge, Dokumente und begründete Stornowünsche werden vor dem Export einzeln geprüft. Ein Stornowunsch löscht auf der Ausgangsinstanz nichts automatisch. Die Ausgangsinstanz prüft die Rückgabe auf Konflikte und bestätigt die Übernahme ausdrücklich.
+
+Das Register `Rückgabe` zeigt nach Auswahl der Rückgabeart nur einen Ablauf: Format 5, älteres Falldelta oder mobile Rückgabe. Erstellen und Übernehmen sind dadurch eindeutig getrennt.
 
 Bei einer Amtsübergabe entscheidet die Nachfolge zusätzlich, ob die übergebenen Frist- und Aufbewahrungsregeln lokal übernommen werden. Individuelle Vorlagen werden ohne Überschreiben abweichender lokaler Vorlagen importiert.
 

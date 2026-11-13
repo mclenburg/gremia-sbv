@@ -2,6 +2,8 @@
 
 Der Bereich **Übergaben** liegt als letzter Punkt der Kernarbeit in der Navigation. Er ist in Register gegliedert, damit Urlaubsvertretung, Begleit-App, Rückgabe, Amtsübergabe, Import und Protokoll nicht in einem gemeinsamen Formular vermischt werden.
 
+Die Schaltflächen **Übergabe exportieren** und **Übergabe importieren** in der Fallaktenansicht öffnen dieselben Abläufe im Bereich **Übergaben**. Beim Export ist die zuvor gewählte Fallakte bereits ausgewählt.
+
 Der Bereich unterstützt drei unterschiedliche Situationen:
 
 - Eine **Urlaubs- oder Krankheitsvertretung** ist zeitlich begrenzt. Format 5 überträgt bewusst ausgewählte offene Fallakten, fallfreie Fristen und Amtsvorgänge; Änderungen kommen später als geprüfte Rückgabe zurück.
@@ -19,6 +21,8 @@ Die Zielinstanz zeigt unter **Einstellungen** ihre kurze Instanz-ID und die voll
 ## Urlaubsvertretung
 
 Wähle zuerst das Zielprofil. Gremia.SBV schlägt bei bestätigten Fähigkeiten automatisch das neueste gemeinsame Format vor und zeigt nur die dafür nötige Auswahl. Sind die Fähigkeiten unbekannt, wird Format 2 vorsichtig vorgeschlagen; Format 4 bleibt wählbar. Ein nicht bestätigter Funktionsstand kann nicht allein aus der öffentlichen Empfängerkennung erkannt werden. Format 5 erscheint nur bei verifizierter Lesefähigkeit. Im Register **Import** wählst du die Datei einmal aus; die App zeigt anschließend den passenden Prüfablauf für das erkannte Format.
+
+Im Register **Rückgabe** wählst du zuerst zwischen erweiterter Vertretung, älterer Fallvertretung und mobiler Rückgabe. Danach erscheint nur der passende Ablauf.
 
 ### Erweiterte Vertretung mit Format 5
 

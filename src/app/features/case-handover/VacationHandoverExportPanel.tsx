@@ -8,12 +8,13 @@ import { CaseHandoverChecklistPanel, handoverChecklistConfirmation } from './Cas
 import { CaseHandoverCasePicker } from './CaseHandoverCasePicker';
 import { requireCaseHandoverBridge } from './caseHandoverBridge';
 
-export function VacationHandoverExportPanel({ cases, onCompleted, targetRecipientToken, expiresAt,
+export function VacationHandoverExportPanel({ cases, initialCaseId, onCompleted, targetRecipientToken, expiresAt,
   passphrase, protectionMode, formatVersion }: { cases: CaseRecord[]; onCompleted: () => Promise<void>;
+  initialCaseId?: string;
   targetRecipientToken: string; expiresAt?: string; passphrase: string;
   protectionMode: TransferProtectionMode; formatVersion: 2 | 4 }) {
   const announce = useAnnouncer();
-  const [caseIds, setCaseIds] = useState<string[]>([]);
+  const [caseIds, setCaseIds] = useState<string[]>(initialCaseId && cases.some((record) => record.id === initialCaseId) ? [initialCaseId] : []);
   const [acknowledgedItemIds, setAcknowledgedItemIds] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');

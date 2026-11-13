@@ -275,6 +275,7 @@ export const HELP_REGISTRY = {
     id: "caseHandover.overview", kicker: "Übergaben", title: "Übergaben und Vertretung steuern",
     summary: "Der Bereich trennt zeitlich begrenzte Vertretung, Rückgabe, Amtsübergabe und Import in eigene Abläufe.",
     blocks: [
+      { type: "paragraph", text: "Die Übergabeschaltflächen in der Fallakte öffnen dieselben Abläufe hier. Beim Export bleibt die ausgewählte Fallakte vorgemerkt. Unter Rückgabe zuerst die passende Rückgabeart auswählen; anschließend erscheint nur dieser Ablauf." },
       { type: "paragraph", text: "Eine Urlaubs- oder Krankheitsvertretung überträgt nur ausgewählte offene Vorgänge und läuft ab. Die erweiterte Vertretung kann auch fallfreie Fristen und Amtsvorgänge enthalten. Eine Amtsübergabe ist dauerhaft." },
       { type: "paragraph", text: "Ein Übergabepaket ersetzt kein Backup und keine Synchronisation. Jede Instanz bleibt eigenständig; Import und Rückgabe werden vor dem Schreiben geprüft." },
     ],

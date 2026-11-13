@@ -16,8 +16,8 @@ const FORMAT_LABEL: Record<ExportFormat, string> = {
   2: 'Format 2 · ältere Fallübergabe',
 };
 
-export function HandoverVacationTab({ cases, onCompleted }: {
-  cases: CaseRecord[]; onCompleted: () => Promise<void>;
+export function HandoverVacationTab({ cases, initialCaseId, onCompleted }: {
+  cases: CaseRecord[]; initialCaseId?: string; onCompleted: () => Promise<void>;
 }) {
   const [profiles, setProfiles] = useState<TransferRecipientProfile[]>([]);
   const [profileId, setProfileId] = useState(MANUAL);
@@ -92,10 +92,11 @@ export function HandoverVacationTab({ cases, onCompleted }: {
         value={passphrase} onValueChange={setPassphrase} minLength={10} required /> : null}
       {format === 5 && profile && expiresAt ? <VacationV5ExportPanel
         key={`5:${profile.id}:${expiresAt}`} profileId={profile.id} expiresAt={expiresAt}
-        passphrase={passphrase} onCompleted={completeExport} /> : null}
+        passphrase={passphrase} initialCaseId={initialCaseId} onCompleted={completeExport} /> : null}
       {format === 5 && !expiresAt ? <p className="industrial-settings-note">Bitte ein gültiges Vertretungsende wählen.</p> : null}
       {(format === 2 || format === 4) ? <VacationHandoverExportPanel
         key={`${format}:${recipientToken}:${expiresAt ?? ''}`} cases={cases} onCompleted={completeExport}
+        initialCaseId={initialCaseId}
         targetRecipientToken={recipientToken} expiresAt={expiresAt} passphrase={passphrase}
         protectionMode={protectionMode} formatVersion={format} /> : null}
     </div>

@@ -30,7 +30,7 @@ export const CASE_HANDOVER_TABS: Array<{
   {
     id: 'return',
     title: 'Rückgabe',
-    description: 'Änderungen aus einer Vertretung als Delta zurückführen.',
+    description: 'Vertretungsänderungen zurückgeben oder mobile Änderungen übernehmen.',
   },
   {
     id: 'office',

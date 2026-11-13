@@ -30,8 +30,8 @@ export function HandoverOverviewTab({
         <IndustrialButton type="button" variant="secondary" onClick={() => onSelectTab('mobile')}>
           Mobile Projektion erstellen
         </IndustrialButton>
-        <IndustrialButton type="button" variant="secondary" onClick={() => onSelectTab('return')} disabled={!cockpit.returnableCount}>
-          Rückgabe übernehmen
+        <IndustrialButton type="button" variant="secondary" onClick={() => onSelectTab('return')}>
+          Rückgabeablauf wählen
         </IndustrialButton>
         <IndustrialButton type="button" variant="secondary" onClick={() => onSelectTab('office')}>
           Amtsübergabe starten

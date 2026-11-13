@@ -11,7 +11,7 @@ import { ImportPackageReview } from '../../../../src/app/shared/components/Impor
 import { LiveRegionProvider } from '../../../../src/app/shared/a11y/LiveRegionProvider';
 import type { CaseRecord } from '../../../../src/domain/models/case.model';
 import type { CaseMeasureRecord } from '../../../../src/domain/models/case-measure.model';
-import { descendants, findDescendants, renderComponent, renderElement, visibleText } from '../../../helpers/renderedMarkup';
+import { descendants, renderComponent, renderElement, visibleText } from '../../../helpers/renderedMarkup';
 
 const caseRecord: CaseRecord = {
   id: 'case-1',
@@ -23,19 +23,6 @@ const caseRecord: CaseRecord = {
   openedAt: '2026-05-01T08:00:00.000Z',
   isPseudonymized: false,
   isLocked: false,
-};
-
-const importPlan = {
-  transferKind: 'case_handover' as const,
-  defaultMode: 'create_new' as const,
-  mergeAllowed: false,
-  requiresExplicitDecision: true,
-  privacyReviewRequired: true,
-  retentionReviewRequired: false,
-  safeMatchCount: 0,
-  possibleMatchCount: 0,
-  conflictCount: 0,
-  decisions: [],
 };
 
 const openMeasure: CaseMeasureRecord = {
@@ -97,7 +84,8 @@ describe('case handover placement 0.9.2', () => {
     expect(visibleText(mobile.markup)).toContain('SBV-2026-001');
     expect(visibleText(mobile.markup)).not.toContain('Mobile Änderungen übernehmen');
     expect(visibleText(returnTab.markup)).toContain('Mobile Änderungen übernehmen');
-    expect(visibleText(returnTab.markup)).toContain('Mobile Rückgabe auswählen');
+    expect(visibleText(returnTab.markup)).not.toContain('Mobile Rückgabe auswählen');
+    expect(visibleText(returnTab.markup)).toContain('Bitte Rückgabeart wählen');
   });
 
   it('zeigt die filterbare Fallauswahl direkt in der Desktop-Begleit-App-Ausgabe', () => {
@@ -179,47 +167,11 @@ describe('case handover placement 0.9.2', () => {
     expect(descendants(detail.tree).some((node) => node.attrs.class?.includes('case-detail-handover-export-button'))).toBe(true);
   });
 
-  it('rendert modale Übergabe-Dialoge mit getrennter Dateiauswahl und Paketprüfung', () => {
-    const { markup, tree } = renderComponent(CaseHandoverTransferDialogs, {
-      exportOpen: false,
-      importOpen: true,
-      continueExpiredOpen: false,
-      selectedCase: caseRecord,
-      onCloseExport: () => undefined,
-      onCloseImport: () => undefined,
-      onCloseContinueExpired: () => undefined,
-      onExport: async () => ({ exported: false, filePath: '', packageId: '', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0 }),
-      onSelectImportFile: async () => ({ canceled: true }),
-      onInspectImport: async () => ({ valid: true, packageId: 'pkg-1', packageType: 'vacation_handover', createdAt: '2026-05-01T08:00:00.000Z', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0, matches: [], importPlan, isExpired: false, warnings: [] }),
-      onImport: async () => undefined,
-      onContinueExpired: async () => undefined,
-    });
-
-    const text = visibleText(markup);
-    expect(text).toContain('Datei auswählen');
-    expect(text).toContain('Paket prüfen');
-    const buttons = findDescendants(tree, (node) => node.tag === 'button');
-    const importButton = buttons.find((button) => button.attrs.type === 'submit');
-
-    expect(importButton?.attrs.disabled).toBe('');
-    expect(importButton).toBeTruthy();
-    expect(descendants(tree).some((node) => node.attrs.class?.includes('handover-import-file-step'))).toBe(true);
-    expect(descendants(tree).some((node) => node.attrs.class?.includes('handover-import-inspect-actions'))).toBe(true);
-  });
-
   it('fragt die Fortführung abgelaufener Übergabedaten über einen Gremia-Dialog statt Browser-Prompt ab', () => {
     const { markup } = renderComponent(CaseHandoverTransferDialogs, {
-      exportOpen: false,
-      importOpen: false,
       continueExpiredOpen: true,
       selectedCase: caseRecord,
-      onCloseExport: () => undefined,
-      onCloseImport: () => undefined,
       onCloseContinueExpired: () => undefined,
-      onExport: async () => ({ exported: false, filePath: '', packageId: '', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0 }),
-      onSelectImportFile: async () => ({ canceled: true }),
-      onInspectImport: async () => ({ valid: true, packageId: 'pkg-1', packageType: 'vacation_handover', createdAt: '2026-05-01T08:00:00.000Z', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0, matches: [], importPlan, isExpired: false, warnings: [] }),
-      onImport: async () => undefined,
       onContinueExpired: async () => undefined,
     });
 

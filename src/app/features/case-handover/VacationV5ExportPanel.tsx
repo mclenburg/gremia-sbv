@@ -91,8 +91,8 @@ function VacationV5ExportPreviewPanel({ preview, confirmed, onConfirm }: {
   </div>;
 }
 
-export function VacationV5ExportPanel({ onCompleted, profileId, expiresAt, passphrase }: {
-  onCompleted: () => Promise<void>; profileId: string; expiresAt: string; passphrase: string;
+export function VacationV5ExportPanel({ onCompleted, profileId, expiresAt, passphrase, initialCaseId }: {
+  onCompleted: () => Promise<void>; profileId: string; expiresAt: string; passphrase: string; initialCaseId?: string;
 }) {
   const announce = useAnnouncer();
   const [handoverNote, setHandoverNote] = useState('');
@@ -118,7 +118,14 @@ export function VacationV5ExportPanel({ onCompleted, profileId, expiresAt, passp
       const bridge = await requireCaseHandoverBridge();
       const loaded = await bridge.listV5Candidates(expiresAt);
       setCandidates(loaded);
-      report(`${loaded.length} offene Vorgänge geladen. Die Vorschläge werden erst nach Ihrer Auswahl übernommen.`);
+      const initialCaseAvailable = loaded.some((item) => item.scopeKey === 'caseIds' && item.id === initialCaseId);
+      if (initialCaseId && initialCaseAvailable) {
+        setSelection({ ...EMPTY, caseIds: [initialCaseId] });
+      }
+      report(initialCaseId && !initialCaseAvailable
+        ? 'Die aus der Fallakte übernommene Auswahl ist in Format 5 nicht verfügbar. Bitte eine andere Auswahl oder Format 4 oder 2 wählen.'
+        : `${loaded.length} offene Vorgänge geladen. Die Vorschläge werden erst nach Ihrer Auswahl übernommen.`,
+      Boolean(initialCaseId && !initialCaseAvailable));
     } catch (cause) { report(cause instanceof Error ? cause.message : 'Vertretungsvorgänge konnten nicht geladen werden.', true); }
     finally { setBusy(false); }
   }

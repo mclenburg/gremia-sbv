@@ -15,6 +15,7 @@ import { HandoverReturnTab } from './HandoverReturnTab';
 import { HandoverVacationTab } from './HandoverVacationTab';
 import { CASE_HANDOVER_TABS, type CaseHandoverTabId } from './caseHandoverTabs';
 import { requireCaseHandoverBridge } from './caseHandoverBridge';
+import { consumeCaseHandoverEntry, peekCaseHandoverEntry } from './caseHandoverNavigation';
 
 const EMPTY_COCKPIT: CaseHandoverCockpit = {
   activeVacationCount: 0,
@@ -28,8 +29,9 @@ const EMPTY_COCKPIT: CaseHandoverCockpit = {
 
 export function CaseHandoverCockpitView({ cases, measures = [], onRecordsChanged }: { cases: CaseRecord[]; measures?: CaseMeasureRecord[]; onRecordsChanged: () => Promise<void> }) {
   const announce = useAnnouncer();
+  const [entry] = useState(peekCaseHandoverEntry);
   const [cockpit, setCockpit] = useState<CaseHandoverCockpit>(EMPTY_COCKPIT);
-  const [activeTab, setActiveTab] = useState<CaseHandoverTabId>('overview');
+  const [activeTab, setActiveTab] = useState<CaseHandoverTabId>(entry?.tab ?? 'overview');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -45,6 +47,7 @@ export function CaseHandoverCockpitView({ cases, measures = [], onRecordsChanged
   }, [announce]);
 
   useEffect(() => { void reload(); }, [reload]);
+  useEffect(() => { if (entry) consumeCaseHandoverEntry(); }, [entry]);
   const complete = useCallback(async () => { await onRecordsChanged(); await reload(); }, [onRecordsChanged, reload]);
 
   return <WorkbenchPage title="Übergaben & Vertretung" kicker="SBV-Arbeit" description="Zeitlich begrenzte Vertretungen und dauerhafte Amtswechsel zielgebunden, nachvollziehbar und ohne Doppelerfassung durchführen." helpId="caseHandover.overview" actions={<IndustrialButton variant="secondary" onClick={() => void reload()} loading={loading}><RefreshCw className="industrial-icon" aria-hidden="true" />Aktualisieren</IndustrialButton>}>
@@ -68,7 +71,7 @@ export function CaseHandoverCockpitView({ cases, measures = [], onRecordsChanged
       }
     >
       {activeTab === 'overview' ? <HandoverOverviewTab cockpit={cockpit} onSelectTab={setActiveTab} /> : null}
-      {activeTab === 'vacation' ? <HandoverVacationTab cases={cases} onCompleted={complete} /> : null}
+      {activeTab === 'vacation' ? <HandoverVacationTab cases={cases} initialCaseId={entry?.caseId} onCompleted={complete} /> : null}
       {activeTab === 'mobile' ? <HandoverMobileCompanionTab cases={cases} measures={measures} /> : null}
       {activeTab === 'return' ? <HandoverReturnTab items={cockpit.incoming} cases={cases} onCompleted={complete} /> : null}
       {activeTab === 'office' ? <HandoverOfficeTab cases={cases} inventory={cockpit.officeInventory} onCompleted={complete} /> : null}
