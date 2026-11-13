@@ -27,7 +27,6 @@ function VacationV5ReturnInventoryList({ inventory, cancellationReasons, additio
     || `${item.label} ${item.kind}`.toLocaleLowerCase('de-DE').includes(normalizedItemQuery)).slice(0, 20);
   return <div className="industrial-stack">
     <fieldset className="industrial-selection-card"><legend>Vorgänge im Ausgangspaket</legend>
-      <p className="industrial-meta">Geänderte Vorgänge gehen in die Rückgabe. Unveränderte bleiben außerhalb.</p>
       {inventory.items.length > visibleItems.length ? <p className="industrial-meta" role="status">
         {visibleItems.length} von {inventory.items.length} Ausgangsvorgängen angezeigt.</p> : null}
       {visibleItems.map((item) => <div className="handover-case-picker-row" key={item.ref}>
@@ -162,8 +161,7 @@ export function VacationV5ReturnExportPanel({ onCompleted }: { onCompleted: () =
   }
 
   return <IndustrialPanel kicker="Format 5" title="Erweiterte Vertretung zurückgeben"
-    description="Geänderte Arbeit wird als Delta übertragen. Stornierungen bleiben Prüfhinweise und löschen auf der Ursprungsinstanz nichts automatisch."
-    ariaLabel="Format-5-Rückgabe exportieren">
+    ariaLabel="Format-5-Rückgabe exportieren" helpId="caseHandover.returnDelta">
     <form className="industrial-stack" onSubmit={(event) => void submit(event)}>
       {!packages.length ? <p className="industrial-settings-note">Keine aktive Format-5-Vertretung für eine Rückgabe vorhanden.</p> : null}
       {packages.length > 5 ? <SearchInput label="Vertretungen filtern" value={packageQuery} onValueChange={setPackageQuery} /> : null}

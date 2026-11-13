@@ -135,6 +135,6 @@ export function TransferProtectionFields({
       minLength={10}
       required
       wide
-    /> : <div className="industrial-message industrial-modal-wide" role="note">Diese Übergabe nutzt nur den öffentlichen Empfängerschlüssel der Zielinstanz. Eine Transport-Passphrase wird nicht abgefragt.</div>}
+    /> : <div className="industrial-message industrial-modal-wide" role="status">Keine Transport-Passphrase erforderlich.</div>}
   </>;
 }

@@ -9,7 +9,9 @@ test('führt eine Amtsübergabe vom geprüften Export bis zum bestätigten Impor
   await handoverTabs.getByRole('button', { name: /^Amtsübergabe/ }).click();
   const exportRegion = page.getByRole('region', { name: 'Amtsübergabe erstellen' });
   await expect(exportRegion).toBeVisible();
-  await expect(exportRegion.getByText(/Tätigkeitsjournal wird nicht übergeben/)).toBeVisible();
+  await exportRegion.getByRole('button', { name: 'Abschnittshilfe öffnen' }).click();
+  await expect(page.getByRole('dialog').getByText(/Tätigkeitsjournal bleibt ausgeschlossen/)).toBeVisible();
+  await page.keyboard.press('Escape');
   await exportRegion.getByRole('checkbox', { name: /TEST-0001 Testperson Alpha/ }).check();
   await exportRegion.getByLabel('Öffentliche Empfängerkennung der Nachfolgeinstanz').fill('GSBV1.TEST-EMPFÄNGER');
   await exportRegion.getByLabel('Transport-Passphrase').fill('Sichere Amtsübergabe 2026');

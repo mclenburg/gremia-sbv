@@ -2,6 +2,7 @@ import { createElement } from 'react';
 import { describe, expect, it } from 'vitest';
 import { OfficeHandoverExportPanel } from '../../../../src/app/features/case-handover/OfficeHandoverExportPanel';
 import { LiveRegionProvider } from '../../../../src/app/shared/a11y/LiveRegionProvider';
+import { HELP_REGISTRY } from '../../../../src/app/shared/help/helpRegistry';
 import type { CaseRecord } from '../../../../src/domain/models/case.model';
 import { descendants, renderElement, visibleText } from '../../../helpers/renderedMarkup';
 
@@ -18,7 +19,7 @@ const caseRecord: CaseRecord = {
 };
 
 describe('P2 – Amtsübergabe in der Oberfläche', () => {
-  it('erklärt den Umfang, schließt das Journal aus und verlangt eine bewusste Bestätigung', () => {
+  it('zeigt den Umfang, erklärt den Journalausschluss über Hilfe und verlangt eine Bestätigung', () => {
     const rendered = renderElement(createElement(LiveRegionProvider, null,
       createElement(OfficeHandoverExportPanel, {
         cases: [caseRecord],
@@ -36,8 +37,10 @@ describe('P2 – Amtsübergabe in der Oberfläche', () => {
 
     const text = visibleText(rendered.markup);
     expect(text).toContain('Amtsübergabe');
-    expect(text).toContain('Tätigkeitsjournal');
-    expect(text).toContain('nicht übergeben');
+    expect(text).not.toContain('Tätigkeitsjournal');
+    expect(HELP_REGISTRY['caseHandover.office'].blocks).toEqual(expect.arrayContaining([
+      expect.objectContaining({ text: expect.stringContaining('Tätigkeitsjournal') }),
+    ]));
     expect(descendants(rendered.tree).some((node) => node.tag === 'input' && node.attrs.type === 'checkbox' && 'required' in node.attrs)).toBe(true);
   });
 });

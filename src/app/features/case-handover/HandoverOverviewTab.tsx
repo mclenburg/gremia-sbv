@@ -17,7 +17,6 @@ export function HandoverOverviewTab({
     <IndustrialPanel
       kicker="Arbeitssteuerung"
       title="Was ist als Nächstes zu tun?"
-      description="Wähle den passenden Übergabeablauf. Die eigentlichen Formulare bleiben getrennt, damit keine Urlaubsvertretung, Rückgabe und Amtsübergabe vermischt werden."
       helpId="caseHandover.overview"
     >
       <div className="handover-overview-actions" aria-label="Übergabe-Einstiege">

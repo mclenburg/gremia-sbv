@@ -86,6 +86,17 @@ test.setTimeout(60_000);
 test.describe.configure({ mode: 'parallel' });
 
 test.describe('P15m Axe accessibility scan', () => {
+  test('Übergabeformulare und Dateiauswahl haben keine schwerwiegenden Axe-Verstöße', async ({ page }) => {
+    await openRoute(page, 'Übergaben');
+    const areas = page.getByRole('navigation', { name: 'Übergabe-Arbeitsbereiche Navigation' });
+    await areas.getByRole('button', { name: /^Urlaubsvertretung/ }).click();
+    await expectNoSeriousAxeViolations(page, 'Urlaubsvertretung');
+    await areas.getByRole('button', { name: /^Import/ }).click();
+    await page.getByRole('button', { name: 'Übergabedatei auswählen' }).click();
+    await expect(page.getByRole('heading', { name: 'Format 4 erkannt' })).toBeFocused();
+    await expectNoSeriousAxeViolations(page, 'erkannter Import');
+  });
+
   for (const theme of ['light', 'dark'] as const) {
     for (const route of VISUAL_QA_ROUTES) {
       test(`${theme}/${route.id}: keine serious/critical Axe-Verstöße`, async ({ page }) => {

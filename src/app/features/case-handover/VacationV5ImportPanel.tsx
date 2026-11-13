@@ -1,6 +1,5 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { VacationV5PackageReview } from '../../../domain/transfer/vacationV5File';
-import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 import { FormActions, PasswordInput } from '../../shared/components/IndustrialForm';
 import { requireCaseHandoverBridge } from './caseHandoverBridge';
@@ -17,20 +16,26 @@ const labels: Record<string, string> = {
   workflow_document_link: 'Dokumentverknüpfungen', violation_document_link: 'Verstoßdokumentbezüge',
 };
 
+function formatDocumentSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 }).format(bytes / 1024)} KB`;
+  return `${new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 }).format(bytes / 1024 / 1024)} MB`;
+}
+
 export function VacationV5ImportPanel({ onCompleted, file }: {
   onCompleted: () => Promise<void>; file: SelectedHandoverFile;
 }) {
-  const announce = useAnnouncer();
+  const reviewHeading = useRef<HTMLHeadingElement>(null);
   const [passphrase, setPassphrase] = useState('');
   const [review, setReview] = useState<VacationV5PackageReview | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  useEffect(() => { if (review) reviewHeading.current?.focus(); }, [review]);
 
   function report(value: string, failed = false) {
     setError(failed ? value : ''); setMessage(failed ? '' : value);
-    announce(value, failed ? 'assertive' : 'polite');
   }
 
   async function selectAndReview() {
@@ -66,14 +71,15 @@ export function VacationV5ImportPanel({ onCompleted, file }: {
       <div className="industrial-action-row"><ToolbarButton type="button" onClick={() => void selectAndReview()}
         loading={busy}>Paket prüfen</ToolbarButton></div>
       {review ? <>
+        <h3 ref={reviewHeading} tabIndex={-1}>Geprüfter Paketumfang</h3>
         <p>Abgebende Instanz: {review.senderInstanceId}</p>
         <p>Gültig bis: {new Date(review.expiresAt).toLocaleString('de-DE')}</p>
         {review.handoverNote ? <div className="industrial-settings-note"><strong>Übergabehinweis:</strong>
           <p>{review.handoverNote}</p></div> : null}
         <ul>{review.sectionCounts.map((section) => <li key={section.type}>{labels[section.type] ?? section.type}: {section.count}</li>)}</ul>
-        <p>{review.documentCount} Dokumente · {new Intl.NumberFormat('de-DE').format(review.documentBytes)} Byte Dokumentinhalt.</p>
+        <p>{review.documentCount} Dokumente · {formatDocumentSize(review.documentBytes)} Dokumentinhalt.</p>
         {review.documents.length ? <ul aria-label="Dokumente im Paket">{review.documents.map((document, index) =>
-          <li key={`${document.filename}-${index}`}>{document.filename} · {document.owner} · {new Intl.NumberFormat('de-DE').format(document.sizeBytes)} Byte</li>)}</ul> : null}
+          <li key={`${document.filename}-${index}`}>{document.filename} · {document.owner} · {formatDocumentSize(document.sizeBytes)}</li>)}</ul> : null}
         <label className="industrial-checkbox-row"><input type="checkbox" className="industrial-input"
           checked={confirmed} onChange={(event) => setConfirmed(event.currentTarget.checked)} />
           <span>Ich habe den geprüften Umfang und das Vertretungsende bestätigt.</span></label>

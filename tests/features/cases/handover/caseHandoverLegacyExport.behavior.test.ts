@@ -11,6 +11,7 @@ import { createTransferCapabilityDocument } from '../../../../services/transferC
 import { openTestDatabase } from '../../../helpers/openTestDatabase';
 import { createElement } from 'react';
 import { LiveRegionProvider } from '../../../../src/app/shared/a11y/LiveRegionProvider';
+import { ConfirmDialogProvider } from '../../../../src/app/shared/dialogs/ConfirmDialogProvider';
 import { HandoverVacationTab } from '../../../../src/app/features/case-handover/HandoverVacationTab';
 import { renderElement, visibleText } from '../../../helpers/renderedMarkup';
 
@@ -37,13 +38,15 @@ afterEach(() => {
 
 describe('ausdrücklicher Legacy-Export', () => {
   it('zeigt bei unbekannter Lesefähigkeit nur einen Export mit dem ältesten sicheren Vorschlag', () => {
-    const rendered = renderElement(createElement(LiveRegionProvider, {
+    const rendered = renderElement(createElement(ConfirmDialogProvider, { children: createElement(LiveRegionProvider, {
       children: createElement(HandoverVacationTab, { cases: [], onCompleted: async () => undefined }),
+    })
     }));
     const text = visibleText(rendered.markup);
-    expect(text).toContain('Format 4 · Fallübergabe');
-    expect(text).toContain('Format 2 · ältere Fallübergabe');
-    expect(text).toContain('Format 2 wird vorsichtig vorgeschlagen');
+    expect(text).toContain('Nur Fallakten · Format 4');
+    expect(text).toContain('Nur Fallakten für ältere Instanzen · Format 2');
+    expect(text).toContain('Lesefähigkeit unbekannt · Vorschlag: Format 2');
+    expect(text).toContain('Nicht darstellbar: fallfreie Fristen, Sitzungen');
     expect(text).not.toContain('Format-5-Vertretung');
   });
 

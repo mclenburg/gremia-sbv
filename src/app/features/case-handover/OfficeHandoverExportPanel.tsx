@@ -68,7 +68,6 @@ export function OfficeHandoverExportPanel({
       <div className="industrial-message" role="note">
         <strong>Enthaltener Amtsbestand</strong>
         <p>{inventory.templateCount} individuelle Vorlage(n), {inventory.deadlineTemplateCount} Fristenregel(n), {inventory.electionCount} Wahlakte(n) mit {inventory.electionDocumentCount} Dokument(en) und {inventory.privacyReviewCount} offene Datenschutzprüfung(en).</p>
-        <p>Das persönliche Tätigkeitsjournal wird nicht übergeben. Bereits erzeugte anonymisierte Berichte können als Dokument Bestandteil einer ausgewählten Fallakte sein.</p>
       </div>
       <CaseHandoverCasePicker cases={cases} selectedIds={caseIds} onChange={setCaseIds} legend="Erforderliche Fallakten für die Amtsübergabe" />
       <TransferProtectionFields value={protection} onChange={setProtection} targetLabel="Öffentliche Empfängerkennung der Nachfolgeinstanz" />

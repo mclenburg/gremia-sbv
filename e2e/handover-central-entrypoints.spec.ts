@@ -39,3 +39,20 @@ test('zeigt im Rückgaberegister jeweils nur den gewählten Ablauf', async ({ pa
   await expect(page.getByRole('heading', { name: 'Änderungen aus der Vertretung zurückgeben' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Format-5-Rückgabe exportieren' })).toHaveCount(0);
 });
+
+test('führt nach Dateiauswahl zum erkannten Importformat und hält die Formatauswahl per Tastatur bedienbar', async ({ page }) => {
+  const navigation = page.getByRole('navigation', { name: 'Hauptnavigation' });
+  const areas = page.getByRole('navigation', { name: 'Übergabe-Arbeitsbereiche Navigation' });
+  await navigation.getByRole('button', { name: 'Übergaben', exact: true }).click();
+  await areas.getByRole('button', { name: /^Urlaubsvertretung/ }).click();
+  const format = page.getByRole('combobox', { name: 'Zielformat der Vertretungsinstanz' });
+  await format.focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(format).toHaveValue('4');
+  await expect(format).toBeFocused();
+
+  await areas.getByRole('button', { name: /^Import/ }).click();
+  await page.getByRole('button', { name: 'Übergabedatei auswählen' }).click();
+  await expect(page.getByRole('heading', { name: 'Format 4 erkannt' })).toBeFocused();
+  await expect(page.getByRole('form', { name: 'Format-1-bis-4-Paket prüfen und importieren' })).toBeVisible();
+});

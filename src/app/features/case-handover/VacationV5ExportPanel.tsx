@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type RefObject } from 'react';
 import type { VacationV5ExportPreview, VacationV5ExportResult,
   VacationV5ScopeCandidate, VacationV5SelectionRequest } from '../../../domain/transfer/vacationV5File';
 import type { VacationV5ScopeSelection } from '../../../domain/transfer/vacationV5ScopePolicy';
@@ -22,6 +22,20 @@ const SECTION_LABELS: Record<string, string> = {
   inclusion_officer: 'Inklusionsbeauftragter', generated_document: 'Amtsdokumente',
   workflow_document_link: 'Dokumentzuordnungen', violation_document_link: 'Verstoßdokumentzuordnungen',
 };
+const SCOPE_LABELS: Record<keyof VacationV5ScopeSelection, string> = {
+  caseIds: 'Fallakten', standaloneDeadlineIds: 'fallfreie Fristen', meetingIds: 'Sitzungen',
+  recruitingIds: 'Stellenbesetzungen', employerObligationIds: 'Arbeitgeberpflichten',
+  inclusionAgreementIds: 'Inklusionsvereinbarungen', violationIds: 'Beteiligungsverstöße',
+  assemblyIds: 'SBV-Versammlungen', inclusionOfficerSnapshotId: 'Inklusionsbeauftragter',
+};
+
+function selectedScopeLabels(selection: VacationV5ScopeSelection, documentIds: readonly string[]): string[] {
+  const labels = (Object.keys(SCOPE_LABELS) as Array<keyof VacationV5ScopeSelection>)
+    .filter((key) => { const value = selection[key]; return Array.isArray(value) ? value.length > 0 : Boolean(value); })
+    .map((key) => SCOPE_LABELS[key]);
+  if (documentIds.length) labels.push(`${documentIds.length} Dokumente`);
+  return labels;
+}
 
 function hasSelection(selection: VacationV5ScopeSelection): boolean {
   return Boolean(selection.inclusionOfficerSnapshotId)
@@ -74,11 +88,12 @@ function toggleCandidateSelection(current: VacationV5ScopeSelection, candidate: 
   return next;
 }
 
-function VacationV5ExportPreviewPanel({ preview, confirmed, onConfirm }: {
+function VacationV5ExportPreviewPanel({ preview, confirmed, onConfirm, headingRef }: {
   preview: VacationV5ExportPreview; confirmed: boolean; onConfirm: (value: boolean) => void;
+  headingRef: RefObject<HTMLHeadingElement | null>;
 }) {
   return <div className="industrial-selection-card" role="region" aria-label="Exportvorschau">
-    <h3>Bestätigter Umfang</h3>
+    <h3 ref={headingRef} tabIndex={-1}>Bestätigter Umfang</h3>
     <ul>{preview.sectionCounts.map((section) => <li key={section.type}>{SECTION_LABELS[section.type] ?? section.type}: {section.count}</li>)}</ul>
     <p>{preview.documents.length} Dokumente · {new Intl.NumberFormat('de-DE').format(preview.documentBytes)} Byte
       · {preview.sensitiveTextCount} Vorgänge mit Freitext oder Gesundheitsdaten.</p>
@@ -91,8 +106,9 @@ function VacationV5ExportPreviewPanel({ preview, confirmed, onConfirm }: {
   </div>;
 }
 
-export function VacationV5ExportPanel({ onCompleted, profileId, expiresAt, passphrase, initialCaseId }: {
+export function VacationV5ExportPanel({ onCompleted, profileId, expiresAt, passphrase, initialCaseId, onScopeChange }: {
   onCompleted: () => Promise<void>; profileId: string; expiresAt: string; passphrase: string; initialCaseId?: string;
+  onScopeChange?: (labels: string[]) => void;
 }) {
   const announce = useAnnouncer();
   const [handoverNote, setHandoverNote] = useState('');
@@ -105,6 +121,9 @@ export function VacationV5ExportPanel({ onCompleted, profileId, expiresAt, passp
   const [error, setError] = useState('');
   const [status, setStatus] = useState('');
   const [result, setResult] = useState<VacationV5ExportResult | null>(null);
+  const previewHeading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => { onScopeChange?.(selectedScopeLabels(selection, documentIds)); }, [selection, documentIds, onScopeChange]);
+  useEffect(() => { if (preview) previewHeading.current?.focus(); }, [preview]);
   function report(message: string, failed = false) {
     setError(failed ? message : ''); setStatus(failed ? '' : message);
     announce(message, failed ? 'assertive' : 'polite');
@@ -173,7 +192,6 @@ export function VacationV5ExportPanel({ onCompleted, profileId, expiresAt, passp
   }
 
   return <form className="industrial-stack" onSubmit={(event) => void submit(event)} aria-label="Format-5-Vertretung">
-      <p className="industrial-meta">Wählen Sie die für die Vertretung nötigen Vorgänge und Dokumente. Ein Paket kann ohne Fallakte entstehen.</p>
       <div className="industrial-action-row"><ToolbarButton type="button" loading={busy} onClick={() => void loadCandidates()}>Offene Vorgänge laden</ToolbarButton>
         {candidates.length ? <ToolbarButton type="button" onClick={chooseRecommended}>Vorgeschlagene auswählen</ToolbarButton> : null}</div>
       {candidates.length ? <VacationV5ScopePicker candidates={candidates} selection={selection} documentIds={documentIds}
@@ -182,9 +200,9 @@ export function VacationV5ExportPanel({ onCompleted, profileId, expiresAt, passp
       {candidates.length ? <div className="industrial-action-row"><ToolbarButton type="button" loading={busy}
         onClick={() => void makePreview()}>Umfang prüfen</ToolbarButton></div> : null}
       <TextareaInput label="Kurzer Übergabehinweis (optional)" value={handoverNote} maxLength={2000}
-        onValueChange={(value) => { setHandoverNote(value); invalidate(); }}
-        helpText="Prioritäten und nächste Schritte für die Vertretung. Der Hinweis wird im Paket verschlüsselt." />
-      {preview ? <VacationV5ExportPreviewPanel preview={preview} confirmed={confirmed} onConfirm={setConfirmed} /> : null}
+        onValueChange={(value) => { setHandoverNote(value); invalidate(); }} />
+      {preview ? <VacationV5ExportPreviewPanel preview={preview} confirmed={confirmed} onConfirm={setConfirmed}
+        headingRef={previewHeading} /> : null}
       {error ? <div className="industrial-message industrial-message-warning" role="alert">{error}</div> : null}
       {status ? <div className="industrial-message industrial-message-success" role="status">{status}</div> : null}
       {result?.exported ? <FileLocationNotice filePath={result.filePath} label="Format-5-Paket gespeichert" /> : null}

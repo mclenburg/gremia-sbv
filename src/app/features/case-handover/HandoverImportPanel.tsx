@@ -81,8 +81,8 @@ export function HandoverImportPanel({ onCompleted, file }: {
   return <form className="industrial-stack" onSubmit={submit} aria-label="Format-1-bis-4-Paket prüfen und importieren">
       <PasswordInput label="Transport-Passphrase (nur bei passwortgeschützten Paketen)" value={passphrase} onValueChange={(value) => { setPassphrase(value); setSelection(null); }} />
       <div className="industrial-action-row"><ToolbarButton type="button" onClick={() => void selectAndInspect()} loading={busy}>Paket prüfen</ToolbarButton></div>
-      {inspection?.packageType === 'return_delta' ? <div className="industrial-message" role="status"><strong>Rückgabe-Delta geprüft.</strong> Die Zuordnung erfolgt ausschließlich über das auf dieser Instanz protokollierte Ausgangspaket.</div> : null}
-      {inspection?.packageType === 'office_handover' ? <div className="industrial-message" role="status"><strong>Amtsübergabe geprüft.</strong> Das Paket enthält dauerhaften Amtsbestand; persönliche Tätigkeitsjournale sind technisch ausgeschlossen.</div> : null}
+      {inspection?.packageType === 'return_delta' ? <div className="industrial-message" role="status">Rückgabe-Delta geprüft.</div> : null}
+      {inspection?.packageType === 'office_handover' ? <div className="industrial-message" role="status">Amtsübergabe geprüft.</div> : null}
       {inspection?.packageType === 'vacation_handover' || inspection?.packageType === 'office_handover' ? <ImportPackageReview
         caseCount={inspection.caseCount} measureCount={inspection.measureCount} documentCount={inspection.documentCount} deadlineCount={inspection.deadlineCount}
         validUntilLabel={inspection.packageType === 'office_handover' ? 'dauerhafte Amtsübernahme' : formatDate(inspection.expiresAt)} integrityLabel={inspection.integrity?.verified ? `Integrität kryptografisch bestätigt · Format ${inspection.integrity.formatVersion}` : undefined}

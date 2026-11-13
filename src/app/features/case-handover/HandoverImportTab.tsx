@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
+import { useEffect, useRef, useState } from 'react';
 import { ToolbarButton } from '../../shared/components/IndustrialButton';
 import { TextInput } from '../../shared/components/IndustrialForm';
 import { IndustrialPanel } from '../../shared/components/WorkbenchPanels';
@@ -12,11 +11,12 @@ export type SelectedHandoverFile = { token: string; name: string };
 type Selection = SelectedHandoverFile & { kind: 'legacy' | 'vacation_v5' | 'return_v5'; formatVersion: number };
 
 export function HandoverImportTab({ onCompleted }: { onCompleted: () => Promise<void> }) {
-  const announce = useAnnouncer();
+  const selectionHeading = useRef<HTMLHeadingElement>(null);
   const [selected, setSelected] = useState<Selection | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [status, setStatus] = useState('');
+  useEffect(() => { if (selected) selectionHeading.current?.focus(); }, [selected]);
 
   async function chooseFile() {
     setBusy(true); setError(''); setStatus('');
@@ -26,11 +26,10 @@ export function HandoverImportTab({ onCompleted }: { onCompleted: () => Promise<
       if (file.canceled) { setStatus('Dateiauswahl abgebrochen.'); return; }
       const route = await bridge.classifyFile(file.filePath);
       setSelected({ token: file.filePath, name: file.fileName, ...route });
-      announce(`Format ${route.formatVersion} erkannt. Bitte das Paket mit seiner Passphrase prüfen.`, 'polite');
     } catch (cause) {
       setSelected(null);
       const message = cause instanceof Error ? cause.message : 'Übergabedatei konnte nicht zugeordnet werden.';
-      setError(message); announce(message, 'assertive');
+      setError(message);
     } finally { setBusy(false); }
   }
 
@@ -39,19 +38,18 @@ export function HandoverImportTab({ onCompleted }: { onCompleted: () => Promise<
     try { await onCompleted(); }
     catch {
       const message = 'Das Paket wurde übernommen. Die Übersicht konnte nicht aktualisiert werden; bitte den Bereich erneut öffnen.';
-      setError(message); announce(message, 'assertive');
+      setError(message);
     }
   }
 
   return <IndustrialPanel kicker="Eingang" title="Übergabe oder Rückgabe importieren"
-    description="Datei auswählen; Gremia.SBV erkennt das Paketformat und zeigt nur dessen Prüf- und Importablauf."
     ariaLabel="Übergabepaket auswählen und importieren" helpId="caseHandover.import">
     <div className="industrial-stack">
       <div className="industrial-action-row"><ToolbarButton type="button" loading={busy}
         onClick={() => void chooseFile()}>Übergabedatei auswählen</ToolbarButton></div>
       {selected ? <>
         <TextInput label="Ausgewählte Datei" value={selected.name} onValueChange={() => undefined} readOnly />
-        <p role="status">Format {selected.formatVersion} erkannt. Die endgültige Prüfung erfolgt nach Eingabe der Passphrase.</p>
+        <h3 ref={selectionHeading} tabIndex={-1}>Format {selected.formatVersion} erkannt</h3>
         {selected.kind === 'legacy' ? <HandoverImportPanel key={selected.token} file={selected} onCompleted={complete} /> : null}
         {selected.kind === 'vacation_v5' ? <VacationV5ImportPanel key={selected.token} file={selected} onCompleted={complete} /> : null}
         {selected.kind === 'return_v5' ? <VacationV5ReturnImportPanel key={selected.token} file={selected} onCompleted={complete} /> : null}

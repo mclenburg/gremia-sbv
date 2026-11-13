@@ -286,6 +286,7 @@ export const HELP_REGISTRY = {
     blocks: [
       { type: "list", items: [
         "Für Format 5 offene Fallakten, fallfreie Fristen und Amtsvorgänge bewusst auswählen; Dokumente einzeln markieren und die Vorschau prüfen.",
+        "Ein Format-5-Paket kann ohne Fallakte entstehen. Ein kurzer Übergabehinweis kann Prioritäten und nächste Schritte nennen; er wird im Paket verschlüsselt.",
         "Zielprofil wählen: Das neueste verifiziert lesbare Format wird vorgeschlagen. Bei unbekannter Fähigkeit beginnt die Auswahl vorsichtig mit Format 2; Format 4 bleibt wählbar. Format 5 benötigt eine bestätigte Lesefähigkeit. Ältere Formate übertragen nur Fallakten.",
         "Vertretungsende setzen; nach Ablauf werden importierte Vertretungsdaten prüfbedürftig.",
       ] },
@@ -315,7 +316,7 @@ export const HELP_REGISTRY = {
     summary: "Das Rückgabe-Delta enthält nur Änderungen aus einer übernommenen Vertretung.",
     blocks: [
       { type: "paragraph", text: "Die Zuordnung erfolgt über das protokollierte Ausgangspaket. Dadurch wird verhindert, dass fremde oder nicht zusammengehörige Fallakten versehentlich vermischt werden." },
-      { type: "paragraph", text: "Bei Format 5 das aktive Ausgangspaket wählen, geänderte Vorgänge prüfen und neue Vorgänge oder Dokumente bewusst hinzufügen. Stornowünsche benötigen eine Begründung und löschen auf der Ausgangsinstanz nichts automatisch." },
+      { type: "paragraph", text: "Bei Format 5 das aktive Ausgangspaket wählen, geänderte Vorgänge prüfen und neue Vorgänge oder Dokumente bewusst hinzufügen. Unveränderte Vorgänge bleiben außerhalb des Deltas. Stornowünsche benötigen eine Begründung und löschen auf der Ausgangsinstanz nichts automatisch." },
     ],
   },
   "caseHandover.office": {
@@ -323,6 +324,7 @@ export const HELP_REGISTRY = {
     summary: "Die Amtsübergabe dient dem geordneten Wechsel zur gewählten Nachfolge.",
     blocks: [
       { type: "paragraph", text: "Übergeben werden ausgewählte Fallakten, erforderliche Dokumente, offene Fristen, Datenschutzstatus, Vorlagen, Fristenregeln und digitale Wahlakten. Das persönliche Tätigkeitsjournal bleibt ausgeschlossen." },
+      { type: "paragraph", text: "Bereits erzeugte anonymisierte Berichte können als Dokument Bestandteil einer ausgewählten Fallakte sein." },
       { type: "paragraph", text: "Vor dem Export muss der Umfang bewusst bestätigt werden. Physische Originale, Passwörter und externe Zugangsdaten sind nicht Bestandteil des Pakets." },
     ],
   },

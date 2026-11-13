@@ -44,7 +44,6 @@ function CandidateGroup({ group, candidates, selection, documentIds, onToggle, o
             {candidate.dueAt ? ` · ${new Date(candidate.dueAt).toLocaleDateString('de-DE')}` : ''}
             {candidate.recommended ? ' · im Vertretungszeitraum' : ''}</small></span></label>
         {selected(selection, candidate) && candidate.documents.length ? <div className="industrial-stack">
-          <p className="industrial-meta">Dokumente werden nur nach eigener Auswahl übertragen:</p>
           {candidate.documents.map((document) => <label className="industrial-checkbox-row" key={document.id}>
             <input className="industrial-input" type="checkbox" checked={documentIds.includes(document.id)}
               onChange={() => onToggleDocument(document.id)} />

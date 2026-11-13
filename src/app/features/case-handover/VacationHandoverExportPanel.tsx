@@ -58,6 +58,13 @@ export function VacationHandoverExportPanel({ cases, initialCaseId, onCompleted,
 
   return <form className="industrial-stack" onSubmit={submit} aria-label={`Format-${formatVersion}-Fallübergabe`}>
       <CaseHandoverCasePicker cases={cases} selectedIds={caseIds} onChange={setCaseIds} legend="Fallakten für die Vertretung" />
+      <section className="industrial-selection-card" aria-label={`Exportumfang für Format ${formatVersion}`}>
+        <h3>Exportumfang · Format {formatVersion}</h3>
+        <p>Enthalten: {caseIds.length ? cases.filter((record) => caseIds.includes(record.id))
+          .map((record) => record.caseNumber).join(', ') : 'noch keine Fallakte ausgewählt'}.</p>
+        <p>Nicht darstellbar: fallfreie Fristen, Sitzungen, Stellenbesetzungen, Arbeitgeberpflichten,
+          Inklusionsvereinbarungen, allgemeine Beteiligungsverstöße und SBV-Versammlungen.</p>
+      </section>
       <CaseHandoverChecklistPanel packageType="vacation_handover" caseIds={caseIds} expiresAt={expiresAt ?? undefined} acknowledgements={acknowledgedItemIds} onAcknowledgementsChange={setAcknowledgedItemIds} />
       {error ? <div className="industrial-message industrial-message-warning" role="alert">{error}</div> : null}
       {result?.exported ? <FileLocationNotice filePath={result.filePath} label="Übergabepaket gespeichert" /> : null}
