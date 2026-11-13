@@ -11,7 +11,7 @@ import { createTransferCapabilityDocument } from '../../../../services/transferC
 import { openTestDatabase } from '../../../helpers/openTestDatabase';
 import { createElement } from 'react';
 import { LiveRegionProvider } from '../../../../src/app/shared/a11y/LiveRegionProvider';
-import { VacationHandoverExportPanel } from '../../../../src/app/features/case-handover/VacationHandoverExportPanel';
+import { HandoverVacationTab } from '../../../../src/app/features/case-handover/HandoverVacationTab';
 import { renderElement, visibleText } from '../../../helpers/renderedMarkup';
 
 let source: DatabaseAdapter;
@@ -36,14 +36,15 @@ afterEach(() => {
 });
 
 describe('ausdrücklicher Legacy-Export', () => {
-  it('zeigt den aktuellen Standard und die ausdrückliche ältere Formatauswahl', () => {
+  it('zeigt bei unbekannter Lesefähigkeit nur einen Export mit dem ältesten sicheren Vorschlag', () => {
     const rendered = renderElement(createElement(LiveRegionProvider, {
-      children: createElement(VacationHandoverExportPanel, { cases: [], onCompleted: async () => undefined }),
+      children: createElement(HandoverVacationTab, { cases: [], onCompleted: async () => undefined }),
     }));
     const text = visibleText(rendered.markup);
-    expect(text).toContain('Format 4 – aktuelle Fallübergabe');
-    expect(text).toContain('Format 2 – ältere Zielinstanz');
-    expect(text).toContain('Die tatsächliche Rückgabefähigkeit einer älteren Zielinstanz ist gesondert zu prüfen.');
+    expect(text).toContain('Format 4 · Fallübergabe');
+    expect(text).toContain('Format 2 · ältere Fallübergabe');
+    expect(text).toContain('Format 2 wird vorsichtig vorgeschlagen');
+    expect(text).not.toContain('Format-5-Vertretung');
   });
 
   it('erzeugt Format 2 zielgebunden und importiert es erst nach Altformat-Bestätigung', async () => {

@@ -18,6 +18,8 @@ Die Zielinstanz zeigt unter **Einstellungen** ihre kurze Instanz-ID und die voll
 
 ## Urlaubsvertretung
 
+Wähle zuerst das Zielprofil. Gremia.SBV schlägt bei bestätigten Fähigkeiten automatisch das neueste gemeinsame Format vor und zeigt nur die dafür nötige Auswahl. Sind die Fähigkeiten unbekannt, wird Format 2 vorsichtig vorgeschlagen; Format 4 bleibt wählbar. Ein nicht bestätigter Funktionsstand kann nicht allein aus der öffentlichen Empfängerkennung erkannt werden. Format 5 erscheint nur bei verifizierter Lesefähigkeit. Im Register **Import** wählst du die Datei einmal aus; die App zeigt anschließend den passenden Prüfablauf für das erkannte Format.
+
 ### Erweiterte Vertretung mit Format 5
 
 1. Öffne **Übergaben > Urlaubsvertretung** und setze das Vertretungsende.
@@ -35,7 +37,7 @@ Die Zielinstanz zeigt unter **Einstellungen** ihre kurze Instanz-ID und die voll
 2. Öffne das Register **Urlaubsvertretung**.
 3. Wähle nur die Fallakten aus, die während der Vertretung bearbeitet werden müssen. Bei größeren Beständen filterst du nach Aktenzeichen, Name oder Kategorie.
 4. Wähle ein Empfängerprofil oder füge die vollständige öffentliche Empfängerkennung der Zielinstanz ein. Prüfe die angezeigte fünfstellige Zielinstanz-ID.
-5. Wähle das Übergabeformat. Format 4 ist der Standard. Format 2 ist nur für eine ältere, bekannte Zielinstanz gedacht, deren tatsächliche Lesefähigkeit geprüft wurde. Format 2 benötigt Empfängerschlüssel und eine Transport-Passphrase; die Schutzart ohne Passphrase ist dafür gesperrt.
+5. Prüfe das vorgeschlagene Zielformat. Bei bestätigter Format-4-Fähigkeit wird Format 4 vorgeschlagen, bei unbekannter Fähigkeit zunächst Format 2. Du kannst zwischen den verfügbaren Formaten wechseln. Format 2 benötigt Empfängerschlüssel und eine Transport-Passphrase; die Schutzart ohne Passphrase ist dafür gesperrt.
 6. Trage Transport-Passphrase und Vertretungsende ein.
 7. Exportiere das Paket und übermittle Datei und Passphrase getrennt.
 8. Die Stellvertretung prüft das Paket im Register **Import** vor dem Schreiben und übernimmt es als lokale Vertretungsakte.

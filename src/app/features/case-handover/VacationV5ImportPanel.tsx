@@ -2,9 +2,9 @@ import { useState, type FormEvent } from 'react';
 import type { VacationV5PackageReview } from '../../../domain/transfer/vacationV5File';
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
-import { FormActions, PasswordInput, TextInput } from '../../shared/components/IndustrialForm';
-import { IndustrialPanel } from '../../shared/components/WorkbenchPanels';
+import { FormActions, PasswordInput } from '../../shared/components/IndustrialForm';
 import { requireCaseHandoverBridge } from './caseHandoverBridge';
+import type { SelectedHandoverFile } from './HandoverImportTab';
 
 const labels: Record<string, string> = {
   case: 'Fallakten', protected_person: 'Personenbezüge', case_note: 'Fallnotizen', case_measure: 'Maßnahmen',
@@ -17,10 +17,11 @@ const labels: Record<string, string> = {
   workflow_document_link: 'Dokumentverknüpfungen', violation_document_link: 'Verstoßdokumentbezüge',
 };
 
-export function VacationV5ImportPanel({ onCompleted }: { onCompleted: () => Promise<void> }) {
+export function VacationV5ImportPanel({ onCompleted, file }: {
+  onCompleted: () => Promise<void>; file: SelectedHandoverFile;
+}) {
   const announce = useAnnouncer();
   const [passphrase, setPassphrase] = useState('');
-  const [file, setFile] = useState<{ token: string; name: string } | null>(null);
   const [review, setReview] = useState<VacationV5PackageReview | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -33,13 +34,11 @@ export function VacationV5ImportPanel({ onCompleted }: { onCompleted: () => Prom
   }
 
   async function selectAndReview() {
-    setBusy(true); setFile(null); setReview(null); setConfirmed(false); setError(''); setMessage('');
+    setBusy(true); setReview(null); setConfirmed(false); setError(''); setMessage('');
     try {
       const bridge = await requireCaseHandoverBridge();
-      const selected = await bridge.selectFile();
-      if (selected.canceled) return report('Dateiauswahl abgebrochen.');
-      const next = await bridge.reviewV5(selected.filePath, passphrase);
-      setFile({ token: selected.filePath, name: selected.fileName }); setReview(next);
+      const next = await bridge.reviewV5(file.token, passphrase);
+      setReview(next);
       report('Format-5-Paket geprüft. Bitte den Umfang vor dem Import bestätigen.');
     } catch (cause) { report(cause instanceof Error ? cause.message : 'Format-5-Paket konnte nicht geprüft werden.', true); }
     finally { setBusy(false); }
@@ -47,12 +46,12 @@ export function VacationV5ImportPanel({ onCompleted }: { onCompleted: () => Prom
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!file || !review || !confirmed) return report('Bitte das geprüfte Paket und seinen Umfang bestätigen.', true);
+    if (!review || !confirmed) return report('Bitte das geprüfte Paket und seinen Umfang bestätigen.', true);
     setBusy(true); setError(''); setMessage('');
     try {
       const bridge = await requireCaseHandoverBridge();
       const result = await bridge.importV5(file.token, passphrase, review.packageId);
-      setFile(null); setReview(null); setConfirmed(false); setPassphrase('');
+      setReview(null); setConfirmed(false); setPassphrase('');
       report(`${result.importedCount} Vorgänge als lokale Vertretungskopien übernommen.`);
       try { await onCompleted(); }
       catch { report('Das Paket wurde übernommen. Die Übersicht konnte nicht aktualisiert werden.', true); }
@@ -60,16 +59,13 @@ export function VacationV5ImportPanel({ onCompleted }: { onCompleted: () => Prom
     finally { setBusy(false); }
   }
 
-  return <IndustrialPanel kicker="Format 5" title="Erweiterte Urlaubsübergabe übernehmen"
-    description="Herkunft, Zielbindung, Integrität und Umfang werden vor dem Import geprüft. Übernommene Vorgänge entstehen als lokale Vertretungskopien."
-    ariaLabel="Format-5-Urlaubsübergabe prüfen und importieren">
-    <form className="industrial-stack" onSubmit={(event) => void submit(event)}>
+  return <form className="industrial-stack" onSubmit={(event) => void submit(event)}
+    aria-label="Format-5-Urlaubsübergabe prüfen und importieren">
       <PasswordInput label="Transport-Passphrase" value={passphrase}
-        onValueChange={(value) => { setPassphrase(value); setFile(null); setReview(null); setConfirmed(false); }} />
+        onValueChange={(value) => { setPassphrase(value); setReview(null); setConfirmed(false); }} />
       <div className="industrial-action-row"><ToolbarButton type="button" onClick={() => void selectAndReview()}
-        loading={busy}>Datei auswählen und Paket prüfen</ToolbarButton></div>
-      {file && review ? <>
-        <TextInput label="Geprüfte Datei" value={file.name} onValueChange={() => undefined} readOnly />
+        loading={busy}>Paket prüfen</ToolbarButton></div>
+      {review ? <>
         <p>Abgebende Instanz: {review.senderInstanceId}</p>
         <p>Gültig bis: {new Date(review.expiresAt).toLocaleString('de-DE')}</p>
         {review.handoverNote ? <div className="industrial-settings-note"><strong>Übergabehinweis:</strong>
@@ -86,6 +82,5 @@ export function VacationV5ImportPanel({ onCompleted }: { onCompleted: () => Prom
       {message ? <div className="industrial-message industrial-message-success" role="status">{message}</div> : null}
       <FormActions><IndustrialButton type="submit" loading={busy} disabled={!review || !confirmed}>
         Geprüftes Format-5-Paket importieren</IndustrialButton></FormActions>
-    </form>
-  </IndustrialPanel>;
+    </form>;
 }

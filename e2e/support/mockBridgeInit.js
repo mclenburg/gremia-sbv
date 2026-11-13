@@ -881,8 +881,9 @@
         officeScope: input.packageType === 'office_handover' ? { templateCount: 0, deadlineTemplateCount: 0, electionCount: 0, electionDocumentCount: 0, privacyReviewCount: 0, activityJournalIncluded: false } : undefined,
       }),
       exportReturnDelta: async () => ({ exported: false, filePath: '', packageId: '', packageType: 'return_delta', caseCount: 0, measureCount: 0, documentCount: 0, deadlineCount: 0 }),
-      selectFile: async () => ({ canceled: true }),
-      inspect: async () => { throw new Error('In der Browser-Testumgebung wurde keine Übergabedatei ausgewählt.'); },
+      selectFile: async () => ({ canceled: false, filePath: 'selected-office-handover-token', fileName: 'amtsuebergabe.gsbvtransfer' }),
+      classifyFile: async () => ({ formatVersion: 4, kind: 'legacy' }),
+      inspect: async () => (await window.gremiaSbv.caseHandover.selectAndInspect('')).inspection,
       selectAndInspect: async () => ({
         canceled: false,
         filePath: 'selected-office-handover-token',

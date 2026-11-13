@@ -16,8 +16,8 @@ Fall- und Amtsübergabepakete haben die Dateiendung `.gsbvtransfer`. Mobile Begl
 
 1. Den Bereich `Übergaben` als letzten Punkt der Kernarbeit öffnen.
 2. Das passende Register wählen: `Urlaubsvertretung`, `Begleit-App`, `Rückgabe`, `Amtsübergabe`, `Import` oder `Protokoll`.
-3. Für eine erweiterte Urlaubsvertretung Format 5 wählen und offene Vorgänge aus Fallarbeit und Amtsarbeit über die filterbare Auswahl übernehmen. Jeder Vorschlag und jedes Dokument muss bewusst ausgewählt werden. Für ältere Gegeninstanzen steht die fallbezogene Übergabe weiter zur Verfügung.
-4. Empfängerprofil wählen oder die vollständige öffentliche Empfängerkennung der Zielinstanz einfügen und die angezeigte fünfstellige Zielinstanz-ID prüfen.
+3. Empfängerprofil wählen oder die vollständige öffentliche Empfängerkennung der Zielinstanz einfügen. Die Anwendung schlägt das neueste verifiziert lesbare Format vor und zeigt nur dessen Exportablauf. Ohne bestätigte Fähigkeit schlägt sie vorsichtig Format 2 vor; Format 4 bleibt wählbar. Format 5 setzt ein verifiziertes Zielprofil voraus.
+4. Die angezeigte Zielinstanz-ID und das vorgeschlagene Format prüfen. Bei Format 5 offene Vorgänge aus Fallarbeit und Amtsarbeit über die filterbare Auswahl übernehmen; jeder Vorschlag und jedes Dokument muss bewusst ausgewählt werden. Formate 2 und 4 enthalten nur Fallakten.
 5. Transport-Passphrase vergeben, sofern die gewählte Schutzart eine Passphrase verlangt.
 6. Bei einer Vertretung ein verbindliches Enddatum setzen; Amtsübergaben haben kein Ablaufdatum.
 7. Umfang, Dokumentnamen, Dokumentbytes, sensible Freitexte und Vertretungsende in der Vorschau prüfen und Export bestätigen.
@@ -31,7 +31,7 @@ Format 5 kann ohne Fallakte nur fallfreie Fristen oder Amtsvorgänge übertragen
 
 1. Den Bereich `Übergaben` öffnen.
 2. Das Register `Import` öffnen.
-3. Übergabedatei auswählen.
+3. Übergabedatei einmal auswählen. Die Anwendung ordnet sie anhand der Hülle dem passenden Importablauf zu; die Hülle allein ist noch kein Integritätsnachweis.
 4. Passphrase eingeben, sofern das Paket passwortgeschützt ist.
 5. Paket prüfen.
 6. Vorschau lesen.
@@ -141,7 +141,7 @@ Für eine bewusst gewählte ältere Zielinstanz kann eine Urlaubsvertretung mit 
 
 Bekannte Instanzen können ihre Übergabefähigkeiten offline austauschen: Unter **Einstellungen > Übergaben** wird für ein aktives Empfängerprofil eine kleine `.gsbvcap`-Datei erzeugt. Die Gegeninstanz wählt diese Datei beim zugehörigen Profil aus, prüft Instanz-ID, vollständigen Fingerprint, Lese- und Schreibformate sowie Merkmale und übernimmt sie ausdrücklich. Die Datei bindet Absender, Ziel, Inhalt und Ausgabezeitpunkt kryptografisch an die beiden bekannten X25519-Schlüssel. Ein unbekannter oder ausgetauschter Schlüssel benötigt weiterhin eine unabhängig bestätigte Empfängerkennung und ein neues Profil. Ältere Revisionsstände setzen bereits bestätigte Fähigkeiten nicht zurück; deaktivierte Profile werden dadurch nicht aktiviert. Die aktuelle Anwendung meldet Formate 1–5 zum Lesen und 2/4/5 zum Schreiben. Die angezeigte Softwareversion ist informativ und schaltet keine Paketformate frei.
 
-Bei Auswahl eines verifizierten Empfängerprofils schlägt die Urlaubsübergabe das neueste gemeinsame Format aus den derzeit schreibbaren Formaten 4 und 2 vor. Ein Format, das die bestätigte Gegeninstanz nicht lesen kann, wird auch im Export-Service vor Datensammlung und Dateischreiben gesperrt. Bei unbekannter Fähigkeit bleibt die Formatwahl offen und muss unabhängig geprüft werden; die Rückgabefähigkeit einer älteren Gegeninstanz ist damit weiterhin nicht zugesagt.
+Bei Auswahl eines verifizierten Empfängerprofils schlägt die Urlaubsübergabe das neueste gemeinsame Format aus 5, 4 und 2 vor; Format 5 benötigt zusätzlich das bestätigte Merkmal `vacation_scope_v5`. Ein Format, das die bestätigte Gegeninstanz nicht lesen kann, wird auch im Export-Service vor Datensammlung und Dateischreiben gesperrt. Bei unbekannter Fähigkeit wird Format 2 als frühester noch schreibbarer Stand vorgeschlagen; Format 4 bleibt auswählbar. Die tatsächliche Unterstützung ist dann unabhängig zu prüfen, und die Rückgabefähigkeit einer älteren Gegeninstanz ist nicht zugesagt. Die Importseite erkennt das Format der ausgewählten Datei automatisch und verlangt danach die vollständige kryptografische Prüfung.
 
 Die erweiterte Urlaubsvertretung mit Format 5 benötigt ein aktives Empfängerprofil, dessen Format-5-Lesefähigkeit und Merkmal `vacation_scope_v5` offline bestätigt wurden. Sie ist ein eigener Exportweg. Die fallbezogenen Formate 4 und 2 bleiben für bekannte ältere Gegeninstanzen verfügbar.
 

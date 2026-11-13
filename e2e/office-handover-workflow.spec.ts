@@ -18,12 +18,13 @@ test('führt eine Amtsübergabe vom geprüften Export bis zum bestätigten Impor
   await expect(exportRegion.getByText('Amtsübergabepaket gespeichert')).toBeVisible();
 
   await handoverTabs.getByRole('button', { name: /^Import/ }).click();
-  const importRegion = page.getByRole('region', { name: 'Übergabe oder Rückgabe importieren' });
+  const importRegion = page.getByRole('region', { name: 'Übergabepaket auswählen und importieren' });
+  await importRegion.getByRole('button', { name: 'Übergabedatei auswählen' }).click();
   await importRegion.getByLabel('Transport-Passphrase').fill('Sichere Amtsübergabe 2026');
-  await importRegion.getByRole('button', { name: 'Datei auswählen und Paket prüfen' }).click();
+  await importRegion.getByRole('button', { name: 'Paket prüfen' }).click();
   await expect(importRegion.getByText(/Amtsübergabe geprüft/)).toBeVisible();
   await expect(importRegion.getByRole('radio', { name: 'Als neuen lokalen Amtsbestand übernehmen' })).toBeChecked();
   await expect(importRegion.getByRole('checkbox', { name: /Fristen- und Aufbewahrungsregeln/ })).toBeChecked();
   await importRegion.getByRole('button', { name: 'Geprüftes Paket importieren' }).click();
-  await expect(importRegion.getByText(/Amtsbestand wurde dauerhaft übernommen/)).toBeVisible();
+  await expect(importRegion.getByText(/Paket wurde übernommen/)).toBeVisible();
 });

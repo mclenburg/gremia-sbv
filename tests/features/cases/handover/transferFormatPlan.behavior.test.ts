@@ -10,12 +10,17 @@ const capability: TransferCapabilities = {
 describe('Urlaubsübergabe-Formatplan', () => {
   it('schlägt aus verifizierten Leseformaten das neueste tatsächlich schreibbare Format vor', () => {
     expect(planVacationHandoverFormat(capability)).toEqual({ suggested: 4, available: [4, 2], verified: true });
+    expect(planVacationHandoverFormat({ ...capability, readFormats: [1, 2, 4, 5],
+      features: ['manual_capability_exchange', 'vacation_scope_v5'] }))
+      .toEqual({ suggested: 5, available: [5, 4, 2], verified: true });
+    expect(planVacationHandoverFormat({ ...capability, readFormats: [1, 2, 4, 5] }))
+      .toEqual({ suggested: 4, available: [4, 2], verified: true });
     expect(planVacationHandoverFormat({ ...capability, readFormats: [1, 2], buildVersion: '9.9.9' }))
       .toEqual({ suggested: 2, available: [2], verified: true });
   });
 
   it('erfindet bei unbekannter Fähigkeit keinen bestätigten Funktionsstand', () => {
-    expect(planVacationHandoverFormat(null)).toEqual({ suggested: 4, available: [4, 2], verified: false });
+    expect(planVacationHandoverFormat(null)).toEqual({ suggested: 2, available: [2, 4], verified: false });
   });
 
   it('sperrt Gegenstellen ohne gemeinsames Format unabhängig vom Versionsstring', () => {

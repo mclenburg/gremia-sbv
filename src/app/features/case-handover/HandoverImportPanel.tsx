@@ -4,11 +4,11 @@ import type { CaseHandoverImportMode, CaseHandoverInspectResult } from '../../..
 import { useAnnouncer } from '../../shared/a11y/LiveRegionProvider';
 import { IndustrialButton, ToolbarButton } from '../../shared/components/IndustrialButton';
 import { ImportPackageReview } from '../../shared/components/ImportExportFeedback';
-import { FormActions, PasswordInput, TextInput } from '../../shared/components/IndustrialForm';
-import { IndustrialPanel } from '../../shared/components/WorkbenchPanels';
+import { FormActions, PasswordInput } from '../../shared/components/IndustrialForm';
 import { requireCaseHandoverBridge } from './caseHandoverBridge';
+import type { SelectedHandoverFile } from './HandoverImportTab';
 
-type InspectedPackage = { filePath: string; fileName: string; inspection: CaseHandoverInspectResult };
+type InspectedPackage = { filePath: string; inspection: CaseHandoverInspectResult };
 
 function formatDate(value?: string): string {
   if (!value) return 'ohne Ablaufdatum';
@@ -16,7 +16,9 @@ function formatDate(value?: string): string {
   return Number.isFinite(date.getTime()) ? date.toLocaleDateString('de-DE') : value;
 }
 
-export function HandoverImportPanel({ onCompleted }: { onCompleted: () => Promise<void> }) {
+export function HandoverImportPanel({ onCompleted, file }: {
+  onCompleted: () => Promise<void>; file: SelectedHandoverFile;
+}) {
   const announce = useAnnouncer();
   const [passphrase, setPassphrase] = useState('');
   const [selection, setSelection] = useState<InspectedPackage | null>(null);
@@ -43,13 +45,12 @@ export function HandoverImportPanel({ onCompleted }: { onCompleted: () => Promis
     setBusy(true);
     try {
       const handover = await requireCaseHandoverBridge();
-      const selected = await handover.selectAndInspect(passphrase);
-      if (selected.canceled) return;
-      const nextMode = selected.inspection.packageType === 'return_delta' ? 'merge_existing' : selected.inspection.importPlan.defaultMode;
-      setSelection(selected); setMode(nextMode);
-      setApplyOfficeConfiguration(selected.inspection.packageType === 'office_handover');
+      const inspection = await handover.inspect(file.token, passphrase);
+      const nextMode = inspection.packageType === 'return_delta' ? 'merge_existing' : inspection.importPlan.defaultMode;
+      setSelection({ filePath: file.token, inspection }); setMode(nextMode);
+      setApplyOfficeConfiguration(inspection.packageType === 'office_handover');
       setAllowLegacyPackage(false);
-      setTargetCaseId(nextMode === 'merge_existing' ? selected.inspection.matches[0]?.localCaseId ?? '' : '');
+      setTargetCaseId(nextMode === 'merge_existing' ? inspection.matches[0]?.localCaseId ?? '' : '');
     } catch (cause) { showError(cause instanceof Error ? cause.message : 'Übergabepaket konnte nicht geprüft werden.'); }
     finally { setBusy(false); }
   }
@@ -77,11 +78,9 @@ export function HandoverImportPanel({ onCompleted }: { onCompleted: () => Promis
   }
 
   const inspection = selection?.inspection;
-  return <IndustrialPanel ariaLabel="Übergabe oder Rückgabe importieren" kicker="Eingang" title="Übergabe oder Rückgabe importieren" description="Das Paket wird vor jeder Schreiboperation geprüft; erst danach ist der Import möglich." helpId="caseHandover.import">
-    <form className="industrial-stack" onSubmit={submit}>
+  return <form className="industrial-stack" onSubmit={submit} aria-label="Format-1-bis-4-Paket prüfen und importieren">
       <PasswordInput label="Transport-Passphrase (nur bei passwortgeschützten Paketen)" value={passphrase} onValueChange={(value) => { setPassphrase(value); setSelection(null); }} />
-      <div className="industrial-action-row"><ToolbarButton type="button" onClick={() => void selectAndInspect()} loading={busy}>Datei auswählen und Paket prüfen</ToolbarButton></div>
-      {selection ? <TextInput label="Geprüfte Datei" value={selection.fileName} onValueChange={() => undefined} readOnly /> : null}
+      <div className="industrial-action-row"><ToolbarButton type="button" onClick={() => void selectAndInspect()} loading={busy}>Paket prüfen</ToolbarButton></div>
       {inspection?.packageType === 'return_delta' ? <div className="industrial-message" role="status"><strong>Rückgabe-Delta geprüft.</strong> Die Zuordnung erfolgt ausschließlich über das auf dieser Instanz protokollierte Ausgangspaket.</div> : null}
       {inspection?.packageType === 'office_handover' ? <div className="industrial-message" role="status"><strong>Amtsübergabe geprüft.</strong> Das Paket enthält dauerhaften Amtsbestand; persönliche Tätigkeitsjournale sind technisch ausgeschlossen.</div> : null}
       {inspection?.packageType === 'vacation_handover' || inspection?.packageType === 'office_handover' ? <ImportPackageReview
@@ -103,6 +102,5 @@ export function HandoverImportPanel({ onCompleted }: { onCompleted: () => Promis
       {error ? <div className="industrial-message industrial-message-warning" role="alert">{error}</div> : null}
       {status ? <div className="industrial-message industrial-message-success" role="status">{status}</div> : null}
       <FormActions><IndustrialButton type="submit" loading={busy} disabled={!selection}><Upload className="industrial-icon" aria-hidden="true" />Geprüftes Paket importieren</IndustrialButton></FormActions>
-    </form>
-  </IndustrialPanel>;
+    </form>;
 }

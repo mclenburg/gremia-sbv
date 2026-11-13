@@ -285,7 +285,7 @@ export const HELP_REGISTRY = {
     blocks: [
       { type: "list", items: [
         "Für Format 5 offene Fallakten, fallfreie Fristen und Amtsvorgänge bewusst auswählen; Dokumente einzeln markieren und die Vorschau prüfen.",
-        "Für Format 5 ein aktives Zielprofil mit offline verifizierter Lesefähigkeit wählen; ältere Formate übertragen nur Fallakten.",
+        "Zielprofil wählen: Das neueste verifiziert lesbare Format wird vorgeschlagen. Bei unbekannter Fähigkeit beginnt die Auswahl vorsichtig mit Format 2; Format 4 bleibt wählbar. Format 5 benötigt eine bestätigte Lesefähigkeit. Ältere Formate übertragen nur Fallakten.",
         "Vertretungsende setzen; nach Ablauf werden importierte Vertretungsdaten prüfbedürftig.",
       ] },
     ],
@@ -329,6 +329,7 @@ export const HELP_REGISTRY = {
     id: "caseHandover.import", kicker: "Import", title: "Paket prüfen und übernehmen",
     summary: "Vor jeder Schreiboperation wird das Paket geprüft und ein Importplan angezeigt.",
     blocks: [
+      { type: "paragraph", text: "Wähle die Übergabedatei einmal aus. Gremia.SBV erkennt den Formatweg anhand der Pakethülle und zeigt danach nur die passende Prüfung. Herkunft, Integrität und Inhalt werden erst nach Eingabe der Passphrase verifiziert." },
       { type: "paragraph", text: "Gremia.SBV schreibt erst nach ausdrücklicher Bestätigung. Bei Urlaubsvertretungen werden mögliche Gegenstücke angezeigt; Amtsübergaben werden als neuer lokaler Amtsbestand übernommen." },
     ],
   },

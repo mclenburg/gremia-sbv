@@ -83,6 +83,8 @@ function createCaseHandoverApi(invokeIpc: IpcInvoker) {
       invokeIpc(IPC_CHANNELS.caseHandoverV5ReturnImport, input),
     selectFile: (): Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string }> =>
       invokeIpc(IPC_CHANNELS.caseHandoverSelectFile),
+    classifyFile: (fileToken: string): Promise<import('../../services/caseHandoverFileRoute.js').CaseHandoverFileRoute> =>
+      invokeIpc(IPC_CHANNELS.caseHandoverClassifyFile, fileToken),
     inspect: (filePath: string, passphrase: string): Promise<CaseHandoverInspectResult> =>
       invokeIpc(IPC_CHANNELS.caseHandoverInspect, filePath, passphrase),
     selectAndInspect: (passphrase: string): Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string; inspection: CaseHandoverInspectResult }> =>

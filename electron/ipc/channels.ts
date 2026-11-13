@@ -42,6 +42,7 @@ export const IPC_CHANNELS = Object.freeze({
   caseHandoverV5ReturnImport: "caseHandover:v5:return:import",
   caseHandoverImport: "caseHandover:import",
   caseHandoverInspect: "caseHandover:inspect",
+  caseHandoverClassifyFile: "caseHandover:classify-file",
   caseHandoverMobileDeviceStatus: "caseHandover:mobile:device-status",
   caseHandoverMobileDevicesList: "caseHandover:mobile:devices:list",
   caseHandoverMobileDevicesSave: "caseHandover:mobile:devices:save",

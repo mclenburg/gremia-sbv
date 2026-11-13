@@ -285,6 +285,7 @@ declare global {
       reviewV5Return: (fileToken: string, passphrase: string) => Promise<import('./domain/transfer/vacationV5ReturnReview').VacationV5ReturnReview>;
       importV5Return: (input: import('./domain/transfer/vacationV5ReturnReview').VacationV5ReturnImportInput) => Promise<import('./domain/transfer/vacationV5ReturnReview').VacationV5ReturnImportResult>;
       selectFile: () => Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string }>;
+      classifyFile: (fileToken: string) => Promise<import('../services/caseHandoverFileRoute').CaseHandoverFileRoute>;
       inspect: (filePath: string, passphrase: string) => Promise<CaseHandoverInspectResult>;
       selectAndInspect: (passphrase: string) => Promise<{ canceled: true } | { canceled: false; filePath: string; fileName: string; inspection: CaseHandoverInspectResult }>;
       import: (input: CaseHandoverImportInput) => Promise<CaseHandoverImportResult>;
