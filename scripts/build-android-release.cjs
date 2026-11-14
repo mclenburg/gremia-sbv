@@ -33,10 +33,22 @@ function withSigningEnvironment(environment, action) {
   }
 }
 
+function androidVersionCode(version) {
+  const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(version);
+  if (!match) throw new Error(`Android-Release: Ungültige Projektversion ${version}.`);
+  const [major, minor, patch] = match.slice(1).map(Number);
+  if (minor >= 1000 || patch >= 1000) throw new Error('Android-Release: Versionsanteile überschreiten den zulässigen Bereich.');
+  const code = major * 1_000_000 + minor * 1000 + patch;
+  if (!Number.isSafeInteger(code) || code < 1 || code > 2_147_483_647) {
+    throw new Error('Android-Release: Versionscode ist ungültig.');
+  }
+  return code;
+}
+
 function verifyApkIdentity(badging, version) {
   const identity = /^package: name='([^']+)' versionCode='(\d+)' versionName='([^']+)'/m.exec(badging);
   if (!identity || identity[1] !== 'de.gremia.sbv.companion' || identity[3] !== version ||
-      Number(identity[2]) < 1 || /^application-debuggable/m.test(badging)) {
+      Number(identity[2]) !== androidVersionCode(version) || /^application-debuggable/m.test(badging)) {
     throw new Error('Android-Release: APK-Identität, Version oder Release-Modus ist ungültig.');
   }
 }
@@ -73,7 +85,7 @@ function buildRelease(environment = process.env, outputDirectory) {
   console.log(`Android-Release geprüft: ${filename}`);
 }
 
-module.exports = { withSigningEnvironment, verifyApkIdentity, buildRelease };
+module.exports = { withSigningEnvironment, androidVersionCode, verifyApkIdentity, buildRelease };
 if (require.main === module) {
   try {
     buildRelease();

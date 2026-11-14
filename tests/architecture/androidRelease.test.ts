@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 const require = createRequire(import.meta.url);
 const release = require('../../scripts/build-android-release.cjs') as {
   withSigningEnvironment<T>(env: NodeJS.ProcessEnv, action: (env: NodeJS.ProcessEnv) => T): T;
+  androidVersionCode(version: string): number;
   verifyApkIdentity(badging: string, version: string): void;
 };
 const secrets = {
@@ -57,12 +58,14 @@ describe('Android Release-Signierung', () => {
 });
 
 describe('Identität der tatsächlich gebauten Release-APK', () => {
-  const badging = "package: name='de.gremia.sbv.companion' versionCode='1' versionName='0.9.8' platformBuildVersionName='15'\n";
+  const badging = "package: name='de.gremia.sbv.companion' versionCode='9009' versionName='0.9.9' platformBuildVersionName='15'\n";
   it('akzeptiert ausschließlich die nicht-debuggable Release-App mit passender Version', () => {
-    expect(() => release.verifyApkIdentity(badging, '0.9.8')).not.toThrow();
-    expect(() => release.verifyApkIdentity(badging, '0.9.9')).toThrow();
-    expect(() => release.verifyApkIdentity(badging.replace('companion', 'companion.debug'), '0.9.8')).toThrow();
-    expect(() => release.verifyApkIdentity(`${badging}application-debuggable\n`, '0.9.8')).toThrow();
-    expect(() => release.verifyApkIdentity('', '0.9.8')).toThrow();
+    expect(release.androidVersionCode('0.9.9')).toBe(9009);
+    expect(() => release.verifyApkIdentity(badging, '0.9.9')).not.toThrow();
+    expect(() => release.verifyApkIdentity(badging, '0.9.8')).toThrow();
+    expect(() => release.verifyApkIdentity(badging.replace("versionCode='9009'", "versionCode='1'"), '0.9.9')).toThrow();
+    expect(() => release.verifyApkIdentity(badging.replace('companion', 'companion.debug'), '0.9.9')).toThrow();
+    expect(() => release.verifyApkIdentity(`${badging}application-debuggable\n`, '0.9.9')).toThrow();
+    expect(() => release.verifyApkIdentity('', '0.9.9')).toThrow();
   });
 });

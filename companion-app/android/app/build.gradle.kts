@@ -1,5 +1,6 @@
 import java.util.Properties
 import java.security.MessageDigest
+import groovy.json.JsonSlurper
 
 plugins {
     alias(libs.plugins.android.application)
@@ -21,6 +22,16 @@ val releaseKeyPassword = signingValue("KEY_PASSWORD")?.takeIf { it.isNotEmpty() 
     ?: releaseStorePassword
 val releaseSigningReady = releaseStore?.isFile == true &&
     listOf(releaseStorePassword, releaseKeyAlias, releaseKeyPassword).all { !it.isNullOrBlank() }
+val desktopVersion = (JsonSlurper().parse(rootProject.file("../../package.json")) as Map<*, *>)["version"] as? String
+    ?: error("Die Projektversion fehlt in package.json.")
+val versionParts = Regex("^(\\d+)\\.(\\d+)\\.(\\d+)$").matchEntire(desktopVersion)
+    ?: error("Die Android-Releaseversion muss aus drei numerischen Teilen bestehen: $desktopVersion")
+val androidVersionCode = versionParts.groupValues.drop(1).map { it.toLong() }.let { (major, minor, patch) ->
+    check(minor < 1000 && patch < 1000) { "Android-Versionsanteile müssen unter 1000 liegen." }
+    val code = major * 1_000_000 + minor * 1000 + patch
+    check(code in 1..Int.MAX_VALUE.toLong()) { "Android-Versionscode ist ungültig." }
+    code.toInt()
+}
 
 android {
     namespace = "de.gremia.sbv.companion"
@@ -30,8 +41,8 @@ android {
         applicationId = "de.gremia.sbv.companion"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.9.8"
+        versionCode = androidVersionCode
+        versionName = desktopVersion
     }
 
     signingConfigs {
